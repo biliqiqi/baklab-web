@@ -8,12 +8,12 @@ import { Button } from './components/ui/button'
 
 /* import { Card } from './components/ui/card' */
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from './components/ui/form'
 import { Input } from './components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs'
@@ -23,6 +23,9 @@ import BLoader from './components/base/BLoader'
 import BNav from './components/base/BNav'
 
 import CodeForm, { CodeScheme } from './components/CodeForm'
+
+import { postEmailSinup } from './api'
+import { getUser } from './api/user'
 
 const emailScheme = z.object({
   email: z.string().email(),
@@ -87,17 +90,28 @@ export default function SignupPage() {
   /* const emailForm = useForm<>{} */
 
   const [loading, setLoading] = useState(false)
-  const onEmailSubmit = (values: EmailScheme) => {
+  const onEmailSubmit = async (values: EmailScheme) => {
     if (loading) return
 
     setLoading(true)
     console.log('values: ', values)
     /* setIsPhone(false) */
 
-    setTimeout(() => {
+    /* setTimeout(() => {
+     *   setCodeSent(true)
+     *   setLoading(false)
+     * }, 1000) */
+
+    try {
+      const data = await postEmailSinup(values.email)
+      console.log('post response data:', data)
+
       setCodeSent(true)
+    } catch (e) {
+      console.error('post email signup error: ', e)
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
   }
 
   const onPhoneSubmit = (values: PhoneScheme) => {

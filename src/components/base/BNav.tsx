@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 
 import { SITE_NAME } from '@/contants'
 
-import { Button } from './ui/button'
+import { Button } from '../ui/button'
 
 const BNav = React.forwardRef<
   HTMLDivElement,

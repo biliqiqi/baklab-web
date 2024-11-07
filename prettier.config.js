@@ -14,7 +14,11 @@ const config = {
   importOrder: [
     '<THIRD_PARTY_MODULES>',
     '^@/lib/(.*)$',
+    '^./components/ui/(.*)$',
     '^@/components/ui/(.*)$',
+    '^./components/base/(.*)$',
+    '^@/components/base/(.*)$',
+    '^./components/(.*)$',
     '^@/components/(.*)$',
     '^@/(.*)$',
     '^[./]',

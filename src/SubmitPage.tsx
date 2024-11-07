@@ -1,6 +1,6 @@
-import BContainer from './components/BContainer'
-import BForm from './components/BForm'
-import BNav from './components/BNav'
+import BContainer from './components/base/BContainer'
+import BForm from './components/base/BForm'
+import BNav from './components/base/BNav'
 
 export default function SubmitPage() {
   return (

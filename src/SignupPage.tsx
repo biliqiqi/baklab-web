@@ -4,9 +4,6 @@ import { useForm } from 'react-hook-form'
 
 import { z } from '@/lib/zod-custom'
 
-import BContainer from './components/BContainer'
-import BNav from './components/BNav'
-import CodeForm, { CodeScheme } from './components/CodeForm'
 import { Button } from './components/ui/button'
 
 /* import { Card } from './components/ui/card' */
@@ -20,6 +17,12 @@ import {
 } from './components/ui/form'
 import { Input } from './components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs'
+
+import BContainer from './components/base/BContainer'
+import BLoader from './components/base/BLoader'
+import BNav from './components/base/BNav'
+
+import CodeForm, { CodeScheme } from './components/CodeForm'
 
 const emailScheme = z.object({
   email: z.string().email(),
@@ -83,10 +86,18 @@ export default function SignupPage() {
 
   /* const emailForm = useForm<>{} */
 
+  const [loading, setLoading] = useState(false)
   const onEmailSubmit = (values: EmailScheme) => {
+    if (loading) return
+
+    setLoading(true)
     console.log('values: ', values)
-    setIsPhone(false)
-    setCodeSent(true)
+    /* setIsPhone(false) */
+
+    setTimeout(() => {
+      setCodeSent(true)
+      setLoading(false)
+    }, 1000)
   }
 
   const onPhoneSubmit = (values: PhoneScheme) => {
@@ -205,8 +216,12 @@ export default function SignupPage() {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full text-center">
-                      下一步
+                    <Button
+                      type="submit"
+                      className="w-full text-center"
+                      disabled={loading}
+                    >
+                      {loading ? <BLoader /> : '下一步'}
                     </Button>
                   </form>
                 </Form>

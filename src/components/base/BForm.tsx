@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 
 import { z } from '@/lib/zod-custom'
 
-import { Button } from './ui/button'
+import { Button } from '../ui/button'
 import {
   Form,
   FormControl,
@@ -12,8 +12,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from './ui/form'
-import { Input } from './ui/input'
+} from '../ui/form'
+import { Input } from '../ui/input'
 
 const testScheme = z.object({
   username: z.string().min(2).max(50),

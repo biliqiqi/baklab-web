@@ -1,0 +1,57 @@
+[
+  {
+    "id": 1,
+    "name": "智能助手Pro",
+    "likeCount": 15789,
+    "iconUrl": "https://placehold.co/400x400/3A8FB7/F1E8B8?text=Z",
+    "summary": "一款强大的人工智能助手,提高您的工作效率",
+    "isFree": false,
+    "appType": ["生产力", "人工智能"],
+    "reviewCount": 3254,
+    "liked": false
+  },
+  {
+    "id": 2,
+    "name": "轻松记账",
+    "likeCount": 8976,
+    "iconUrl": "https://placehold.co/400x400/FF6B6B/4ECDC4?text=Q",
+    "summary": "简单易用的个人财务管理工具",
+    "isFree": true,
+    "appType": ["财务", "生活方式"],
+    "reviewCount": 1876,
+    "liked": false
+  },
+  {
+    "id": 3,
+    "name": "健康追踪器",
+    "likeCount": 23456,
+    "iconUrl": "https://placehold.co/400x400/45B7D1/FAF0CA?text=J",
+    "summary": "全面的健康和健身数据追踪应用",
+    "isFree": false,
+    "appType": ["健康", "运动"],
+    "reviewCount": 5678,
+    "liked": false
+  },
+  {
+    "id": 4,
+    "name": "环球翻译",
+    "likeCount": 12345,
+    "iconUrl": "https://placehold.co/400x400/9B59B6/F1C40F?text=H",
+    "summary": "支持100+种语言的即时翻译工具",
+    "isFree": true,
+    "appType": ["工具", "教育"],
+    "reviewCount": 2987,
+    "liked": false
+  },
+  {
+    "id": 5,
+    "name": "虚拟厨师",
+    "likeCount": 7890,
+    "iconUrl": "https://placehold.co/400x400/2ECC71/E74C3C?text=X",
+    "summary": "个性化菜谱推荐和烹饪指导应用",
+    "isFree": false,
+    "appType": ["美食", "生活方式"],
+    "reviewCount": 1543,
+    "liked": false
+  }
+]

@@ -1,7 +1,7 @@
 import ky from 'ky'
+import { toast } from 'sonner'
 
 import { API_HOST, API_PATH_PREFIX } from '@/contants'
-import { useToastStore } from '@/state/global'
 import { ResponseData } from '@/types/types'
 
 export default ky.create({
@@ -18,31 +18,21 @@ export default ky.create({
     ],
     afterResponse: [
       async (_req, _opt, resp) => {
-        // const updateToast = useToastStore((state) => state.update)
-        const updateToast = useToastStore.getState().update
-
         if (!resp.ok) {
           switch (resp.status) {
             case 401:
-              updateToast(true, '请登录后再试')
+              toast.error('请登录后再试')
               break
             case 403:
-              updateToast(true, '禁止访问')
+              toast.error('禁止访问')
               break
             case 500:
-              updateToast(true, '应用程序出现了问题')
+              toast.error('应用程序出现了问题')
               break
             default:
               console.error('HTTP error: ', resp)
               break
           }
-          // if (resp.status == 401) {
-          //   updateToast(true, '请登录后再试')
-          // } else if (resp.status == 500) {
-          //   updateToast(true, '应用程序出现了问题')
-          // } else {
-          //   console.error('HTTP error: ', resp)
-          // }
           return
         }
 
@@ -50,9 +40,8 @@ export default ky.create({
 
         // eslint-disable-next-line
         const data = (await resp.json()) as ResponseData<any>
-        // console.log('request response data: ', data)
-        if (data.code > 599) {
-          updateToast(true, data.message)
+        if (data.code > 0) {
+          toast.error(data.message)
         }
 
         return respDup

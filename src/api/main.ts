@@ -1,4 +1,4 @@
-import request from '@/utils/request'
+import request from '@/lib/request'
 
 // export const postEmailSinup = async (email: string) => {
 //   const resp = await fetch('http://localhost:3001/api/signup', {

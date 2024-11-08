@@ -3,7 +3,8 @@ import React, { useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
 import { SITE_NAME_CN } from '@/contants'
-import { useToastStore } from '@/state/global'
+
+import { Toaster } from '../ui/sonner'
 
 export interface BContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string
@@ -12,11 +13,8 @@ export interface BContainerProps extends React.HTMLAttributes<HTMLDivElement> {
 const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
   ({ className, title, children, ...props }, ref) => {
     /* const [toastVisible, toastContent] = useToastStore(
-     *   ({ visible, content }) => [visible, content]
+     *   useShallow(({ visible, content }) => [visible, content])
      * ) */
-
-    const toastVisible = useToastStore((state) => state.visible)
-    const toastContent = useToastStore((state) => state.content)
 
     useEffect(() => {
       document.title = title ? `${title} - ${SITE_NAME_CN}` : SITE_NAME_CN
@@ -30,9 +28,17 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       >
         {children}
 
-        {toastVisible && (
-          <div className="p-6 border-red-600 border-2">{toastContent}</div>
-        )}
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            classNames: {
+              error: 'bg-red-400',
+              success: 'text-green-400',
+              warning: 'text-yellow-400',
+              info: 'bg-blue-400',
+            },
+          }}
+        />
       </div>
     )
   }

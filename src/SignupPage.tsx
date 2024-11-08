@@ -25,7 +25,6 @@ import BNav from './components/base/BNav'
 import CodeForm, { CodeScheme } from './components/CodeForm'
 
 import { postEmailSinup } from './api'
-import { getUser } from './api/user'
 
 const emailScheme = z.object({
   email: z.string().email(),
@@ -104,7 +103,7 @@ export default function SignupPage() {
 
     try {
       const data = await postEmailSinup(values.email)
-      console.log('post response data:', data)
+      console.log('email post resp data:', data)
 
       setCodeSent(true)
     } catch (e) {

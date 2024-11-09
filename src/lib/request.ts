@@ -35,7 +35,7 @@ const defaultOptions: Options = {
 
               break
             case status == 401:
-              toast.error('请登录后再试')
+              toast.error('请认证或登录后再试')
               break
             case status == 403:
               toast.error('禁止访问')
@@ -47,7 +47,7 @@ const defaultOptions: Options = {
               console.error('HTTP error: ', resp)
               break
           }
-          return
+          return respDup
         }
 
         if (data.code > 0) {
@@ -61,13 +61,6 @@ const defaultOptions: Options = {
 }
 
 const request = ky.create(defaultOptions)
-
-// export const updateRequest = (fn: (opt: Options) => Options) => {
-//   if (typeof fn == 'function') {
-//     const newOpt = fn(defaultOptions)
-//     request = request.extend(newOpt)
-//   }
-// }
 
 export let authRequst = request
 

@@ -25,11 +25,7 @@ import BNav from './components/base/BNav'
 import CodeForm, { CodeScheme } from './components/CodeForm'
 
 import { completeEmailSign, postEmailSinup, postEmailVerify } from './api'
-import request, {
-    authRequst,
-    setAuthRequest,
-    updateRequest,
-} from './lib/request'
+import request, { setAuthRequest } from './lib/request'
 
 const emailScheme = z.object({
   email: z.string().email(),
@@ -174,7 +170,7 @@ export default function SignupPage() {
           request.extend((opt) => {
             opt.headers = {
               ...opt.headers,
-              Authorization: `BEARER ${data.data.token}`,
+              Authorization: `Bearer ${data.data.token}`,
             }
             return opt
           })
@@ -227,8 +223,8 @@ export default function SignupPage() {
                   control={form.control}
                   name="username"
                   render={({ field, fieldState }) => (
-                    <FormItem className="mb-4">
-                      <FormLabel errorHighlight={false}>用户名</FormLabel>
+                    <FormItem className="mb-8">
+                      {/* <FormLabel errorHighlight={false}>用户名</FormLabel> */}
                       <FormControl>
                         <Input
                           placeholder="请输入用户名"
@@ -247,7 +243,7 @@ export default function SignupPage() {
                   name="password"
                   render={({ field, fieldState }) => (
                     <FormItem className="mb-8">
-                      <FormLabel errorHighlight={false}>密码</FormLabel>
+                      {/* <FormLabel errorHighlight={false}>密码</FormLabel> */}
                       <FormControl>
                         <Input
                           type="password"

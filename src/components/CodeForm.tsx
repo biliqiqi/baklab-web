@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { MouseEvent } from 'react'
+import { MouseEvent, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 
 import { z } from '@/lib/zod-custom'
@@ -17,32 +17,40 @@ import { Input } from '@/components/ui/input'
 const REGEXP_CODE = /^\d{6}$/
 
 const codeScheme = z.object({
-  code: z.string().regex(REGEXP_CODE, '格式错误的验证码'),
+  code: z.string().regex(REGEXP_CODE, '验证码格式错误'),
 })
 
 export type CodeScheme = z.infer<typeof codeScheme>
 
 interface CodeFormProps {
   isPhone: boolean
+  loading: boolean
   onBackClick?: () => void
   onSubmit?: SubmitHandler<CodeScheme>
+  onResendClick?: () => void
 }
 
 const CodeForm: React.FC<CodeFormProps> = ({
   isPhone,
+  loading,
   onSubmit = () => {},
   onBackClick = () => {},
+  onResendClick = () => {},
 }) => {
   const codeForm = useForm<CodeScheme>({
     resolver: zodResolver(codeScheme),
     defaultValues: {
-      code: '',
+      code: '686868',
     },
   })
 
+  const [disableResend, setDisableResend] = useState(false)
+
   const reSendCode = (e: MouseEvent) => {
+    if (disableResend) return
     e.preventDefault()
-    //...
+    onResendClick()
+    setDisableResend(true)
   }
 
   return (
@@ -68,21 +76,30 @@ const CodeForm: React.FC<CodeFormProps> = ({
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full text-center mb-4">
+        <Button
+          type="submit"
+          className="w-full text-center mb-4"
+          disabled={loading}
+        >
           下一步
         </Button>
         <Button
           type="button"
           variant="secondary"
           className="w-full text-center"
-          onClick={() => onBackClick()}
+          onClick={onBackClick}
         >
           返回
         </Button>
         <div className="my-4 py-2 text-sm">
           未收到验证码？
-          <Button onClick={reSendCode} variant="link" className="m-0 p-0">
-            点击重新发送
+          <Button
+            onClick={reSendCode}
+            variant="link"
+            className="m-0 p-0"
+            disabled={disableResend}
+          >
+            {disableResend ? '已发送' : '点击重新发送'}
           </Button>
         </div>
       </form>

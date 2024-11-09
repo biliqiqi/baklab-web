@@ -3,3 +3,7 @@ export interface ResponseData<T> {
   message: string
   data: T
 }
+
+export interface EmailVerifyResponse {
+  token: string
+}

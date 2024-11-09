@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { z } from '@/lib/zod-custom'
@@ -24,7 +24,12 @@ import BNav from './components/base/BNav'
 
 import CodeForm, { CodeScheme } from './components/CodeForm'
 
-import { postEmailSinup, postEmailVerify } from './api'
+import { completeEmailSign, postEmailSinup, postEmailVerify } from './api'
+import request, {
+    authRequst,
+    setAuthRequest,
+    updateRequest,
+} from './lib/request'
 
 const emailScheme = z.object({
   email: z.string().email(),
@@ -35,8 +40,33 @@ const phoneScheme = z.object({
 })
 
 const signupScheme = z.object({
-  username: z.string().min(2).max(50),
-  email: z.string().email(),
+  username: z
+    .string()
+    .min(4, '用户名不得小于4个字符')
+    .max(20, '用户名不得小于20个字符')
+    .transform((str) => str.toLowerCase())
+    .pipe(
+      z.string().refine(
+        (value) => {
+          // 检查是否只包含允许的字符
+          const validCharsRegex = /^[a-z0-9._-]+$/
+
+          // 检查首尾是否是标点符号
+          const startsWithPunctuation = /^[._-]/.test(value)
+          const endsWithPunctuation = /[._-]$/.test(value)
+
+          return (
+            validCharsRegex.test(value) &&
+            !startsWithPunctuation &&
+            !endsWithPunctuation
+          )
+        },
+        {
+          message:
+            '用户名只能包含字母、数字、下划线(_)、中横线(-)和英文句号(.)，且首尾不能是标点符号',
+        }
+      )
+    ),
   password: z
     .string()
     .min(12, '密码长度不得小于12个字符')
@@ -58,13 +88,22 @@ enum SignupType {
   phone = 'phone',
 }
 
-let email: string
-
 export default function SignupPage() {
   const [isPhone, setIsPhone] = useState(false)
   const [codeSent, setCodeSent] = useState(false)
   const [codeVerified, setCodeVerified] = useState(false)
   const [currTab, setCurrTab] = useState<SignupType>(SignupType.email)
+  const [loading, setLoading] = useState(false)
+
+  const email = useRef('')
+
+  const reset = () => {
+    setIsPhone(false)
+    setCodeSent(false)
+    setCodeVerified(false)
+    setCurrTab(SignupType.email)
+    setLoading(false)
+  }
 
   const emailForm = useForm<EmailScheme>({
     resolver: zodResolver(emailScheme),
@@ -83,21 +122,17 @@ export default function SignupPage() {
   const form = useForm<SignupScheme>({
     resolver: zodResolver(signupScheme),
     defaultValues: {
-      username: '',
-      password: '',
+      username: 'abcd',
+      password: 'sdfsdfDFDF$#23423',
     },
   })
 
-  const [loading, setLoading] = useState(false)
-  const onEmailSubmit = async (values: EmailScheme) => {
+  const signWithEmail = async (email: string) => {
     if (loading) return
 
     setLoading(true)
-    console.log('values: ', values)
-
-    email = values.email
     try {
-      const data = await postEmailSinup(values.email)
+      const data = await postEmailSinup(email)
       /* console.log('email post resp data:', data) */
       if (!data.code) {
         setCodeSent(true)
@@ -109,6 +144,12 @@ export default function SignupPage() {
     }
   }
 
+  const onEmailSubmit = (values: EmailScheme) => {
+    /* console.log('values: ', values) */
+    email.current = values.email
+    signWithEmail(values.email)
+  }
+
   const onPhoneSubmit = (values: PhoneScheme) => {
     console.log('values: ', values)
     setIsPhone(true)
@@ -116,17 +157,29 @@ export default function SignupPage() {
   }
 
   const onCodeSubmit = async (values: CodeScheme) => {
-    console.log('email: ', email)
+    console.log('email: ', email.current)
     console.log('code values: ', values)
     /* console.log('code type: ', currTab) */
     if (loading) return
 
     setLoading(true)
     try {
-      const data = await postEmailVerify(email, values.code)
+      const data = await postEmailVerify(email.current, values.code)
       console.log('email verify resp data:', data)
 
-      /* setCodeVerified(true) */
+      if (!data.code) {
+        setCodeVerified(true)
+
+        setAuthRequest(
+          request.extend((opt) => {
+            opt.headers = {
+              ...opt.headers,
+              Authorization: `BEARER ${data.data.token}`,
+            }
+            return opt
+          })
+        )
+      }
     } catch (e) {
       console.error('post email signup error: ', e)
     } finally {
@@ -134,8 +187,29 @@ export default function SignupPage() {
     }
   }
 
-  const onSubmit = (values: SignupScheme) => {
-    console.log('values: ', values)
+  const onSubmit = async (values: SignupScheme) => {
+    try {
+      console.log('values: ', values)
+
+      if (loading) return
+
+      setLoading(true)
+
+      const data = await completeEmailSign(
+        email.current,
+        values.username,
+        values.password
+      )
+      console.log('email verify resp data:', data)
+
+      if (!data.code) {
+        setCodeVerified(true)
+      }
+    } catch (e) {
+      console.error('complete email signup error: ', e)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -187,16 +261,30 @@ export default function SignupPage() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full text-center">
-                  提交
+                <Button
+                  type="submit"
+                  className="w-full text-center mb-4"
+                  disabled={loading}
+                >
+                  {loading ? <BLoader /> : '提交'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="w-full text-center"
+                  onClick={reset}
+                >
+                  重新注册
                 </Button>
               </form>
             </Form>
           ) : codeSent ? (
             <CodeForm
               isPhone={isPhone}
+              loading={loading}
               onBackClick={() => setCodeSent(false)}
               onSubmit={onCodeSubmit}
+              onResendClick={() => signWithEmail(email.current)}
             />
           ) : (
             <Tabs defaultValue={currTab}>

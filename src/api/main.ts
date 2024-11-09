@@ -1,5 +1,7 @@
 import request from '@/lib/request'
 
+import { ResponseData } from '@/types/types'
+
 // export const postEmailSinup = async (email: string) => {
 //   const resp = await fetch('http://localhost:3001/api/signup', {
 //     method: 'POST',
@@ -19,5 +21,13 @@ import request from '@/lib/request'
 //   return data
 // }
 
-export const postEmailSinup = async (email: string) =>
+export const postEmailSinup = async (
+  email: string
+): Promise<ResponseData<null>> =>
   request.post(`signup`, { json: { email } }).json()
+
+export const postEmailVerify = async (
+  email: string,
+  code: string
+): Promise<ResponseData<null>> =>
+  request.post(`email_verify`, { json: { email, code } }).json()

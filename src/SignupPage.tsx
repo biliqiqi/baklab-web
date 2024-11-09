@@ -24,7 +24,7 @@ import BNav from './components/base/BNav'
 
 import CodeForm, { CodeScheme } from './components/CodeForm'
 
-import { postEmailSinup } from './api'
+import { postEmailSinup, postEmailVerify } from './api'
 
 const emailScheme = z.object({
   email: z.string().email(),
@@ -58,6 +58,8 @@ enum SignupType {
   phone = 'phone',
 }
 
+let email: string
+
 export default function SignupPage() {
   const [isPhone, setIsPhone] = useState(false)
   const [codeSent, setCodeSent] = useState(false)
@@ -86,26 +88,20 @@ export default function SignupPage() {
     },
   })
 
-  /* const emailForm = useForm<>{} */
-
   const [loading, setLoading] = useState(false)
   const onEmailSubmit = async (values: EmailScheme) => {
     if (loading) return
 
     setLoading(true)
     console.log('values: ', values)
-    /* setIsPhone(false) */
 
-    /* setTimeout(() => {
-     *   setCodeSent(true)
-     *   setLoading(false)
-     * }, 1000) */
-
+    email = values.email
     try {
       const data = await postEmailSinup(values.email)
-      console.log('email post resp data:', data)
-
-      setCodeSent(true)
+      /* console.log('email post resp data:', data) */
+      if (!data.code) {
+        setCodeSent(true)
+      }
     } catch (e) {
       console.error('post email signup error: ', e)
     } finally {
@@ -119,18 +115,28 @@ export default function SignupPage() {
     setCodeSent(true)
   }
 
-  const onCodeSubmit = (values: CodeScheme) => {
+  const onCodeSubmit = async (values: CodeScheme) => {
+    console.log('email: ', email)
     console.log('code values: ', values)
-    setCodeVerified(true)
+    /* console.log('code type: ', currTab) */
+    if (loading) return
+
+    setLoading(true)
+    try {
+      const data = await postEmailVerify(email, values.code)
+      console.log('email verify resp data:', data)
+
+      /* setCodeVerified(true) */
+    } catch (e) {
+      console.error('post email signup error: ', e)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const onSubmit = (values: SignupScheme) => {
     console.log('values: ', values)
   }
-
-  /* useEffect(() => {
-   *   setCodeSent(true)
-   * }, [codeSent]) */
 
   return (
     <>
@@ -194,7 +200,7 @@ export default function SignupPage() {
             />
           ) : (
             <Tabs defaultValue={currTab}>
-              <TabsList className="grid w-full grid-cols-2 mb-8">
+              {/* <TabsList className="grid w-full grid-cols-2 mb-8">
                 <TabsTrigger
                   value={SignupType.email}
                   onClick={() => setCurrTab(SignupType.email)}
@@ -207,7 +213,7 @@ export default function SignupPage() {
                 >
                   手机号注册
                 </TabsTrigger>
-              </TabsList>
+              </TabsList> */}
               <TabsContent value={SignupType.email}>
                 <Form {...emailForm}>
                   <form onSubmit={emailForm.handleSubmit(onEmailSubmit)}>

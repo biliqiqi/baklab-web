@@ -6,11 +6,11 @@ import { z } from '@/lib/zod-custom'
 
 import { Button } from '@/components/ui/button'
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 
@@ -79,11 +79,11 @@ const CodeForm: React.FC<CodeFormProps> = ({
         >
           返回
         </Button>
-        <div className="my-4 py-2">
+        <div className="my-4 py-2 text-sm">
           未收到验证码？
-          <a onClick={reSendCode} className="cursor-pointer">
+          <Button onClick={reSendCode} variant="link" className="m-0 p-0">
             点击重新发送
-          </a>
+          </Button>
         </div>
       </form>
     </Form>

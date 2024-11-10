@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Fragment } from 'react/jsx-runtime'
 
 import { Card } from '@/components/ui/card'

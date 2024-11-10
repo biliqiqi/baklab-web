@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { z } from '@/lib/zod-custom'
@@ -12,11 +12,10 @@ import {
     FormControl,
     FormField,
     FormItem,
-    FormLabel,
     FormMessage,
 } from './components/ui/form'
 import { Input } from './components/ui/input'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs'
+import { Tabs, TabsContent } from './components/ui/tabs'
 
 import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'

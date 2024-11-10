@@ -1,27 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { memo, useEffect, useRef, useState } from 'react'
-import {
-    Control,
-    Controller,
-    FieldValues,
-    Path,
-    useForm,
-} from 'react-hook-form'
+import { memo, useState } from 'react'
+import { Control, Controller, Path, useForm } from 'react-hook-form'
 import { useSearchParams } from 'react-router-dom'
 
 import { z } from '@/lib/zod-custom'
 
 import { Button } from './components/ui/button'
-
-/* import { Card } from './components/ui/card' */
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from './components/ui/form'
+import { Form, FormControl, FormItem, FormMessage } from './components/ui/form'
 import { Input } from './components/ui/input'
 
 import BContainer from './components/base/BContainer'
@@ -75,13 +60,8 @@ const FormInput = memo(
 export default function SigninPage() {
   const [loading, setLoading] = useState(false)
 
-  /* const email = useRef('') */
   const [searchParams, _setSearchParams] = useSearchParams()
-
-  console.log('search params: ', searchParams.get('aa'))
-
   const account = searchParams.get('account')
-
   console.log('account: ', account)
 
   const signinForm = useForm<SigninScheme>({

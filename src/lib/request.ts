@@ -1,8 +1,9 @@
-import ky, { KyInstance } from 'ky'
+import ky, { BeforeRequestHook } from 'ky'
 import { Options } from 'node_modules/ky/distribution/types/options'
 import { toast } from 'sonner'
 
 import { API_HOST, API_PATH_PREFIX } from '@/contants'
+import { useAuthedUserStore } from '@/state/global'
 import { ResponseData } from '@/types/types'
 
 const defaultOptions: Options = {
@@ -12,11 +13,6 @@ const defaultOptions: Options = {
     'Content-Type': 'application/json',
   },
   hooks: {
-    // beforeRequest: [
-    //   (_, opt) => {
-    //     console.log('before request opt: ', opt)
-    //   },
-    // ],
     afterResponse: [
       async (_req, _opt, resp) => {
         const status = resp.status
@@ -62,10 +58,24 @@ const defaultOptions: Options = {
 
 const request = ky.create(defaultOptions)
 
-export let authRequst = request
-
-export const setAuthRequest = (r: KyInstance) => {
-  authRequst = r
+const addAuthToHeaders: BeforeRequestHook = (req) => {
+  const token = useAuthedUserStore.getState().authToken
+  if (token != '') {
+    req.headers.set('Authorization', `Bearer ${token}`)
+  }
 }
+
+export const authRequst = request.extend((opt) => {
+  if (!opt.hooks) {
+    opt.hooks = {}
+  }
+
+  if (!opt.hooks.beforeRequest) {
+    opt.hooks.beforeRequest = [addAuthToHeaders]
+  } else {
+    opt.hooks.beforeRequest = [...opt.hooks.beforeRequest, addAuthToHeaders]
+  }
+  return opt
+})
 
 export default request

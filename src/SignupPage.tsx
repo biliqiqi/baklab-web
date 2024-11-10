@@ -23,9 +23,10 @@ import BNav from './components/base/BNav'
 
 import CodeForm, { CodeScheme } from './components/CodeForm'
 
+import { useNavigate } from 'react-router-dom'
 import { completeEmailSign, postEmailSinup, postEmailVerify } from './api'
-import request, { setAuthRequest } from './lib/request'
 import { emailRule, passwordRule, phoneRule, usernameRule } from './rules'
+import { useAuthedUserStore } from './state/global'
 
 const emailScheme = z.object({
   email: emailRule,
@@ -56,6 +57,9 @@ export default function SignupPage() {
   const [codeVerified, setCodeVerified] = useState(false)
   const [currTab, setCurrTab] = useState<SignupType>(SignupType.email)
   const [loading, setLoading] = useState(false)
+
+  const autheState = useAuthedUserStore()
+  const navigate = useNavigate()
 
   const email = useRef('')
 
@@ -131,16 +135,7 @@ export default function SignupPage() {
 
       if (!data.code) {
         setCodeVerified(true)
-
-        setAuthRequest(
-          request.extend((opt) => {
-            opt.headers = {
-              ...opt.headers,
-              Authorization: `Bearer ${data.data.token}`,
-            }
-            return opt
-          })
-        )
+        autheState.update(data.data.token, '', '')
       }
     } catch (e) {
       console.error('post email signup error: ', e)
@@ -162,10 +157,13 @@ export default function SignupPage() {
         values.username,
         values.password
       )
-      console.log('email verify resp data:', data)
+      console.log('signup complete data:', data)
 
       if (!data.code) {
         setCodeVerified(true)
+        const { token, username, email } = data.data
+        autheState.update(token, username, email)
+        navigate('/')
       }
     } catch (e) {
       console.error('complete email signup error: ', e)

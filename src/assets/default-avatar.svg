@@ -1,0 +1,11 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <!-- 背景圆圈 -->
+    <circle cx="50" cy="50" r="50" fill="#e0e0e0"/>
+    
+    <!-- 头部 -->
+    <circle cx="50" cy="40" r="20" fill="#bdbdbd"/>
+    
+    <!-- 身体 -->
+    <path d="M50 65 Q50 95 50 100 Q20 100 20 75 Q20 65 50 65" fill="#bdbdbd"/>
+    <path d="M50 65 Q50 95 50 100 Q80 100 80 75 Q80 65 50 65" fill="#bdbdbd"/>
+</svg>

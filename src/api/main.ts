@@ -32,11 +32,16 @@ export const postEmailVerify = async (
 ): Promise<ResponseData<EmailVerifyResponse>> =>
   request.post(`email_verify`, { json: { email, code } }).json()
 
+interface CompleteEmailSignResponse {
+  token: string
+  email: string
+  username: string
+}
 export const completeEmailSign = async (
   email: string,
   username: string,
   password: string
-): Promise<ResponseData<null>> =>
+): Promise<ResponseData<CompleteEmailSignResponse>> =>
   authRequst
     .post(`signup_complete`, { json: { email, username, password } })
     .json()

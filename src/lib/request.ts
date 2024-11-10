@@ -75,6 +75,9 @@ export const authRequst = request.extend((opt) => {
   } else {
     opt.hooks.beforeRequest = [...opt.hooks.beforeRequest, addAuthToHeaders]
   }
+
+  opt.credentials = 'include'
+
   return opt
 })
 

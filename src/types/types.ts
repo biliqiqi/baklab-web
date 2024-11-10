@@ -4,6 +4,6 @@ export interface ResponseData<T> {
   data: T
 }
 
-export interface EmailVerifyResponse {
+export interface TokenResponse {
   token: string
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Fragment } from 'react/jsx-runtime'
 
 import { Card } from '@/components/ui/card'
@@ -18,6 +18,7 @@ import BNav from './components/base/BNav'
 import { BIconHeart } from './components/icon/Heart'
 
 import mockList from '@/mock/toolList.json'
+import { getUser } from './api/user'
 
 interface Tool {
   id: number
@@ -32,6 +33,17 @@ interface Tool {
 }
 
 const typedMockList = mockList as Tool[]
+
+const fetchUser = async () => {
+  try {
+    const data = await getUser('oodzchen')
+    if (!data.code) {
+      console.log('user data: ', data)
+    }
+  } catch (e) {
+    console.error('get user data error: ', e)
+  }
+}
 
 export default function HomePage() {
   const [list, updateList] = useState<Tool[]>(typedMockList)
@@ -54,6 +66,10 @@ export default function HomePage() {
     console.log('list: ', list)
     updateList(res)
   }
+
+  useEffect(() => {
+    fetchUser()
+  }, [])
 
   return (
     <>

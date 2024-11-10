@@ -1,5 +1,5 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { cn } from '@/lib/utils'
 
@@ -9,7 +9,10 @@ import { isLogined, useAuthedUserStore } from '@/state/global'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { Button } from '../ui/button'
 
+import { logoutToken } from '@/api'
 import { DropdownMenuItem } from '@radix-ui/react-dropdown-menu'
+import { Loader } from 'lucide-react'
+import { toast } from 'sonner'
 import defaultAvatar from '../../assets/default-avatar.svg'
 import {
     DropdownMenu,
@@ -21,7 +24,9 @@ const BNav = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
+  const [loading, setLoading] = useState(false)
   const authState = useAuthedUserStore()
+  const navigate = useNavigate()
 
   const onDropdownChange = (open: boolean) => {
     if (!open) {
@@ -29,8 +34,21 @@ const BNav = React.forwardRef<
     }
   }
 
-  const logout = () => {
-    authState.logout()
+  const logout = async () => {
+    if (loading) return
+    try {
+      setLoading(true)
+      const data = await logoutToken()
+      if (!data.code) {
+        authState.logout()
+        navigate('/')
+      }
+    } catch (e) {
+      console.error('logout error: ', e)
+      toast.error('退出登录失败，请重试')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -52,7 +70,10 @@ const BNav = React.forwardRef<
         {isLogined(authState) ? (
           <DropdownMenu onOpenChange={onDropdownChange}>
             <DropdownMenuTrigger asChild>
-              <Avatar className="inline-block cursor-pointer">
+              <Avatar
+                className="inline-block cursor-pointer"
+                title={authState.username}
+              >
                 <AvatarImage src={defaultAvatar} />
                 <AvatarFallback>{authState.username}</AvatarFallback>
               </Avatar>
@@ -61,8 +82,9 @@ const BNav = React.forwardRef<
               <DropdownMenuItem
                 className="cursor-pointer py-1 px-2 hover:bg-gray-200 hover:outline-0"
                 onClick={logout}
+                disabled={loading}
               >
-                退出
+                {loading ? <Loader /> : '退出'}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

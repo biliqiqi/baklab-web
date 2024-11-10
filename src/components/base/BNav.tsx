@@ -27,7 +27,7 @@ const BNav = React.forwardRef<
         <Link to="/submit">+ 提交</Link>
       </Button>
       <Button size="sm" asChild className="ml-2">
-        <Link to="/signup">注册</Link>
+        <Link to="/signup">注册 / 登录</Link>
       </Button>
     </div>
   </div>

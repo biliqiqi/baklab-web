@@ -3,13 +3,13 @@ import { Fragment } from 'react/jsx-runtime'
 
 import { Card } from '@/components/ui/card'
 import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
 } from '@/components/ui/pagination'
 
 import BContainer from './components/base/BContainer'
@@ -23,23 +23,26 @@ interface Tool {
   id: number
   name: string
   likeCount: number
-  iconUrl: string // "https://placehold.co/400x400/3A8FB7/F1E8B8?text=Z",
-  summary: string // "一款强大的人工智能助手,提高您的工作效率",
-  isFree: boolean // false,
-  appType: string[] // ["生产力", "人工智能"],
-  reviewCount: number // 3254,
-  liked: boolean // false,
+  iconUrl: string
+  summary: string
+  isFree: boolean
+  appType: string[]
+  reviewCount: number
+  liked: boolean
 }
 
 const typedMockList = mockList as Tool[]
 
 export default function HomePage() {
-  const [list, updateList] = useState<Tool[]>([])
+  const [list, updateList] = useState<Tool[]>(typedMockList)
 
   const toggleLike = (id: number): Tool[] => {
     return mockList.map((item) => {
       if (item.id == id) {
-        item.liked = !item.liked
+        return {
+          ...item,
+          liked: !item.liked,
+        }
       }
       return item
     })
@@ -51,10 +54,6 @@ export default function HomePage() {
     console.log('list: ', list)
     updateList(res)
   }
-
-  useEffect(() => {
-    updateList(typedMockList)
-  }, [])
 
   return (
     <>

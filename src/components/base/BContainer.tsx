@@ -12,13 +12,11 @@ export interface BContainerProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
   ({ className, title, children, ...props }, ref) => {
-    /* const [toastVisible, toastContent] = useToastStore(
-     *   useShallow(({ visible, content }) => [visible, content])
-     * ) */
-
     useEffect(() => {
       document.title = title ? `${title} - ${SITE_NAME_CN}` : SITE_NAME_CN
     }, [title])
+
+    console.log('render container')
 
     return (
       <div

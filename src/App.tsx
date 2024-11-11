@@ -1,0 +1,69 @@
+import { RouterProvider } from 'react-router-dom'
+
+import { createBrowserRouter, redirect } from 'react-router-dom'
+import {
+    AUTHED_USER_LOCAL_STORE_NAME,
+    AuthedUserData,
+    useAuthedUserStore,
+} from './state/global.ts'
+
+import { useEffect } from 'react'
+import HomePage from './HomePage.tsx'
+import SigninPage from './SigninPage.tsx'
+import SignupPage from './SignupPage.tsx'
+import SubmitPage from './SubmitPage.tsx'
+import { useAuth } from './hooks/use-auth.ts'
+
+const createRouter = (authed: boolean) => {
+  const notAtAuthed = async () => {
+    /* console.log('authed in router: ', authed) */
+    if (authed) return redirect('/')
+    return null
+  }
+
+  return createBrowserRouter([
+    {
+      path: '/',
+      Component: HomePage,
+    },
+    {
+      path: '/signup',
+      Component: SignupPage,
+      loader: notAtAuthed,
+    },
+    {
+      path: '/signin',
+      Component: SigninPage,
+      loader: notAtAuthed,
+    },
+    {
+      path: '/submit',
+      Component: SubmitPage,
+    },
+  ])
+}
+
+const App = () => {
+  const updateAuthState = useAuthedUserStore((state) => state.update)
+  const authed = useAuth()
+
+  const router = createRouter(authed)
+
+  useEffect(() => {
+    const stateStr = localStorage.getItem(AUTHED_USER_LOCAL_STORE_NAME)
+    if (stateStr) {
+      try {
+        const data: AuthedUserData = JSON.parse(stateStr)
+        /* console.log('auth state from localStorage: ', data) */
+
+        const { authToken, username, email } = data
+        updateAuthState(authToken, username, email)
+      } catch (e) {
+        console.error('parse authe state local storage error: ', e)
+      }
+    }
+  }, [updateAuthState])
+  return <RouterProvider router={router} />
+}
+
+export default App

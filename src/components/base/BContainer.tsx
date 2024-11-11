@@ -4,13 +4,6 @@ import { cn } from '@/lib/utils'
 
 import { SITE_NAME_CN } from '@/constants'
 
-/* import {useShallow} from 'zustand/react/shallow' */
-
-import {
-    AUTHED_USER_LOCAL_STORE_NAME,
-    AuthedUserData,
-    useAuthedUserStore,
-} from '@/state/global'
 import { Toaster } from '../ui/sonner'
 
 export interface BContainerProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -19,24 +12,9 @@ export interface BContainerProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
   ({ className, title, children, ...props }, ref) => {
-    const updateAuthState = useAuthedUserStore((state) => state.update)
-
     useEffect(() => {
       document.title = title ? `${title} - ${SITE_NAME_CN}` : SITE_NAME_CN
-
-      const stateStr = localStorage.getItem(AUTHED_USER_LOCAL_STORE_NAME)
-      if (stateStr) {
-        try {
-          const data: AuthedUserData = JSON.parse(stateStr)
-          /* console.log('auth state from localStorage: ', data) */
-
-          const { authToken, username, email } = data
-          updateAuthState(authToken, username, email)
-        } catch (e) {
-          console.error('parse authe state local storage error: ', e)
-        }
-      }
-    }, [title, updateAuthState])
+    }, [title])
 
     /* console.log('render container') */
 

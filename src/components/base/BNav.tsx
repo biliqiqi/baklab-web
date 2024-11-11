@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 import { cn } from '@/lib/utils'
 
-import { SITE_NAME } from '@/contants'
+import { SITE_NAME } from '@/constants'
 
 import { isLogined, useAuthedUserStore } from '@/state/global'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'

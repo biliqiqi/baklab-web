@@ -25,6 +25,7 @@ import CodeForm, { CodeScheme } from './components/CodeForm'
 
 import { useNavigate } from 'react-router-dom'
 import { completeEmailSign, postEmailSinup, postEmailVerify } from './api'
+import { SERVER_ERR_ACCOUNT_EXIST } from './constants'
 import { emailRule, passwordRule, phoneRule, usernameRule } from './rules'
 import { useAuthedUserStore } from './state/global'
 
@@ -74,22 +75,26 @@ export default function SignupPage() {
   const emailForm = useForm<EmailScheme>({
     resolver: zodResolver(emailScheme),
     defaultValues: {
-      email: 'test@example.com',
+      /* email: 'test@example.com', */
+      email: '',
     },
   })
 
   const phoneForm = useForm<PhoneScheme>({
     resolver: zodResolver(phoneScheme),
     defaultValues: {
-      phone: '13599887798',
+      /* phone: '13599887798', */
+      phone: '',
     },
   })
 
   const form = useForm<SignupScheme>({
     resolver: zodResolver(signupScheme),
     defaultValues: {
-      username: 'abcd',
-      password: 'sdfsdfDFDF$#23423',
+      /* username: 'abcd',
+       * password: 'sdfsdfDFDF$#23423', */
+      username: '',
+      password: '',
     },
   })
 
@@ -102,6 +107,10 @@ export default function SignupPage() {
       /* console.log('email post resp data:', data) */
       if (!data.code) {
         setCodeSent(true)
+      } else {
+        if (data.code == SERVER_ERR_ACCOUNT_EXIST) {
+          navigate(`/signin?account=${email}`)
+        }
       }
     } catch (e) {
       console.error('post email signup error: ', e)
@@ -157,13 +166,17 @@ export default function SignupPage() {
         values.username,
         values.password
       )
-      console.log('signup complete data:', data)
+      /* console.log('signup complete data:', data) */
 
       if (!data.code) {
         setCodeVerified(true)
         const { token, username, email } = data.data
         autheState.update(token, username, email)
         navigate('/')
+      } else {
+        if (data.code == SERVER_ERR_ACCOUNT_EXIST) {
+          navigate(`/signin?account=${email}`)
+        }
       }
     } catch (e) {
       console.error('complete email signup error: ', e)

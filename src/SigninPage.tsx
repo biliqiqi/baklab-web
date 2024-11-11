@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { memo, useState } from 'react'
 import { Control, Controller, Path, useForm } from 'react-hook-form'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { z } from '@/lib/zod-custom'
 
@@ -13,7 +13,9 @@ import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
 import BNav from './components/base/BNav'
 
+import { postSignin } from './api'
 import { emailRule, passwordRule } from './rules'
+import { useAuthedUserStore } from './state/global'
 
 const signinScheme = z.object({
   account: emailRule,
@@ -59,37 +61,37 @@ const FormInput = memo(
 
 export default function SigninPage() {
   const [loading, setLoading] = useState(false)
+  const updateAuthState = useAuthedUserStore((state) => state.update)
 
   const [searchParams, _setSearchParams] = useSearchParams()
   const account = searchParams.get('account')
-  console.log('account: ', account)
+  /* console.log('account: ', account) */
+
+  const navigate = useNavigate()
 
   const signinForm = useForm<SigninScheme>({
     resolver: zodResolver(signinScheme),
     defaultValues: {
-      account: 't@example.com',
-      password: 'sdfsdfDFDF$#23423',
+      account: account || '',
+      password: '',
     },
   })
 
   const onSigninSubmit = async (values: SigninScheme) => {
     try {
-      console.log('values: ', values)
+      /* console.log('values: ', values) */
 
       if (loading) return
 
       setLoading(true)
 
-      /* const data = await completeEmailSign(
-  *   email.current,
-  *   values.username,
-  *   values.password
-  * )
-  * console.log('email verify resp data:', data)
-
-  * if (!data.code) {
-  *   setCodeVerified(true)
-  * } */
+      const data = await postSignin(values.account, values.password)
+      console.log('sign in resp data:', data)
+      if (!data.code) {
+        const { token, email, username } = data.data
+        updateAuthState(token, username, email)
+        navigate('/')
+      }
     } catch (e) {
       console.error('signin error: ', e)
     } finally {
@@ -97,7 +99,7 @@ export default function SigninPage() {
     }
   }
 
-  console.log('render signin page')
+  /* console.log('render signin page') */
 
   return (
     <>

@@ -2,7 +2,7 @@ import ky, { AfterResponseHook, BeforeRequestHook } from 'ky'
 import { Options } from 'node_modules/ky/distribution/types/options'
 import { toast } from 'sonner'
 
-import { API_HOST, API_PATH_PREFIX } from '@/contants'
+import { API_HOST, API_PATH_PREFIX } from '@/constants'
 import { isLogined, useAuthedUserStore } from '@/state/global'
 import { ResponseData, TokenResponse } from '@/types/types'
 

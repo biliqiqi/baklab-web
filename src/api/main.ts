@@ -1,4 +1,4 @@
-import request, { authRequst } from '@/lib/request'
+import request, { authRequest } from '@/lib/request'
 
 import { ResponseData, TokenResponse } from '@/types/types'
 
@@ -42,12 +42,9 @@ export const completeEmailSign = async (
   username: string,
   password: string
 ): Promise<ResponseData<CompleteEmailSignResponse>> =>
-  authRequst
+  authRequest
     .post(`signup_complete`, { json: { email, username, password } })
     .json()
 
 export const logoutToken = async (): Promise<ResponseData<null>> =>
-  authRequst.get(`logout`).json()
-
-export const refresToken = async (): Promise<ResponseData<TokenResponse>> =>
-  authRequst.get(`refresh_token`).json()
+  authRequest.get(`logout`).json()

@@ -1,4 +1,4 @@
-import { authRequst } from '@/lib/request'
+import { authRequest } from '@/lib/request'
 import { ResponseData } from '@/types/types'
 
 // export const getUser = async (username: string) => {
@@ -57,4 +57,4 @@ interface UserData {
 }
 
 export const getUser = (username: string): Promise<ResponseData<UserData>> =>
-  authRequst.get(`users/${username}`).json()
+  authRequest.get(`users/${username}`).json()

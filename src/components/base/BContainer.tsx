@@ -28,7 +28,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       if (stateStr) {
         try {
           const data: AuthedUserData = JSON.parse(stateStr)
-          console.log('auth state from localStorage: ', data)
+          /* console.log('auth state from localStorage: ', data) */
 
           const { authToken, username, email } = data
           updateAuthState(authToken, username, email)

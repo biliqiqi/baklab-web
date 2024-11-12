@@ -17,6 +17,11 @@ const defaultOptions: Options = {
     'Content-Type': 'application/json',
   },
   hooks: {
+    // beforeRequest: [
+    //   (_req, opt) => {
+    //     console.log('options in base request:', opt)
+    //   },
+    // ],
     afterResponse: [
       async (req, _opt, resp) => {
         // console.log('base request after response hooks: ', resp)

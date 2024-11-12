@@ -53,4 +53,6 @@ export const postSignin = async (
   account: string,
   password: string
 ): Promise<ResponseData<AuthedDataResponse>> =>
-  request.post(`signin`, { json: { account, password } }).json()
+  request
+    .post(`signin`, { credentials: 'include', json: { account, password } })
+    .json()

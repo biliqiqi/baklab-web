@@ -15,9 +15,9 @@ import { Loader } from 'lucide-react'
 import { toast } from 'sonner'
 import defaultAvatar from '../../assets/default-avatar.svg'
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 
 const BNav = React.forwardRef<
@@ -64,7 +64,7 @@ const BNav = React.forwardRef<
         {SITE_NAME}
       </Link>
       <div className="flex items-center">
-        <Button size="sm" asChild className="mr-4">
+        <Button variant="outline" size="sm" asChild className="mr-4">
           <Link to="/submit">+ 提交</Link>
         </Button>
         {isLogined(authState) ? (
@@ -89,8 +89,8 @@ const BNav = React.forwardRef<
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Button size="sm" asChild>
-            <Link to="/signup">注册 / 登录</Link>
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/signin">登录</Link>
           </Button>
         )}
       </div>

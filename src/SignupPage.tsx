@@ -8,11 +8,11 @@ import { Button } from './components/ui/button'
 
 /* import { Card } from './components/ui/card' */
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
 } from './components/ui/form'
 import { Input } from './components/ui/input'
 import { Tabs, TabsContent } from './components/ui/tabs'
@@ -23,7 +23,8 @@ import BNav from './components/base/BNav'
 
 import CodeForm, { CodeScheme } from './components/CodeForm'
 
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { completeEmailSign, postEmailSinup, postEmailVerify } from './api'
 import { SERVER_ERR_ACCOUNT_EXIST } from './constants'
 import { emailRule, passwordRule, phoneRule, usernameRule } from './rules'
@@ -107,10 +108,6 @@ export default function SignupPage() {
       /* console.log('email post resp data:', data) */
       if (!data.code) {
         setCodeSent(true)
-      } else {
-        if (data.code == SERVER_ERR_ACCOUNT_EXIST) {
-          navigate(`/signin?account=${email}`)
-        }
       }
     } catch (e) {
       console.error('post email signup error: ', e)
@@ -140,11 +137,16 @@ export default function SignupPage() {
     setLoading(true)
     try {
       const data = await postEmailVerify(email.current, values.code)
-      console.log('email verify resp data:', data)
+      /* console.log('email verify resp data:', data) */
 
       if (!data.code) {
         setCodeVerified(true)
         autheState.update(data.data.token, '', '')
+      } else {
+        if (data.code == SERVER_ERR_ACCOUNT_EXIST) {
+          toast.info('邮箱已注册，请直接登录')
+          navigate(`/signin?account=${email.current}`)
+        }
       }
     } catch (e) {
       console.error('post email signup error: ', e)
@@ -173,10 +175,6 @@ export default function SignupPage() {
         const { token, username, email } = data.data
         autheState.update(token, username, email)
         navigate('/')
-      } else {
-        if (data.code == SERVER_ERR_ACCOUNT_EXIST) {
-          navigate(`/signin?account=${email}`)
-        }
       }
     } catch (e) {
       console.error('complete email signup error: ', e)
@@ -305,6 +303,12 @@ export default function SignupPage() {
                     </Button>
                   </form>
                 </Form>
+                <div className="text-sm mt-8">
+                  已有账号？
+                  <Link to="/signin" className="b-text-link">
+                    请直接登录
+                  </Link>
+                </div>
               </TabsContent>
               <TabsContent value={SignupType.phone}>
                 <Form {...phoneForm}>

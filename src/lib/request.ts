@@ -34,7 +34,7 @@ const defaultOptions: Options = {
           try {
             data = await resp.json()
           } catch (e) {
-            console.log('after response hook error: ', e)
+            console.error('parse response data error: ', e)
           }
 
           switch (true) {

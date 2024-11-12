@@ -115,6 +115,10 @@ a:hover {
   left: 3.5em;
 }
 
+.b-text-link {
+  @apply text-primary underline-offset-4 hover:underline;
+}
+
 @keyframes bblFadInOut {
   0%,
   80%,

@@ -1,12 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { memo, useState } from 'react'
 import { Control, Controller, Path, useForm } from 'react-hook-form'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { z } from '@/lib/zod-custom'
 
 import { Button } from './components/ui/button'
-import { Form, FormControl, FormItem, FormMessage } from './components/ui/form'
+import { Form, FormControl, FormItem } from './components/ui/form'
 import { Input } from './components/ui/input'
 
 import BContainer from './components/base/BContainer'
@@ -52,7 +52,6 @@ const FormInput = memo(
               {...field}
             />
           </FormControl>
-          <FormMessage />
         </FormItem>
       )}
     />
@@ -121,13 +120,19 @@ export default function SigninPage() {
               />
               <Button
                 type="submit"
-                className="w-full text-center mb-4"
+                className="w-full text-center"
                 disabled={loading}
               >
                 {loading ? <BLoader /> : '登录'}
               </Button>
             </form>
           </Form>
+          <div className="text-sm">
+            还没有账号？
+            <Link to="/signup" className="b-text-link">
+              新建一个
+            </Link>
+          </div>
         </div>
       </BContainer>
     </>

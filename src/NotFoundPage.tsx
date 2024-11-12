@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import BContainer from './components/base/BContainer'
 import BNav from './components/base/BNav'
 
@@ -8,19 +8,15 @@ const NotFoundPage = () => {
     <>
       <BNav />
       <BContainer>
-        <div className="text-center">
+        <div className="text-center pt-8">
           <div className="mb-4">页面不存在</div>
-          <div>
-            <a
+          <div className="text-sm">
+            <Link
               className="text-primary underline-offset-4 hover:underline mx-2"
-              href="/"
-              onClick={(e) => {
-                e.preventDefault()
-                navigate('/')
-              }}
+              to="/"
             >
               回到主页
-            </a>
+            </Link>
             <a
               className="text-primary underline-offset-4 hover:underline mx-2"
               href="#"
@@ -29,7 +25,7 @@ const NotFoundPage = () => {
                 navigate(-1)
               }}
             >
-              返回
+              返回上一页
             </a>
           </div>
         </div>

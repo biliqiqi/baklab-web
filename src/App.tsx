@@ -8,6 +8,7 @@ import {
 } from './state/global.ts'
 
 import { useEffect } from 'react'
+import { Toaster } from './components/ui/sonner.tsx'
 import HomePage from './HomePage.tsx'
 import { useAuth } from './hooks/use-auth.ts'
 import NotFoundPage from './NotFoundPage.tsx'
@@ -68,7 +69,27 @@ const App = () => {
       }
     }
   }, [updateAuthState])
-  return <RouterProvider router={router} />
+
+  {/* prettier-ignore */}
+  return (
+    <>
+      <RouterProvider router={router} />
+      <Toaster
+        theme="system"
+        position="top-center"
+        invert
+        visibleToasts={1}
+        toastOptions={{
+          classNames: {
+            error: 'bg-red-400',
+            success: 'text-green-400',
+            warning: 'text-yellow-400',
+            info: 'bg-blue-400',
+          },
+        }}
+      />
+    </>
+  )
 }
 
 export default App

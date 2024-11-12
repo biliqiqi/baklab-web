@@ -2,17 +2,18 @@ import { RouterProvider } from 'react-router-dom'
 
 import { createBrowserRouter, redirect } from 'react-router-dom'
 import {
-    AUTHED_USER_LOCAL_STORE_NAME,
-    AuthedUserData,
-    useAuthedUserStore,
+  AUTHED_USER_LOCAL_STORE_NAME,
+  AuthedUserData,
+  useAuthedUserStore,
 } from './state/global.ts'
 
 import { useEffect } from 'react'
 import HomePage from './HomePage.tsx'
+import { useAuth } from './hooks/use-auth.ts'
+import NotFoundPage from './NotFoundPage.tsx'
 import SigninPage from './SigninPage.tsx'
 import SignupPage from './SignupPage.tsx'
 import SubmitPage from './SubmitPage.tsx'
-import { useAuth } from './hooks/use-auth.ts'
 
 const createRouter = (authed: boolean) => {
   const notAtAuthed = async () => {
@@ -39,6 +40,10 @@ const createRouter = (authed: boolean) => {
     {
       path: '/submit',
       Component: SubmitPage,
+    },
+    {
+      path: '*',
+      Component: NotFoundPage,
     },
   ])
 }

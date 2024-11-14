@@ -62,8 +62,8 @@ const App = () => {
         const data: AuthedUserData = JSON.parse(stateStr)
         /* console.log('auth state from localStorage: ', data) */
 
-        const { authToken, username, email } = data
-        updateAuthState(authToken, username, email)
+        const { authToken, username, userID } = data
+        updateAuthState(authToken, username, userID)
       } catch (e) {
         console.error('parse authe state local storage error: ', e)
       }

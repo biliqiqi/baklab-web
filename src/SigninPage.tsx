@@ -87,8 +87,8 @@ export default function SigninPage() {
       const data = await postSignin(values.account, values.password)
       console.log('sign in resp data:', data)
       if (!data.code) {
-        const { token, email, username } = data.data
-        updateAuthState(token, username, email)
+        const { token, userID, username } = data.data
+        updateAuthState(token, username, userID)
         navigate('/')
       }
     } catch (e) {

@@ -30,14 +30,14 @@ export const useToastStore = create<ToastState>((set) => ({
 export interface AuthedUserState {
   authToken: string
   username: string
-  email: string
-  update: (token: string, username: string, email: string) => void
+  userID: string
+  update: (token: string, username: string, userID: string) => void
   logout: () => void
 }
 
 export type AuthedUserData = Pick<
   AuthedUserState,
-  'authToken' | 'username' | 'email'
+  'authToken' | 'username' | 'userID'
 >
 
 export const AUTHED_USER_LOCAL_STORE_NAME = 'auth_info'
@@ -45,16 +45,16 @@ export const AUTHED_USER_LOCAL_STORE_NAME = 'auth_info'
 export const emptyAuthedUserData: AuthedUserData = {
   authToken: '',
   username: '',
-  email: '',
+  userID: '',
 }
 
 export const useAuthedUserStore = create<AuthedUserState>((set) => ({
   ...emptyAuthedUserData,
-  update: (token, username, email) => {
+  update: (token, username, userID) => {
     const newState = {
       authToken: token,
       username,
-      email,
+      userID,
     }
     set(() => newState)
     localStorage.setItem(AUTHED_USER_LOCAL_STORE_NAME, JSON.stringify(newState))
@@ -67,5 +67,5 @@ export const useAuthedUserStore = create<AuthedUserState>((set) => ({
 
 type IsLogined = (x: AuthedUserState) => boolean
 
-export const isLogined: IsLogined = ({ authToken, username, email }) =>
-  Boolean(authToken && username && email)
+export const isLogined: IsLogined = ({ authToken, username, userID }) =>
+  Boolean(authToken && username && userID)

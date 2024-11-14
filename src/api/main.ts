@@ -34,9 +34,10 @@ export const postEmailVerify = async (
 
 interface AuthedDataResponse {
   token: string
-  email: string
   username: string
+  userID: string
 }
+
 export const completeEmailSign = async (
   email: string,
   username: string,

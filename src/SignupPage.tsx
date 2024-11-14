@@ -172,8 +172,8 @@ export default function SignupPage() {
 
       if (!data.code) {
         setCodeVerified(true)
-        const { token, username, email } = data.data
-        autheState.update(token, username, email)
+        const { token, username, userID } = data.data
+        autheState.update(token, username, userID)
         navigate('/')
       }
     } catch (e) {

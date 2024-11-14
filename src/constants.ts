@@ -1,5 +1,5 @@
-export const SITE_NAME = '买家聚集地'
-export const SITE_NAME_CN = '买家聚集地'
+export const SITE_NAME = 'M3JD'
+export const SITE_NAME_CN = 'M3JD'
 export const API_HOST = 'http://localhost:3001'
 export const API_PATH_PREFIX = '/api/'
 

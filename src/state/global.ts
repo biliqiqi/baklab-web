@@ -65,7 +65,7 @@ export const useAuthedUserStore = create<AuthedUserState>((set) => ({
   },
 }))
 
-type IsLogined = (x: AuthedUserState) => boolean
+type IsLogined = (x: AuthedUserState | AuthedUserData) => boolean
 
 export const isLogined: IsLogined = ({ authToken, username, userID }) =>
   Boolean(authToken && username && userID)

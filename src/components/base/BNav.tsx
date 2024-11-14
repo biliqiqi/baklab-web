@@ -28,6 +28,8 @@ const BNav = React.forwardRef<
   const authState = useAuthedUserStore()
   const navigate = useNavigate()
 
+  const isSigninPage = () => location.pathname == '/signin'
+
   const onDropdownChange = (open: boolean) => {
     if (!open) {
       document.body.style.pointerEvents = ''
@@ -60,13 +62,15 @@ const BNav = React.forwardRef<
       ref={ref}
       {...props}
     >
-      <Link className="font-bold" to="/">
+      <Link className="font-bold text-2xl" to="/">
         {SITE_NAME}
       </Link>
       <div className="flex items-center">
-        <Button variant="outline" size="sm" asChild className="mr-4">
-          <Link to="/submit">+ 提交</Link>
-        </Button>
+        {!isSigninPage() && (
+          <Button variant="outline" size="sm" asChild className="mr-4">
+            <Link to="/submit">+ 提交</Link>
+          </Button>
+        )}
         {isLogined(authState) ? (
           <DropdownMenu onOpenChange={onDropdownChange}>
             <DropdownMenuTrigger asChild>
@@ -89,9 +93,11 @@ const BNav = React.forwardRef<
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Button variant="default" size="sm" asChild>
-            <Link to="/signin">登录</Link>
-          </Button>
+          !isSigninPage() && (
+            <Button variant="default" size="sm" asChild>
+              <Link to="/signin">登录</Link>
+            </Button>
+          )
         )}
       </div>
     </div>

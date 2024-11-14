@@ -1,72 +1,94 @@
-import { RouterProvider } from 'react-router-dom'
+import { redirect, replace, RouterProvider } from 'react-router-dom'
 
-import { createBrowserRouter, redirect } from 'react-router-dom'
+import { createBrowserRouter } from 'react-router-dom'
 import {
   AUTHED_USER_LOCAL_STORE_NAME,
   AuthedUserData,
+  isLogined,
   useAuthedUserStore,
 } from './state/global.ts'
 
 import { useEffect } from 'react'
 import { Toaster } from './components/ui/sonner.tsx'
 import HomePage from './HomePage.tsx'
-import { useAuth } from './hooks/use-auth.ts'
 import NotFoundPage from './NotFoundPage.tsx'
 import SigninPage from './SigninPage.tsx'
 import SignupPage from './SignupPage.tsx'
 import SubmitPage from './SubmitPage.tsx'
 
-const createRouter = (authed: boolean) => {
-  const notAtAuthed = async () => {
-    /* console.log('authed in router: ', authed) */
-    if (authed) return redirect('/')
-    return null
+const getAuthDataFromLocal = (): AuthedUserData | null => {
+  const dataStr = localStorage.getItem(AUTHED_USER_LOCAL_STORE_NAME)
+  if (dataStr) {
+    try {
+      const data = JSON.parse(dataStr)
+      /* console.log('auth state from localStorage: ', data) */
+      return data
+    } catch (e) {
+      console.error('parse authe state local storage error: ', e)
+      return null
+    }
   }
-
-  return createBrowserRouter([
-    {
-      path: '/',
-      Component: HomePage,
-    },
-    {
-      path: '/signup',
-      Component: SignupPage,
-      loader: notAtAuthed,
-    },
-    {
-      path: '/signin',
-      Component: SigninPage,
-      loader: notAtAuthed,
-    },
-    {
-      path: '/submit',
-      Component: SubmitPage,
-    },
-    {
-      path: '*',
-      Component: NotFoundPage,
-    },
-  ])
+  return null
 }
+
+const notAtAuthed = async () => {
+  const data = getAuthDataFromLocal()
+  const authed = !!data && isLogined(data)
+  if (authed) return redirect('/')
+  return null
+}
+
+const mustAuthed = async ({ request }: { request: Request }) => {
+  const data = getAuthDataFromLocal()
+  const authed = !!data && isLogined(data)
+  /* console.log('authed: ', authed) */
+  if (!authed) {
+    if (location.pathname == '/signin') {
+      return replace(location.href.replace(location.origin, ''))
+    } else {
+      return redirect(`/signin?return=${encodeURIComponent(request.url)}`)
+    }
+  }
+  return null
+}
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    Component: HomePage,
+  },
+  {
+    path: '/signup',
+    Component: SignupPage,
+    loader: notAtAuthed,
+  },
+  {
+    path: '/signin',
+    Component: SigninPage,
+    loader: notAtAuthed,
+  },
+  {
+    path: '/submit',
+    Component: SubmitPage,
+    loader: mustAuthed,
+  },
+  {
+    path: '*',
+    Component: NotFoundPage,
+  },
+])
 
 const App = () => {
   const updateAuthState = useAuthedUserStore((state) => state.update)
-  const authed = useAuth()
+  /* const authed = useAuth() */
 
-  const router = createRouter(authed)
+  /* const router = createRouter(authed) */
 
   useEffect(() => {
-    const stateStr = localStorage.getItem(AUTHED_USER_LOCAL_STORE_NAME)
-    if (stateStr) {
-      try {
-        const data: AuthedUserData = JSON.parse(stateStr)
-        /* console.log('auth state from localStorage: ', data) */
-
-        const { authToken, username, userID } = data
-        updateAuthState(authToken, username, userID)
-      } catch (e) {
-        console.error('parse authe state local storage error: ', e)
-      }
+    const data = getAuthDataFromLocal()
+    if (data) {
+      const { authToken, username, userID } = data
+      updateAuthState(authToken, username, userID)
     }
   }, [updateAuthState])
 

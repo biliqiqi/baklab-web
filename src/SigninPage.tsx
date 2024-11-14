@@ -58,13 +58,17 @@ const FormInput = memo(
   )
 )
 
+const isInnerURL = (url: string) => new URL(url).origin == location.origin
+
 export default function SigninPage() {
   const [loading, setLoading] = useState(false)
   const updateAuthState = useAuthedUserStore((state) => state.update)
 
   const [searchParams, _setSearchParams] = useSearchParams()
   const account = searchParams.get('account')
+  const returnURL = searchParams.get('return')
   /* console.log('account: ', account) */
+  console.log('return url: ', returnURL)
 
   const navigate = useNavigate()
 
@@ -89,7 +93,15 @@ export default function SigninPage() {
       if (!data.code) {
         const { token, userID, username } = data.data
         updateAuthState(token, username, userID)
-        navigate('/')
+        /* console.log('is inner url: ', isInnerURL(returnURL)) */
+
+        let targetURL = '/'
+        if (returnURL && isInnerURL(returnURL)) {
+          targetURL = returnURL.replace(location.origin, '')
+          console.log('to return url: ', targetURL)
+        }
+        console.log('targetURL: ', targetURL)
+        navigate(targetURL)
       }
     } catch (e) {
       console.error('signin error: ', e)

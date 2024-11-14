@@ -99,9 +99,12 @@ export default function SubmitPage() {
   return (
     <>
       <BNav />
-      <BContainer>
+      <BContainer title="提交">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-8 max-w-[800px] mx-auto"
+          >
             <FormField
               control={form.control}
               name="title"

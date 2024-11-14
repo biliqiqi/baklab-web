@@ -89,7 +89,7 @@ const BNav = React.forwardRef<
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Button variant="outline" size="sm" asChild>
+          <Button variant="default" size="sm" asChild>
             <Link to="/signin">登录</Link>
           </Button>
         )}

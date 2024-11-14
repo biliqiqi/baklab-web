@@ -3,9 +3,11 @@ import { z } from '@/lib/zod-custom'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Check, ChevronsUpDown } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { getCategoryList } from './api'
 import BContainer from './components/base/BContainer'
+import BLoader from './components/base/BLoader'
 import BNav from './components/base/BNav'
 import { Button } from './components/ui/button'
 import {
@@ -32,6 +34,7 @@ import {
 } from './components/ui/popover'
 import { Textarea } from './components/ui/textarea'
 import { ARTICLE_MAX_CONTENT_LEN, ARTICLE_MAX_TITILE_LEN } from './constants'
+import { CategoryOption } from './types/types'
 
 const articleScheme = z.object({
   title: z.string().trim().min(1, '标题不能为空').max(ARTICLE_MAX_TITILE_LEN),
@@ -50,32 +53,38 @@ const articleScheme = z.object({
   content: z.string().max(ARTICLE_MAX_CONTENT_LEN),
 })
 
-const frameworks = [
-  {
-    value: 'next.js',
-    label: 'Next.js',
-  },
-  {
-    value: 'sveltekit',
-    label: 'SvelteKit',
-  },
-  {
-    value: 'nuxt.js',
-    label: 'Nuxt.js',
-  },
-  {
-    value: 'remix',
-    label: 'Remix',
-  },
-  {
-    value: 'astro',
-    label: 'Astro',
-  },
-]
-
 type ArticleScheme = z.infer<typeof articleScheme>
 
+interface CategoryMap {
+  [x: string]: string
+}
+
 export default function SubmitPage() {
+  const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [cateList, setCateList] = useState<CategoryOption[]>([])
+
+  const cateMap: CategoryMap = useMemo(() => {
+    return cateList.reduce((obj: CategoryMap, item) => {
+      obj[item.id] = item.name
+      return obj
+    }, {})
+  }, [cateList])
+
+  const fetchCateList = useCallback(async () => {
+    try {
+      setLoading(true)
+      const data = await getCategoryList()
+      if (!data.code) {
+        setCateList([...data.data])
+      }
+    } catch (err) {
+      console.error('fetch category list error: ', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   const form = useForm<ArticleScheme>({
     resolver: zodResolver(articleScheme),
     defaultValues: {
@@ -92,10 +101,12 @@ export default function SubmitPage() {
     console.log('values: ', values)
   }
 
-  const [open, setOpen] = useState(false)
-  /* const [value, setValue] = useState('') */
+  console.log('render submit page')
 
-  /* console.log('render submit page') */
+  useEffect(() => {
+    fetchCateList()
+  }, [])
+
   return (
     <>
       <BNav />
@@ -157,26 +168,30 @@ export default function SubmitPage() {
                             role="combobox"
                             aria-expanded={open}
                             className="w-[200px] justify-between"
+                            disabled={loading}
                           >
                             {categoryVal()
-                              ? frameworks.find(
-                                  (framework) =>
-                                    framework.value === categoryVal()
-                                )?.label
+                              ? cateList.find(
+                                  (cate) => cate.id === categoryVal()
+                                )?.name
                               : '请选择分类'}
                             <ChevronsUpDown className="opacity-50" />
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-[200px] p-0">
-                          <Command>
-                            <CommandInput placeholder="Search framework..." />
+                          <Command
+                            filter={(val, search) =>
+                              cateMap[val].includes(search) ? 1 : 0
+                            }
+                          >
+                            <CommandInput placeholder="搜索分类..." />
                             <CommandList>
-                              <CommandEmpty>No framework found.</CommandEmpty>
+                              <CommandEmpty>未找到分类</CommandEmpty>
                               <CommandGroup>
-                                {frameworks.map((framework) => (
+                                {cateList.map((cate) => (
                                   <CommandItem
-                                    key={framework.value}
-                                    value={framework.value}
+                                    key={cate.id}
+                                    value={cate.id}
                                     onSelect={(currentValue) => {
                                       form.setValue(
                                         'category',
@@ -187,11 +202,11 @@ export default function SubmitPage() {
                                       setOpen(false)
                                     }}
                                   >
-                                    {framework.label}
+                                    {cate.name}
                                     <Check
                                       className={cn(
                                         'ml-auto',
-                                        categoryVal() === framework.value
+                                        categoryVal() === cate.id
                                           ? 'opacity-100'
                                           : 'opacity-0'
                                       )}
@@ -227,7 +242,9 @@ export default function SubmitPage() {
               )}
             />
 
-            <Button type="submit">提交</Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? <BLoader /> : '提交'}
+            </Button>
           </form>
         </Form>
       </BContainer>

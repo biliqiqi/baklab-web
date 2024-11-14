@@ -7,3 +7,8 @@ export interface ResponseData<T> {
 export interface TokenResponse {
   token: string
 }
+
+export interface CategoryOption {
+  id: string
+  name: string
+}

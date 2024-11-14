@@ -1,6 +1,6 @@
 import request, { authRequest } from '@/lib/request'
 
-import { ResponseData, TokenResponse } from '@/types/types'
+import { CategoryOption, ResponseData, TokenResponse } from '@/types/types'
 
 // export const postEmailSinup = async (email: string) => {
 //   const resp = await fetch('http://localhost:3001/api/signup', {
@@ -57,3 +57,7 @@ export const postSignin = async (
   request
     .post(`signin`, { credentials: 'include', json: { account, password } })
     .json()
+
+export const getCategoryList = async (): Promise<
+  ResponseData<CategoryOption[]>
+> => authRequest.get(`category_list`).json()

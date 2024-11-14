@@ -5,7 +5,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { getCategoryList } from './api'
+import { submitArticle } from './api/article'
 import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
 import BNav from './components/base/BNav'
@@ -64,6 +67,8 @@ export default function SubmitPage() {
   const [loading, setLoading] = useState(false)
   const [cateList, setCateList] = useState<CategoryOption[]>([])
 
+  const navigate = useNavigate()
+
   const cateMap: CategoryMap = useMemo(() => {
     return cateList.reduce((obj: CategoryMap, item) => {
       obj[item.id] = item.name
@@ -97,8 +102,25 @@ export default function SubmitPage() {
 
   const categoryVal = () => form.getValues('category')
 
-  const onSubmit = async (values: ArticleScheme) => {
-    console.log('values: ', values)
+  const onSubmit = async ({
+    title,
+    link,
+    category,
+    content,
+  }: ArticleScheme) => {
+    /* console.log('values: ', values) */
+    try {
+      setLoading(true)
+      const data = await submitArticle(title, category, link, content)
+      if (!data.code) {
+        toast.info('提交成功')
+        navigate('/')
+      }
+    } catch (err) {
+      console.error('submit article error: ', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   console.log('render submit page')

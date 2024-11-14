@@ -101,6 +101,7 @@ const App = () => {
         position="top-center"
         invert
         visibleToasts={1}
+        closeButton
         toastOptions={{
           classNames: {
             error: 'bg-red-400',

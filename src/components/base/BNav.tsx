@@ -56,13 +56,13 @@ const BNav = React.forwardRef<
   return (
     <div
       className={cn(
-        'flex justify-between py-2 px-4 border-b-2 shadow-sm items-center',
+        'flex justify-between py-2 px-4 border-b-2 shadow-sm items-center bg-white',
         className
       )}
       ref={ref}
       {...props}
     >
-      <Link className="font-bold text-2xl" to="/">
+      <Link className="font-bold text-2xl text-pink-900" to="/">
         {SITE_NAME}
       </Link>
       <div className="flex items-center">

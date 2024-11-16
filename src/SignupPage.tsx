@@ -304,9 +304,9 @@ export default function SignupPage() {
                   </form>
                 </Form>
                 <div className="text-sm mt-8">
-                  已有账号？
+                  已有账号或手机号账户请
                   <Link to="/signin" className="b-text-link">
-                    请直接登录
+                    直接登录
                   </Link>
                 </div>
               </TabsContent>

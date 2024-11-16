@@ -1,136 +1,153 @@
-import { useEffect, useState } from 'react'
-import { Fragment } from 'react/jsx-runtime'
+import { useState } from 'react'
 
 import { Card } from '@/components/ui/card'
 import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
 } from '@/components/ui/pagination'
 
 import BContainer from './components/base/BContainer'
 import BNav from './components/base/BNav'
 
-import { BIconHeart } from './components/icon/Heart'
+import mockArticleList from '@/mock/articles.json'
+import {
+  BookmarkCheckIcon,
+  MessageSquare,
+  QrCode,
+  ThumbsDown,
+  ThumbsUp,
+} from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Button } from './components/ui/button'
+import { dayjs } from './lib/dayjs-custom'
+import { Article } from './types/types'
 
-import mockList from '@/mock/toolList.json'
-import { getUser } from './api/user'
+/* interface Tool {
+ *   id: number
+ *   name: string
+ *   likeCount: number
+ *   iconUrl: string
+ *   summary: string
+ *   isFree: boolean
+ *   appType: string[]
+ *   reviewCount: number
+ *   liked: boolean
+ * }
+ *
+ * const typedMockList = mockList as Tool[] */
 
-interface Tool {
-  id: number
-  name: string
-  likeCount: number
-  iconUrl: string
-  summary: string
-  isFree: boolean
-  appType: string[]
-  reviewCount: number
-  liked: boolean
-}
+const articleList = mockArticleList as Article[]
 
-const typedMockList = mockList as Tool[]
-
-const fetchUser = async () => {
-  try {
-    const data = await getUser('oodzchen')
-    if (!data.code) {
-      console.log('user data: ', data)
-    }
-  } catch (e) {
-    console.error('get user data error: ', e)
-  }
-}
+/* const fetchUser = async () => {
+ *   try {
+ *     const data = await getUser('oodzchen')
+ *     if (!data.code) {
+ *       console.log('user data: ', data)
+ *     }
+ *   } catch (e) {
+ *     console.error('get user data error: ', e)
+ *   }
+ * } */
 
 export default function HomePage() {
-  const [list, updateList] = useState<Tool[]>(typedMockList)
+  const [list, updateList] = useState<Article[]>(articleList)
 
-  const toggleLike = (id: number): Tool[] => {
-    return mockList.map((item) => {
-      if (item.id == id) {
-        return {
-          ...item,
-          liked: !item.liked,
-        }
-      }
-      return item
-    })
-  }
+  /* useEffect(() => {
 
-  const onLikeClick = (id: number) => {
-    console.log('clicked: ', id)
-    const res = toggleLike(id)
-    console.log('list: ', list)
-    updateList(res)
-  }
-
-  useEffect(() => {
-    fetchUser()
-  }, [])
+  * }, []) */
+  console.log('article list: ', articleList)
 
   return (
     <>
       <BNav />
-      <BContainer>
-        <h1 className="text-lg font-bold pb-4">最新发布</h1>
-
+      <BContainer className="max-w-3xl">
         <div className="pb-4">
           {list.map((item) => (
-            <Card key={item.id} className="p-3 my-4">
-              <div className="flex mb-4">
-                <div className="w-16 h-16 rounded mr-4 bg-gray-200 shrink-0 overflow-hidden">
-                  <a href="#">
-                    <img
-                      alt={item.name}
-                      src={item.iconUrl}
-                      className="max-w-full"
-                    />
+            <Card key={item.id} className="p-3 my-2">
+              <div className="mb-3">
+                <div className="mb-1">
+                  <a className="mr-2 font-bold" href="#">
+                    {item.title}
                   </a>
                 </div>
-                <div>
-                  <div className="mb-2">
-                    <a className="mr-2 font-bold" href="#">
-                      {item.name}
-                    </a>
-                    <span
-                      onClick={() => onLikeClick(item.id)}
-                      className="border-2 px-2 rounded-md text-sm text-nowrap cursor-pointer"
-                    >
-                      <BIconHeart variant={item.liked ? 'full' : 'default'} />{' '}
-                      {item.likeCount}
-                    </span>
-                  </div>
-                  <div className="text-sm text-gray-600">{item.summary}</div>
+                <div className="max-h-5 mb-1 overflow-hidden text-sm text-gray-600 text-nowrap text-ellipsis">
+                  {item.summary}
                 </div>
+                {item.picURL && (
+                  <div className="w-[120px] h-[120px] rounded mr-4 bg-gray-200 shrink-0 overflow-hidden">
+                    <a href="#">
+                      <img
+                        alt={item.title}
+                        src={item.picURL}
+                        className="max-w-full"
+                      />
+                    </a>
+                  </div>
+                )}
               </div>
               <div className="flex flex-wrap justify-between text-sm text-gray-500">
-                <div>
-                  <div className="flex flex-wrap">
-                    <div className="mr-4 mb-2">
-                      <span className="font-bold">是否免费：</span>{' '}
-                      {item.isFree ? '是' : '否'}
-                    </div>
-                    <div className="mb-2">
-                      <span className="font-bold">类型：</span>{' '}
-                      {item.appType.map((t) => (
-                        <Fragment key={t}>
-                          <a href="#">{t}</a> &nbsp;&nbsp;
-                        </Fragment>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="font-bold">支持平台：</span>{' '}
-                    Linux、Windows、macOS、iOS、Android
+                <div className="flex items-center">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="mr-[-1px] rounded-r-none"
+                  >
+                    <ThumbsUp size={20} className="inline-block mr-1" />
+                    10
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-l-none"
+                  >
+                    <ThumbsDown size={20} className="inline-block mr-1" />
+                    12
+                  </Button>
+                  <Button variant="ghost" size="sm">
+                    <BookmarkCheckIcon
+                      size={20}
+                      className="inline-block mr-1 text-primary"
+                    />
+                    3
+                  </Button>
+                  <Button variant="ghost" size="sm">
+                    <MessageSquare size={20} className="inline-block mr-1" />
+                    99
+                  </Button>
+
+                  <div className="ml-2">
+                    发布于
+                    <Link to="" className="font-bold">
+                      {item.category.name}
+                    </Link>
+                    &nbsp;·&nbsp;
+                    <span
+                      title={dayjs(item.createdAt)
+                        .utc()
+                        .format('YYYY-MM-DD hh:mm:ss')}
+                    >
+                      {dayjs(item.createdAt).utc().fromNow()}
+                    </span>
                   </div>
                 </div>
-                <div className="flex items-end">
-                  <a href="#" className="text-gray-500">
-                    {item.reviewCount} 条评论
-                  </a>
+                <div className="flex items-center">
+                  {Boolean(item.price) && (
+                    <>
+                      <Button variant="ghost" className="ml-1">
+                        <QrCode />
+                      </Button>
+                      <Button size="sm">
+                        <a href="https://example.com/" target="_blank">
+                          京东购买 ¥{(Math.random() * 100).toFixed(2)}
+                        </a>
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </Card>
@@ -138,7 +155,7 @@ export default function HomePage() {
         </div>
       </BContainer>
 
-      <Pagination>
+      <Pagination className="py-4">
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious href="/?page=2" />

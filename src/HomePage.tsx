@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Card } from '@/components/ui/card'
 import {
@@ -27,6 +27,7 @@ import { getArticleList } from './api/article'
 import BLoader from './components/base/BLoader'
 import { Button } from './components/ui/button'
 import { timeAgo, timeFmt } from './lib/dayjs-custom'
+import { toSync } from './lib/fire-and-forget'
 import { Article, ArticleListSort } from './types/types'
 
 /* const articleList = mockArticleList as Article[] */
@@ -50,7 +51,7 @@ export default function HomePage() {
 
   const [params, _setParams] = useSearchParams()
 
-  const fetchArticles = useCallback(
+  const fetchArticles = toSync(
     async (
       page: number,
       pageSize: number,
@@ -76,8 +77,7 @@ export default function HomePage() {
       } finally {
         setLoading(false)
       }
-    },
-    []
+    }
   )
 
   useEffect(() => {
@@ -85,8 +85,9 @@ export default function HomePage() {
     const pageSize = Number(params.get('page_size')) || 10
     const sort = params.get('sort') as ArticleListSort | null
     const category = params.get('category') || ''
+
     fetchArticles(page, pageSize, sort, category)
-  }, [params, fetchArticles])
+  }, [params])
 
   return (
     <>
@@ -106,7 +107,7 @@ export default function HomePage() {
               <Card key={item.id} className="p-3 my-2">
                 <div className="mb-3">
                   <div className="mb-1">
-                    <a className="mr-2 font-bold" href="#">
+                    <a className="mr-2" href="#">
                       {item.title}
                     </a>
                   </div>

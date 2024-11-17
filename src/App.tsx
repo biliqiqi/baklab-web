@@ -20,7 +20,7 @@ const getAuthDataFromLocal = (): AuthedUserData | null => {
   const dataStr = localStorage.getItem(AUTHED_USER_LOCAL_STORE_NAME)
   if (dataStr) {
     try {
-      const data = JSON.parse(dataStr)
+      const data = JSON.parse(dataStr) as AuthedUserData
       /* console.log('auth state from localStorage: ', data) */
       return data
     } catch (e) {
@@ -31,14 +31,14 @@ const getAuthDataFromLocal = (): AuthedUserData | null => {
   return null
 }
 
-const notAtAuthed = async () => {
+const notAtAuthed = () => {
   const data = getAuthDataFromLocal()
   const authed = !!data && isLogined(data)
   if (authed) return redirect('/')
   return null
 }
 
-const mustAuthed = async ({ request }: { request: Request }) => {
+const mustAuthed = ({ request }: { request: Request }) => {
   const data = getAuthDataFromLocal()
   const authed = !!data && isLogined(data)
   /* console.log('authed: ', authed) */

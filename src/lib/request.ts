@@ -102,7 +102,7 @@ const refreshTokenHook: AfterResponseHook = async (req, _opt, resp) => {
       const data = await refresToken()
       if (!data.code) {
         const state = useAuthedUserStore.getState()
-        state.update(data.data.token, state.username, state.email)
+        state.update(data.data.token, state.username, state.userID)
 
         // console.log('refresh token success!')
       }

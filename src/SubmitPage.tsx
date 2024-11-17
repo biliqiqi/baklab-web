@@ -3,7 +3,7 @@ import { z } from '@/lib/zod-custom'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Check, ChevronsUpDown } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -37,6 +37,7 @@ import {
 } from './components/ui/popover'
 import { Textarea } from './components/ui/textarea'
 import { ARTICLE_MAX_CONTENT_LEN, ARTICLE_MAX_TITILE_LEN } from './constants'
+import { toSync } from './lib/fire-and-forget'
 import { CategoryOption } from './types/types'
 
 const articleScheme = z.object({
@@ -76,7 +77,7 @@ export default function SubmitPage() {
     }, {})
   }, [cateList])
 
-  const fetchCateList = useCallback(async () => {
+  const fetchCateList = toSync(async () => {
     try {
       setLoading(true)
       const data = await getCategoryList()
@@ -88,7 +89,7 @@ export default function SubmitPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  })
 
   const form = useForm<ArticleScheme>({
     resolver: zodResolver(articleScheme),
@@ -178,7 +179,7 @@ export default function SubmitPage() {
             <FormField
               control={form.control}
               name="category"
-              render={({ field, fieldState }) => (
+              render={({ fieldState }) => (
                 <FormItem>
                   <FormLabel>发布到</FormLabel>
                   <div>

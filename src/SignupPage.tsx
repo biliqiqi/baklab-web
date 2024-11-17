@@ -119,11 +119,13 @@ export default function SignupPage() {
   const onEmailSubmit = (values: EmailScheme) => {
     /* console.log('values: ', values) */
     email.current = values.email
+
+    /* eslint-disable-next-line */
     signWithEmail(values.email)
   }
 
-  const onPhoneSubmit = (values: PhoneScheme) => {
-    console.log('values: ', values)
+  const onPhoneSubmit = (_values: PhoneScheme) => {
+    /* console.log('values: ', values) */
     setIsPhone(true)
     setCodeSent(true)
   }
@@ -157,7 +159,7 @@ export default function SignupPage() {
 
   const onSubmit = async (values: SignupScheme) => {
     try {
-      console.log('values: ', values)
+      /* console.log('values: ', values) */
 
       if (loading) return
 

@@ -16,6 +16,10 @@ const defaultOptions: Options = {
     Accept: 'application/json',
     'Content-Type': 'application/json',
   },
+  retry: {
+    limit: 5,
+    statusCodes: [401],
+  },
   hooks: {
     // beforeRequest: [
     //   (_req, opt) => {

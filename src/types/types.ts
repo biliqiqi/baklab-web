@@ -58,3 +58,27 @@ export interface Article {
   blocked: boolean
   fadeOut: boolean
 }
+
+export type ArticleListSort =
+  | 'best'
+  | 'oldest'
+  | 'latest'
+  | 'list_best'
+  | 'list_hot'
+
+export type ArticleSortTabMap = {
+  [key in ArticleListSort]: string
+}
+
+export type ArticleListResponse = {
+  articles: Article[]
+  articleTotal: number
+  currPage: number
+  pageSize: number
+  totalPage: number
+  sortType: ArticleListSort
+  defaultSortType: ArticleListSort
+  category: Category
+  sortTabList: ArticleListSort[]
+  sortTabNames: ArticleSortTabMap
+}

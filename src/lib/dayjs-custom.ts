@@ -2,18 +2,17 @@ import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import updateLocale from 'dayjs/plugin/updateLocale'
-import utc from 'dayjs/plugin/utc'
 
 dayjs.locale('zh-cn')
 
 dayjs.extend(relativeTime)
 dayjs.extend(updateLocale)
-dayjs.extend(utc)
+// dayjs.extend(utc)
 
-dayjs.updateLocale('en', {
+dayjs.updateLocale('zh-cn', {
   relativeTime: {
-    future: '%s 后',
-    past: '%s 前',
+    future: '%s后',
+    past: '%s前',
     s: '几秒前',
     m: '1 分钟前',
     mm: '%d 分钟',
@@ -28,4 +27,17 @@ dayjs.updateLocale('en', {
   },
 })
 
-export { dayjs }
+const timeAgo = (timeStr: string) => {
+  const time = dayjs(timeStr)
+  if (time.isBefore(dayjs().add(-3, 'day'))) {
+    return time.format('YYYY-M-D')
+  } else {
+    return time.fromNow()
+  }
+}
+
+const timeFmt = (timeStr: string, formatTpl: string) => {
+  return dayjs(timeStr).format(formatTpl)
+}
+
+export { dayjs, timeAgo, timeFmt }

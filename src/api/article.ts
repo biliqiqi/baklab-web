@@ -1,5 +1,9 @@
-import { authRequest } from '@/lib/request'
-import { ResponseData } from '@/types/types'
+import request, { authRequest } from '@/lib/request'
+import {
+  ArticleListResponse,
+  ArticleListSort,
+  ResponseData,
+} from '@/types/types'
 
 interface ArticleSubmitResponse {
   id: string
@@ -7,7 +11,7 @@ interface ArticleSubmitResponse {
 
 export const submitArticle = (
   title: string,
-  categoryId: string,
+  categoryFrontID: string,
   link?: string,
   content?: string
 ): Promise<ResponseData<ArticleSubmitResponse>> =>
@@ -15,9 +19,40 @@ export const submitArticle = (
     .post(`articles/submit`, {
       json: {
         title,
-        category: categoryId,
+        category: categoryFrontID,
         link,
         content,
       },
     })
     .json()
+
+export const getArticleList = (
+  page: number,
+  pageSize: number,
+  sort: ArticleListSort | null,
+  categoryFrontID: string
+): Promise<ResponseData<ArticleListResponse>> => {
+  const params = new URLSearchParams()
+
+  if (page > 0) {
+    params.set('page', String(page))
+  }
+
+  if (pageSize > 0) {
+    params.set('pageSize', String(pageSize))
+  }
+
+  if (sort) {
+    params.set('sort', String(sort))
+  }
+
+  if (categoryFrontID) {
+    params.set('category', categoryFrontID)
+  }
+
+  return request
+    .get(`articles`, {
+      searchParams: params,
+    })
+    .json()
+}

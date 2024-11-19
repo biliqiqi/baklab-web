@@ -16,7 +16,7 @@ import BNav from './components/base/BNav'
 /* import mockArticleList from '@/mock/articles.json' */
 
 import {
-  BookmarkCheckIcon,
+  BookmarkIcon,
   MessageSquare,
   QrCode,
   ThumbsDown,
@@ -26,6 +26,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { getArticleList } from './api/article'
 import BLoader from './components/base/BLoader'
 import { Button } from './components/ui/button'
+import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 import { timeAgo, timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { Article, ArticleListSort } from './types/types'
@@ -49,7 +50,9 @@ export default function HomePage() {
     totalPage: 0,
   })
 
-  const [params, _setParams] = useSearchParams()
+  const [params, setParams] = useSearchParams()
+
+  const sort = (params.get('sort') as ArticleListSort | null) || 'best'
 
   const fetchArticles = toSync(
     async (
@@ -80,11 +83,18 @@ export default function HomePage() {
     }
   )
 
+  const onSwitchTab = (tab: string) => {
+    setParams((prevParams) => {
+      prevParams.set('sort', tab)
+      return prevParams
+    })
+  }
+
   useEffect(() => {
     const page = Number(params.get('page')) || 1
     const pageSize = Number(params.get('page_size')) || 10
-    const sort = params.get('sort') as ArticleListSort | null
     const category = params.get('category') || ''
+    const sort = (params.get('sort') as ArticleListSort | null) || 'best'
 
     fetchArticles(page, pageSize, sort, category)
   }, [params])
@@ -93,6 +103,13 @@ export default function HomePage() {
     <>
       <BNav />
       <BContainer className="max-w-3xl">
+        <Tabs defaultValue="best" value={sort} onValueChange={onSwitchTab}>
+          <TabsList>
+            <TabsTrigger value="best">最佳</TabsTrigger>
+            <TabsTrigger value="latest">最新</TabsTrigger>
+            <TabsTrigger value="list_hot">热门</TabsTrigger>
+          </TabsList>
+        </Tabs>
         <div className="py-4">
           {loading ? (
             <div className="flex justify-center">
@@ -104,7 +121,7 @@ export default function HomePage() {
             </div>
           ) : (
             list.map((item) => (
-              <Card key={item.id} className="p-3 my-2">
+              <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
                 <div className="mb-3">
                   <div className="mb-1">
                     <a className="mr-2" href="#">
@@ -129,12 +146,12 @@ export default function HomePage() {
                 <div className="flex flex-wrap justify-between text-sm text-gray-500">
                   <div className="flex items-center">
                     <Button
-                      variant="default"
+                      variant="outline"
                       size="sm"
                       className="mr-[-1px] rounded-r-none"
                     >
                       <ThumbsUp size={20} className="inline-block mr-1" />
-                      10
+                      {item.voteUp > 0 && item.voteUp}
                     </Button>
                     <Button
                       variant="outline"
@@ -142,22 +159,18 @@ export default function HomePage() {
                       className="rounded-l-none"
                     >
                       <ThumbsDown size={20} className="inline-block mr-1" />
-                      12
+                      {item.voteDown > 0 && item.voteDown}
                     </Button>
                     <Button variant="ghost" size="sm">
-                      <BookmarkCheckIcon
-                        size={20}
-                        className="inline-block mr-1 text-primary"
-                      />
-                      3
+                      {/* TODO: saved count */}
+                      <BookmarkIcon size={20} className="inline-block mr-1" />3
                     </Button>
                     <Button variant="ghost" size="sm">
                       <MessageSquare size={20} className="inline-block mr-1" />
-                      99
+                      {item.totalReplyCount > 0 && item.totalReplyCount}
                     </Button>
 
                     <div className="ml-2">
-                      发布于
                       <Link to="" className="font-bold">
                         {item.category.name}
                       </Link>

@@ -59,7 +59,7 @@ export interface Article {
   updatedAt: string
   createdAtStr: string
   updatedAtStr: string
-  replyToId: number
+  replyToId: string
   deleted: boolean
   replies: ArticleList
   totalReplyCount: number
@@ -114,3 +114,9 @@ export interface ArticleItemResponse {
   sortTabList: ArticleListSort[]
   sortTabNames: ArticleSortTabMap
 }
+
+export interface ArticleSubmitResponse {
+  id: string
+}
+
+export type ArticleCardType = 'list' | 'item'

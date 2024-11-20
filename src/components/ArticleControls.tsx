@@ -1,6 +1,6 @@
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
 import { cn } from '@/lib/utils'
-import { Article } from '@/types/types'
+import { Article, ArticleCardType } from '@/types/types'
 import {
   BookmarkIcon,
   MessageSquare,
@@ -14,13 +14,15 @@ import { Button } from './ui/button'
 
 interface ArticleControlsProps extends HTMLAttributes<HTMLDivElement> {
   article: Article
-  showCategoryAndTime?: boolean
+  type: ArticleCardType
+  onCommentClick?: () => void
 }
 
 const ArticleControls: React.FC<ArticleControlsProps> = ({
   article,
   className,
-  showCategoryAndTime = true,
+  type = 'item',
+  onCommentClick = () => {},
   ...props
 }) => {
   return (
@@ -48,12 +50,18 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           {/* TODO: saved count */}
           <BookmarkIcon size={20} className="inline-block mr-1" />3
         </Button>
-        <Button variant="ghost" size="sm">
-          <MessageSquare size={20} className="inline-block mr-1" />
-          {article.totalReplyCount > 0 && article.totalReplyCount}
+        <Button variant="ghost" size="sm" onClick={onCommentClick}>
+          {type == 'list' ? (
+            <Link to={'/articles/' + article.id + '#comments'}>
+              <MessageSquare size={20} className="inline-block mr-1" />
+              {article.totalReplyCount > 0 && article.totalReplyCount}
+            </Link>
+          ) : (
+            <MessageSquare size={20} className="inline-block mr-1" />
+          )}
         </Button>
 
-        {showCategoryAndTime && (
+        {type == 'list' && (
           <div className="ml-2">
             <Link to="" className="font-bold">
               {article.category.name}

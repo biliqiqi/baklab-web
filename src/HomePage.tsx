@@ -135,7 +135,7 @@ export default function HomePage() {
                     </div>
                   )}
                 </div>
-                <ArticleControls article={item} />
+                <ArticleControls article={item} type="list" />
               </Card>
             ))
           )}

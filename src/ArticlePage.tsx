@@ -1,31 +1,33 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getArticle } from './api/article'
-import ArticleControls from './components/ArticleControls'
+import ArticleCard from './components/ArticleCard'
 import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
 import BNav from './components/base/BNav'
-import { Card } from './components/ui/card'
-import { timeAgo, timeFmt } from './lib/dayjs-custom'
+import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 import { toSync } from './lib/fire-and-forget'
-import { Article } from './types/types'
-
-/* const articleList = mockArticleList as Article[] */
+import { Article, ArticleListSort } from './types/types'
 
 export default function ArticlePage() {
-  /* const { articleID } = useParams() */
-
-  /* const article = articleList[0] */
   const [loading, setLoading] = useState(false)
   const [article, setArticle] = useState<Article | null>(null)
+
+  const [params, setParams] = useSearchParams()
+
+  const sort = (params.get('sort') as ArticleListSort | null) || 'oldest'
+
   const { articleID } = useParams()
   const navigate = useNavigate()
 
-  const fetchArticle = toSync(async () => {
+  const fetchArticle = toSync(async (showLoading = true) => {
     try {
-      setLoading(true)
+      if (showLoading) {
+        setLoading(true)
+      }
+
       if (articleID) {
-        const resp = await getArticle(articleID, {
+        const resp = await getArticle(articleID, sort, {
           hooks: {
             afterResponse: [
               (_req, _opt, resp) => {
@@ -36,7 +38,7 @@ export default function ArticlePage() {
             ],
           },
         })
-        console.log('article resp: ', resp)
+        /* console.log('article resp: ', resp) */
         if (!resp.code) {
           setArticle(resp.data.article)
         }
@@ -50,38 +52,63 @@ export default function ArticlePage() {
     }
   })
 
+  const onSwitchTab = (val: string) => {
+    setParams((prevParams) => {
+      prevParams.set('sort', val)
+      return prevParams
+    })
+  }
+
   useEffect(() => {
     fetchArticle()
-  }, [articleID])
+  }, [articleID, params])
 
   return (
     <>
       <BNav />
       <BContainer>
-        {loading && (
-          <div className="flex justify-center py-2">
-            <BLoader />
-          </div>
-        )}
         {article && (
-          <Card className="p-3 my-2">
-            <h1 className="mb-4 font-bold text-lg">{article.title}</h1>
-            <div className="mb-4 text-sm text-gray-500">
-              <Link to={'/users/' + article.authorName}>
-                {article.authorName}
-              </Link>
-              发布于
-              <span title={timeFmt(article.createdAt, 'YYYY-M-D H:m:s')}>
-                {timeAgo(article.createdAt)}
-              </span>
-            </div>
-            <div
-              dangerouslySetInnerHTML={{ __html: article.content }}
-              className="whitespace-break-spaces mb-4"
-            ></div>
+          <>
+            <ArticleCard
+              key={article.id}
+              article={article}
+              onSuccess={fetchArticle}
+              className="mb-4"
+            />
+            {article.totalReplyCount > 0 && (
+              <div className="flex justify-between items-center border-b border-gray-300 py-3 mb-4">
+                <span className="font-bold">
+                  {article.totalReplyCount} 回复
+                </span>
+                <Tabs
+                  defaultValue="oldest"
+                  value={sort}
+                  onValueChange={onSwitchTab}
+                >
+                  <TabsList>
+                    <TabsTrigger value="oldest">时间顺序</TabsTrigger>
+                    <TabsTrigger value="latest">最新</TabsTrigger>
+                    <TabsTrigger value="best">最佳</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+            )}
 
-            <ArticleControls article={article} showCategoryAndTime={false} />
-          </Card>
+            {loading ? (
+              <div className="flex justify-center py-2">
+                <BLoader />
+              </div>
+            ) : (
+              Boolean(article.replies.list) &&
+              article.replies.list.map((item) => (
+                <ArticleCard
+                  key={item.id}
+                  article={item}
+                  onSuccess={() => fetchArticle(false)}
+                />
+              ))
+            )}
+          </>
         )}
       </BContainer>
     </>

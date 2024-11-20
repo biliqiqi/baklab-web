@@ -3,13 +3,10 @@ import {
   ArticleItemResponse,
   ArticleListResponse,
   ArticleListSort,
+  ArticleSubmitResponse,
   ResponseData,
 } from '@/types/types'
 import { Options } from 'ky'
-
-interface ArticleSubmitResponse {
-  id: string
-}
 
 export const submitArticle = (
   title: string,
@@ -23,6 +20,18 @@ export const submitArticle = (
         title,
         category: categoryFrontID,
         link,
+        content,
+      },
+    })
+    .json()
+
+export const submitReply = (
+  articleID: string,
+  content: string
+): Promise<ResponseData<ArticleSubmitResponse>> =>
+  authRequest
+    .post(`articles/${articleID}/reply`, {
+      json: {
         content,
       },
     })
@@ -61,6 +70,14 @@ export const getArticleList = (
 
 export const getArticle = (
   id: string,
+  sort: ArticleListSort,
   opt?: Options
 ): Promise<ResponseData<ArticleItemResponse>> =>
-  request.get(`articles/${id}`, opt).json()
+  request
+    .get(`articles/${id}`, {
+      searchParams: {
+        sort,
+      },
+      ...opt,
+    })
+    .json()

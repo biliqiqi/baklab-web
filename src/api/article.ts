@@ -1,9 +1,11 @@
 import request, { authRequest } from '@/lib/request'
 import {
+  ArticleItemResponse,
   ArticleListResponse,
   ArticleListSort,
   ResponseData,
 } from '@/types/types'
+import { Options } from 'ky'
 
 interface ArticleSubmitResponse {
   id: string
@@ -56,3 +58,9 @@ export const getArticleList = (
     })
     .json()
 }
+
+export const getArticle = (
+  id: string,
+  opt?: Options
+): Promise<ResponseData<ArticleItemResponse>> =>
+  request.get(`articles/${id}`, opt).json()

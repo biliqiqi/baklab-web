@@ -15,19 +15,11 @@ import BNav from './components/base/BNav'
 
 /* import mockArticleList from '@/mock/articles.json' */
 
-import {
-  BookmarkIcon,
-  MessageSquare,
-  QrCode,
-  ThumbsDown,
-  ThumbsUp,
-} from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { getArticleList } from './api/article'
+import ArticleControls from './components/ArticleControls'
 import BLoader from './components/base/BLoader'
-import { Button } from './components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
-import { timeAgo, timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { Article, ArticleListSort } from './types/types'
 
@@ -65,7 +57,7 @@ export default function HomePage() {
         setLoading(true)
         const resp = await getArticleList(page, pageSize, sort, categoryFrontID)
         if (!resp.code) {
-          console.log('article list: ', resp.data)
+          /* console.log('article list: ', resp.data) */
           const { data } = resp
           updateList([...data.articles])
           setPageState({
@@ -102,7 +94,7 @@ export default function HomePage() {
   return (
     <>
       <BNav />
-      <BContainer className="max-w-3xl">
+      <BContainer>
         <Tabs defaultValue="best" value={sort} onValueChange={onSwitchTab}>
           <TabsList>
             <TabsTrigger value="best">最佳</TabsTrigger>
@@ -124,9 +116,9 @@ export default function HomePage() {
               <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
                 <div className="mb-3">
                   <div className="mb-1">
-                    <a className="mr-2" href="#">
+                    <Link className="mr-2" to={'/articles/' + item.id}>
                       {item.title}
-                    </a>
+                    </Link>
                   </div>
                   <div className="max-h-5 mb-1 overflow-hidden text-sm text-gray-600 text-nowrap text-ellipsis">
                     {item.summary}
@@ -143,58 +135,7 @@ export default function HomePage() {
                     </div>
                   )}
                 </div>
-                <div className="flex flex-wrap justify-between text-sm text-gray-500">
-                  <div className="flex items-center">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mr-[-1px] rounded-r-none"
-                    >
-                      <ThumbsUp size={20} className="inline-block mr-1" />
-                      {item.voteUp > 0 && item.voteUp}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="rounded-l-none"
-                    >
-                      <ThumbsDown size={20} className="inline-block mr-1" />
-                      {item.voteDown > 0 && item.voteDown}
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      {/* TODO: saved count */}
-                      <BookmarkIcon size={20} className="inline-block mr-1" />3
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      <MessageSquare size={20} className="inline-block mr-1" />
-                      {item.totalReplyCount > 0 && item.totalReplyCount}
-                    </Button>
-
-                    <div className="ml-2">
-                      <Link to="" className="font-bold">
-                        {item.category.name}
-                      </Link>
-                      &nbsp;·&nbsp;
-                      <span title={timeFmt(item.createdAt, 'YYYY-M-D H:m:s')}>
-                        {timeAgo(item.createdAt)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    {Boolean(item.price) && (
-                      <>
-                        <Button variant="ghost" className="ml-1">
-                          <QrCode />
-                        </Button>
-                        <Button size="sm">
-                          <a href="https://example.com/" target="_blank">
-                            京东购买 ¥{(Math.random() * 100).toFixed(2)}
-                          </a>
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </div>
+                <ArticleControls article={item} />
               </Card>
             ))
           )}

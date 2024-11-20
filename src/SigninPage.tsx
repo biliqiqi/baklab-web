@@ -14,6 +14,7 @@ import BLoader from './components/base/BLoader'
 import BNav from './components/base/BNav'
 
 import { postSignin } from './api'
+import useDocumentTitle from './hooks/use-page-title'
 import { emailRule, passwordRule } from './rules'
 import { useAuthedUserStore } from './state/global'
 
@@ -68,7 +69,7 @@ export default function SigninPage() {
   const account = searchParams.get('account')
   const returnURL = searchParams.get('return')
   /* console.log('account: ', account) */
-  console.log('return url: ', returnURL)
+  /* console.log('return url: ', returnURL) */
 
   const navigate = useNavigate()
 
@@ -110,12 +111,14 @@ export default function SigninPage() {
     }
   }
 
+  useDocumentTitle('登录')
+
   /* console.log('render signin page') */
 
   return (
     <>
       <BNav />
-      <BContainer title="登录">
+      <BContainer>
         <div className="w-[400px] space-y-8 mx-auto py-4">
           <Form {...signinForm}>
             <form onSubmit={signinForm.handleSubmit(onSigninSubmit)}>

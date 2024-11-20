@@ -27,6 +27,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { completeEmailSign, postEmailSinup, postEmailVerify } from './api'
 import { SERVER_ERR_ACCOUNT_EXIST } from './constants'
+import useDocumentTitle from './hooks/use-page-title'
 import { emailRule, passwordRule, phoneRule, usernameRule } from './rules'
 import { useAuthedUserStore } from './state/global'
 
@@ -185,10 +186,12 @@ export default function SignupPage() {
     }
   }
 
+  useDocumentTitle('注册新账户')
+
   return (
     <>
       <BNav />
-      <BContainer title="注册">
+      <BContainer>
         <div className="w-[400px] space-y-8 mx-auto py-4">
           {codeVerified ? (
             <Form {...form}>

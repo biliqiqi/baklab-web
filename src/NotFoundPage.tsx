@@ -1,14 +1,17 @@
 import { Link, useNavigate } from 'react-router-dom'
 import BContainer from './components/base/BContainer'
 import BNav from './components/base/BNav'
+import useDocumentTitle from './hooks/use-page-title'
 
 const NotFoundPage = () => {
   const navigate = useNavigate()
+  useDocumentTitle('页面不存在')
+
   return (
     <>
       <BNav />
       <BContainer>
-        <div className="text-center pt-8">
+        <div className="text-center pt-4">
           <div className="mb-4">页面不存在</div>
           <div className="text-sm">
             <Link

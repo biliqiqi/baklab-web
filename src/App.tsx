@@ -9,6 +9,7 @@ import {
 } from './state/global.ts'
 
 import { useEffect } from 'react'
+import ArticlePage from './ArticlePage.tsx'
 import { Toaster } from './components/ui/sonner.tsx'
 import HomePage from './HomePage.tsx'
 import NotFoundPage from './NotFoundPage.tsx'
@@ -56,6 +57,10 @@ const router = createBrowserRouter([
   {
     path: '/',
     Component: HomePage,
+  },
+  {
+    path: '/articles/:articleID',
+    Component: ArticlePage,
   },
   {
     path: '/signup',

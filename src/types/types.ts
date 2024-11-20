@@ -25,6 +25,26 @@ export interface Category {
   totalArticleCount: number
 }
 
+export type ArticleListSort =
+  | 'best'
+  | 'oldest'
+  | 'latest'
+  | 'list_best'
+  | 'list_hot'
+
+export type ArticleSortTabMap = {
+  [key in ArticleListSort]: string
+}
+
+export interface ArticleList {
+  list: Article[]
+  sortType: ArticleListSort
+  currPage: number
+  pageSize: number
+  total: number
+  totalPage: number
+}
+
 export interface Article {
   id: string
   title: string
@@ -41,6 +61,7 @@ export interface Article {
   updatedAtStr: string
   replyToId: number
   deleted: boolean
+  replies: ArticleList
   totalReplyCount: number
   childrenCount: number
   voteUp: number
@@ -59,18 +80,7 @@ export interface Article {
   fadeOut: boolean
 }
 
-export type ArticleListSort =
-  | 'best'
-  | 'oldest'
-  | 'latest'
-  | 'list_best'
-  | 'list_hot'
-
-export type ArticleSortTabMap = {
-  [key in ArticleListSort]: string
-}
-
-export type ArticleListResponse = {
+export interface ArticleListResponse {
   articles: Article[]
   articleTotal: number
   currPage: number
@@ -79,6 +89,28 @@ export type ArticleListResponse = {
   sortType: ArticleListSort
   defaultSortType: ArticleListSort
   category: Category
+  sortTabList: ArticleListSort[]
+  sortTabNames: ArticleSortTabMap
+}
+
+export interface ArticleReact {
+  id: string
+  emoji: string
+  frontId: string
+  describe: string
+  createdAt: string
+}
+
+export type ArticleReactMap = {
+  [x: string]: ArticleReact
+}
+
+export interface ArticleItemResponse {
+  article: Article
+  maxDepth: number
+  reactOptions: ArticleReact[]
+  reactMap: ArticleReactMap
+  defaultSortType: ArticleListSort
   sortTabList: ArticleListSort[]
   sortTabNames: ArticleSortTabMap
 }

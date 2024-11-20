@@ -37,6 +37,7 @@ import {
 } from './components/ui/popover'
 import { Textarea } from './components/ui/textarea'
 import { ARTICLE_MAX_CONTENT_LEN, ARTICLE_MAX_TITILE_LEN } from './constants'
+import useDocumentTitle from './hooks/use-page-title'
 import { toSync } from './lib/fire-and-forget'
 import { CategoryOption } from './types/types'
 
@@ -124,7 +125,9 @@ export default function SubmitPage() {
     }
   }
 
-  console.log('render submit page')
+  useDocumentTitle('提交内容')
+
+  /* console.log('render submit page') */
 
   useEffect(() => {
     fetchCateList()

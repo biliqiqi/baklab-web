@@ -60,6 +60,7 @@ export interface Article {
   createdAtStr: string
   updatedAtStr: string
   replyToId: string
+  replyToArticle: Article
   deleted: boolean
   replies: ArticleList
   totalReplyCount: number

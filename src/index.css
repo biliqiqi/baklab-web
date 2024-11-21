@@ -121,6 +121,31 @@ a:hover {
   @apply text-primary underline-offset-4 hover:underline;
 }
 
+.b-highlight > .bg-card {
+  animation: highlight 2s ease-in-out none;
+}
+
+@keyframes highlight {
+  0% {
+    background-color: hsl(var(--card));
+    box-shadow: none;
+  }
+  25% {
+    background-color: rgba(249, 234, 205, 1);
+  }
+  50% {
+    background-color: hsl(var(--card));
+    box-shadow: none;
+  }
+  75% {
+    background-color: rgba(249, 234, 205, 1);
+  }
+  100% {
+    background-color: hsl(var(--card));
+    box-shadow: none;
+  }
+}
+
 @keyframes bblFadInOut {
   0%,
   80%,

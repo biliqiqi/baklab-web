@@ -35,14 +35,22 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
     >
       <div className="flex items-center">
         <Button
-          variant="outline"
+          variant={
+            type == 'list' || article.replyToId == '0' ? 'outline' : 'ghost'
+          }
           size="sm"
           className="mr-[-1px] rounded-r-none"
         >
           <ThumbsUp size={20} className="inline-block mr-1" />
           {article.voteUp > 0 && article.voteUp}
         </Button>
-        <Button variant="outline" size="sm" className="rounded-l-none">
+        <Button
+          variant={
+            type == 'list' || article.replyToId == '0' ? 'outline' : 'ghost'
+          }
+          size="sm"
+          className="rounded-l-none"
+        >
           <ThumbsDown size={20} className="inline-block mr-1" />
           {article.voteDown > 0 && article.voteDown}
         </Button>
@@ -52,7 +60,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
         </Button>
         <Button variant="ghost" size="sm" onClick={onCommentClick}>
           {type == 'list' ? (
-            <Link to={'/articles/' + article.id + '#comments'}>
+            <Link to={'/articles/' + article.id}>
               <MessageSquare size={20} className="inline-block mr-1" />
               {article.totalReplyCount > 0 && article.totalReplyCount}
             </Link>

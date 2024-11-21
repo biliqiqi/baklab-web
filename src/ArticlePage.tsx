@@ -38,7 +38,7 @@ export default function ArticlePage() {
             ],
           },
         })
-        /* console.log('article resp: ', resp) */
+        console.log('article resp: ', resp.data)
         if (!resp.code) {
           setArticle(resp.data.article)
         }
@@ -76,7 +76,10 @@ export default function ArticlePage() {
               className="mb-4"
             />
             {article.totalReplyCount > 0 && (
-              <div className="flex justify-between items-center border-b border-gray-300 py-3 mb-4">
+              <div
+                id="comments"
+                className="flex justify-between items-center border-b border-gray-300 py-3 mb-4"
+              >
                 <span className="font-bold">
                   {article.totalReplyCount} 回复
                 </span>

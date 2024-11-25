@@ -82,7 +82,7 @@ export interface Article {
 }
 
 export interface ArticleListResponse {
-  articles: Article[]
+  articles: Article[] | null
   articleTotal: number
   currPage: number
   pageSize: number

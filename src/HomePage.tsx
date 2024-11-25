@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { Card } from '@/components/ui/card'
+
 import {
   Pagination,
   PaginationContent,
@@ -59,13 +60,15 @@ export default function HomePage() {
         if (!resp.code) {
           /* console.log('article list: ', resp.data) */
           const { data } = resp
-          updateList([...data.articles])
-          setPageState({
-            currPage: data.currPage,
-            pageSize: data.pageSize,
-            totalCount: data.articleTotal,
-            totalPage: data.totalPage,
-          })
+          if (data.articles) {
+            updateList([...data.articles])
+            setPageState({
+              currPage: data.currPage,
+              pageSize: data.pageSize,
+              totalCount: data.articleTotal,
+              totalPage: data.totalPage,
+            })
+          }
         }
       } catch (e) {
         console.error('get article list error: ', e)

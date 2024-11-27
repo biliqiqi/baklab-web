@@ -1,6 +1,11 @@
 import request, { authRequest } from '@/lib/request'
 
-import { CategoryOption, ResponseData, TokenResponse } from '@/types/types'
+import {
+  AuthedDataResponse,
+  CategoryOption,
+  ResponseData,
+  TokenResponse,
+} from '@/types/types'
 
 // export const postEmailSinup = async (email: string) => {
 //   const resp = await fetch('http://localhost:3001/api/signup', {
@@ -31,12 +36,6 @@ export const postEmailVerify = async (
   code: string
 ): Promise<ResponseData<TokenResponse>> =>
   request.post(`email_verify`, { json: { email, code } }).json()
-
-interface AuthedDataResponse {
-  token: string
-  username: string
-  userID: string
-}
 
 export const completeEmailSign = async (
   email: string,

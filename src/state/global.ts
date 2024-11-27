@@ -57,11 +57,11 @@ export const useAuthedUserStore = create<AuthedUserState>((set) => ({
       userID,
     }
     set(() => newState)
-    localStorage.setItem(AUTHED_USER_LOCAL_STORE_NAME, JSON.stringify(newState))
+    // localStorage.setItem(AUTHED_USER_LOCAL_STORE_NAME, JSON.stringify(newState))
   },
   logout() {
     set(() => emptyAuthedUserData)
-    localStorage.removeItem(AUTHED_USER_LOCAL_STORE_NAME)
+    // localStorage.removeItem(AUTHED_USER_LOCAL_STORE_NAME)
   },
 }))
 

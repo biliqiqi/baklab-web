@@ -18,6 +18,7 @@ import BNav from './components/base/BNav'
 
 import { Link, useSearchParams } from 'react-router-dom'
 import { getArticleList } from './api/article'
+import { getUser } from './api/user'
 import ArticleControls from './components/ArticleControls'
 import BLoader from './components/base/BLoader'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
@@ -25,7 +26,6 @@ import { toSync } from './lib/fire-and-forget'
 import { Article, ArticleListSort } from './types/types'
 
 /* const articleList = mockArticleList as Article[] */
-
 interface PageState {
   currPage: number
   pageSize: number
@@ -90,6 +90,17 @@ export default function HomePage() {
     const pageSize = Number(params.get('page_size')) || 10
     const category = params.get('category') || ''
     const sort = (params.get('sort') as ArticleListSort | null) || 'best'
+
+    toSync(async () => {
+      try {
+        const resp = await getUser('test')
+        if (!resp.code) {
+          console.log('get user data: ', resp)
+        }
+      } catch (err) {
+        console.error('get user data error', err)
+      }
+    })()
 
     fetchArticles(page, pageSize, sort, category)
   }, [params])

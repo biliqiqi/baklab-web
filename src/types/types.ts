@@ -8,6 +8,12 @@ export interface TokenResponse {
   token: string
 }
 
+export interface AuthedDataResponse {
+  token: string
+  username: string
+  userID: string
+}
+
 export interface CategoryOption {
   id: string
   name: string

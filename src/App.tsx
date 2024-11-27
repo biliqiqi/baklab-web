@@ -1,46 +1,29 @@
 import { redirect, replace, RouterProvider } from 'react-router-dom'
 
 import { createBrowserRouter } from 'react-router-dom'
-import {
-  AUTHED_USER_LOCAL_STORE_NAME,
-  AuthedUserData,
-  isLogined,
-  useAuthedUserStore,
-} from './state/global.ts'
+import { isLogined, useAuthedUserStore } from './state/global.ts'
 
 import { useEffect } from 'react'
 import ArticlePage from './ArticlePage.tsx'
 import { Toaster } from './components/ui/sonner.tsx'
 import HomePage from './HomePage.tsx'
+import { useAuth } from './hooks/use-auth.ts'
+import { toSync } from './lib/fire-and-forget.ts'
+import { refreshAuthState } from './lib/request.ts'
 import NotFoundPage from './NotFoundPage.tsx'
 import SigninPage from './SigninPage.tsx'
 import SignupPage from './SignupPage.tsx'
 import SubmitPage from './SubmitPage.tsx'
 
-const getAuthDataFromLocal = (): AuthedUserData | null => {
-  const dataStr = localStorage.getItem(AUTHED_USER_LOCAL_STORE_NAME)
-  if (dataStr) {
-    try {
-      const data = JSON.parse(dataStr) as AuthedUserData
-      /* console.log('auth state from localStorage: ', data) */
-      return data
-    } catch (e) {
-      console.error('parse authe state local storage error: ', e)
-      return null
-    }
-  }
-  return null
-}
-
 const notAtAuthed = () => {
-  const data = getAuthDataFromLocal()
+  const data = useAuthedUserStore.getState()
   const authed = !!data && isLogined(data)
   if (authed) return redirect('/')
   return null
 }
 
 const mustAuthed = ({ request }: { request: Request }) => {
-  const data = getAuthDataFromLocal()
+  const data = useAuthedUserStore.getState()
   const authed = !!data && isLogined(data)
   /* console.log('authed: ', authed) */
   if (!authed) {
@@ -84,18 +67,13 @@ const router = createBrowserRouter([
 ])
 
 const App = () => {
-  const updateAuthState = useAuthedUserStore((state) => state.update)
-  /* const authed = useAuth() */
-
-  /* const router = createRouter(authed) */
+  const authed = useAuth()
 
   useEffect(() => {
-    const data = getAuthDataFromLocal()
-    if (data) {
-      const { authToken, username, userID } = data
-      updateAuthState(authToken, username, userID)
+    if (!authed) {
+      toSync(refreshAuthState)()
     }
-  }, [updateAuthState])
+  }, [authed])
 
   {/* prettier-ignore */}
   return (

@@ -53,6 +53,8 @@ const BNav = React.forwardRef<
     }
   }
 
+  /* console.log('auth state: ', authState) */
+
   return (
     <div
       className={cn(

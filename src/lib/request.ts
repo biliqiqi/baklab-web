@@ -3,8 +3,8 @@ import { Options } from 'node_modules/ky/distribution/types/options'
 import { toast } from 'sonner'
 
 import { API_HOST, API_PATH_PREFIX } from '@/constants'
-import { isLogined, useAuthedUserStore } from '@/state/global'
-import { ResponseData, TokenResponse } from '@/types/types'
+import { useAuthedUserStore } from '@/state/global'
+import { AuthedDataResponse, ResponseData } from '@/types/types'
 
 const isRefreshRequest: (x: Request) => boolean = (req) =>
   req.method.toLowerCase() == 'get' &&
@@ -16,10 +16,10 @@ const defaultOptions: Options = {
     Accept: 'application/json',
     'Content-Type': 'application/json',
   },
-  retry: {
-    limit: 5,
-    statusCodes: [401],
-  },
+  // retry: {
+  //   limit: 2,
+  //   statusCodes: [401],
+  // },
   hooks: {
     // beforeRequest: [
     //   (_req, opt) => {
@@ -60,11 +60,11 @@ const defaultOptions: Options = {
                 useAuthedUserStore.getState().logout()
                 toast.error('请认证或登录后再试')
               } else {
-                const logined = isLogined(useAuthedUserStore.getState())
+                // const logined = isLogined(useAuthedUserStore.getState())
                 // console.log('logined:', logined)
-                if (!logined) {
-                  toast.error('请认证或登录后再试')
-                }
+                // if (!logined) {
+                //   toast.error('请认证或登录后再试')
+                // }
               }
               break
             case status == 403:
@@ -90,8 +90,22 @@ const defaultOptions: Options = {
 
 const request = ky.create(defaultOptions)
 
-const refresToken = async (): Promise<ResponseData<TokenResponse>> =>
-  request.get(`refresh_token`, { credentials: 'include' }).json()
+// 避免循环引用，refreshToken 放在 request.ts 里面
+export const refresToken = async (): Promise<
+  ResponseData<AuthedDataResponse>
+> => request.get(`refresh_token`, { credentials: 'include', retry: 0 }).json()
+
+export const refreshAuthState = async () => {
+  try {
+    const { data, code } = await refresToken()
+    if (!code) {
+      const state = useAuthedUserStore.getState()
+      state.update(data.token, data.username, data.userID)
+    }
+  } catch (e) {
+    console.error('refresh auth state error: ', e)
+  }
+}
 
 const addAuthToHeaders: BeforeRequestHook = (req, _opt) => {
   const token = useAuthedUserStore.getState().authToken
@@ -102,17 +116,7 @@ const addAuthToHeaders: BeforeRequestHook = (req, _opt) => {
 
 const refreshTokenHook: AfterResponseHook = async (req, _opt, resp) => {
   if (!resp.ok && resp.status == 401 && !isRefreshRequest(req)) {
-    try {
-      const data = await refresToken()
-      if (!data.code) {
-        const state = useAuthedUserStore.getState()
-        state.update(data.data.token, state.username, state.userID)
-
-        // console.log('refresh token success!')
-      }
-    } catch (e) {
-      console.error('refresh token error: ', e)
-    }
+    await refreshAuthState()
   }
 
   return resp

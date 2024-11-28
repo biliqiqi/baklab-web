@@ -55,8 +55,8 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           {article.voteDown > 0 && article.voteDown}
         </Button>
         <Button variant="ghost" size="sm">
-          {/* TODO: saved count */}
-          <BookmarkIcon size={20} className="inline-block mr-1" />3
+          <BookmarkIcon size={20} className="inline-block mr-1" />
+          {article.totalSavedCount > 0 && article.totalSavedCount}
         </Button>
         <Button variant="ghost" size="sm" onClick={onCommentClick}>
           {type == 'list' ? (
@@ -75,19 +75,19 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
               {article.category.name}
             </Link>
             &nbsp;·&nbsp;
-            <span title={timeFmt(article.createdAt, 'YYYY-M-D H:m:s')}>
+            <span title={timeFmt(article.createdAt, 'YYYY年M月D日 H时m分s秒')}>
               {timeAgo(article.createdAt)}
             </span>
           </div>
         )}
       </div>
       <div className="flex items-center">
-        {Boolean(article.price) && (
+        {article.replyToId == '0' && (
           <>
-            <Button variant="ghost" className="ml-1">
-              <QrCode />
+            <Button size="sm" variant="ghost">
+              <QrCode size={20} />
             </Button>
-            <Button size="sm">
+            <Button size="sm" variant="link">
               <a href="https://example.com/" target="_blank">
                 京东购买 ¥{(Math.random() * 100).toFixed(2)}
               </a>

@@ -70,6 +70,7 @@ export interface Article {
   deleted: boolean
   replies: ArticleList
   totalReplyCount: number
+  totalSavedCount: number
   childrenCount: number
   voteUp: number
   voteDown: number

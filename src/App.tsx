@@ -2,7 +2,7 @@ import { redirect, replace, RouterProvider } from 'react-router-dom'
 
 import { Router } from '@remix-run/router'
 import { createBrowserRouter } from 'react-router-dom'
-import { isLogined, useAuthedUserStore } from './state/global.ts'
+import { isLogined, useAuthedUserStore, useToastStore } from './state/global.ts'
 
 import { useEffect, useState } from 'react'
 import ArticlePage from './ArticlePage.tsx'
@@ -72,13 +72,18 @@ const routes = [
 const App = () => {
   const [initialized, setInitialized] = useState(false)
   const [router, setRouter] = useState<Router | null>(null)
+  const updateToastState = useToastStore((state) => state.update)
   const authed = useAuth()
 
   useEffect(() => {
     if (!authed) {
+      updateToastState(true)
       toSync(refreshAuthState, noop, () => {
         setInitialized(true)
         setRouter(createBrowserRouter(routes))
+        setTimeout(() => {
+          updateToastState(false)
+        }, 0)
       })()
     }
   }, [authed])

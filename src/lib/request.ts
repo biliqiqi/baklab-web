@@ -3,7 +3,7 @@ import { Options } from 'node_modules/ky/distribution/types/options'
 import { toast } from 'sonner'
 
 import { API_HOST, API_PATH_PREFIX } from '@/constants'
-import { useAuthedUserStore } from '@/state/global'
+import { useAuthedUserStore, useToastStore } from '@/state/global'
 import { AuthedDataResponse, ResponseData } from '@/types/types'
 
 const isRefreshRequest: (x: Request) => boolean = (req) =>
@@ -58,7 +58,9 @@ const defaultOptions: Options = {
               // 如果refresh失败说明登录授权过期，直接退出登录，要求重新授权
               if (isRefreshRequest(req)) {
                 useAuthedUserStore.getState().logout()
-                toast.error('请认证或登录后再试')
+                if (!useToastStore.getState().silence) {
+                  toast.error('请认证或登录后再试')
+                }
               } else {
                 // const logined = isLogined(useAuthedUserStore.getState())
                 // console.log('logined:', logined)

@@ -11,7 +11,6 @@ import { Input } from './components/ui/input'
 
 import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
-import BNav from './components/base/BNav'
 
 import { postSignin } from './api'
 import useDocumentTitle from './hooks/use-page-title'
@@ -117,7 +116,6 @@ export default function SigninPage() {
 
   return (
     <>
-      <BNav />
       <BContainer>
         <div className="w-[400px] space-y-8 mx-auto py-4">
           <Form {...signinForm}>

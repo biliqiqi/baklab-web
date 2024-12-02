@@ -15,12 +15,14 @@ import { Button } from './ui/button'
 interface ArticleControlsProps extends HTMLAttributes<HTMLDivElement> {
   article: Article
   type: ArticleCardType
+  downVote: boolean
   onCommentClick?: () => void
 }
 
 const ArticleControls: React.FC<ArticleControlsProps> = ({
   article,
   className,
+  downVote = false,
   type = 'item',
   onCommentClick = () => {},
   ...props
@@ -34,26 +36,16 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
       {...props}
     >
       <div className="flex items-center">
-        <Button
-          variant={
-            type == 'list' || article.replyToId == '0' ? 'outline' : 'ghost'
-          }
-          size="sm"
-          className="mr-[-1px] rounded-r-none"
-        >
+        <Button variant="ghost" size="sm" className="mr-[-1px] rounded-r-none">
           <ThumbsUp size={20} className="inline-block mr-1" />
           {article.voteUp > 0 && article.voteUp}
         </Button>
-        <Button
-          variant={
-            type == 'list' || article.replyToId == '0' ? 'outline' : 'ghost'
-          }
-          size="sm"
-          className="rounded-l-none"
-        >
-          <ThumbsDown size={20} className="inline-block mr-1" />
-          {article.voteDown > 0 && article.voteDown}
-        </Button>
+        {downVote && (
+          <Button variant="ghost" size="sm" className="rounded-l-none">
+            <ThumbsDown size={20} className="inline-block mr-1" />
+            {article.voteDown > 0 && article.voteDown}
+          </Button>
+        )}
         <Button variant="ghost" size="sm">
           <BookmarkIcon size={20} className="inline-block mr-1" />
           {article.totalSavedCount > 0 && article.totalSavedCount}
@@ -71,7 +63,10 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
 
         {type == 'list' && (
           <div className="ml-2">
-            <Link to="" className="font-bold">
+            <Link
+              to={'/categories/' + article.category.frontId}
+              className="font-bold"
+            >
               {article.category.name}
             </Link>
             &nbsp;·&nbsp;

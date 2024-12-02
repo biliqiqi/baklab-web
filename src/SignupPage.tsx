@@ -20,7 +20,6 @@ import { Tabs, TabsContent } from './components/ui/tabs'
 
 import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
-import BNav from './components/base/BNav'
 
 import CodeForm, { CodeScheme } from './components/CodeForm'
 
@@ -191,7 +190,6 @@ export default function SignupPage() {
 
   return (
     <>
-      <BNav />
       <BContainer>
         <div className="w-[400px] space-y-8 mx-auto py-4">
           {codeVerified ? (

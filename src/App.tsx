@@ -5,10 +5,10 @@ import { createBrowserRouter } from 'react-router-dom'
 import { isLogined, useAuthedUserStore, useToastStore } from './state/global.ts'
 
 import { useEffect, useState } from 'react'
+import ArticleListPage from './ArticleListPage.tsx'
 import ArticlePage from './ArticlePage.tsx'
 import BLoader from './components/base/BLoader.tsx'
 import { Toaster } from './components/ui/sonner.tsx'
-import HomePage from './HomePage.tsx'
 import { useAuth } from './hooks/use-auth.ts'
 import { toSync } from './lib/fire-and-forget.ts'
 import { refreshAuthState } from './lib/request.ts'
@@ -42,11 +42,15 @@ const mustAuthed = ({ request }: { request: Request }) => {
 const routes = [
   {
     path: '/',
-    Component: HomePage,
+    Component: ArticleListPage,
   },
   {
     path: '/articles/:articleID',
     Component: ArticlePage,
+  },
+  {
+    path: '/categories/:category',
+    Component: ArticleListPage,
   },
   {
     path: '/signup',

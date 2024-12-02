@@ -12,17 +12,17 @@ import {
 } from '@/components/ui/pagination'
 
 import BContainer from './components/base/BContainer'
-import BNav from './components/base/BNav'
 
 /* import mockArticleList from '@/mock/articles.json' */
 
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { getArticleList } from './api/article'
 import ArticleControls from './components/ArticleControls'
 import BLoader from './components/base/BLoader'
+import { FrontCategory } from './components/base/BNav'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 import { toSync } from './lib/fire-and-forget'
-import { Article, ArticleListSort } from './types/types'
+import { Article, ArticleListSort, Category } from './types/types'
 
 /* const articleList = mockArticleList as Article[] */
 interface PageState {
@@ -30,9 +30,10 @@ interface PageState {
   pageSize: number
   totalCount: number // 数据总量
   totalPage: number // 总页数
+  category?: FrontCategory | Category
 }
 
-export default function HomePage() {
+export default function ArticleListPage() {
   const [loading, setLoading] = useState(false)
   const [list, updateList] = useState<Article[]>([])
   const [pageState, setPageState] = useState<PageState>({
@@ -43,6 +44,7 @@ export default function HomePage() {
   })
 
   const [params, setParams] = useSearchParams()
+  const pathParams = useParams()
 
   const sort = (params.get('sort') as ArticleListSort | null) || 'best'
 
@@ -66,6 +68,16 @@ export default function HomePage() {
               pageSize: data.pageSize,
               totalCount: data.articleTotal,
               totalPage: data.totalPage,
+              category: data.category || undefined,
+            })
+          } else {
+            updateList([])
+            setPageState({
+              currPage: 1,
+              pageSize: data.pageSize,
+              totalCount: data.articleTotal,
+              totalPage: data.totalPage,
+              category: data.category || undefined,
             })
           }
         }
@@ -87,7 +99,7 @@ export default function HomePage() {
   useEffect(() => {
     const page = Number(params.get('page')) || 1
     const pageSize = Number(params.get('page_size')) || 10
-    const category = params.get('category') || ''
+    const category = pathParams['category'] || ''
     const sort = (params.get('sort') as ArticleListSort | null) || 'best'
 
     /* toSync(async () => {
@@ -102,20 +114,21 @@ export default function HomePage() {
      * })() */
 
     fetchArticles(page, pageSize, sort, category)
-  }, [params])
+  }, [params, pathParams])
 
   return (
     <>
-      <BNav />
-      <BContainer>
-        <Tabs defaultValue="best" value={sort} onValueChange={onSwitchTab}>
-          <TabsList>
-            <TabsTrigger value="best">最佳</TabsTrigger>
-            <TabsTrigger value="latest">最新</TabsTrigger>
-            <TabsTrigger value="list_hot">热门</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        <div className="py-4">
+      <BContainer category={pageState.category}>
+        {list.length > 0 && (
+          <Tabs defaultValue="best" value={sort} onValueChange={onSwitchTab}>
+            <TabsList>
+              <TabsTrigger value="best">最佳</TabsTrigger>
+              <TabsTrigger value="latest">最新</TabsTrigger>
+              <TabsTrigger value="list_hot">热门</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
+        <div className="py-4" key={pathParams.category}>
           {loading ? (
             <div className="flex justify-center">
               <BLoader />

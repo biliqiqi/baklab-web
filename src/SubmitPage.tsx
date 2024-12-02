@@ -5,13 +5,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { getCategoryList } from './api'
 import { submitArticle } from './api/article'
 import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
-import BNav from './components/base/BNav'
 import { Button } from './components/ui/button'
 import {
   Command,
@@ -26,7 +25,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from './components/ui/form'
 import { Input } from './components/ui/input'
@@ -70,6 +68,7 @@ export default function SubmitPage() {
   const [cateList, setCateList] = useState<CategoryOption[]>([])
 
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
   const cateMap: CategoryMap = useMemo(() => {
     return cateList.reduce((obj: CategoryMap, item) => {
@@ -97,7 +96,7 @@ export default function SubmitPage() {
     defaultValues: {
       title: '',
       link: '',
-      category: '',
+      category: searchParams.get('category') || '',
       content: '',
     },
   })
@@ -135,19 +134,17 @@ export default function SubmitPage() {
 
   return (
     <>
-      <BNav />
       <BContainer title="提交">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-8 max-w-[800px] mx-auto"
+            className="space-y-4 max-w-[800px] mx-auto"
           >
             <FormField
               control={form.control}
               name="title"
               render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>标题</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="请输入标题"
@@ -162,29 +159,9 @@ export default function SubmitPage() {
             />
             <FormField
               control={form.control}
-              name="link"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormLabel>链接</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="请输入来源链接"
-                      autoComplete="off"
-                      type="url"
-                      state={fieldState.invalid ? 'invalid' : 'default'}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
               name="category"
               render={({ fieldState }) => (
                 <FormItem>
-                  <FormLabel>发布到</FormLabel>
                   <div>
                     <FormControl>
                       <Popover open={open} onOpenChange={setOpen}>
@@ -193,14 +170,14 @@ export default function SubmitPage() {
                             variant={fieldState.invalid ? 'invalid' : 'outline'}
                             role="combobox"
                             aria-expanded={open}
-                            className="w-[200px] justify-between"
+                            className="w-[200px] justify-between text-gray-500"
                             disabled={loading}
                           >
                             {categoryVal()
                               ? cateList.find(
                                   (cate) => cate.id === categoryVal()
                                 )?.name
-                              : '请选择分类'}
+                              : '发布到...'}
                             <ChevronsUpDown className="opacity-50" />
                           </Button>
                         </PopoverTrigger>
@@ -253,14 +230,33 @@ export default function SubmitPage() {
             />
             <FormField
               control={form.control}
+              name="link"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      placeholder="请输入来源链接"
+                      autoComplete="off"
+                      type="url"
+                      state={fieldState.invalid ? 'invalid' : 'default'}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="content"
               render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>内容</FormLabel>
                   <FormControl>
                     <Textarea
                       {...field}
                       state={fieldState.invalid ? 'invalid' : 'default'}
+                      placeholder="请输入内容"
+                      className="h-[320px]"
                     />
                   </FormControl>
                   <FormMessage />

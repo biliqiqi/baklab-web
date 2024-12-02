@@ -4,7 +4,6 @@ import { getArticle } from './api/article'
 import ArticleCard from './components/ArticleCard'
 import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
-import BNav from './components/base/BNav'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 import { toSync } from './lib/fire-and-forget'
 import { Article, ArticleListSort } from './types/types'
@@ -65,8 +64,19 @@ export default function ArticlePage() {
 
   return (
     <>
-      <BNav />
-      <BContainer>
+      <BContainer
+        category={
+          article
+            ? {
+                frontId: article.category.frontId,
+                name: article.category.name,
+                describe: article.category.describe,
+                isFront: false,
+              }
+            : undefined
+        }
+        goBack
+      >
         {article && (
           <>
             <ArticleCard

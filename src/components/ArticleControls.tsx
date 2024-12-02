@@ -15,7 +15,9 @@ import { Button } from './ui/button'
 interface ArticleControlsProps extends HTMLAttributes<HTMLDivElement> {
   article: Article
   type: ArticleCardType
-  downVote: boolean
+  downVote?: boolean // 是否显示踩按钮
+  bookmark?: boolean // 是否显示书签（收藏）按钮
+  summary?: boolean // 是否显示概览
   onCommentClick?: () => void
 }
 
@@ -23,6 +25,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   article,
   className,
   downVote = false,
+  bookmark = false,
   type = 'item',
   onCommentClick = () => {},
   ...props
@@ -36,20 +39,22 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
       {...props}
     >
       <div className="flex items-center">
-        <Button variant="ghost" size="sm" className="mr-[-1px] rounded-r-none">
+        <Button variant="ghost" size="sm" className="mr-1">
           <ThumbsUp size={20} className="inline-block mr-1" />
           {article.voteUp > 0 && article.voteUp}
         </Button>
         {downVote && (
-          <Button variant="ghost" size="sm" className="rounded-l-none">
+          <Button variant="ghost" size="sm" className="mr-1">
             <ThumbsDown size={20} className="inline-block mr-1" />
             {article.voteDown > 0 && article.voteDown}
           </Button>
         )}
-        <Button variant="ghost" size="sm">
-          <BookmarkIcon size={20} className="inline-block mr-1" />
-          {article.totalSavedCount > 0 && article.totalSavedCount}
-        </Button>
+        {bookmark && (
+          <Button variant="ghost" size="sm">
+            <BookmarkIcon size={20} className="inline-block mr-1" />
+            {article.totalSavedCount > 0 && article.totalSavedCount}
+          </Button>
+        )}
         <Button variant="ghost" size="sm" onClick={onCommentClick}>
           {type == 'list' ? (
             <Link to={'/articles/' + article.id}>

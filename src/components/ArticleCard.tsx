@@ -1,32 +1,17 @@
-import { z } from '@/lib/zod-custom'
-
-import { ARTICLE_MAX_CONTENT_LEN } from '@/constants'
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
-import { Button } from './ui/button'
 import { Card } from './ui/card'
-import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form'
-import { Textarea } from './ui/textarea'
 
-import { submitReply } from '@/api/article'
-import { toSync } from '@/lib/fire-and-forget'
+import { EV_ON_REPLY_CLICK } from '@/constants'
+import { bus } from '@/lib/utils'
 import {
   Article,
   ArticleCardType,
   ArticleSubmitResponse,
   ResponseData,
 } from '@/types/types'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { HTMLAttributes, useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import ArticleControls from './ArticleControls'
-import BLoader from './base/BLoader'
-
-const articleScheme = z.object({
-  content: z.string().trim().min(1, '请输入内容').max(ARTICLE_MAX_CONTENT_LEN),
-})
-
-type ArticleScheme = z.infer<typeof articleScheme>
 
 interface ArticleCardProps extends HTMLAttributes<HTMLDivElement> {
   article: Article
@@ -68,44 +53,11 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   type = 'item',
   ...props
 }) => {
-  const [loading, setLoading] = useState(false)
-
   const isRootArticle = type == 'item' && article.replyToId == '0'
   const [replyBox, setReplyBox] = useState(isRootArticle)
 
-  const form = useForm<ArticleScheme>({
-    resolver: zodResolver(articleScheme),
-    defaultValues: {
-      content: '',
-    },
-  })
-
   const articleID = article.id
   const parent = article.replyToArticle
-
-  const onSubmit = async ({ content }: ArticleScheme) => {
-    /* console.log('values: ', values) */
-    try {
-      setLoading(true)
-      if (!articleID) throw new Error('aritcle id is required')
-
-      const data = await submitReply(articleID, content)
-      if (!data.code) {
-        /* toast.info('提交成功') */
-        form.reset({ content: '' })
-        if (!isRootArticle) {
-          setReplyBox(false)
-        }
-        if (onSuccess && typeof onSuccess == 'function') {
-          onSuccess(data)
-        }
-      }
-    } catch (err) {
-      console.error('submit reply error: ', err)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   return (
     <div id={'comment' + article.id} {...props}>
@@ -148,48 +100,10 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           article={article}
           type={type}
           onCommentClick={() => {
-            setReplyBox(!replyBox)
-            if (!replyBox) {
-              setTimeout(() => {
-                form.setFocus('content', { shouldSelect: true })
-              }, 0)
-            }
+            bus.emit(EV_ON_REPLY_CLICK, articleID)
           }}
         />
       </Card>
-      {replyBox && (
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-3 max-w-[800px] mx-auto"
-            onKeyUp={(e) => {
-              if (e.ctrlKey && e.key == 'Enter') {
-                toSync(form.handleSubmit(onSubmit))()
-              }
-            }}
-          >
-            <FormField
-              control={form.control}
-              name="content"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      state={fieldState.invalid ? 'invalid' : 'default'}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Button type="submit" disabled={loading} className="mt-2">
-              {loading ? <BLoader /> : '提交'}
-            </Button>
-          </form>
-        </Form>
-      )}
     </div>
   )
 }

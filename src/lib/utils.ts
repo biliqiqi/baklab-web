@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from 'clsx'
+import EventEmitter from 'events'
 import { twMerge } from 'tailwind-merge'
 
 export function cn(...inputs: ClassValue[]) {
@@ -6,3 +7,5 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const noop = () => {}
+
+export const bus = new EventEmitter()

@@ -22,7 +22,7 @@ import BLoader from './components/base/BLoader'
 import { FrontCategory } from './components/base/BNav'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 import { toSync } from './lib/fire-and-forget'
-import { Article, ArticleListSort, Category } from './types/types'
+import { Article, ArticleListSort } from './types/types'
 
 /* const articleList = mockArticleList as Article[] */
 interface PageState {
@@ -30,7 +30,7 @@ interface PageState {
   pageSize: number
   totalCount: number // 数据总量
   totalPage: number // 总页数
-  category?: FrontCategory | Category
+  category?: FrontCategory
 }
 
 export default function ArticleListPage() {
@@ -61,6 +61,12 @@ export default function ArticleListPage() {
         if (!resp.code) {
           /* console.log('article list: ', resp.data) */
           const { data } = resp
+          let category: FrontCategory | undefined
+          if (data.category) {
+            const { frontId, name, describe } = data.category
+            category = { frontId, name, describe } as FrontCategory
+          }
+
           if (data.articles) {
             updateList([...data.articles])
             setPageState({
@@ -68,7 +74,7 @@ export default function ArticleListPage() {
               pageSize: data.pageSize,
               totalCount: data.articleTotal,
               totalPage: data.totalPage,
-              category: data.category || undefined,
+              category,
             })
           } else {
             updateList([])
@@ -77,7 +83,7 @@ export default function ArticleListPage() {
               pageSize: data.pageSize,
               totalCount: data.articleTotal,
               totalPage: data.totalPage,
-              category: data.category || undefined,
+              category,
             })
           }
         }
@@ -146,9 +152,9 @@ export default function ArticleListPage() {
                       {item.title}
                     </Link>
                   </div>
-                  <div className="max-h-5 mb-1 overflow-hidden text-sm text-gray-600 text-nowrap text-ellipsis">
+                  {/* <div className="max-h-5 mb-1 overflow-hidden text-sm text-gray-600 text-nowrap text-ellipsis">
                     {item.summary}
-                  </div>
+                  </div> */}
                   {item.picURL && (
                     <div className="w-[120px] h-[120px] rounded mr-4 bg-gray-200 shrink-0 overflow-hidden">
                       <a href="#">

@@ -134,7 +134,16 @@ export default function SubmitPage() {
 
   return (
     <>
-      <BContainer title="提交">
+      <BContainer
+        title="提交"
+        category={{
+          frontId: 'submit',
+          name: '提交新内容',
+          describe: '',
+          isFront: true,
+        }}
+        goBack
+      >
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}

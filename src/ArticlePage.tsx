@@ -4,13 +4,18 @@ import { getArticle } from './api/article'
 import ArticleCard from './components/ArticleCard'
 import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
+import ReplyBox from './components/ReplyBox'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
+import { EV_ON_REPLY_CLICK } from './constants'
 import { toSync } from './lib/fire-and-forget'
+import { bus } from './lib/utils'
 import { Article, ArticleListSort } from './types/types'
 
 export default function ArticlePage() {
   const [loading, setLoading] = useState(false)
   const [article, setArticle] = useState<Article | null>(null)
+  const [replyBox, setReplyBox] = useState(true)
+  const [replyToID, setReplyToID] = useState('0')
 
   const [params, setParams] = useSearchParams()
 
@@ -19,7 +24,7 @@ export default function ArticlePage() {
   const { articleID } = useParams()
   const navigate = useNavigate()
 
-  const fetchArticle = toSync(async (showLoading = true) => {
+  const fetchArticle = async (showLoading = true) => {
     try {
       if (showLoading) {
         setLoading(true)
@@ -37,8 +42,9 @@ export default function ArticlePage() {
             ],
           },
         })
-        console.log('article resp: ', resp.data)
+        /* console.log('article resp: ', resp.data) */
         if (!resp.code) {
+          setReplyToID(resp.data.article.id)
           setArticle(resp.data.article)
         }
       } else {
@@ -49,7 +55,9 @@ export default function ArticlePage() {
     } finally {
       setLoading(false)
     }
-  })
+  }
+
+  const fetchArticleSync = toSync(fetchArticle)
 
   const onSwitchTab = (val: string) => {
     setParams((prevParams) => {
@@ -58,8 +66,16 @@ export default function ArticlePage() {
     })
   }
 
+  const onReplyClick = (replyToID: string) => {
+    console.log('on reply click: ', replyToID)
+    setReplyToID(replyToID)
+    setReplyBox(true)
+  }
+
   useEffect(() => {
-    fetchArticle()
+    fetchArticleSync()
+    bus.off(EV_ON_REPLY_CLICK, onReplyClick)
+    bus.on(EV_ON_REPLY_CLICK, onReplyClick)
   }, [articleID, params])
 
   return (
@@ -79,12 +95,7 @@ export default function ArticlePage() {
       >
         {article && (
           <>
-            <ArticleCard
-              key={article.id}
-              article={article}
-              onSuccess={fetchArticle}
-              className="mb-4"
-            />
+            <ArticleCard key={article.id} article={article} className="mb-4" />
             {article.totalReplyCount > 0 && (
               <div
                 id="comments"
@@ -114,14 +125,26 @@ export default function ArticlePage() {
             ) : (
               Boolean(article.replies.list) &&
               article.replies.list.map((item) => (
-                <ArticleCard
-                  key={item.id}
-                  article={item}
-                  onSuccess={() => fetchArticle(false)}
-                />
+                <ArticleCard key={item.id} article={item} />
               ))
             )}
           </>
+        )}
+
+        {replyBox && (
+          <ReplyBox
+            articleID={replyToID}
+            onSuccess={() =>
+              fetchArticle(false).then(() => {
+                setTimeout(() => {
+                  window.scrollTo({
+                    top: document.body.scrollHeight,
+                    behavior: 'smooth',
+                  })
+                }, 0)
+              })
+            }
+          />
         )}
       </BContainer>
     </>

@@ -3,10 +3,12 @@ import React, { useEffect, useState } from 'react'
 import { getCategoryList } from '@/api'
 import { NAV_HEIGHT, SITE_NAME } from '@/constants'
 import { toSync } from '@/lib/fire-and-forget'
+import SubmitPage from '@/SubmitPage'
 import { CategoryOption } from '@/types/types'
 import { GripIcon, HashIcon, NewspaperIcon } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { Button } from '../ui/button'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '../ui/drawer'
 import {
   Sidebar,
   SidebarContent,
@@ -23,11 +25,11 @@ import BNav, { FrontCategory } from './BNav'
 export interface BContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string
   category?: FrontCategory
-  goBack: boolean
+  goBack?: boolean
 }
 
 const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
-  ({ children, category, goBack, ...props }, ref) => {
+  ({ children, category, goBack = false, ...props }, ref) => {
     /* const [loading, setLoading] = useState(false) */
     const [cateList, setCateList] = useState<CategoryOption[]>([])
     const location = useLocation()
@@ -120,11 +122,20 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             </SidebarGroup>
           </SidebarContent>
         </Sidebar>
-        <main className="flex-grow">
-          <BNav category={category} goBack={goBack} />
-          <div className="container mx-auto max-w-3xl px-4 py-4">
-            {children}
-          </div>
+        <main className="flex-grow max-w-[100%]">
+          <Drawer>
+            <BNav category={category} goBack={goBack} />
+            <div className="container mx-auto max-w-3xl px-4 py-4">
+              {children}
+            </div>
+
+            <DrawerContent>
+              <DrawerHeader>
+                <DrawerTitle>创建帖子</DrawerTitle>
+              </DrawerHeader>
+              <SubmitPage />
+            </DrawerContent>
+          </Drawer>
         </main>
       </SidebarProvider>
     )

@@ -26,11 +26,14 @@ export type FrontCategory = Pick<Category, 'frontId' | 'name' | 'describe'> & {
 
 export interface NavProps extends React.HTMLAttributes<HTMLDivElement> {
   category?: FrontCategory
-  goBack: boolean
+  goBack?: boolean
 }
 
 const summryText = (text: string, max: number) =>
   text.length > max ? text.slice(0, max) + '...' : text
+
+const isOneOfPath = (loc: Location, pathes: string[]) =>
+  pathes.some((path) => loc.pathname == path)
 
 const BNav = React.forwardRef<HTMLDivElement, NavProps>(
   ({ className, category, goBack = false, ...props }, ref) => {
@@ -38,7 +41,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
     const authState = useAuthedUserStore()
     const navigate = useNavigate()
 
-    const isSigninPage = () => location.pathname == '/signin'
+    /* const isSigninPage = () => location.pathname == '/signin' */
 
     const onDropdownChange = (open: boolean) => {
       if (!open) {
@@ -68,7 +71,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
     return (
       <div
         className={cn(
-          'flex justify-between items-center py-2 px-4 border-b-2 shadow-sm bg-white',
+          'flex justify-between items-center py-2 px-4 border-b-2 shadow-sm bg-white sticky top-0',
           className
         )}
         style={{
@@ -77,7 +80,12 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
         ref={ref}
         {...props}
       >
-        <div className="flex flex-grow items-center">
+        <div
+          className="flex flex-grow  items-center"
+          style={{
+            maxWidth: 'calc(100% - 8rem)',
+          }}
+        >
           {goBack && history.length > 2 && (
             <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
               <ChevronLeftIcon size={28} />
@@ -103,18 +111,25 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
           )}
         </div>
         <div className="flex items-center">
-          {!isSigninPage() && (
-            <Button variant="outline" size="sm" asChild className="mr-4">
-              <Link
-                to={
-                  category && !category.isFront
-                    ? '/submit?category=' + category.frontId
-                    : '/submit'
-                }
-              >
-                + 提交
-              </Link>
-            </Button>
+          {!isOneOfPath(location, ['/signin', '/submit']) && (
+            <>
+              <Button variant="outline" size="sm" asChild className="mr-4">
+                <Link
+                  to={
+                    category && !category.isFront
+                      ? '/submit?category=' + category.frontId
+                      : '/submit'
+                  }
+                >
+                  + 提交
+                </Link>
+              </Button>
+              {/* <DrawerTrigger>
+                <Button variant="outline" size="sm" className="mr-4">
+                  + 提交
+                </Button>
+              </DrawerTrigger> */}
+            </>
           )}
           {isLogined(authState) ? (
             <DropdownMenu onOpenChange={onDropdownChange}>
@@ -138,7 +153,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            !isSigninPage() && (
+            !isOneOfPath(location, ['/signin']) && (
               <Button variant="default" size="sm" asChild>
                 <Link to="/signin">登录</Link>
               </Button>

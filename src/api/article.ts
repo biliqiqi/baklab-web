@@ -26,11 +26,11 @@ export const submitArticle = (
     .json()
 
 export const submitReply = (
-  articleID: string,
+  replyToID: string,
   content: string
 ): Promise<ResponseData<ArticleSubmitResponse>> =>
   authRequest
-    .post(`articles/${articleID}/reply`, {
+    .post(`articles/${replyToID}/reply`, {
       json: {
         content,
       },

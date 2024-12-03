@@ -100,7 +100,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           article={article}
           type={type}
           onCommentClick={() => {
-            bus.emit(EV_ON_REPLY_CLICK, articleID)
+            bus.emit(EV_ON_REPLY_CLICK, article)
           }}
         />
       </Card>

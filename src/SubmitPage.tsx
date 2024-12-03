@@ -179,13 +179,15 @@ export default function SubmitPage() {
                             variant={fieldState.invalid ? 'invalid' : 'outline'}
                             role="combobox"
                             aria-expanded={open}
-                            className="w-[200px] justify-between text-gray-500"
+                            className="w-[200px] justify-between text-gray-700"
                             disabled={loading}
                           >
                             {categoryVal()
-                              ? cateList.find(
+                              ? '发布到【' +
+                                cateList.find(
                                   (cate) => cate.id === categoryVal()
-                                )?.name
+                                )?.name +
+                                '】'
                               : '发布到...'}
                             <ChevronsUpDown className="opacity-50" />
                           </Button>
@@ -273,9 +275,29 @@ export default function SubmitPage() {
               )}
             />
 
-            <Button type="submit" disabled={loading}>
-              {loading ? <BLoader /> : '提交'}
-            </Button>
+            <div className="flex items-center justify-between">
+              <div></div>
+              <div>
+                <Button
+                  variant="outline"
+                  disabled={loading}
+                  size="sm"
+                  onClick={(e) => {
+                    e.preventDefault()
+                  }}
+                >
+                  {loading ? <BLoader /> : '预览'}
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  size="sm"
+                  className="ml-2"
+                >
+                  {loading ? <BLoader /> : '提交'}
+                </Button>
+              </div>
+            </div>
           </form>
         </Form>
       </BContainer>

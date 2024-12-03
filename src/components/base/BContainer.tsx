@@ -64,7 +64,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     /* console.log('pathname: ', location.pathname) */
 
     return (
-      <SidebarProvider ref={ref} {...props}>
+      <SidebarProvider ref={ref}>
         <Sidebar>
           <SidebarContent>
             <div
@@ -125,7 +125,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         <main className="flex-grow max-w-[100%]">
           <Drawer>
             <BNav category={category} goBack={goBack} />
-            <div className="container mx-auto max-w-3xl px-4 py-4">
+            <div className="container mx-auto max-w-3xl px-4 py-4" {...props}>
               {children}
             </div>
 

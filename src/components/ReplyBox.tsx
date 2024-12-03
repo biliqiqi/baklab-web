@@ -3,8 +3,9 @@ import { ARTICLE_MAX_CONTENT_LEN, EV_ON_REPLY_CLICK } from '@/constants'
 import { toSync } from '@/lib/fire-and-forget'
 import { bus } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
-import { ArticleSubmitResponse, ResponseData } from '@/types/types'
+import { Article, ArticleSubmitResponse, ResponseData } from '@/types/types'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { XIcon } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import BLoader from './base/BLoader'
@@ -19,8 +20,10 @@ const articleScheme = z.object({
 type ArticleScheme = z.infer<typeof articleScheme>
 
 interface ReplyBoxProps {
-  articleID: string
+  /* articleID: string */
+  replyToArticle: Article | null
   onSuccess?: (data: ResponseData<ArticleSubmitResponse>) => void
+  onRemoveReply?: () => void
 }
 
 interface ReplyBoxData {
@@ -29,11 +32,16 @@ interface ReplyBoxData {
   isAdjusting: boolean
   handleMouseMove?: (e: MouseEvent) => void
   handleMouseUp?: (e: MouseEvent) => void
+  handleReplyClick?: (x: Article) => void
 }
 
 const REPLY_BOX_MIN_HEIGHT = 80
 
-const ReplyBox: React.FC<ReplyBoxProps> = ({ articleID, onSuccess }) => {
+const ReplyBox: React.FC<ReplyBoxProps> = ({
+  replyToArticle,
+  onSuccess,
+  onRemoveReply,
+}) => {
   const [loading, setLoading] = useState(false)
   const [replyBoxHeight, setReplyBoxHeight] = useState(0)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
@@ -50,13 +58,16 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({ articleID, onSuccess }) => {
     },
   })
 
+  const isReplyToRoot = () => replyToArticle && replyToArticle.replyToId == '0'
+
   const onSubmit = async ({ content }: ArticleScheme) => {
     /* console.log('values: ', values) */
     try {
       setLoading(true)
-      if (!articleID) throw new Error('aritcle id is required')
+      if (!replyToArticle || !replyToArticle.id)
+        throw new Error('aritcle id is required')
 
-      const data = await submitReply(articleID, content)
+      const data = await submitReply(replyToArticle.id, content)
       if (!data.code) {
         /* toast.info('提交成功') */
         form.reset({ content: '' })
@@ -71,10 +82,14 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({ articleID, onSuccess }) => {
     }
   }
 
-  const onReplyClick = () => {
+  const onReplyClick = useCallback(() => {
     setTimeout(() => {
       form.setFocus('content', { shouldSelect: true })
     }, 0)
+  }, [form])
+
+  if (!replyBoxRef.current.handleReplyClick) {
+    replyBoxRef.current.handleReplyClick = onReplyClick
   }
 
   const onMouseMove = useCallback((e: MouseEvent) => {
@@ -95,7 +110,8 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({ articleID, onSuccess }) => {
     setReplyBoxHeight(newHeight)
   }, [])
 
-  replyBoxRef.current.handleMouseMove = onMouseMove
+  if (!replyBoxRef.current.handleMouseMove)
+    replyBoxRef.current.handleMouseMove = onMouseMove
 
   const onMouseUp = useCallback((e: MouseEvent) => {
     const currData = replyBoxRef.current
@@ -111,23 +127,24 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({ articleID, onSuccess }) => {
     }, 0)
   }, [])
 
-  replyBoxRef.current.handleMouseUp = onMouseUp
+  if (!replyBoxRef.current.handleMouseUp)
+    replyBoxRef.current.handleMouseUp = onMouseUp
 
   useEffect(() => {
     const currData = replyBoxRef.current
 
-    bus.off(EV_ON_REPLY_CLICK, onReplyClick)
-    bus.on(EV_ON_REPLY_CLICK, onReplyClick)
-
     /* console.log('textarea ref: ', textareaRef.current) */
     if (textareaRef.current) {
-      /* console.log(
-       *   'textarea ref offsetHeight: ',
-       *   textareaRef.current.offsetHeight
-       * ) */
       setReplyBoxHeight(textareaRef.current.offsetHeight)
       currData.startHeight = textareaRef.current.offsetHeight
     }
+
+    /* console.log('listeners before bind: ', bus.listeners(EV_ON_REPLY_CLICK)) */
+    if (currData.handleReplyClick) {
+      bus.off(EV_ON_REPLY_CLICK, currData.handleReplyClick)
+      bus.on(EV_ON_REPLY_CLICK, currData.handleReplyClick)
+    }
+    /* console.log('listeners after bind: ', bus.listeners(EV_ON_REPLY_CLICK)) */
 
     if (currData.handleMouseMove)
       window.removeEventListener('mousemove', currData.handleMouseMove)
@@ -143,6 +160,11 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({ articleID, onSuccess }) => {
 
       if (currData.handleMouseUp)
         window.removeEventListener('mouseup', currData.handleMouseUp)
+
+      if (currData.handleReplyClick)
+        bus.off(EV_ON_REPLY_CLICK, currData.handleReplyClick)
+
+      /* console.log('listeners unload: ', bus.listeners(EV_ON_REPLY_CLICK)) */
     }
   }, [form])
 
@@ -150,7 +172,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({ articleID, onSuccess }) => {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="max-w-[800px] mx-auto sticky bottom-4 bg-white px-3 pb-3 rounded-lg border-[1px]"
+        className="max-w-[800px] -mx-2 sticky bottom-0 bg-white px-3 pb-3 rounded-lg border-[1px]"
         style={{
           boxShadow:
             '0 0 15px -3px rgb(0 0 0 / 0.1), 0 0 6px -4px rgb(0 0 0 / 0.1)',
@@ -167,11 +189,6 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({ articleID, onSuccess }) => {
             const currData = replyBoxRef.current
             e.preventDefault()
 
-            {
-              /* console.log('mousedown: ', e)
-            console.log('curr data: ', currData) */
-            }
-
             if (textareaRef.current)
               currData.startHeight = textareaRef.current.offsetHeight
 
@@ -184,6 +201,25 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({ articleID, onSuccess }) => {
             }
           }}
         ></div>
+        {replyToArticle && !isReplyToRoot() && (
+          <div className="flex items-center justify-between bg-gray-100 rounded-sm py-1 px-2 mb-2 text-gray-500 text-sm">
+            <span>
+              {replyToArticle.authorName}: {replyToArticle.summary}
+              {replyToArticle.summary != replyToArticle.content && '...'}
+            </span>
+            <Button
+              variant="ghost"
+              size="small"
+              onClick={(e) => {
+                e.preventDefault()
+                if (onRemoveReply && typeof onRemoveReply == 'function')
+                  onRemoveReply()
+              }}
+            >
+              <XIcon size={20} />
+            </Button>
+          </div>
+        )}
         <FormField
           control={form.control}
           name="content"
@@ -204,23 +240,33 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({ articleID, onSuccess }) => {
           )}
         />
 
-        <div>
-          <Button
-            type="submit"
-            disabled={loading}
-            className="mt-2 mr-2"
-            size="sm"
-          >
-            {loading ? <BLoader /> : '提交'}
-          </Button>
-          <Button
-            variant="outline"
-            disabled={loading}
-            className="mt-2"
-            size="sm"
-          >
-            预览
-          </Button>
+        <div className="flex justify-between mt-1 items-center">
+          <div>
+            <span className="text-gray-500 text-sm">
+              <kbd>Ctrl+Enter</kbd> 提交
+            </span>
+          </div>
+          <div>
+            <Button
+              variant="outline"
+              disabled={loading}
+              className="mt-2"
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault()
+              }}
+            >
+              预览
+            </Button>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="mt-2 ml-2"
+              size="sm"
+            >
+              {loading ? <BLoader /> : '提交'}
+            </Button>
+          </div>
         </div>
       </form>
     </Form>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getArticle } from './api/article'
 import ArticleCard from './components/ArticleCard'
@@ -15,7 +15,9 @@ export default function ArticlePage() {
   const [loading, setLoading] = useState(false)
   const [article, setArticle] = useState<Article | null>(null)
   const [replyBox, setReplyBox] = useState(true)
-  const [replyToID, setReplyToID] = useState('0')
+  /* const [replyToID, setReplyToID] = useState('0') */
+  const [replyToArticle, setReplyToArticle] = useState<Article | null>(null)
+  const replyHandlerRef = useRef<((x: Article) => void) | null>(null)
 
   const [params, setParams] = useSearchParams()
 
@@ -44,8 +46,9 @@ export default function ArticlePage() {
         })
         /* console.log('article resp: ', resp.data) */
         if (!resp.code) {
-          setReplyToID(resp.data.article.id)
+          /* setReplyToID(resp.data.article.id) */
           setArticle(resp.data.article)
+          setReplyToArticle(resp.data.article)
         }
       } else {
         navigate('/404')
@@ -66,16 +69,28 @@ export default function ArticlePage() {
     })
   }
 
-  const onReplyClick = (replyToID: string) => {
-    console.log('on reply click: ', replyToID)
-    setReplyToID(replyToID)
+  const onReplyClick = useCallback((article: Article) => {
+    setReplyToArticle(article)
     setReplyBox(true)
+  }, [])
+
+  if (!replyHandlerRef.current) {
+    replyHandlerRef.current = onReplyClick
   }
 
   useEffect(() => {
     fetchArticleSync()
-    bus.off(EV_ON_REPLY_CLICK, onReplyClick)
-    bus.on(EV_ON_REPLY_CLICK, onReplyClick)
+
+    if (replyHandlerRef.current) {
+      bus.off(EV_ON_REPLY_CLICK, replyHandlerRef.current)
+      bus.on(EV_ON_REPLY_CLICK, replyHandlerRef.current)
+    }
+
+    return () => {
+      if (replyHandlerRef.current) {
+        bus.off(EV_ON_REPLY_CLICK, replyHandlerRef.current)
+      }
+    }
   }, [articleID, params])
 
   return (
@@ -92,6 +107,7 @@ export default function ArticlePage() {
             : undefined
         }
         goBack
+        style={{ paddingBottom: 0 }}
       >
         {article && (
           <>
@@ -133,7 +149,7 @@ export default function ArticlePage() {
 
         {replyBox && (
           <ReplyBox
-            articleID={replyToID}
+            replyToArticle={replyToArticle}
             onSuccess={() =>
               fetchArticle(false).then(() => {
                 setTimeout(() => {
@@ -144,6 +160,9 @@ export default function ArticlePage() {
                 }, 0)
               })
             }
+            onRemoveReply={() => {
+              setReplyToArticle(article)
+            }}
           />
         )}
       </BContainer>

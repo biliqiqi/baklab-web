@@ -64,8 +64,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     /* console.log('pathname: ', location.pathname) */
 
     return (
-      <SidebarProvider ref={ref}>
-        <Sidebar>
+      <SidebarProvider ref={ref} className="max-w-[1000px] mx-auto relative">
+        <Sidebar className="sticky top-0 left-0 max-h-[100vh]" gap={false}>
           <SidebarContent>
             <div
               className="flex items-center border-b-2 px-2"
@@ -122,7 +122,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             </SidebarGroup>
           </SidebarContent>
         </Sidebar>
-        <main className="flex-grow max-w-[100%]">
+        <main className="flex-grow max-w-[100%] border-l-[1px] b-bg-main">
           <Drawer>
             <BNav category={category} goBack={goBack} />
             <div className="container mx-auto max-w-3xl px-4 py-4" {...props}>

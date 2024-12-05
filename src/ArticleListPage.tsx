@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 
-import { Card } from '@/components/ui/card'
+/* import mockArticleList from '@/mock/articles.json' */
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 
+import { Badge } from './components/ui/badge'
+import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
+import { Card } from '@/components/ui/card'
 import {
   Pagination,
   PaginationContent,
@@ -12,15 +16,12 @@ import {
 } from '@/components/ui/pagination'
 
 import BContainer from './components/base/BContainer'
-
-/* import mockArticleList from '@/mock/articles.json' */
-
-import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { getArticleList } from './api/article'
-import ArticleControls from './components/ArticleControls'
 import BLoader from './components/base/BLoader'
 import { FrontCategory } from './components/base/BNav'
-import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
+
+import ArticleControls from './components/ArticleControls'
+
+import { getArticleList } from './api/article'
 import { toSync } from './lib/fire-and-forget'
 import { Article, ArticleListSort } from './types/types'
 
@@ -141,7 +142,9 @@ export default function ArticleListPage() {
             </div>
           ) : list.length == 0 ? (
             <div className="flex justify-center">
-              <span className="text-gray-500">暂无内容</span>
+              <Badge variant="secondary" className="text-gray-500">
+                空空如也
+              </Badge>
             </div>
           ) : (
             list.map((item) => (

@@ -9,3 +9,5 @@ export function cn(...inputs: ClassValue[]) {
 export const noop = () => {}
 
 export const bus = new EventEmitter()
+
+export const idIcon = (id: string) => `https://github.com/identicons/${id}.png`

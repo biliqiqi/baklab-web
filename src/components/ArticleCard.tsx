@@ -1,17 +1,20 @@
+import { HTMLAttributes } from 'react'
+import { Link } from 'react-router-dom'
+
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
-import { Card } from './ui/card'
+import { bus } from '@/lib/utils'
 
 import { EV_ON_REPLY_CLICK } from '@/constants'
-import { bus } from '@/lib/utils'
 import {
   Article,
   ArticleCardType,
   ArticleSubmitResponse,
   ResponseData,
 } from '@/types/types'
-import { HTMLAttributes, useState } from 'react'
-import { Link } from 'react-router-dom'
+
 import ArticleControls from './ArticleControls'
+import BAvatar from './base/BAvatar'
+import { Card } from './ui/card'
 
 interface ArticleCardProps extends HTMLAttributes<HTMLDivElement> {
   article: Article
@@ -53,10 +56,10 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   type = 'item',
   ...props
 }) => {
-  const isRootArticle = type == 'item' && article.replyToId == '0'
-  const [replyBox, setReplyBox] = useState(isRootArticle)
+  /* const isRootArticle = type == 'item' && article.replyToId == '0' */
+  /* const [replyBox, setReplyBox] = useState(isRootArticle) */
 
-  const articleID = article.id
+  /* const articleID = article.id */
   const parent = article.replyToArticle
 
   return (
@@ -65,8 +68,10 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         {article.title && (
           <h1 className="mb-4 font-bold text-lg">{article.title}</h1>
         )}
-        <div className="mb-4 text-sm text-gray-500">
-          <Link to={'/users/' + article.authorName}>{article.authorName}</Link>
+        <div className="flex items-center mb-4 text-sm text-gray-500">
+          <Link to={'/users/' + article.authorName}>
+            <BAvatar username={article.authorName} size={24} />
+          </Link>
           &nbsp;发布于&nbsp;
           <span title={timeFmt(article.createdAt, 'YYYY-M-D H:m:s')}>
             {timeAgo(article.createdAt)}

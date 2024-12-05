@@ -20,6 +20,7 @@ export interface AuthedUserState {
   userID: string
   update: (token: string, username: string, userID: string) => void
   logout: () => void
+  loginWithDialog: () => Promise<AuthedUserData>
 }
 
 export type AuthedUserData = Pick<
@@ -46,8 +47,29 @@ export const useAuthedUserStore = create<AuthedUserState>((set) => ({
     set(() => newState)
     // localStorage.setItem(AUTHED_USER_LOCAL_STORE_NAME, JSON.stringify(newState))
   },
+  loginWithDialog: () =>
+    new Promise((resolve, reject) => {
+      useDialogStore.getState().updateSignin(true)
+
+      useAuthedUserStore.subscribe((state) => {
+        if (isLogined(state)) {
+          resolve(state)
+        } else {
+          reject(new Error('login with dialog failed'))
+        }
+      })
+
+      useDialogStore.subscribe((state) => {
+        if (!state.signin) {
+          reject(new Error('login dialog closed'))
+        }
+      })
+    }),
   logout() {
-    set(() => emptyAuthedUserData)
+    set((state) => ({
+      ...state,
+      ...emptyAuthedUserData,
+    }))
     // localStorage.removeItem(AUTHED_USER_LOCAL_STORE_NAME)
   },
 }))
@@ -56,3 +78,47 @@ type IsLogined = (x: AuthedUserState | AuthedUserData) => boolean
 
 export const isLogined: IsLogined = ({ authToken, username, userID }) =>
   Boolean(authToken && username && userID)
+
+export interface TopDrawerState {
+  open: boolean
+  update: (x: boolean) => void
+  toggle: () => void
+}
+
+export const useTopDrawerStore = create<TopDrawerState>((set) => ({
+  open: false,
+  update(open: boolean) {
+    set(() => ({
+      open,
+    }))
+  },
+  toggle() {
+    set(({ open }) => ({
+      open: !open,
+    }))
+  },
+}))
+
+export interface DialogState {
+  signin: boolean
+  updateSignin: (x: boolean) => void
+  signup: boolean
+  updateSignup: (x: boolean) => void
+}
+
+export const useDialogStore = create<DialogState>((set) => ({
+  signin: false,
+  signup: false,
+  updateSignin(open: boolean) {
+    set((state) => ({
+      ...state,
+      signin: open,
+    }))
+  },
+  updateSignup(open: boolean) {
+    set((state) => ({
+      ...state,
+      signup: open,
+    }))
+  },
+}))

@@ -12,6 +12,7 @@ import { submitArticle } from './api/article'
 import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
 import { Button } from './components/ui/button'
+import { Card } from './components/ui/card'
 import {
   Command,
   CommandEmpty,
@@ -20,6 +21,7 @@ import {
   CommandItem,
   CommandList,
 } from './components/ui/command'
+
 import {
   Form,
   FormControl,
@@ -27,6 +29,7 @@ import {
   FormItem,
   FormMessage,
 } from './components/ui/form'
+
 import { Input } from './components/ui/input'
 import {
   Popover,
@@ -144,162 +147,166 @@ export default function SubmitPage() {
         }}
         goBack
       >
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4 max-w-[800px] mx-auto"
-          >
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input
-                      placeholder="请输入标题"
-                      autoComplete="off"
-                      state={fieldState.invalid ? 'invalid' : 'default'}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ fieldState }) => (
-                <FormItem>
-                  <div>
+        <Card className="p-3">
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-4 max-w-[800px] mx-auto"
+            >
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field, fieldState }) => (
+                  <FormItem>
                     <FormControl>
-                      <Popover open={open} onOpenChange={setOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant={fieldState.invalid ? 'invalid' : 'outline'}
-                            role="combobox"
-                            aria-expanded={open}
-                            className="w-[200px] justify-between text-gray-700"
-                            disabled={loading}
-                          >
-                            {categoryVal()
-                              ? '发布到【' +
-                                cateList.find(
-                                  (cate) => cate.id === categoryVal()
-                                )?.name +
-                                '】'
-                              : '发布到...'}
-                            <ChevronsUpDown className="opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[200px] p-0">
-                          <Command
-                            filter={(val, search) =>
-                              cateMap[val].includes(search) ? 1 : 0
-                            }
-                          >
-                            <CommandInput placeholder="搜索分类..." />
-                            <CommandList>
-                              <CommandEmpty>未找到分类</CommandEmpty>
-                              <CommandGroup>
-                                {cateList.map((cate) => (
-                                  <CommandItem
-                                    key={cate.id}
-                                    value={cate.id}
-                                    onSelect={(currentValue) => {
-                                      form.setValue(
-                                        'category',
-                                        currentValue === categoryVal()
-                                          ? ''
-                                          : currentValue
-                                      )
-                                      setOpen(false)
-                                    }}
-                                  >
-                                    {cate.name}
-                                    <Check
-                                      className={cn(
-                                        'ml-auto',
-                                        categoryVal() === cate.id
-                                          ? 'opacity-100'
-                                          : 'opacity-0'
-                                      )}
-                                    />
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
+                      <Input
+                        placeholder="请输入标题"
+                        autoComplete="off"
+                        state={fieldState.invalid ? 'invalid' : 'default'}
+                        {...field}
+                      />
                     </FormControl>
-                  </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ fieldState }) => (
+                  <FormItem>
+                    <div>
+                      <FormControl>
+                        <Popover open={open} onOpenChange={setOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant={
+                                fieldState.invalid ? 'invalid' : 'outline'
+                              }
+                              role="combobox"
+                              aria-expanded={open}
+                              className="w-[200px] justify-between text-gray-700"
+                              disabled={loading}
+                            >
+                              {categoryVal()
+                                ? '发布到【' +
+                                  cateList.find(
+                                    (cate) => cate.id === categoryVal()
+                                  )?.name +
+                                  '】'
+                                : '发布到...'}
+                              <ChevronsUpDown className="opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[200px] p-0">
+                            <Command
+                              filter={(val, search) =>
+                                cateMap[val].includes(search) ? 1 : 0
+                              }
+                            >
+                              <CommandInput placeholder="搜索分类..." />
+                              <CommandList>
+                                <CommandEmpty>未找到分类</CommandEmpty>
+                                <CommandGroup>
+                                  {cateList.map((cate) => (
+                                    <CommandItem
+                                      key={cate.id}
+                                      value={cate.id}
+                                      onSelect={(currentValue) => {
+                                        form.setValue(
+                                          'category',
+                                          currentValue === categoryVal()
+                                            ? ''
+                                            : currentValue
+                                        )
+                                        setOpen(false)
+                                      }}
+                                    >
+                                      {cate.name}
+                                      <Check
+                                        className={cn(
+                                          'ml-auto',
+                                          categoryVal() === cate.id
+                                            ? 'opacity-100'
+                                            : 'opacity-0'
+                                        )}
+                                      />
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </FormControl>
+                    </div>
 
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="link"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input
-                      placeholder="请输入来源链接"
-                      autoComplete="off"
-                      type="url"
-                      state={fieldState.invalid ? 'invalid' : 'default'}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="content"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      state={fieldState.invalid ? 'invalid' : 'default'}
-                      placeholder="请输入内容"
-                      className="h-[320px]"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="link"
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        placeholder="请输入来源链接"
+                        autoComplete="off"
+                        type="url"
+                        state={fieldState.invalid ? 'invalid' : 'default'}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        state={fieldState.invalid ? 'invalid' : 'default'}
+                        placeholder="请输入内容"
+                        className="h-[320px]"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div className="flex items-center justify-between">
-              <div></div>
-              <div>
-                <Button
-                  variant="outline"
-                  disabled={loading}
-                  size="sm"
-                  onClick={(e) => {
-                    e.preventDefault()
-                  }}
-                >
-                  {loading ? <BLoader /> : '预览'}
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  size="sm"
-                  className="ml-2"
-                >
-                  {loading ? <BLoader /> : '提交'}
-                </Button>
+              <div className="flex items-center justify-between">
+                <div></div>
+                <div>
+                  <Button
+                    variant="outline"
+                    disabled={loading}
+                    size="sm"
+                    onClick={(e) => {
+                      e.preventDefault()
+                    }}
+                  >
+                    {loading ? <BLoader /> : '预览'}
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    size="sm"
+                    className="ml-2"
+                  >
+                    {loading ? <BLoader /> : '提交'}
+                  </Button>
+                </div>
               </div>
-            </div>
-          </form>
-        </Form>
+            </form>
+          </Form>
+        </Card>
       </BContainer>
     </>
   )

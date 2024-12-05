@@ -10,10 +10,7 @@ const config = {
   semi: false,
   singleQuote: true,
 
-  plugins: [
-    '@trivago/prettier-plugin-sort-imports',
-    'prettier-plugin-organize-imports',
-  ],
+  plugins: ['@trivago/prettier-plugin-sort-imports', 'prettier-plugin-merge'],
   importOrder: [
     '<THIRD_PARTY_MODULES>',
     '^@/lib/(.*)$',

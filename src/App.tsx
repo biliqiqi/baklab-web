@@ -1,22 +1,27 @@
-import { redirect, replace, RouterProvider } from 'react-router-dom'
-
 import { Router } from '@remix-run/router'
-import { createBrowserRouter } from 'react-router-dom'
-import { isLogined, useAuthedUserStore, useToastStore } from './state/global.ts'
-
 import { useEffect, useState } from 'react'
+import {
+  RouterProvider,
+  createBrowserRouter,
+  redirect,
+  replace,
+} from 'react-router-dom'
+
+import { Toaster } from './components/ui/sonner.tsx'
+
+import BLoader from './components/base/BLoader.tsx'
+
 import ArticleListPage from './ArticleListPage.tsx'
 import ArticlePage from './ArticlePage.tsx'
-import BLoader from './components/base/BLoader.tsx'
-import { Toaster } from './components/ui/sonner.tsx'
-import { useAuth } from './hooks/use-auth.ts'
-import { toSync } from './lib/fire-and-forget.ts'
-import { refreshAuthState } from './lib/request.ts'
-import { noop } from './lib/utils.ts'
 import NotFoundPage from './NotFoundPage.tsx'
 import SigninPage from './SigninPage.tsx'
 import SignupPage from './SignupPage.tsx'
 import SubmitPage from './SubmitPage.tsx'
+import { useAuth } from './hooks/use-auth.ts'
+import { toSync } from './lib/fire-and-forget.ts'
+import { refreshAuthState } from './lib/request.ts'
+import { noop } from './lib/utils.ts'
+import { isLogined, useAuthedUserStore, useToastStore } from './state/global.ts'
 
 const notAtAuthed = () => {
   const data = useAuthedUserStore.getState()
@@ -28,7 +33,9 @@ const notAtAuthed = () => {
 const mustAuthed = ({ request }: { request: Request }) => {
   const data = useAuthedUserStore.getState()
   const authed = !!data && isLogined(data)
+
   /* console.log('authed: ', authed) */
+
   if (!authed) {
     if (location.pathname == '/signin') {
       return replace(location.href.replace(location.origin, ''))

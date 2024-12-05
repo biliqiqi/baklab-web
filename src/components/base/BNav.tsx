@@ -1,24 +1,23 @@
-import React, { useState } from 'react'
+import { ChevronLeftIcon, GripIcon, Loader } from 'lucide-react'
+import React, { MouseEvent, useCallback, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { cn } from '@/lib/utils'
 
-import { isLogined, useAuthedUserStore } from '@/state/global'
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
-import { Button } from '../ui/button'
-
 import { logoutToken } from '@/api'
 import { NAV_HEIGHT } from '@/constants'
+import { isLogined, useAuthedUserStore, useDialogStore } from '@/state/global'
 import { Category } from '@/types/types'
-import { DropdownMenuItem } from '@radix-ui/react-dropdown-menu'
-import { ChevronLeftIcon, Loader } from 'lucide-react'
-import { toast } from 'sonner'
-import defaultAvatar from '../../assets/default-avatar.svg'
+
+import { Button } from '../ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
+import BAvatar from './BAvatar'
 
 export type FrontCategory = Pick<Category, 'frontId' | 'name' | 'describe'> & {
   isFront: boolean // 是否由前端定义
@@ -27,6 +26,7 @@ export type FrontCategory = Pick<Category, 'frontId' | 'name' | 'describe'> & {
 export interface NavProps extends React.HTMLAttributes<HTMLDivElement> {
   category?: FrontCategory
   goBack?: boolean
+  onGripClick?: () => void
 }
 
 const summryText = (text: string, max: number) =>
@@ -36,10 +36,19 @@ const isOneOfPath = (loc: Location, pathes: string[]) =>
   pathes.some((path) => loc.pathname == path)
 
 const BNav = React.forwardRef<HTMLDivElement, NavProps>(
-  ({ className, category, goBack = false, ...props }, ref) => {
+  ({ className, category, goBack = false, onGripClick, ...props }, ref) => {
     const [loading, setLoading] = useState(false)
     const authState = useAuthedUserStore()
     const navigate = useNavigate()
+    const { updateSignin } = useDialogStore()
+
+    const submitPath = useMemo(
+      () =>
+        category && !category.isFront
+          ? '/submit?category=' + category.frontId
+          : '/submit',
+      [category]
+    )
 
     /* const isSigninPage = () => location.pathname == '/signin' */
 
@@ -49,7 +58,30 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
       }
     }
 
-    const logout = async () => {
+    const onSubmitClick = useCallback(
+      async (e: MouseEvent) => {
+        e.preventDefault()
+
+        if (isLogined(authState)) {
+          navigate(submitPath)
+          return
+        }
+
+        try {
+          const authData = await authState.loginWithDialog()
+          console.log('authData success', authData)
+          //...
+          setTimeout(() => {
+            navigate(submitPath)
+          }, 0)
+        } catch (err) {
+          console.error('submit click error: ', err)
+        }
+      },
+      [authState, submitPath, navigate]
+    )
+
+    const logout = useCallback(async () => {
       if (loading) return
       try {
         setLoading(true)
@@ -64,14 +96,14 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
       } finally {
         setLoading(false)
       }
-    }
+    }, [authState, loading, navigate])
 
     /* console.log('goback: ', goBack) */
 
     return (
       <div
         className={cn(
-          'flex justify-between items-center py-2 px-4 border-b-2 shadow-sm bg-white sticky top-0',
+          'flex justify-between items-center py-2 px-4 border-b-2 shadow-sm bg-white sticky top-0 z-10',
           className
         )}
         style={{
@@ -113,16 +145,14 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
         <div className="flex items-center">
           {!isOneOfPath(location, ['/signin', '/submit']) && (
             <>
-              <Button variant="outline" size="sm" asChild className="mr-4">
-                <Link
-                  to={
-                    category && !category.isFront
-                      ? '/submit?category=' + category.frontId
-                      : '/submit'
-                  }
-                >
-                  + 提交
-                </Link>
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+                className="mr-4"
+                onClick={onSubmitClick}
+              >
+                <Link to={submitPath}>+ 提交</Link>
               </Button>
               {/* <DrawerTrigger>
                 <Button variant="outline" size="sm" className="mr-4">
@@ -131,16 +161,25 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
               </DrawerTrigger> */}
             </>
           )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="rounded-full mr-2"
+            onClick={() => {
+              if (onGripClick && typeof onGripClick == 'function') {
+                onGripClick()
+              }
+            }}
+          >
+            <GripIcon size={20} />
+          </Button>
           {isLogined(authState) ? (
             <DropdownMenu onOpenChange={onDropdownChange}>
               <DropdownMenuTrigger asChild>
-                <Avatar
-                  className="inline-block cursor-pointer"
-                  title={authState.username}
-                >
-                  <AvatarImage src={defaultAvatar} />
-                  <AvatarFallback>{authState.username}</AvatarFallback>
-                </Avatar>
+                <BAvatar
+                  username={authState.username}
+                  className="cursor-pointer"
+                />
               </DropdownMenuTrigger>
               <DropdownMenuContent className="px-0" align="end" sideOffset={8}>
                 <DropdownMenuItem
@@ -154,7 +193,15 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
             </DropdownMenu>
           ) : (
             !isOneOfPath(location, ['/signin']) && (
-              <Button variant="default" size="sm" asChild>
+              <Button
+                variant="default"
+                size="sm"
+                asChild
+                onClick={(e) => {
+                  e.preventDefault()
+                  updateSignin(true)
+                }}
+              >
                 <Link to="/signin">登录</Link>
               </Button>
             )

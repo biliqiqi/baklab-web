@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { getArticle } from './api/article'
-import ArticleCard from './components/ArticleCard'
+
+import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
+
 import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
+
+import ArticleCard from './components/ArticleCard'
 import ReplyBox from './components/ReplyBox'
-import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
+
+import { getArticle } from './api/article'
 import { EV_ON_REPLY_CLICK } from './constants'
 import { toSync } from './lib/fire-and-forget'
 import { bus } from './lib/utils'
@@ -113,13 +117,7 @@ export default function ArticlePage() {
           <>
             <ArticleCard key={article.id} article={article} className="mb-4" />
             {article.totalReplyCount > 0 && (
-              <div
-                id="comments"
-                className="flex justify-between items-center border-b border-gray-300 py-3 mb-4"
-              >
-                <span className="font-bold">
-                  {article.totalReplyCount} 回复
-                </span>
+              <div id="comments" className="py-3 mb-4">
                 <Tabs
                   defaultValue="oldest"
                   value={sort}

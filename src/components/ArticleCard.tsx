@@ -70,10 +70,11 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         )}
         <div className="flex items-center mb-4 text-sm text-gray-500">
           <Link to={'/users/' + article.authorName}>
-            <BAvatar username={article.authorName} size={24} />
+            <BAvatar username={article.authorName} size={24} />{' '}
+            {article.authorName}
           </Link>
           &nbsp;发布于&nbsp;
-          <span title={timeFmt(article.createdAt, 'YYYY-M-D H:m:s')}>
+          <span title={timeFmt(article.createdAt, 'YYYY年M月D日 H时m分s秒')}>
             {timeAgo(article.createdAt)}
           </span>
         </div>

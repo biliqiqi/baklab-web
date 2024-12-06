@@ -122,3 +122,14 @@ export const useDialogStore = create<DialogState>((set) => ({
     }))
   },
 }))
+
+export interface NotFoundState {
+  showNotFound: boolean
+  updateNotFound: (x: boolean) => void
+}
+export const useNotFoundStore = create<NotFoundState>((set) => ({
+  showNotFound: false,
+  updateNotFound(show: boolean) {
+    set((state) => ({ ...state, showNotFound: show }))
+  },
+}))

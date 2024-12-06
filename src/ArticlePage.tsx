@@ -37,17 +37,12 @@ export default function ArticlePage() {
       }
 
       if (articleID) {
-        const resp = await getArticle(articleID, sort, {
-          hooks: {
-            afterResponse: [
-              (_req, _opt, resp) => {
-                if (!resp.ok && resp.status == 404) {
-                  navigate('/404')
-                }
-              },
-            ],
-          },
-        })
+        const resp = await getArticle(
+          articleID,
+          sort,
+          {},
+          { showNotFound: true }
+        )
         /* console.log('article resp: ', resp.data) */
         if (!resp.code) {
           /* setReplyToID(resp.data.article.id) */

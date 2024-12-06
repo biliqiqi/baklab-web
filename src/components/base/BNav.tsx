@@ -183,6 +183,12 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
               </DropdownMenuTrigger>
               <DropdownMenuContent className="px-0" align="end" sideOffset={8}>
                 <DropdownMenuItem
+                  className="py-1 px-2 hover:bg-gray-200 hover:outline-0"
+                  asChild
+                >
+                  <Link to={'/users/' + authState.username}>个人主页</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   className="cursor-pointer py-1 px-2 hover:bg-gray-200 hover:outline-0"
                   onClick={logout}
                   disabled={loading}

@@ -1,3 +1,5 @@
+import { Options } from 'ky'
+
 export interface ResponseData<T> {
   code: number
   message: string
@@ -128,3 +130,44 @@ export interface ArticleSubmitResponse {
 }
 
 export type ArticleCardType = 'list' | 'item'
+
+export enum AuthType {
+  SELF = 'self',
+  GOOGLE = 'google',
+  GITHUB = 'github',
+  MICROSOFT = 'microsoft',
+}
+
+// Permission interface matching the Go struct
+export interface Permission {
+  id: number
+  frontId: string
+  name: string
+  createdAt: string // ISO date string
+  module: string
+}
+
+export interface UserData {
+  id: number
+  name: string
+  email: string
+  registeredAt: string // ISO date string
+  registeredAtStr: string
+  introduction: string
+  deleted: boolean
+  banned: boolean
+  roleName: string
+  roleFrontId: string
+  permissions: Permission[]
+  super: boolean
+  authFrom: AuthType
+  reputation: number
+  bannedStartAt: string // ISO date string
+  bannedEndAt: string // ISO date string
+  bannedDayNum: number
+  bannedCount: number
+}
+
+export interface CustomRequestOptions {
+  showNotFound: boolean
+}

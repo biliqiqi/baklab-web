@@ -1,10 +1,19 @@
 import ky, { AfterResponseHook, BeforeRequestHook } from 'ky'
 import { Options } from 'node_modules/ky/distribution/types/options'
+import { mergeAll, mergeDeep } from 'remeda'
 import { toast } from 'sonner'
 
 import { API_HOST, API_PATH_PREFIX } from '@/constants'
-import { useAuthedUserStore, useToastStore } from '@/state/global'
-import { AuthedDataResponse, ResponseData } from '@/types/types'
+import {
+  useAuthedUserStore,
+  useNotFoundStore,
+  useToastStore,
+} from '@/state/global'
+import {
+  AuthedDataResponse,
+  CustomRequestOptions,
+  ResponseData,
+} from '@/types/types'
 
 const isRefreshRequest: (x: Request) => boolean = (req) =>
   req.method.toLowerCase() == 'get' &&
@@ -90,12 +99,73 @@ const defaultOptions: Options = {
   },
 }
 
-const request = ky.create(defaultOptions)
+const instance = ky.create(defaultOptions)
+
+// eslint-disable-next-line
+const request = <T = any>(
+  url: string,
+  kyOptions?: Options,
+  custom?: CustomRequestOptions
+): Promise<T> => {
+  let kyOpts: Options = {}
+  if (custom?.showNotFound) {
+    if (
+      kyOptions?.hooks?.afterResponse &&
+      !kyOptions.hooks.afterResponse.includes(afterHook404)
+    ) {
+      kyOptions.hooks.afterResponse.push(afterHook404)
+      kyOpts = kyOptions
+    } else {
+      kyOpts = {
+        ...kyOptions,
+        hooks: {
+          afterResponse: [afterHook404],
+        },
+      }
+    }
+  } else {
+    if (kyOptions) {
+      kyOpts = kyOptions
+    }
+  }
+
+  return instance(url, kyOpts).json<T>()
+}
+
+// eslint-disable-next-line
+request.get = <T = any>(
+  url: string,
+  kyOptions?: Options,
+  custom?: CustomRequestOptions
+): Promise<T> => request(url, { method: 'get', ...kyOptions }, custom)
+
+// eslint-disable-next-line
+request.post = <T = any>(
+  url: string,
+  kyOptions?: Options,
+  custom?: CustomRequestOptions
+): Promise<T> => request(url, { method: 'post', ...kyOptions }, custom)
+
+// eslint-disable-next-line
+request.put = <T = any>(
+  url: string,
+  kyOptions?: Options,
+  custom?: CustomRequestOptions
+): Promise<T> => request(url, { method: 'put', ...kyOptions }, custom)
+
+// eslint-disable-next-line
+request.delete = <T = any>(
+  url: string,
+  kyOptions?: Options,
+  custom?: CustomRequestOptions
+): Promise<T> => request(url, { method: 'delete', ...kyOptions }, custom)
 
 // 避免循环引用，refreshToken 放在 request.ts 里面
-export const refresToken = async (): Promise<
-  ResponseData<AuthedDataResponse>
-> => request.get(`refresh_token`, { credentials: 'include', retry: 0 }).json()
+export const refresToken = async () =>
+  request.get<ResponseData<AuthedDataResponse>>(`refresh_token`, {
+    credentials: 'include',
+    retry: 0,
+  })
 
 export const refreshAuthState = async () => {
   try {
@@ -124,12 +194,67 @@ const refreshTokenHook: AfterResponseHook = async (req, _opt, resp) => {
   return resp
 }
 
-export const authRequest = request.extend({
+// export const authRequest = request.extend({
+//   credentials: 'include',
+//   hooks: {
+//     beforeRequest: [addAuthToHeaders],
+//     afterResponse: [refreshTokenHook],
+//   },
+// })
+
+const authRequestConfigs: Options = {
   credentials: 'include',
   hooks: {
     beforeRequest: [addAuthToHeaders],
     afterResponse: [refreshTokenHook],
   },
-})
+}
+
+// eslint-disable-next-line
+export const authRequest = <T = any>(
+  url: string,
+  kyOptions?: Options,
+  custom?: CustomRequestOptions
+): Promise<T> => {
+  const kyOpts: Options = mergeAll([{}, authRequestConfigs, kyOptions || {}])
+
+  // console.log('merged options: ', kyOpts)
+
+  return request(url, kyOpts, custom)
+}
+
+// eslint-disable-next-line
+authRequest.get = <T = any>(
+  url: string,
+  kyOptions?: Options,
+  custom?: CustomRequestOptions
+): Promise<T> => authRequest(url, { method: 'get', ...kyOptions }, custom)
+
+// eslint-disable-next-line
+authRequest.post = <T = any>(
+  url: string,
+  kyOptions?: Options,
+  custom?: CustomRequestOptions
+): Promise<T> => authRequest(url, { method: 'post', ...kyOptions }, custom)
+
+// eslint-disable-next-line
+authRequest.put = <T = any>(
+  url: string,
+  kyOptions?: Options,
+  custom?: CustomRequestOptions
+): Promise<T> => authRequest(url, { method: 'put', ...kyOptions }, custom)
+
+// eslint-disable-next-line
+authRequest.delete = <T = any>(
+  url: string,
+  kyOptions?: Options,
+  custom?: CustomRequestOptions
+): Promise<T> => authRequest(url, { method: 'delete', ...kyOptions }, custom)
+
+export const afterHook404: AfterResponseHook = (_req, _opt, resp) => {
+  if (!resp.ok && resp.status == 404) {
+    useNotFoundStore.getState().updateNotFound(true)
+  }
+}
 
 export default request

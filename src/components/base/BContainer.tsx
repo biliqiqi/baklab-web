@@ -1,16 +1,19 @@
 import { HashIcon, NewspaperIcon } from 'lucide-react'
 import React, { useCallback, useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useBeforeUnload, useLocation } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
 
-import SigninPage from '@/SigninPage'
-import SubmitPage from '@/SubmitPage'
 import { getCategoryList } from '@/api'
 import { NAV_HEIGHT, SITE_NAME } from '@/constants'
-import { useDialogStore, useTopDrawerStore } from '@/state/global'
+import {
+  useDialogStore,
+  useNotFoundStore,
+  useTopDrawerStore,
+} from '@/state/global'
 import { CategoryOption } from '@/types/types'
 
+import NotFound from '../NotFound'
 import SigninForm from '../SigninForm'
 import SignupForm from '../SignupForm'
 import { Button } from '../ui/button'
@@ -20,9 +23,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '../ui/dialog'
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '../ui/drawer'
 import {
   Sidebar,
   SidebarContent,
@@ -49,6 +50,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const { open: showTopDrawer, update: setShowTopDrawer } =
       useTopDrawerStore()
     const { signin, signup, updateSignin, updateSignup } = useDialogStore()
+    const { showNotFound, updateNotFound } = useNotFoundStore()
 
     const location = useLocation()
 
@@ -83,7 +85,10 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       fetchCateList()
     }, [])
 
-    /* console.log('pathname: ', location.pathname) */
+    useEffect(() => {
+      /* console.log('location change, not found: ', showNotFound) */
+      updateNotFound(false)
+    }, [location])
 
     return (
       <>
@@ -172,7 +177,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               onGripClick={onToggleTopDrawer}
             />
             <div className="container mx-auto max-w-3xl px-4 py-4" {...props}>
-              {children}
+              {showNotFound ? <NotFound /> : children}
             </div>
           </main>
         </SidebarProvider>

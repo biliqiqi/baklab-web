@@ -17,6 +17,7 @@ import NotFoundPage from './NotFoundPage.tsx'
 import SigninPage from './SigninPage.tsx'
 import SignupPage from './SignupPage.tsx'
 import SubmitPage from './SubmitPage.tsx'
+import UserPage from './UserPage.tsx'
 import { useAuth } from './hooks/use-auth.ts'
 import { toSync } from './lib/fire-and-forget.ts'
 import { refreshAuthState } from './lib/request.ts'
@@ -73,6 +74,10 @@ const routes = [
     path: '/submit',
     Component: SubmitPage,
     loader: mustAuthed,
+  },
+  {
+    path: '/users/:username',
+    Component: UserPage,
   },
   {
     path: '*',

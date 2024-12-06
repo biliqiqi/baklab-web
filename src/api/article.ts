@@ -1,12 +1,15 @@
+import { Options } from 'ky'
+
 import request, { authRequest } from '@/lib/request'
+
 import {
   ArticleItemResponse,
   ArticleListResponse,
   ArticleListSort,
   ArticleSubmitResponse,
+  CustomRequestOptions,
   ResponseData,
 } from '@/types/types'
-import { Options } from 'ky'
 
 export const submitArticle = (
   title: string,
@@ -14,28 +17,24 @@ export const submitArticle = (
   link?: string,
   content?: string
 ): Promise<ResponseData<ArticleSubmitResponse>> =>
-  authRequest
-    .post(`articles/submit`, {
-      json: {
-        title,
-        category: categoryFrontID,
-        link,
-        content,
-      },
-    })
-    .json()
+  authRequest.post(`articles/submit`, {
+    json: {
+      title,
+      category: categoryFrontID,
+      link,
+      content,
+    },
+  })
 
 export const submitReply = (
   replyToID: string,
   content: string
 ): Promise<ResponseData<ArticleSubmitResponse>> =>
-  authRequest
-    .post(`articles/${replyToID}/reply`, {
-      json: {
-        content,
-      },
-    })
-    .json()
+  authRequest.post(`articles/${replyToID}/reply`, {
+    json: {
+      content,
+    },
+  })
 
 export const getArticleList = (
   page: number,
@@ -61,23 +60,24 @@ export const getArticleList = (
     params.set('category', categoryFrontID)
   }
 
-  return request
-    .get(`articles`, {
-      searchParams: params,
-    })
-    .json()
+  return request.get(`articles`, {
+    searchParams: params,
+  })
 }
 
 export const getArticle = (
   id: string,
   sort: ArticleListSort,
-  opt?: Options
+  opt?: Options,
+  custom?: CustomRequestOptions
 ): Promise<ResponseData<ArticleItemResponse>> =>
-  request
-    .get(`articles/${id}`, {
+  request.get(
+    `articles/${id}`,
+    {
       searchParams: {
         sort,
       },
       ...opt,
-    })
-    .json()
+    },
+    custom
+  )

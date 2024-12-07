@@ -1,49 +1,75 @@
 import { useCallback, useEffect, useState } from 'react'
-import { redirect, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 
+import { Badge } from './components/ui/badge'
 import { Card } from './components/ui/card'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from './components/ui/pagination'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 
 import BAvatar from './components/base/BAvatar'
 import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
 
+import ArticleControls from './components/ArticleControls'
+
+import { getArticleList } from './api/article'
 import { getUser } from './api/user'
+import { DEFAULT_PAGE_SIZE } from './constants'
+import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { useNotFoundStore } from './state/global'
-import { UserData } from './types/types'
+import {
+  Article,
+  ArticleListSort,
+  ArticleListState,
+  ArticleListType,
+  FrontCategory,
+  UserData,
+} from './types/types'
 
-type UserTab =
-  | 'activity'
-  | 'replies'
-  | 'posts'
-  | 'saved'
-  | 'subscribe'
-  | 'voted'
-  | 'operate_activity'
+type UserTab = ArticleListType | 'activity'
 
 type UserTabMap = {
   [key in UserTab]: string
 }
 
 const TabMapData: UserTabMap = {
-  activity: '全部',
-  replies: '回复',
-  posts: '帖子',
+  all: '全部',
+  reply: '回复',
+  article: '帖子',
   saved: '已保存',
-  subscribe: '已订阅',
-  voted: '已投票',
-  operate_activity: '操作记录',
+  subscribed: '已订阅',
+  vote_up: '已投票',
+  activity: '操作记录',
 }
 
 export default function UserPage() {
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [loadingList, setLoadingList] = useState(true)
   const [user, setUser] = useState<UserData | null>(null)
-  const [tabs, setTabs] = useState<UserTab[]>(['activity', 'replies', 'posts'])
-  const [tab, setTab] = useState<UserTab>('activity')
+  const [tabs, setTabs] = useState<UserTab[]>(['all', 'article', 'reply'])
+  /* const [tab, setTab] = useState<UserTab>('activity') */
+  const [list, updateList] = useState<Article[]>([])
+  const [pageState, setPageState] = useState<ArticleListState>({
+    currPage: 1,
+    pageSize: DEFAULT_PAGE_SIZE,
+    totalCount: 0,
+    totalPage: 0,
+  })
+
   const { updateNotFound } = useNotFoundStore()
 
+  const [params, setParams] = useSearchParams()
   const { username } = useParams()
+
+  const tab = (params.get('tab') as UserTab | null) || 'all'
 
   const fetchUserData = toSync(
     useCallback(async () => {
@@ -58,6 +84,7 @@ export default function UserPage() {
         const resp = await getUser(username, {}, { showNotFound: true })
 
         if (!resp.code) {
+          /* console.log('user data: ', resp.data) */
           setUser(resp.data)
         }
       } catch (err) {
@@ -68,44 +95,197 @@ export default function UserPage() {
     }, [username])
   )
 
+  const fetchArticles = toSync(
+    async (
+      page: number,
+      pageSize: number,
+      sort: ArticleListSort | null,
+      categoryFrontID: string,
+      username: string,
+      listType: ArticleListType
+    ) => {
+      try {
+        setLoadingList(true)
+        const resp = await getArticleList(
+          page,
+          pageSize,
+          sort,
+          categoryFrontID,
+          username,
+          listType
+        )
+
+        if (!resp.code) {
+          /* console.log('article list: ', resp.data) */
+          const { data } = resp
+          let category: FrontCategory | undefined
+          if (data.category) {
+            const { frontId, name, describe } = data.category
+            category = { frontId, name, describe } as FrontCategory
+          }
+
+          if (data.articles) {
+            updateList([...data.articles])
+            setPageState({
+              currPage: data.currPage,
+              pageSize: data.pageSize,
+              totalCount: data.articleTotal,
+              totalPage: data.totalPage,
+              category,
+            })
+          } else {
+            updateList([])
+            setPageState({
+              currPage: 1,
+              pageSize: data.pageSize,
+              totalCount: data.articleTotal,
+              totalPage: data.totalPage,
+              category,
+            })
+          }
+        }
+      } catch (e) {
+        console.error('get article list error: ', e)
+      } finally {
+        setLoadingList(false)
+      }
+    }
+  )
+
   const onTabChange = (tab: string) => {
-    setTab(tab as UserTab)
+    setParams((prevParams) => {
+      prevParams.set('page', '1')
+      prevParams.set('tab', tab)
+      return prevParams
+    })
   }
+
+  const genParamStr = useCallback(
+    (page: number) => {
+      const cloneParams = new URLSearchParams(params.toString())
+      cloneParams.set('page', page ? String(page) : '1')
+      return cloneParams.toString()
+    },
+    [params]
+  )
 
   useEffect(() => {
     fetchUserData()
-  }, [])
+  }, [username])
+
+  useEffect(() => {
+    const page = Number(params.get('page')) || 1
+    const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
+    const sort = (params.get('sort') as ArticleListSort | null) || 'latest'
+
+    if (tab == 'activity') {
+      // TODO get activity
+    } else {
+      fetchArticles(page, pageSize, sort, '', username || '', tab)
+    }
+  }, [username, params])
 
   return (
     <>
       <BContainer>
-        {loading ? (
-          <BLoader />
-        ) : (
-          user && (
-            <>
-              <Card className="p-3 mb-4">
-                <div>
-                  <BAvatar username={user.name} size={80} className="mr-4" />
-                  <span className="text-lg font-bold">{user.name}</span>
+        {!loading && user && (
+          <>
+            <Card className="p-3 mb-4">
+              <div className="flex mb-4">
+                <BAvatar username={user.name} size={80} className="mr-4" />
+                <div className="pt-5">
+                  <div className="text-lg font-bold mb-2">{user.name}</div>
+                  <div className="text-gray-500 text-sm">
+                    加入于 {timeFmt(user.registeredAt, 'YYYY-M')}
+                  </div>
                 </div>
-              </Card>
-              <Tabs
-                defaultValue="oldest"
-                value={tab}
-                onValueChange={onTabChange}
-              >
-                <TabsList>
-                  {tabs.map((item) => (
-                    <TabsTrigger value={item} key={item}>
-                      {TabMapData[item]}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
-            </>
-          )
+              </div>
+              <div className="text-sm">{user.introduction}</div>
+            </Card>
+            <Tabs defaultValue="oldest" value={tab} onValueChange={onTabChange}>
+              <TabsList>
+                {tabs.map((item) => (
+                  <TabsTrigger value={item} key={item}>
+                    {TabMapData[item]}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </>
         )}
+
+        <div className="py-4" key={tab}>
+          {loadingList ? (
+            <div className="flex justify-center">
+              <BLoader />
+            </div>
+          ) : list.length == 0 ? (
+            <div className="flex justify-center">
+              <Badge variant="secondary" className="text-gray-500">
+                空空如也
+              </Badge>
+            </div>
+          ) : (
+            <>
+              {list.map((item) => (
+                <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
+                  <div className="mb-3">
+                    <div className="mb-1">
+                      <Link className="mr-2" to={'/articles/' + item.id}>
+                        {item.displayTitle}
+                      </Link>
+                    </div>
+                    {/* <div className="max-h-5 mb-1 overflow-hidden text-sm text-gray-600 text-nowrap text-ellipsis">
+                    {item.summary}
+                  </div> */}
+                    {item.picURL && (
+                      <div className="w-[120px] h-[120px] rounded mr-4 bg-gray-200 shrink-0 overflow-hidden">
+                        <a href="#">
+                          <img
+                            alt={item.title}
+                            src={item.picURL}
+                            className="max-w-full"
+                          />
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                  <ArticleControls article={item} type="list" />
+                </Card>
+              ))}
+              {pageState.totalPage > 1 && (
+                <Card>
+                  <Pagination className="py-1">
+                    <PaginationContent>
+                      {pageState.currPage > 1 && (
+                        <PaginationItem>
+                          <PaginationPrevious
+                            to={'?' + genParamStr(pageState.currPage - 1)}
+                          />
+                        </PaginationItem>
+                      )}
+                      <PaginationItem>
+                        <PaginationLink
+                          to={'?' + genParamStr(pageState.currPage)}
+                          isActive
+                        >
+                          {pageState.currPage}
+                        </PaginationLink>
+                      </PaginationItem>
+                      {pageState.currPage < pageState.totalPage && (
+                        <PaginationItem>
+                          <PaginationNext
+                            to={'?' + genParamStr(pageState.currPage + 1)}
+                          />
+                        </PaginationItem>
+                      )}
+                    </PaginationContent>
+                  </Pagination>
+                </Card>
+              )}
+            </>
+          )}
+        </div>
       </BContainer>
     </>
   )

@@ -17,29 +17,27 @@ import {
 
 import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
-import { FrontCategory } from './components/base/BNav'
 
 import ArticleControls from './components/ArticleControls'
 
 import { getArticleList } from './api/article'
+import { DEFAULT_PAGE_SIZE } from './constants'
 import { toSync } from './lib/fire-and-forget'
-import { Article, ArticleListSort } from './types/types'
+import {
+  Article,
+  ArticleListSort,
+  ArticleListState,
+  FrontCategory,
+} from './types/types'
 
 /* const articleList = mockArticleList as Article[] */
-interface PageState {
-  currPage: number
-  pageSize: number
-  totalCount: number // 数据总量
-  totalPage: number // 总页数
-  category?: FrontCategory
-}
 
 export default function ArticleListPage() {
   const [loading, setLoading] = useState(false)
   const [list, updateList] = useState<Article[]>([])
-  const [pageState, setPageState] = useState<PageState>({
+  const [pageState, setPageState] = useState<ArticleListState>({
     currPage: 1,
-    pageSize: 10,
+    pageSize: DEFAULT_PAGE_SIZE,
     totalCount: 0,
     totalPage: 0,
   })
@@ -105,20 +103,9 @@ export default function ArticleListPage() {
 
   useEffect(() => {
     const page = Number(params.get('page')) || 1
-    const pageSize = Number(params.get('page_size')) || 10
+    const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
     const category = pathParams['category'] || ''
     const sort = (params.get('sort') as ArticleListSort | null) || 'best'
-
-    /* toSync(async () => {
-     *   try {
-     *     const resp = await getUser('test')
-     *     if (!resp.code) {
-     *       console.log('get user data: ', resp)
-     *     }
-     *   } catch (err) {
-     *     console.error('get user data error', err)
-     *   }
-     * })() */
 
     fetchArticles(page, pageSize, sort, category)
   }, [params, pathParams])
@@ -175,28 +162,30 @@ export default function ArticleListPage() {
             ))
           )}
         </div>
-      </BContainer>
 
-      {pageState.totalPage > 1 && (
-        <Pagination className="py-4">
-          <PaginationContent>
-            {pageState.currPage > 1 && (
-              <PaginationItem>
-                <PaginationPrevious to={'?page=' + (pageState.currPage - 1)} />
-              </PaginationItem>
-            )}
-            {/* <PaginationItem>
+        {pageState.totalPage > 1 && (
+          <Card>
+            <Pagination className="py-1">
+              <PaginationContent>
+                {pageState.currPage > 1 && (
+                  <PaginationItem>
+                    <PaginationPrevious
+                      to={'?page=' + (pageState.currPage - 1)}
+                    />
+                  </PaginationItem>
+                )}
+                {/* <PaginationItem>
             <PaginationLink href="/?page=1">1</PaginationLink>
           </PaginationItem>
           <PaginationItem>
             <PaginationLink href="/?page=2">2</PaginationLink>
           </PaginationItem> */}
-            <PaginationItem>
-              <PaginationLink to={'?page=' + pageState.currPage} isActive>
-                {pageState.currPage}
-              </PaginationLink>
-            </PaginationItem>
-            {/* <PaginationItem>
+                <PaginationItem>
+                  <PaginationLink to={'?page=' + pageState.currPage} isActive>
+                    {pageState.currPage}
+                  </PaginationLink>
+                </PaginationItem>
+                {/* <PaginationItem>
             <PaginationEllipsis />
           </PaginationItem>
           <PaginationItem>
@@ -205,14 +194,16 @@ export default function ArticleListPage() {
           <PaginationItem>
             <PaginationLink href="/?page=100">100</PaginationLink>
           </PaginationItem> */}
-            {pageState.currPage < pageState.totalPage && (
-              <PaginationItem>
-                <PaginationNext to={'?page=' + (pageState.currPage + 1)} />
-              </PaginationItem>
-            )}
-          </PaginationContent>
-        </Pagination>
-      )}
+                {pageState.currPage < pageState.totalPage && (
+                  <PaginationItem>
+                    <PaginationNext to={'?page=' + (pageState.currPage + 1)} />
+                  </PaginationItem>
+                )}
+              </PaginationContent>
+            </Pagination>
+          </Card>
+        )}
+      </BContainer>
     </>
   )
 }

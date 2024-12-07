@@ -1,6 +1,3 @@
-import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
-import { cn } from '@/lib/utils'
-import { Article, ArticleCardType } from '@/types/types'
 import {
   BookmarkIcon,
   MessageSquare,
@@ -10,6 +7,12 @@ import {
 } from 'lucide-react'
 import { HTMLAttributes } from 'react'
 import { Link } from 'react-router-dom'
+
+import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
+import { cn } from '@/lib/utils'
+
+import { Article, ArticleCardType } from '@/types/types'
+
 import { Button } from './ui/button'
 
 interface ArticleControlsProps extends HTMLAttributes<HTMLDivElement> {
@@ -18,6 +21,8 @@ interface ArticleControlsProps extends HTMLAttributes<HTMLDivElement> {
   downVote?: boolean // 是否显示踩按钮
   bookmark?: boolean // 是否显示书签（收藏）按钮
   summary?: boolean // 是否显示概览
+  link?: boolean // 是否显示直达链接
+  linkQrCode?: boolean // 是否显示直达链接二维码
   onCommentClick?: () => void
 }
 
@@ -26,6 +31,8 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   className,
   downVote = false,
   bookmark = false,
+  link = false,
+  linkQrCode = false,
   type = 'item',
   onCommentClick = () => {},
   ...props
@@ -55,7 +62,12 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             {article.totalSavedCount > 0 && article.totalSavedCount}
           </Button>
         )}
-        <Button variant="ghost" size="sm" onClick={onCommentClick}>
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild={type == 'list'}
+          onClick={onCommentClick}
+        >
           {type == 'list' ? (
             <Link to={'/articles/' + article.id}>
               <MessageSquare size={20} className="inline-block mr-1" />
@@ -84,14 +96,18 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
       <div className="flex items-center">
         {article.replyToId == '0' && (
           <>
-            <Button size="sm" variant="ghost">
-              <QrCode size={20} />
-            </Button>
-            <Button size="sm" variant="link">
-              <a href="https://example.com/" target="_blank">
-                京东购买 ¥{(Math.random() * 100).toFixed(2)}
-              </a>
-            </Button>
+            {linkQrCode && (
+              <Button size="sm" variant="ghost">
+                <QrCode size={20} />
+              </Button>
+            )}
+            {link && (
+              <Button size="sm" variant="link">
+                <a href="https://example.com/" target="_blank">
+                  京东购买 ¥{(Math.random() * 100).toFixed(2)}
+                </a>
+              </Button>
+            )}
           </>
         )}
       </div>

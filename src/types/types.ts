@@ -56,6 +56,8 @@ export interface ArticleList {
 export interface Article {
   id: string
   title: string
+  displayTitle: string
+  asMainArticle: bool // 是否在前端作为顶层文章
   link: string
   picURL: string
   price: number
@@ -88,6 +90,8 @@ export interface Article {
   pinnedExpireAt: string
   blocked: boolean
   fadeOut: boolean
+  replyRootArticleId: string
+  replyRootArticleTitle: string
 }
 
 export interface ArticleListResponse {
@@ -171,3 +175,23 @@ export interface UserData {
 export interface CustomRequestOptions {
   showNotFound: boolean
 }
+
+export type FrontCategory = Pick<Category, 'frontId' | 'name' | 'describe'> & {
+  isFront: boolean // 是否由前端定义
+}
+
+export interface ArticleListState {
+  currPage: number
+  pageSize: number
+  totalCount: number // 数据总量
+  totalPage: number // 总页数
+  category?: FrontCategory
+}
+
+export type ArticleListType =
+  | 'all'
+  | 'saved'
+  | 'article'
+  | 'reply'
+  | 'subscribed'
+  | 'vote_up'

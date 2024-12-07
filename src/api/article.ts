@@ -6,6 +6,7 @@ import {
   ArticleItemResponse,
   ArticleListResponse,
   ArticleListSort,
+  ArticleListType,
   ArticleSubmitResponse,
   CustomRequestOptions,
   ResponseData,
@@ -39,8 +40,10 @@ export const submitReply = (
 export const getArticleList = (
   page: number,
   pageSize: number,
-  sort: ArticleListSort | null,
-  categoryFrontID: string
+  sort?: ArticleListSort | null,
+  categoryFrontID?: string,
+  username?: string,
+  listType?: ArticleListType
 ): Promise<ResponseData<ArticleListResponse>> => {
   const params = new URLSearchParams()
 
@@ -58,6 +61,14 @@ export const getArticleList = (
 
   if (categoryFrontID) {
     params.set('category', categoryFrontID)
+  }
+
+  if (username) {
+    params.set('username', username)
+  }
+
+  if (listType) {
+    params.set('type', listType)
   }
 
   return request.get(`articles`, {

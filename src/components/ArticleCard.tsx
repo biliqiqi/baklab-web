@@ -65,8 +65,16 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   return (
     <div id={'comment' + article.id} {...props}>
       <Card className="p-3 my-2 mb-3">
-        {article.title && (
-          <h1 className="mb-4 font-bold text-lg">{article.title}</h1>
+        {article.asMainArticle && (
+          <h1 className="mb-4 font-bold text-lg">
+            {article.replyToId == '0' ? (
+              article.displayTitle
+            ) : (
+              <Link to={'/articles/' + article.replyRootArticleId}>
+                {article.displayTitle}
+              </Link>
+            )}
+          </h1>
         )}
         <div className="flex items-center mb-4 text-sm text-gray-500">
           <Link to={'/users/' + article.authorName}>

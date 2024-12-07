@@ -1,13 +1,16 @@
-import { submitReply } from '@/api/article'
-import { ARTICLE_MAX_CONTENT_LEN, EV_ON_REPLY_CLICK } from '@/constants'
-import { toSync } from '@/lib/fire-and-forget'
-import { bus } from '@/lib/utils'
-import { z } from '@/lib/zod-custom'
-import { Article, ArticleSubmitResponse, ResponseData } from '@/types/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { XIcon } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
+
+import { toSync } from '@/lib/fire-and-forget'
+import { bus } from '@/lib/utils'
+import { z } from '@/lib/zod-custom'
+
+import { submitReply } from '@/api/article'
+import { ARTICLE_MAX_CONTENT_LEN, EV_ON_REPLY_CLICK } from '@/constants'
+import { Article, ArticleSubmitResponse, ResponseData } from '@/types/types'
+
 import BLoader from './base/BLoader'
 import { Button } from './ui/button'
 import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form'
@@ -58,7 +61,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
     },
   })
 
-  const isReplyToRoot = () => replyToArticle && replyToArticle.replyToId == '0'
+  /* const isReplyToRoot = () => replyToArticle && replyToArticle.replyToId == '0' */
 
   const onSubmit = async ({ content }: ArticleScheme) => {
     /* console.log('values: ', values) */
@@ -201,7 +204,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
             }
           }}
         ></div>
-        {replyToArticle && !isReplyToRoot() && (
+        {replyToArticle && !replyToArticle.asMainArticle && (
           <div className="flex items-center justify-between bg-gray-100 rounded-sm py-1 px-2 mb-2 text-gray-500 text-sm">
             <span>
               {replyToArticle.authorName}: {replyToArticle.summary}

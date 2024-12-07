@@ -46,8 +46,12 @@ export default function ArticlePage() {
         /* console.log('article resp: ', resp.data) */
         if (!resp.code) {
           /* setReplyToID(resp.data.article.id) */
-          setArticle(resp.data.article)
-          setReplyToArticle(resp.data.article)
+          const { article } = resp.data
+
+          article.asMainArticle = true
+
+          setArticle(article)
+          setReplyToArticle(article)
         }
       } else {
         navigate('/404')

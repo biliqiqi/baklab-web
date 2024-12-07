@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import { logoutToken } from '@/api'
 import { NAV_HEIGHT } from '@/constants'
 import { isLogined, useAuthedUserStore, useDialogStore } from '@/state/global'
-import { Category } from '@/types/types'
+import { FrontCategory } from '@/types/types'
 
 import { Button } from '../ui/button'
 import {
@@ -18,10 +18,6 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 import BAvatar from './BAvatar'
-
-export type FrontCategory = Pick<Category, 'frontId' | 'name' | 'describe'> & {
-  isFront: boolean // 是否由前端定义
-}
 
 export interface NavProps extends React.HTMLAttributes<HTMLDivElement> {
   category?: FrontCategory

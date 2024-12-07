@@ -11,7 +11,7 @@ import {
   useNotFoundStore,
   useTopDrawerStore,
 } from '@/state/global'
-import { CategoryOption } from '@/types/types'
+import { CategoryOption, FrontCategory } from '@/types/types'
 
 import NotFound from '../NotFound'
 import SigninForm from '../SigninForm'
@@ -35,7 +35,7 @@ import {
   SidebarMenuItem,
   SidebarProvider,
 } from '../ui/sidebar'
-import BNav, { FrontCategory } from './BNav'
+import BNav from './BNav'
 
 export interface BContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string

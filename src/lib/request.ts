@@ -1,14 +1,15 @@
 import ky, { AfterResponseHook, BeforeRequestHook } from 'ky'
 import { Options } from 'node_modules/ky/distribution/types/options'
-import { mergeAll, mergeDeep } from 'remeda'
+import { mergeAll } from 'remeda'
 import { toast } from 'sonner'
 
-import { API_HOST, API_PATH_PREFIX } from '@/constants'
+import { API_HOST, API_PATH_PREFIX } from '@/constants/constants'
 import {
   useAuthedUserStore,
   useNotFoundStore,
   useToastStore,
 } from '@/state/global'
+import { Role } from '@/types/permission'
 import {
   AuthedDataResponse,
   CustomRequestOptions,
@@ -172,7 +173,7 @@ export const refreshAuthState = async () => {
     const { data, code } = await refresToken()
     if (!code) {
       const state = useAuthedUserStore.getState()
-      state.update(data.token, data.username, data.userID)
+      state.update(data.token, data.username, data.userID, data.role as Role)
     }
   } catch (e) {
     console.error('refresh auth state error: ', e)

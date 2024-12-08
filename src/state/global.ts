@@ -1,5 +1,8 @@
 import { create } from 'zustand'
 
+import { ROLE_DATA } from '@/constants/roles'
+import { PermissionAction, PermissionModule, Role } from '@/types/permission'
+
 export interface ToastState {
   silence: boolean
   update: (silence: boolean) => void
@@ -14,18 +17,9 @@ export const useToastStore = create<ToastState>((set) => ({
   },
 }))
 
-export interface AuthedUserState {
-  authToken: string
-  username: string
-  userID: string
-  update: (token: string, username: string, userID: string) => void
-  logout: () => void
-  loginWithDialog: () => Promise<AuthedUserData>
-}
-
 export type AuthedUserData = Pick<
   AuthedUserState,
-  'authToken' | 'username' | 'userID'
+  'authToken' | 'username' | 'userID' | 'role'
 >
 
 export const AUTHED_USER_LOCAL_STORE_NAME = 'auth_info'
@@ -34,19 +28,36 @@ export const emptyAuthedUserData: AuthedUserData = {
   authToken: '',
   username: '',
   userID: '',
+  role: 'common_user',
 }
 
-export const useAuthedUserStore = create<AuthedUserState>((set) => ({
+export interface AuthedUserState {
+  authToken: string
+  username: string
+  userID: string
+  role: Role
+  update: (token: string, username: string, userID: string, role: Role) => void
+  updateObj: (fn: (obj: AuthedUserData) => AuthedUserData) => void
+  logout: () => void
+  loginWithDialog: () => Promise<AuthedUserData>
+  isLogined: () => boolean
+  isMySelf: (userID: string) => boolean
+  permit: <T extends PermissionModule>(m: T, a: PermissionAction<T>) => boolean
+}
+
+export const useAuthedUserStore = create<AuthedUserState>((set, get) => ({
   ...emptyAuthedUserData,
-  update: (token, username, userID) => {
+  update: (token, username, userID, role) => {
     const newState = {
       authToken: token,
       username,
       userID,
+      role,
     }
-    set(() => newState)
+    set((state) => ({ ...state, ...newState }))
     // localStorage.setItem(AUTHED_USER_LOCAL_STORE_NAME, JSON.stringify(newState))
   },
+  updateObj: set,
   loginWithDialog: () =>
     new Promise((resolve, reject) => {
       useDialogStore.getState().updateSignin(true)
@@ -70,7 +81,20 @@ export const useAuthedUserStore = create<AuthedUserState>((set) => ({
       ...state,
       ...emptyAuthedUserData,
     }))
-    // localStorage.removeItem(AUTHED_USER_LOCAL_STORE_NAME)
+  },
+  isLogined() {
+    return isLogined(get())
+  },
+  isMySelf(userID: string) {
+    const state = get()
+    return isLogined(state) && state.userID == userID
+  },
+  permit<T extends PermissionModule>(module: T, action: PermissionAction<T>) {
+    const permissionId = `${module}.${String(action)}`
+    const roleData = ROLE_DATA[get().role]
+
+    if (!roleData || !roleData.permissions?.includes(permissionId)) return false
+    return true
   },
 }))
 

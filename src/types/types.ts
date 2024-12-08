@@ -1,5 +1,3 @@
-import { Options } from 'ky'
-
 export interface ResponseData<T> {
   code: number
   message: string
@@ -14,6 +12,7 @@ export interface AuthedDataResponse {
   token: string
   username: string
   userID: string
+  role: string
 }
 
 export interface CategoryOption {
@@ -57,12 +56,12 @@ export interface Article {
   id: string
   title: string
   displayTitle: string
-  asMainArticle: bool // 是否在前端作为顶层文章
+  asMainArticle: boolean // 是否在前端作为顶层文章
   link: string
   picURL: string
   price: number
   authorName: string
-  authorId: number
+  authorId: string
   content: string
   summary: string
   createdAt: string

@@ -1,5 +1,6 @@
-import { SITE_NAME_CN } from '@/constants'
 import { useEffect } from 'react'
+
+import { SITE_NAME_CN } from '@/constants/constants'
 
 export default function useDocumentTitle(title: string) {
   useEffect(() => {

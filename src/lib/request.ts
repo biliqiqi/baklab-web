@@ -154,6 +154,7 @@ request.put = <T = any>(
   custom?: CustomRequestOptions
 ): Promise<T> => request(url, { method: 'put', ...kyOptions }, custom)
 
+// eslint-disable-next-line
 request.patch = <T = any>(
   url: string,
   kyOptions?: Options,

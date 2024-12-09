@@ -125,8 +125,10 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             bus.emit(EV_ON_REPLY_CLICK, article)
           }}
           onEditClick={(e) => {
-            e.preventDefault()
-            bus.emit(EV_ON_EDIT_CLICK, article)
+            if (!article.asMainArticle) {
+              e.preventDefault()
+              bus.emit(EV_ON_EDIT_CLICK, article)
+            }
           }}
         />
       </Card>

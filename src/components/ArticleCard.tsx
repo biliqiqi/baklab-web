@@ -2,7 +2,7 @@ import { HTMLAttributes, MouseEvent, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
-import { bus } from '@/lib/utils'
+import { bus, cn } from '@/lib/utils'
 
 import { EV_ON_EDIT_CLICK, EV_ON_REPLY_CLICK } from '@/constants/constants'
 import { useAuthedUserStore } from '@/state/global'
@@ -72,7 +72,12 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     <div id={'comment' + article.id} {...props}>
       <Card className="p-3 my-2 mb-3">
         {article.asMainArticle && (
-          <h1 className="mb-4 font-bold text-lg">
+          <h1
+            className={cn(
+              'mb-4 font-bold text-lg',
+              article.replyToId != '0' && 'bg-gray-100 py-1 px-2 text-gray-500'
+            )}
+          >
             {article.replyToId == '0' ? (
               article.displayTitle
             ) : (

@@ -174,12 +174,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
 
         if (!data.code) {
           toast.info('提交成功')
-          /* navigate(-1) */
-          if (isEdit && article && isReply) {
-            navigate(`/articles/${article.replyRootArticleId}`)
-          } else {
-            navigate(`/articles/${data.data.id}`)
-          }
+          navigate(`/articles/${data.data.id}`)
         }
       } catch (err) {
         console.error('submit article error: ', err)

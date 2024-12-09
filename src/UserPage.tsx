@@ -243,18 +243,9 @@ export default function UserPage() {
                         {item.displayTitle}
                       </Link>
                     </div>
-                    {/* <div className="max-h-5 mb-1 overflow-hidden text-sm text-gray-600 text-nowrap text-ellipsis">
-                    {item.summary}
-                  </div> */}
-                    {item.picURL && (
-                      <div className="w-[120px] h-[120px] rounded mr-4 bg-gray-200 shrink-0 overflow-hidden">
-                        <a href="#">
-                          <img
-                            alt={item.title}
-                            src={item.picURL}
-                            className="max-w-full"
-                          />
-                        </a>
+                    {item.replyToId != '0' && (
+                      <div className="max-h-5 mb-1 overflow-hidden text-sm text-gray-600 text-nowrap text-ellipsis">
+                        {item.content}
                       </div>
                     )}
                   </div>

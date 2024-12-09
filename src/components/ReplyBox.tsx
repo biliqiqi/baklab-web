@@ -118,9 +118,12 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
 
   const setupForm = useCallback(() => {
     setTimeout(() => {
-      form.setFocus('content', { shouldSelect: true })
-    }, 0)
-  }, [form])
+      if (textareaRef.current) {
+        /* console.log('clicked set focus !', textareaRef.current) */
+        textareaRef.current.focus()
+      }
+    }, 100)
+  }, [textareaRef])
 
   if (!replyBoxRef.current.handleReplyClick) {
     replyBoxRef.current.handleReplyClick = setupForm

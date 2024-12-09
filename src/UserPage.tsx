@@ -19,9 +19,10 @@ import BLoader from './components/base/BLoader'
 
 import ArticleControls from './components/ArticleControls'
 
+import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
+
 import { getArticleList } from './api/article'
 import { getUser } from './api/user'
-import { DEFAULT_PAGE_SIZE } from './constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { useNotFoundStore } from './state/global'

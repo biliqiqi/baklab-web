@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 import { logoutToken } from '@/api'
-import { NAV_HEIGHT } from '@/constants'
+import { NAV_HEIGHT } from '@/constants/constants'
 import { isLogined, useAuthedUserStore, useDialogStore } from '@/state/global'
 import { FrontCategory } from '@/types/types'
 
@@ -120,7 +120,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
             </Button>
           )}
 
-          {Boolean(category) && (
+          {!!category && (
             <>
               {category.isFront ? (
                 <span className="whitespace-nowrap">{category.name}</span>

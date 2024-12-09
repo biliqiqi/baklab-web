@@ -154,6 +154,12 @@ request.put = <T = any>(
   custom?: CustomRequestOptions
 ): Promise<T> => request(url, { method: 'put', ...kyOptions }, custom)
 
+request.patch = <T = any>(
+  url: string,
+  kyOptions?: Options,
+  custom?: CustomRequestOptions
+): Promise<T> => request(url, { method: 'patch', ...kyOptions }, custom)
+
 // eslint-disable-next-line
 request.delete = <T = any>(
   url: string,
@@ -244,6 +250,13 @@ authRequest.put = <T = any>(
   kyOptions?: Options,
   custom?: CustomRequestOptions
 ): Promise<T> => authRequest(url, { method: 'put', ...kyOptions }, custom)
+
+// eslint-disable-next-line
+authRequest.patch = <T = any>(
+  url: string,
+  kyOptions?: Options,
+  custom?: CustomRequestOptions
+): Promise<T> => authRequest(url, { method: 'patch', ...kyOptions }, custom)
 
 // eslint-disable-next-line
 authRequest.delete = <T = any>(

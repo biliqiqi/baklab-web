@@ -27,6 +27,22 @@ export const submitArticle = (
     },
   })
 
+export const updateArticle = (
+  id: string,
+  title?: string,
+  categoryFrontID?: string,
+  link?: string,
+  content?: string
+): Promise<ResponseData<ArticleSubmitResponse>> =>
+  authRequest.patch(`articles/${id}`, {
+    json: {
+      title,
+      category: categoryFrontID,
+      link,
+      content,
+    },
+  })
+
 export const submitReply = (
   replyToID: string,
   content: string
@@ -78,17 +94,26 @@ export const getArticleList = (
 
 export const getArticle = (
   id: string,
-  sort: ArticleListSort,
+  sort?: ArticleListSort,
   opt?: Options,
-  custom?: CustomRequestOptions
-): Promise<ResponseData<ArticleItemResponse>> =>
-  request.get(
+  custom?: CustomRequestOptions,
+  noReplies?: boolean
+): Promise<ResponseData<ArticleItemResponse>> => {
+  const params = new URLSearchParams()
+  if (sort) {
+    params.set('sort', sort)
+  }
+
+  if (noReplies) {
+    params.set('no_replies', '1')
+  }
+
+  return request.get(
     `articles/${id}`,
     {
-      searchParams: {
-        sort,
-      },
+      searchParams: sort,
       ...opt,
     },
     custom
   )
+}

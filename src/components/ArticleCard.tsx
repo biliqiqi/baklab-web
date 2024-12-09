@@ -1,10 +1,11 @@
-import { HTMLAttributes } from 'react'
+import { HTMLAttributes, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
 import { bus } from '@/lib/utils'
 
-import { EV_ON_REPLY_CLICK } from '@/constants'
+import { EV_ON_REPLY_CLICK } from '@/constants/constants'
+import { useAuthedUserStore } from '@/state/global'
 import {
   Article,
   ArticleCardType,
@@ -61,6 +62,11 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
   /* const articleID = article.id */
   const parent = article.replyToArticle
+  const authStore = useAuthedUserStore()
+  const isMyself = useMemo(
+    () => authStore.isMySelf(article.authorId),
+    [authStore, article]
+  )
 
   return (
     <div id={'comment' + article.id} {...props}>
@@ -113,6 +119,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         <ArticleControls
           article={article}
           type={type}
+          edit={isMyself}
           onCommentClick={() => {
             bus.emit(EV_ON_REPLY_CLICK, article)
           }}

@@ -9,10 +9,12 @@ import BLoader from './components/base/BLoader'
 import ArticleCard from './components/ArticleCard'
 import ReplyBox from './components/ReplyBox'
 
+import { EV_ON_REPLY_CLICK } from '@/constants/constants'
+
 import { getArticle } from './api/article'
-import { EV_ON_REPLY_CLICK } from './constants'
 import { toSync } from './lib/fire-and-forget'
 import { bus } from './lib/utils'
+import { useNotFoundStore } from './state/global'
 import { Article, ArticleListSort } from './types/types'
 
 export default function ArticlePage() {
@@ -24,44 +26,48 @@ export default function ArticlePage() {
   const replyHandlerRef = useRef<((x: Article) => void) | null>(null)
 
   const [params, setParams] = useSearchParams()
+  const { updateNotFound } = useNotFoundStore()
 
   const sort = (params.get('sort') as ArticleListSort | null) || 'oldest'
 
   const { articleID } = useParams()
-  const navigate = useNavigate()
 
-  const fetchArticle = async (showLoading = true) => {
-    try {
-      if (showLoading) {
-        setLoading(true)
-      }
-
-      if (articleID) {
-        const resp = await getArticle(
-          articleID,
-          sort,
-          {},
-          { showNotFound: true }
-        )
-        /* console.log('article resp: ', resp.data) */
-        if (!resp.code) {
-          /* setReplyToID(resp.data.article.id) */
-          const { article } = resp.data
-
-          article.asMainArticle = true
-
-          setArticle(article)
-          setReplyToArticle(article)
+  const fetchArticle = useCallback(
+    async (showLoading = true) => {
+      try {
+        if (showLoading) {
+          setLoading(true)
         }
-      } else {
-        navigate('/404')
+
+        if (articleID) {
+          const resp = await getArticle(
+            articleID,
+            sort,
+            {},
+            { showNotFound: true }
+          )
+          /* console.log('article resp: ', resp.data) */
+          if (!resp.code) {
+            /* setReplyToID(resp.data.article.id) */
+            const { article } = resp.data
+
+            article.asMainArticle = true
+
+            setArticle(article)
+            setReplyToArticle(article)
+          }
+        } else {
+          updateNotFound(true)
+          return
+        }
+      } catch (err) {
+        console.error('fetch article error: ', err)
+      } finally {
+        setLoading(false)
       }
-    } catch (err) {
-      console.error('fetch article error: ', err)
-    } finally {
-      setLoading(false)
-    }
-  }
+    },
+    [articleID]
+  )
 
   const fetchArticleSync = toSync(fetchArticle)
 

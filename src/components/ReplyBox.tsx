@@ -8,7 +8,10 @@ import { bus } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { submitReply } from '@/api/article'
-import { ARTICLE_MAX_CONTENT_LEN, EV_ON_REPLY_CLICK } from '@/constants'
+import {
+  ARTICLE_MAX_CONTENT_LEN,
+  EV_ON_REPLY_CLICK,
+} from '@/constants/constants'
 import { Article, ArticleSubmitResponse, ResponseData } from '@/types/types'
 
 import BLoader from './base/BLoader'
@@ -212,7 +215,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
             </span>
             <Button
               variant="ghost"
-              size="small"
+              size="sm"
               onClick={(e) => {
                 e.preventDefault()
                 if (onRemoveReply && typeof onRemoveReply == 'function')

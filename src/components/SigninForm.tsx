@@ -6,9 +6,10 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { z } from '@/lib/zod-custom'
 
 import { postSignin } from '@/api'
+import { emailRule, passwordRule } from '@/constants/rules'
 import useDocumentTitle from '@/hooks/use-page-title'
-import { emailRule, passwordRule } from '@/rules'
 import { useAuthedUserStore, useDialogStore } from '@/state/global'
+import { Role } from '@/types/permission'
 
 import BLoader from './base/BLoader'
 import { Button } from './ui/button'
@@ -96,8 +97,8 @@ const SigninForm: React.FC<SigninFromProps> = ({
       console.log('sign in resp data:', data)
 
       if (!data.code) {
-        const { token, userID, username } = data.data
-        updateAuthState(token, username, userID)
+        const { token, userID, username, role } = data.data
+        updateAuthState(token, username, userID, role as Role)
         /* console.log('is inner url: ', isInnerURL(returnURL)) */
 
         if (onSuccess && typeof onSuccess == 'function') {

@@ -1,6 +1,7 @@
 import {
   BookmarkIcon,
   MessageSquare,
+  PencilIcon,
   QrCode,
   ThumbsDown,
   ThumbsUp,
@@ -20,6 +21,7 @@ interface ArticleControlsProps extends HTMLAttributes<HTMLDivElement> {
   type: ArticleCardType
   downVote?: boolean // 是否显示踩按钮
   bookmark?: boolean // 是否显示书签（收藏）按钮
+  edit?: boolean // 是否显示编辑按钮
   summary?: boolean // 是否显示概览
   link?: boolean // 是否显示直达链接
   linkQrCode?: boolean // 是否显示直达链接二维码
@@ -31,6 +33,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   className,
   downVote = false,
   bookmark = false,
+  edit = false,
   link = false,
   linkQrCode = false,
   type = 'item',
@@ -77,6 +80,13 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             <MessageSquare size={20} className="inline-block mr-1" />
           )}
         </Button>
+        {edit && (
+          <Button variant="ghost" size="sm" asChild>
+            <Link to={`/articles/${article.id}/edit`}>
+              <PencilIcon size={20} className="inline-block mr-1" />
+            </Link>
+          </Button>
+        )}
 
         {type == 'list' && (
           <div className="ml-2">

@@ -11,8 +11,11 @@ import { Toaster } from './components/ui/sonner.tsx'
 
 import BLoader from './components/base/BLoader.tsx'
 
+import ArticleForm from './components/ArticleForm.tsx'
+
 import ArticleListPage from './ArticleListPage.tsx'
 import ArticlePage from './ArticlePage.tsx'
+import EditPage from './EditPage.tsx'
 import NotFoundPage from './NotFoundPage.tsx'
 import SigninPage from './SigninPage.tsx'
 import SignupPage from './SignupPage.tsx'
@@ -55,6 +58,10 @@ const routes = [
   {
     path: '/articles/:articleID',
     Component: ArticlePage,
+  },
+  {
+    path: '/articles/:articleID/edit',
+    Component: EditPage,
   },
   {
     path: '/categories/:category',

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 /* import mockArticleList from '@/mock/articles.json' */
 import { Link, useParams, useSearchParams } from 'react-router-dom'
@@ -20,9 +20,11 @@ import BLoader from './components/base/BLoader'
 
 import ArticleControls from './components/ArticleControls'
 
+import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
+
 import { getArticleList } from './api/article'
-import { DEFAULT_PAGE_SIZE } from './constants'
 import { toSync } from './lib/fire-and-forget'
+import { useAuthedUserStore } from './state/global'
 import {
   Article,
   ArticleListSort,
@@ -41,6 +43,12 @@ export default function ArticleListPage() {
     totalCount: 0,
     totalPage: 0,
   })
+
+  const authStore = useAuthedUserStore()
+  const isMyself = useCallback(
+    (authorID: string) => authStore.isMySelf(authorID),
+    [authStore]
+  )
 
   const [params, setParams] = useSearchParams()
   const pathParams = useParams()
@@ -157,7 +165,11 @@ export default function ArticleListPage() {
                     </div>
                   )}
                 </div>
-                <ArticleControls article={item} type="list" />
+                <ArticleControls
+                  article={item}
+                  type="list"
+                  edit={isMyself(item.authorId)}
+                />
               </Card>
             ))
           )}

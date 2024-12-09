@@ -7,10 +7,16 @@ import { toast } from 'sonner'
 import { z } from '@/lib/zod-custom'
 
 import { completeEmailSign, postEmailSinup, postEmailVerify } from '@/api'
-import { SERVER_ERR_ACCOUNT_EXIST } from '@/constants'
+import { SERVER_ERR_ACCOUNT_EXIST } from '@/constants/constants'
+import {
+  emailRule,
+  passwordRule,
+  phoneRule,
+  usernameRule,
+} from '@/constants/rules'
 import useDocumentTitle from '@/hooks/use-page-title'
-import { emailRule, passwordRule, phoneRule, usernameRule } from '@/rules'
 import { useAuthedUserStore, useDialogStore } from '@/state/global'
+import { Role } from '@/types/permission'
 
 import CodeForm, { CodeScheme } from './CodeForm'
 import BLoader from './base/BLoader'
@@ -141,7 +147,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
       if (!data.code) {
         setCodeVerified(true)
-        autheState.update(data.data.token, '', '')
+        autheState.update(data.data.token, '', '', 'common_user')
       } else {
         if (data.code == SERVER_ERR_ACCOUNT_EXIST) {
           toast.info('邮箱已注册，请直接登录')
@@ -172,8 +178,8 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
       if (!data.code) {
         setCodeVerified(true)
-        const { token, username, userID } = data.data
-        autheState.update(token, username, userID)
+        const { token, username, userID, role } = data.data
+        autheState.update(token, username, userID, role as Role)
 
         if (onSuccess && typeof onSuccess == 'function') {
           onSuccess()

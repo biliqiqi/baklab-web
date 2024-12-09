@@ -5,7 +5,7 @@ import { Link, useBeforeUnload, useLocation } from 'react-router-dom'
 import { toSync } from '@/lib/fire-and-forget'
 
 import { getCategoryList } from '@/api'
-import { NAV_HEIGHT, SITE_NAME } from '@/constants'
+import { NAV_HEIGHT, SITE_NAME } from '@/constants/constants'
 import {
   useDialogStore,
   useNotFoundStore,
@@ -35,16 +35,18 @@ import {
   SidebarMenuItem,
   SidebarProvider,
 } from '../ui/sidebar'
+import { BLoaderBlock } from './BLoader'
 import BNav from './BNav'
 
 export interface BContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string
   category?: FrontCategory
   goBack?: boolean
+  loading?: boolean
 }
 
 const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
-  ({ children, category, goBack = false, ...props }, ref) => {
+  ({ children, category, goBack = false, loading = false, ...props }, ref) => {
     /* const [loading, setLoading] = useState(false) */
     const [cateList, setCateList] = useState<CategoryOption[]>([])
     const { open: showTopDrawer, update: setShowTopDrawer } =
@@ -177,7 +179,13 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               onGripClick={onToggleTopDrawer}
             />
             <div className="container mx-auto max-w-3xl px-4 py-4" {...props}>
-              {showNotFound ? <NotFound /> : children}
+              {showNotFound ? (
+                <NotFound />
+              ) : loading ? (
+                <BLoaderBlock />
+              ) : (
+                children
+              )}
             </div>
           </main>
         </SidebarProvider>

@@ -1,4 +1,4 @@
-import { ChevronLeftIcon, GripIcon, Loader } from 'lucide-react'
+import { ChevronLeftIcon, GripIcon, Loader, MenuIcon } from 'lucide-react'
 import React, { MouseEvent, useCallback, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -7,7 +7,13 @@ import { cn } from '@/lib/utils'
 
 import { logoutToken } from '@/api'
 import { NAV_HEIGHT } from '@/constants/constants'
-import { isLogined, useAuthedUserStore, useDialogStore } from '@/state/global'
+import { useIsMobile } from '@/hooks/use-mobile'
+import {
+  isLogined,
+  useAuthedUserStore,
+  useDialogStore,
+  useSidebarStore,
+} from '@/state/global'
 import { FrontCategory } from '@/types/types'
 
 import { Button } from '../ui/button'
@@ -17,6 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
+import { useSidebar } from '../ui/sidebar'
 import BAvatar from './BAvatar'
 
 export interface NavProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -36,15 +43,19 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
     const [loading, setLoading] = useState(false)
     const authState = useAuthedUserStore()
     const navigate = useNavigate()
+    const isMobile = useIsMobile()
+    /* const sidebarStore = useSidebarStore() */
+    const sidebar = useSidebar()
+
     const { updateSignin } = useDialogStore()
 
-    const submitPath = useMemo(
-      () =>
-        category && !category.isFront
-          ? '/submit?category=' + category.frontId
-          : '/submit',
-      [category]
-    )
+    /* const submitPath = useMemo(
+     *   () =>
+     *     category && !category.isFront
+     *       ? '/submit?category=' + category.frontId
+     *       : '/submit',
+     *   [category]
+     * ) */
 
     /* const isSigninPage = () => location.pathname == '/signin' */
 
@@ -54,28 +65,38 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
       }
     }
 
-    const onSubmitClick = useCallback(
-      async (e: MouseEvent) => {
-        e.preventDefault()
+    const onMenuClick = useCallback(() => {
+      /* sidebarStore.setOpen(!sidebarStore.open) */
+      /* sidebar.toggleSidebar() */
+      if (isMobile) {
+        sidebar.setOpenMobile(!sidebar.openMobile)
+      } else {
+        sidebar.toggleSidebar()
+      }
+    }, [isMobile, sidebar])
 
-        if (isLogined(authState)) {
-          navigate(submitPath)
-          return
-        }
+    /* const onSubmitClick = useCallback(
+    *   async (e: MouseEvent) => {
+    *     e.preventDefault()
 
-        try {
-          const authData = await authState.loginWithDialog()
-          console.log('authData success', authData)
-          //...
-          setTimeout(() => {
-            navigate(submitPath)
-          }, 0)
-        } catch (err) {
-          console.error('submit click error: ', err)
-        }
-      },
-      [authState, submitPath, navigate]
-    )
+    *     if (isLogined(authState)) {
+    *       navigate(submitPath)
+    *       return
+    *     }
+
+    *     try {
+    *       const authData = await authState.loginWithDialog()
+    *       console.log('authData success', authData)
+    *       //...
+    *       setTimeout(() => {
+    *         navigate(submitPath)
+    *       }, 0)
+    *     } catch (err) {
+    *       console.error('submit click error: ', err)
+    *     }
+    *   },
+    *   [authState, submitPath, navigate]
+    * ) */
 
     const logout = useCallback(async () => {
       if (loading) return
@@ -96,6 +117,8 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
 
     /* console.log('goback: ', goBack) */
 
+    /* console.log('sidebar open in nav: ', sidebar.open) */
+
     return (
       <div
         className={cn(
@@ -114,9 +137,13 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
             maxWidth: 'calc(100% - 8rem)',
           }}
         >
-          {goBack && history.length > 2 && (
+          {goBack && history.length > 2 ? (
             <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
               <ChevronLeftIcon size={28} />
+            </Button>
+          ) : (
+            <Button variant="ghost" size="sm" onClick={onMenuClick}>
+              <MenuIcon size={28} />
             </Button>
           )}
 
@@ -141,15 +168,15 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
         <div className="flex items-center">
           {!isOneOfPath(location, ['/signin', '/submit']) && (
             <>
-              <Button
+              {/* <Button
                 variant="outline"
                 size="sm"
                 asChild
-                className="mr-4"
+                className="mr-4 max-sm:hidden"
                 onClick={onSubmitClick}
               >
                 <Link to={submitPath}>+ 提交</Link>
-              </Button>
+              </Button> */}
               {/* <DrawerTrigger>
                 <Button variant="outline" size="sm" className="mr-4">
                   + 提交

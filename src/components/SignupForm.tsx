@@ -197,7 +197,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
   return (
     <>
-      <div className="w-[400px] space-y-8 mx-auto py-4">
+      <div className="w-[400px] max-sm:w-full space-y-8 mx-auto py-4">
         {codeVerified ? (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>

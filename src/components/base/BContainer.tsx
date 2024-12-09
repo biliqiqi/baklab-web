@@ -3,12 +3,15 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Link, useBeforeUnload, useLocation } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
+import { cn } from '@/lib/utils'
 
 import { getCategoryList } from '@/api'
 import { NAV_HEIGHT, SITE_NAME } from '@/constants/constants'
+import { useIsMobile } from '@/hooks/use-mobile'
 import {
   useDialogStore,
   useNotFoundStore,
+  useSidebarStore,
   useTopDrawerStore,
 } from '@/state/global'
 import { CategoryOption, FrontCategory } from '@/types/types'
@@ -53,6 +56,12 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       useTopDrawerStore()
     const { signin, signup, updateSignin, updateSignup } = useDialogStore()
     const { showNotFound, updateNotFound } = useNotFoundStore()
+    const { open: sidebarOpen, setOpen: setSidebarOpen } = useSidebarStore()
+    const [sidebarOpenMobile, setSidebarOpenMobile] = useState(false)
+
+    const isMobile = useIsMobile()
+
+    /* const [sidebarOpen, setSidebarOpen] = useState(!isMobile) */
 
     const location = useLocation()
 
@@ -83,6 +92,13 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       setShowTopDrawer(!showTopDrawer)
     }, [showTopDrawer, setShowTopDrawer])
 
+    /* const onSidebarChange = useCallback(
+     *   (open: boolean) => {
+     *     sidebarStore.setOpen(open)
+     *   },
+     *   [sidebarStore]
+     * ) */
+
     useEffect(() => {
       fetchCateList()
     }, [])
@@ -90,7 +106,13 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     useEffect(() => {
       /* console.log('location change, not found: ', showNotFound) */
       updateNotFound(false)
-    }, [location])
+      return () => {
+        if (isMobile) {
+          console.log('close mobile sidebar, current state: ', sidebarOpen)
+          setSidebarOpenMobile(false)
+        }
+      }
+    }, [location, isMobile])
 
     return (
       <>
@@ -117,62 +139,82 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               ))}
           </div>
         </div>
-        <SidebarProvider ref={ref} className="max-w-[1000px] mx-auto relative">
-          <Sidebar className="sticky top-0 left-0 max-h-[100vh]" gap={false}>
-            <SidebarContent>
-              <div
-                className="flex items-center border-b-2 px-2"
-                style={{
-                  height: NAV_HEIGHT,
-                }}
-              >
-                <Link className="font-bold text-2xl text-pink-900" to="/">
-                  {SITE_NAME}
-                </Link>
-              </div>
-              <SidebarGroup>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    <SidebarMenuItem key="feed">
-                      <SidebarMenuButton
-                        asChild
-                        isActive={location.pathname == '/'}
-                      >
-                        <Link to="/">
-                          <NewspaperIcon size={16} />
-                          信息流
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-              <SidebarGroup>
-                <SidebarGroupLabel>分类</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {cateList.map((item) => (
-                      <SidebarMenuItem key={item.id}>
+
+        <SidebarProvider
+          ref={ref}
+          className="max-w-[1000px] mx-auto relative justify-between"
+          open={sidebarOpen}
+          onOpenChange={setSidebarOpen}
+          openMobile={sidebarOpenMobile}
+          onOpenMobileChange={setSidebarOpenMobile}
+        >
+          <div
+            className={cn(
+              'duration-200 transition-[width] ease-linear w-[var(--sidebar-width)] sticky top-0 left-0 max-h-screen overflow-hidden',
+              (isMobile || !sidebarOpen) && 'w-0'
+            )}
+          >
+            <Sidebar className="relative max-h-full" gap={false}>
+              <SidebarContent>
+                <div
+                  className="flex items-center border-b-2 px-2"
+                  style={{
+                    height: NAV_HEIGHT,
+                  }}
+                >
+                  <Link className="font-bold text-2xl text-pink-900" to="/">
+                    {SITE_NAME}
+                  </Link>
+                </div>
+                <SidebarGroup>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      <SidebarMenuItem key="feed">
                         <SidebarMenuButton
                           asChild
-                          isActive={
-                            location.pathname == '/categories/' + item.id ||
-                            category?.frontId == item.id
-                          }
+                          isActive={location.pathname == '/'}
                         >
-                          <Link to={'/categories/' + item.id}>
-                            <HashIcon size={20} />
-                            {item.name}
+                          <Link to="/">
+                            <NewspaperIcon size={16} />
+                            信息流
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            </SidebarContent>
-          </Sidebar>
-          <main className="flex-grow max-w-[100%] border-l-[1px] b-bg-main">
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+                <SidebarGroup>
+                  <SidebarGroupLabel>分类</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {cateList.map((item) => (
+                        <SidebarMenuItem key={item.id}>
+                          <SidebarMenuButton
+                            asChild
+                            isActive={
+                              location.pathname == '/categories/' + item.id ||
+                              category?.frontId == item.id
+                            }
+                          >
+                            <Link to={'/categories/' + item.id}>
+                              <HashIcon size={20} />
+                              {item.name}
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              </SidebarContent>
+            </Sidebar>
+          </div>
+          <main
+            className={cn(
+              'duration-200 transition-[width] ease-linear flex-grow border-l-[1px] b-bg-main w-[calc(100%-var(--sidebar-width))]',
+              isMobile || (!sidebarOpen && 'w-full')
+            )}
+          >
             <BNav
               category={category}
               goBack={goBack}
@@ -191,7 +233,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         </SidebarProvider>
 
         <Dialog open={signin} onOpenChange={(open) => updateSignin(open)}>
-          <DialogContent>
+          <DialogContent className="max-sm:max-w-[90%]">
             <DialogHeader>
               <DialogTitle>登录</DialogTitle>
               <DialogDescription></DialogDescription>
@@ -206,7 +248,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         </Dialog>
 
         <Dialog open={signup} onOpenChange={(open) => updateSignup(open)}>
-          <DialogContent>
+          <DialogContent className="max-sm:max-w-[90%]">
             <DialogHeader>
               <DialogTitle>注册</DialogTitle>
               <DialogDescription></DialogDescription>

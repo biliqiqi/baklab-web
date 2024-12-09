@@ -1,9 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  MouseEventHandler,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 
 /* import mockArticleList from '@/mock/articles.json' */
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { Badge } from './components/ui/badge'
+import { Button } from './components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 import { Card } from '@/components/ui/card'
 import {
@@ -52,8 +59,15 @@ export default function ArticleListPage() {
 
   const [params, setParams] = useSearchParams()
   const pathParams = useParams()
+  const navigate = useNavigate()
 
   const sort = (params.get('sort') as ArticleListSort | null) || 'best'
+  const category = pathParams['category'] || ''
+
+  const submitPath = useMemo(
+    () => (category ? '/submit?category=' + category : '/submit'),
+    [category]
+  )
 
   const fetchArticles = toSync(
     async (
@@ -109,10 +123,32 @@ export default function ArticleListPage() {
     })
   }
 
+  const onSubmitClick: MouseEventHandler<HTMLButtonElement> = useCallback(
+    async (e) => {
+      e.preventDefault()
+
+      if (authStore.isLogined()) {
+        navigate(submitPath)
+        return
+      }
+
+      try {
+        const authData = await authStore.loginWithDialog()
+        console.log('authData success', authData)
+        //...
+        setTimeout(() => {
+          navigate(submitPath)
+        }, 0)
+      } catch (err) {
+        console.error('submit click error: ', err)
+      }
+    },
+    [authStore, submitPath, navigate]
+  )
+
   useEffect(() => {
     const page = Number(params.get('page')) || 1
     const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
-    const category = pathParams['category'] || ''
     const sort = (params.get('sort') as ArticleListSort | null) || 'best'
 
     fetchArticles(page, pageSize, sort, category)
@@ -121,15 +157,28 @@ export default function ArticleListPage() {
   return (
     <>
       <BContainer category={pageState.category}>
-        {list.length > 0 && (
-          <Tabs defaultValue="best" value={sort} onValueChange={onSwitchTab}>
-            <TabsList>
-              <TabsTrigger value="best">最佳</TabsTrigger>
-              <TabsTrigger value="latest">最新</TabsTrigger>
-              <TabsTrigger value="list_hot">热门</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        )}
+        <div className="flex justify-between items-center">
+          <div>
+            {list.length > 0 && (
+              <Tabs
+                defaultValue="best"
+                value={sort}
+                onValueChange={onSwitchTab}
+              >
+                <TabsList>
+                  <TabsTrigger value="best">最佳</TabsTrigger>
+                  <TabsTrigger value="latest">最新</TabsTrigger>
+                  <TabsTrigger value="list_hot">热门</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
+          </div>
+          <div>
+            <Button variant="outline" size="sm" asChild onClick={onSubmitClick}>
+              <Link to={submitPath}>+ 提交</Link>
+            </Button>
+          </div>
+        </div>
         <div className="py-4" key={pathParams.category}>
           {loading ? (
             <div className="flex justify-center">

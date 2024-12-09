@@ -157,3 +157,15 @@ export const useNotFoundStore = create<NotFoundState>((set) => ({
     set((state) => ({ ...state, showNotFound: show }))
   },
 }))
+
+export interface SidebarState {
+  open: boolean
+  setOpen: (x: boolean) => void
+}
+
+export const useSidebarStore = create<SidebarState>((set) => ({
+  open: true,
+  setOpen(open) {
+    set(() => ({ open }))
+  },
+}))

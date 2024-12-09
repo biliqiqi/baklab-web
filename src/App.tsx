@@ -11,8 +11,6 @@ import { Toaster } from './components/ui/sonner.tsx'
 
 import BLoader from './components/base/BLoader.tsx'
 
-import ArticleForm from './components/ArticleForm.tsx'
-
 import ArticleListPage from './ArticleListPage.tsx'
 import ArticlePage from './ArticlePage.tsx'
 import EditPage from './EditPage.tsx'
@@ -22,10 +20,16 @@ import SignupPage from './SignupPage.tsx'
 import SubmitPage from './SubmitPage.tsx'
 import UserPage from './UserPage.tsx'
 import { useAuth } from './hooks/use-auth.ts'
+import { useIsMobile } from './hooks/use-mobile.tsx'
 import { toSync } from './lib/fire-and-forget.ts'
 import { refreshAuthState } from './lib/request.ts'
 import { noop } from './lib/utils.ts'
-import { isLogined, useAuthedUserStore, useToastStore } from './state/global.ts'
+import {
+  isLogined,
+  useAuthedUserStore,
+  useSidebarStore,
+  useToastStore,
+} from './state/global.ts'
 
 const notAtAuthed = () => {
   const data = useAuthedUserStore.getState()
@@ -95,8 +99,13 @@ const routes = [
 const App = () => {
   const [initialized, setInitialized] = useState(false)
   const [router, setRouter] = useState<Router | null>(null)
+
   const updateToastState = useToastStore((state) => state.update)
   const authed = useAuth()
+  const isMobile = useIsMobile()
+  const { setOpen: setSidebarOpen } = useSidebarStore()
+
+  /* console.log('render app!') */
 
   useEffect(() => {
     if (!authed) {
@@ -110,6 +119,10 @@ const App = () => {
       })()
     }
   }, [authed])
+
+  useEffect(() => {
+    setSidebarOpen(!isMobile)
+  }, [isMobile])
 
   {/* prettier-ignore */}
   return (

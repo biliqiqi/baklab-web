@@ -126,7 +126,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
 
   return (
     <>
-      <div className="w-[400px] space-y-8 mx-auto py-4">
+      <div className="w-[400px] max-sm:w-full space-y-8 mx-auto py-4">
         <Form {...signinForm}>
           <form onSubmit={signinForm.handleSubmit(onSigninSubmit)}>
             <FormInput

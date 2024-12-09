@@ -7,9 +7,10 @@ import { toSync } from '@/lib/fire-and-forget'
 import { bus } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
-import { submitReply } from '@/api/article'
+import { submitReply, updateReply } from '@/api/article'
 import {
   ARTICLE_MAX_CONTENT_LEN,
+  EV_ON_EDIT_CLICK,
   EV_ON_REPLY_CLICK,
 } from '@/constants/constants'
 import { Article, ArticleSubmitResponse, ResponseData } from '@/types/types'
@@ -25,9 +26,11 @@ const articleScheme = z.object({
 
 type ArticleScheme = z.infer<typeof articleScheme>
 
-interface ReplyBoxProps {
+export interface ReplyBoxProps {
   /* articleID: string */
   replyToArticle: Article | null
+  isEditting?: boolean
+  edittingArticle?: Article | null
   onSuccess?: (data: ResponseData<ArticleSubmitResponse>) => void
   onRemoveReply?: () => void
 }
@@ -39,12 +42,15 @@ interface ReplyBoxData {
   handleMouseMove?: (e: MouseEvent) => void
   handleMouseUp?: (e: MouseEvent) => void
   handleReplyClick?: (x: Article) => void
+  handleEditClick?: (x: Article) => void
 }
 
 const REPLY_BOX_MIN_HEIGHT = 80
 
 const ReplyBox: React.FC<ReplyBoxProps> = ({
   replyToArticle,
+  isEditting,
+  edittingArticle,
   onSuccess,
   onRemoveReply,
 }) => {
@@ -57,6 +63,9 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
     isAdjusting: false,
   })
 
+  /* console.log('isEditting: ', isEditting) */
+  /* console.log('edittingArticle: ', edittingArticle) */
+
   const form = useForm<ArticleScheme>({
     resolver: zodResolver(articleScheme),
     defaultValues: {
@@ -66,36 +75,59 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
 
   /* const isReplyToRoot = () => replyToArticle && replyToArticle.replyToId == '0' */
 
-  const onSubmit = async ({ content }: ArticleScheme) => {
-    /* console.log('values: ', values) */
-    try {
-      setLoading(true)
-      if (!replyToArticle || !replyToArticle.id)
-        throw new Error('aritcle id is required')
+  const onSubmit = useCallback(
+    async ({ content }: ArticleScheme) => {
+      /* console.log('values: ', values) */
+      try {
+        setLoading(true)
 
-      const data = await submitReply(replyToArticle.id, content)
-      if (!data.code) {
-        /* toast.info('提交成功') */
-        form.reset({ content: '' })
-        if (onSuccess && typeof onSuccess == 'function') {
-          onSuccess(data)
+        let resp: ResponseData<ArticleSubmitResponse>
+        if (isEditting) {
+          if (!edittingArticle || !edittingArticle.id)
+            throw new Error('reply to aritcle id is required')
+
+          resp = await updateReply(
+            edittingArticle.id,
+            content,
+            edittingArticle.replyToId
+          )
+        } else {
+          if (!replyToArticle || !replyToArticle.id)
+            throw new Error('reply to aritcle id is required')
+
+          resp = await submitReply(replyToArticle.id, content)
         }
-      }
-    } catch (err) {
-      console.error('submit reply error: ', err)
-    } finally {
-      setLoading(false)
-    }
-  }
 
-  const onReplyClick = useCallback(() => {
+        /* const data = await submitReply(replyToArticle.id, content) */
+        if (!resp.code) {
+          /* toast.info('提交成功') */
+          form.reset({ content: '' })
+
+          if (onSuccess && typeof onSuccess == 'function') {
+            onSuccess(resp)
+          }
+        }
+      } catch (err) {
+        console.error('submit reply error: ', err)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [replyToArticle, isEditting, edittingArticle, form, onSuccess]
+  )
+
+  const setupForm = useCallback(() => {
     setTimeout(() => {
       form.setFocus('content', { shouldSelect: true })
     }, 0)
   }, [form])
 
   if (!replyBoxRef.current.handleReplyClick) {
-    replyBoxRef.current.handleReplyClick = onReplyClick
+    replyBoxRef.current.handleReplyClick = setupForm
+  }
+
+  if (!replyBoxRef.current.handleEditClick) {
+    replyBoxRef.current.handleEditClick = setupForm
   }
 
   const onMouseMove = useCallback((e: MouseEvent) => {
@@ -137,6 +169,13 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
     replyBoxRef.current.handleMouseUp = onMouseUp
 
   useEffect(() => {
+    /* console.log('editting: ', isEditting) */
+    form.reset({
+      content: isEditting && edittingArticle ? edittingArticle.content : '',
+    })
+  }, [isEditting, edittingArticle])
+
+  useEffect(() => {
     const currData = replyBoxRef.current
 
     /* console.log('textarea ref: ', textareaRef.current) */
@@ -151,6 +190,11 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
       bus.on(EV_ON_REPLY_CLICK, currData.handleReplyClick)
     }
     /* console.log('listeners after bind: ', bus.listeners(EV_ON_REPLY_CLICK)) */
+
+    if (currData.handleEditClick) {
+      bus.off(EV_ON_EDIT_CLICK, currData.handleEditClick)
+      bus.on(EV_ON_EDIT_CLICK, currData.handleEditClick)
+    }
 
     if (currData.handleMouseMove)
       window.removeEventListener('mousemove', currData.handleMouseMove)
@@ -169,6 +213,9 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
 
       if (currData.handleReplyClick)
         bus.off(EV_ON_REPLY_CLICK, currData.handleReplyClick)
+
+      if (currData.handleEditClick)
+        bus.off(EV_ON_EDIT_CLICK, currData.handleEditClick)
 
       /* console.log('listeners unload: ', bus.listeners(EV_ON_REPLY_CLICK)) */
     }
@@ -213,17 +260,19 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
               {replyToArticle.authorName}: {replyToArticle.summary}
               {replyToArticle.summary != replyToArticle.content && '...'}
             </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.preventDefault()
-                if (onRemoveReply && typeof onRemoveReply == 'function')
-                  onRemoveReply()
-              }}
-            >
-              <XIcon size={20} />
-            </Button>
+            {!isEditting && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.preventDefault()
+                  if (onRemoveReply && typeof onRemoveReply == 'function')
+                    onRemoveReply()
+                }}
+              >
+                <XIcon size={20} />
+              </Button>
+            )}
           </div>
         )}
         <FormField

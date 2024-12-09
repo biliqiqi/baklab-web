@@ -43,6 +43,18 @@ export const updateArticle = (
     },
   })
 
+export const updateReply = (
+  id: string,
+  content: string,
+  replyToId: string
+): Promise<ResponseData<ArticleSubmitResponse>> =>
+  authRequest.patch(`articles/${id}`, {
+    json: {
+      content,
+      replyToId,
+    },
+  })
+
 export const submitReply = (
   replyToID: string,
   content: string

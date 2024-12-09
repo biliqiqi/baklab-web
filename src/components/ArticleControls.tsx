@@ -6,11 +6,11 @@ import {
   ThumbsDown,
   ThumbsUp,
 } from 'lucide-react'
-import { HTMLAttributes } from 'react'
+import { HTMLAttributes, MouseEventHandler } from 'react'
 import { Link } from 'react-router-dom'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
-import { cn } from '@/lib/utils'
+import { cn, noop } from '@/lib/utils'
 
 import { Article, ArticleCardType } from '@/types/types'
 
@@ -25,7 +25,8 @@ interface ArticleControlsProps extends HTMLAttributes<HTMLDivElement> {
   summary?: boolean // 是否显示概览
   link?: boolean // 是否显示直达链接
   linkQrCode?: boolean // 是否显示直达链接二维码
-  onCommentClick?: () => void
+  onCommentClick?: MouseEventHandler<HTMLButtonElement>
+  onEditClick?: MouseEventHandler<HTMLButtonElement>
 }
 
 const ArticleControls: React.FC<ArticleControlsProps> = ({
@@ -37,7 +38,8 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   link = false,
   linkQrCode = false,
   type = 'item',
-  onCommentClick = () => {},
+  onCommentClick = noop,
+  onEditClick = noop,
   ...props
 }) => {
   return (
@@ -81,7 +83,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           )}
         </Button>
         {edit && (
-          <Button variant="ghost" size="sm" asChild>
+          <Button variant="ghost" size="sm" asChild onClick={onEditClick}>
             <Link to={`/articles/${article.id}/edit`}>
               <PencilIcon size={20} className="inline-block mr-1" />
             </Link>

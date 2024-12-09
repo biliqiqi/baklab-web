@@ -7,9 +7,9 @@ import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
 
 import ArticleCard from './components/ArticleCard'
-import ReplyBox from './components/ReplyBox'
+import ReplyBox, { ReplyBoxProps } from './components/ReplyBox'
 
-import { EV_ON_REPLY_CLICK } from '@/constants/constants'
+import { EV_ON_EDIT_CLICK, EV_ON_REPLY_CLICK } from '@/constants/constants'
 
 import { getArticle } from './api/article'
 import { toSync } from './lib/fire-and-forget'
@@ -17,13 +17,28 @@ import { bus } from './lib/utils'
 import { useNotFoundStore } from './state/global'
 import { Article, ArticleListSort } from './types/types'
 
+type ReplyBoxState = Pick<
+  ReplyBoxProps,
+  'isEditting' | 'edittingArticle' | 'replyToArticle'
+>
+
 export default function ArticlePage() {
   const [loading, setLoading] = useState(false)
   const [article, setArticle] = useState<Article | null>(null)
-  const [replyBox, setReplyBox] = useState(true)
+
+  const [replyBoxState, setReplyBoxState] = useState<ReplyBoxState>({
+    isEditting: false,
+    edittingArticle: null,
+    replyToArticle: null,
+  })
+
+  /* const [isEditting, setIsEditting] = useState(true) */
   /* const [replyToID, setReplyToID] = useState('0') */
-  const [replyToArticle, setReplyToArticle] = useState<Article | null>(null)
+  /* const [replyToArticle, setReplyToArticle] = useState<Article | null>(null) */
+  /* const [edittingArticle, setEdittingArticle] = useState<Article | null>(null) */
+
   const replyHandlerRef = useRef<((x: Article) => void) | null>(null)
+  const editHandlerRef = useRef<((x: Article) => void) | null>(null)
 
   const [params, setParams] = useSearchParams()
   const { updateNotFound } = useNotFoundStore()
@@ -54,7 +69,13 @@ export default function ArticlePage() {
             article.asMainArticle = true
 
             setArticle(article)
-            setReplyToArticle(article)
+
+            /* setReplyToArticle(article) */
+            setReplyBoxState({
+              isEditting: false,
+              replyToArticle: article,
+              edittingArticle: null,
+            })
           }
         } else {
           updateNotFound(true)
@@ -79,12 +100,32 @@ export default function ArticlePage() {
   }
 
   const onReplyClick = useCallback((article: Article) => {
-    setReplyToArticle(article)
-    setReplyBox(true)
+    /* setReplyToArticle(article)
+     * setIsEditting(false) */
+    setReplyBoxState({
+      isEditting: false,
+      replyToArticle: article,
+      edittingArticle: null,
+    })
   }, [])
 
   if (!replyHandlerRef.current) {
     replyHandlerRef.current = onReplyClick
+  }
+
+  const onEditClick = useCallback((article: Article) => {
+    /* setReplyToArticle(parent)
+     * setEdittingArticle(article)
+     * setIsEditting(true) */
+    setReplyBoxState({
+      isEditting: true,
+      edittingArticle: article,
+      replyToArticle: article.replyToArticle,
+    })
+  }, [])
+
+  if (!editHandlerRef.current) {
+    editHandlerRef.current = onEditClick
   }
 
   useEffect(() => {
@@ -95,9 +136,18 @@ export default function ArticlePage() {
       bus.on(EV_ON_REPLY_CLICK, replyHandlerRef.current)
     }
 
+    if (editHandlerRef.current) {
+      bus.off(EV_ON_EDIT_CLICK, editHandlerRef.current)
+      bus.on(EV_ON_EDIT_CLICK, editHandlerRef.current)
+    }
+
     return () => {
       if (replyHandlerRef.current) {
         bus.off(EV_ON_REPLY_CLICK, replyHandlerRef.current)
+      }
+
+      if (editHandlerRef.current) {
+        bus.off(EV_ON_EDIT_CLICK, editHandlerRef.current)
       }
     }
   }, [articleID, params])
@@ -150,24 +200,26 @@ export default function ArticlePage() {
           </>
         )}
 
-        {replyBox && (
-          <ReplyBox
-            replyToArticle={replyToArticle}
-            onSuccess={() =>
-              fetchArticle(false).then(() => {
-                setTimeout(() => {
-                  window.scrollTo({
-                    top: document.body.scrollHeight,
-                    behavior: 'smooth',
-                  })
-                }, 0)
-              })
-            }
-            onRemoveReply={() => {
-              setReplyToArticle(article)
-            }}
-          />
-        )}
+        <ReplyBox
+          {...replyBoxState}
+          onSuccess={() =>
+            fetchArticle(false).then(() => {
+              setTimeout(() => {
+                window.scrollTo({
+                  top: document.body.scrollHeight,
+                  behavior: 'smooth',
+                })
+              }, 0)
+            })
+          }
+          onRemoveReply={() => {
+            setReplyBoxState({
+              isEditting: false,
+              edittingArticle: null,
+              replyToArticle: article,
+            })
+          }}
+        />
       </BContainer>
     </>
   )

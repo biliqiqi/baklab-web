@@ -1,10 +1,10 @@
-import { HTMLAttributes, useMemo } from 'react'
+import { HTMLAttributes, MouseEvent, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
 import { bus } from '@/lib/utils'
 
-import { EV_ON_REPLY_CLICK } from '@/constants/constants'
+import { EV_ON_EDIT_CLICK, EV_ON_REPLY_CLICK } from '@/constants/constants'
 import { useAuthedUserStore } from '@/state/global'
 import {
   Article,
@@ -120,8 +120,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           article={article}
           type={type}
           edit={isMyself}
-          onCommentClick={() => {
+          onCommentClick={(e) => {
+            e.preventDefault()
             bus.emit(EV_ON_REPLY_CLICK, article)
+          }}
+          onEditClick={(e) => {
+            e.preventDefault()
+            bus.emit(EV_ON_EDIT_CLICK, article)
           }}
         />
       </Card>

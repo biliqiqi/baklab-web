@@ -188,7 +188,14 @@ export default function UserPage() {
 
   return (
     <>
-      <BContainer>
+      <BContainer
+        category={{
+          isFront: true,
+          frontId: 'userpage',
+          name: `${username} 的个人主页`,
+          describe: '',
+        }}
+      >
         {!loading && user && (
           <>
             <Card className="p-3 mb-4">

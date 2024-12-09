@@ -9,6 +9,7 @@ export const ARTICLE_MAX_TITILE_LEN = 255
 export const ARTICLE_MAX_CONTENT_LEN = 24000
 export const NAV_HEIGHT = '58px'
 
-export const EV_ON_REPLY_CLICK = 'ON_REPLY_CLICK'
+export const EV_ON_REPLY_CLICK = 'on_reply_click'
+export const EV_ON_EDIT_CLICK = 'on_edit_click'
 
 export const DEFAULT_PAGE_SIZE = 10

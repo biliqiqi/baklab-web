@@ -1,4 +1,5 @@
 import {
+  MouseEvent,
   MouseEventHandler,
   useCallback,
   useEffect,
@@ -123,8 +124,8 @@ export default function ArticleListPage() {
     })
   }
 
-  const onSubmitClick: MouseEventHandler<HTMLButtonElement> = useCallback(
-    async (e) => {
+  const onSubmitClick = useCallback(
+    async (e: MouseEvent<HTMLButtonElement>) => {
       e.preventDefault()
 
       if (authStore.isLogined()) {
@@ -214,11 +215,7 @@ export default function ArticleListPage() {
                     </div>
                   )}
                 </div>
-                <ArticleControls
-                  article={item}
-                  type="list"
-                  edit={isMyself(item.authorId)}
-                />
+                <ArticleControls article={item} type="list" />
               </Card>
             ))
           )}

@@ -1,4 +1,5 @@
-import { HTMLAttributes, MouseEvent, useMemo } from 'react'
+import { PencilIcon } from 'lucide-react'
+import { HTMLAttributes, MouseEvent, useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
@@ -15,12 +16,14 @@ import {
 
 import ArticleControls from './ArticleControls'
 import BAvatar from './base/BAvatar'
+import { Button } from './ui/button'
 import { Card } from './ui/card'
 
 interface ArticleCardProps extends HTMLAttributes<HTMLDivElement> {
   article: Article
   replyBox?: boolean
   type?: ArticleCardType
+  edit?: boolean
   onSuccess?: (data: ResponseData<ArticleSubmitResponse>) => void
 }
 
@@ -55,6 +58,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   article,
   onSuccess,
   type = 'item',
+  edit = false,
   ...props
 }) => {
   /* const isRootArticle = type == 'item' && article.replyToId == '0' */
@@ -66,6 +70,16 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   const isMyself = useMemo(
     () => authStore.isMySelf(article.authorId),
     [authStore, article]
+  )
+
+  const onEditClick = useCallback(
+    (e: MouseEvent) => {
+      if (!article.asMainArticle) {
+        e.preventDefault()
+        bus.emit(EV_ON_EDIT_CLICK, article)
+      }
+    },
+    [article]
   )
 
   return (
@@ -96,6 +110,19 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           <span title={timeFmt(article.createdAt, 'YYYY年M月D日 H时m分s秒')}>
             {timeAgo(article.createdAt)}
           </span>
+          {isMyself && (
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="mx-1"
+              onClick={onEditClick}
+            >
+              <Link to={`/articles/${article.id}/edit`}>
+                <PencilIcon size={14} className="inline-block mr-1" />
+              </Link>
+            </Button>
+          )}
         </div>
         <div>
           {parent && (
@@ -129,12 +156,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             e.preventDefault()
             bus.emit(EV_ON_REPLY_CLICK, article)
           }}
-          onEditClick={(e) => {
-            if (!article.asMainArticle) {
-              e.preventDefault()
-              bus.emit(EV_ON_EDIT_CLICK, article)
-            }
-          }}
+          onEditClick={onEditClick}
         />
       </Card>
     </div>

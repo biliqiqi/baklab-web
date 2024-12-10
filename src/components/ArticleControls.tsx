@@ -14,6 +14,7 @@ import { cn, noop } from '@/lib/utils'
 
 import { Article, ArticleCardType } from '@/types/types'
 
+import BIconColorChar from './base/BIconColorChar'
 import { Button } from './ui/button'
 
 interface ArticleControlsProps extends HTMLAttributes<HTMLDivElement> {
@@ -72,6 +73,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           size="sm"
           asChild={type == 'list'}
           onClick={onCommentClick}
+          className="mr-2"
         >
           {type == 'list' ? (
             <Link to={'/articles/' + article.id}>
@@ -82,27 +84,24 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             <MessageSquare size={20} className="inline-block mr-1" />
           )}
         </Button>
-        {edit && (
-          <Button variant="ghost" size="sm" asChild onClick={onEditClick}>
-            <Link to={`/articles/${article.id}/edit`}>
-              <PencilIcon size={20} className="inline-block mr-1" />
-            </Link>
-          </Button>
-        )}
 
         {type == 'list' && (
-          <div className="ml-2">
-            <Link
-              to={'/categories/' + article.category.frontId}
-              className="font-bold"
-            >
+          <>
+            <Link to={'/categories/' + article.category.frontId}>
+              <BIconColorChar
+                id={article.categoryFrontId}
+                char={article.category.name}
+                size={24}
+                fontSize={12}
+                className="align-[-7px]"
+              />
               {article.category.name}
             </Link>
             &nbsp;·&nbsp;
             <span title={timeFmt(article.createdAt, 'YYYY年M月D日 H时m分s秒')}>
               {timeAgo(article.createdAt)}
             </span>
-          </div>
+          </>
         )}
       </div>
       <div className="flex items-center">

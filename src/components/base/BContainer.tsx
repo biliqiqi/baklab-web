@@ -1,6 +1,7 @@
 import { HashIcon, NewspaperIcon } from 'lucide-react'
 import React, { useCallback, useEffect, useState } from 'react'
 import { Link, useBeforeUnload, useLocation } from 'react-router-dom'
+import stc from 'string-to-color'
 
 import { toSync } from '@/lib/fire-and-forget'
 import { cn } from '@/lib/utils'
@@ -38,6 +39,7 @@ import {
   SidebarMenuItem,
   SidebarProvider,
 } from '../ui/sidebar'
+import BIconColorChar from './BIconColorChar'
 import { BLoaderBlock } from './BLoader'
 import BNav from './BNav'
 
@@ -195,9 +197,23 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                               location.pathname == '/categories/' + item.id ||
                               category?.frontId == item.id
                             }
+                            className="h-auto"
                           >
                             <Link to={'/categories/' + item.id}>
-                              <HashIcon size={20} />
+                              {/* <HashIcon size={20} />
+                              <span
+                                className="inline-block h-[32px] w-[32px] rounded-full bg-gray-500 text-white text-lg text-center leading-[32px] no-underline"
+                                style={{
+                                  backgroundColor: stc(item.id),
+                                }}
+                              >
+                                {item.name.charAt(0)}
+                              </span> */}
+                              <BIconColorChar
+                                id={item.id}
+                                char={item.name}
+                                size={32}
+                              />
                               {item.name}
                             </Link>
                           </SidebarMenuButton>

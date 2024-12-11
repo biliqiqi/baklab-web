@@ -153,7 +153,6 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
         }
 
         if (!data.code) {
-          toast.info('提交成功')
           navigate(`/articles/${data.data.id}`)
         }
       } catch (err) {

@@ -127,6 +127,11 @@ export interface ArticleSubmitResponse {
   id: string
 }
 
+export interface ArticleDeleteResponse {
+  id: string
+  replyRootArticleId: string
+}
+
 export type ArticleCardType = 'list' | 'item'
 
 export enum AuthType {

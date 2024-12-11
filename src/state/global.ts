@@ -134,6 +134,7 @@ export interface DialogState {
 export const useDialogStore = create<DialogState>((set) => ({
   signin: false,
   signup: false,
+  alert: false,
   updateSignin(open: boolean) {
     set((state) => ({
       ...state,
@@ -147,6 +148,104 @@ export const useDialogStore = create<DialogState>((set) => ({
     }))
   },
 }))
+
+type AlertConfirmType = 'normal' | 'danger'
+
+export interface AlertDialogState {
+  type: 'alert' | 'confirm'
+  open: boolean
+  title: string
+  description: string
+  confirmBtnText: string
+  cancelBtnText: string
+  confirmed: boolean
+  confirmType: AlertConfirmType
+  setOpen: (x: boolean) => void
+  setConfirm: (x: boolean) => void
+  alert: (x: string, y?: string) => void
+  confirm: (x: string, y?: string, z?: AlertConfirmType) => Promise<boolean>
+  setState: (fn: (x: AlertDialogState) => AlertDialogState) => void
+}
+
+const defaultAlertState: Pick<
+  AlertDialogState,
+  'title' | 'description' | 'confirmBtnText'
+> = {
+  title: '',
+  description: '',
+  confirmBtnText: '确定',
+}
+
+const defaultConfirmState: Pick<
+  AlertDialogState,
+  | 'title'
+  | 'description'
+  | 'confirmBtnText'
+  | 'cancelBtnText'
+  | 'confirmed'
+  | 'confirmType'
+> = {
+  ...defaultAlertState,
+  cancelBtnText: '取消',
+  confirmed: false,
+  confirmType: 'normal',
+}
+
+export const useAlertDialogStore = create<AlertDialogState>((set) => ({
+  type: 'alert',
+  open: false,
+  ...defaultAlertState,
+  ...defaultConfirmState,
+  setState: set,
+  setOpen(open) {
+    set((state) => ({
+      ...state,
+      open,
+    }))
+  },
+  setConfirm(confirmed) {
+    set((state) => ({
+      ...state,
+      confirmed,
+    }))
+  },
+  alert: (title, description) => {
+    set(() => ({
+      type: 'alert',
+      open: true,
+      title,
+      description,
+    }))
+  },
+  confirm: (title, description, confirmType = 'normal') =>
+    new Promise((resolve, reject) => {
+      set(() => ({
+        type: 'confirm',
+        open: true,
+        confirmed: false,
+        title,
+        description,
+        confirmType,
+      }))
+
+      useAlertDialogStore.subscribe((state) => {
+        if (state.type == 'confirm' && !state.open) {
+          resolve(state.confirmed)
+        } else {
+          reject(new Error('confirm dialog canceled'))
+        }
+      })
+    }),
+}))
+
+// useAlertDialogStore.subscribe((state) => {
+//   console.log('dialogStore changed:', state)
+//   if (!state.open){
+//     if (state.type == 'alert'){
+
+//     }
+//   }
+// })
 
 export interface NotFoundState {
   showNotFound: boolean

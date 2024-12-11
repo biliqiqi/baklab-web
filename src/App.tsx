@@ -6,7 +6,9 @@ import {
   redirect,
   replace,
 } from 'react-router-dom'
+import { ToastT, toast } from 'sonner'
 
+import { Button } from './components/ui/button.tsx'
 import { Toaster } from './components/ui/sonner.tsx'
 
 import BLoader from './components/base/BLoader.tsx'
@@ -21,7 +23,6 @@ import SubmitPage from './SubmitPage.tsx'
 import UserPage from './UserPage.tsx'
 import { getCategoryList } from './api/main.ts'
 import { useAuth } from './hooks/use-auth.ts'
-import { useIsMobile } from './hooks/use-mobile.tsx'
 import { toSync } from './lib/fire-and-forget.ts'
 import { refreshAuthState } from './lib/request.ts'
 import { noop } from './lib/utils.ts'
@@ -29,7 +30,6 @@ import {
   isLogined,
   useAuthedUserStore,
   useCategoryStore,
-  useSidebarStore,
   useToastStore,
 } from './state/global.ts'
 
@@ -144,6 +144,20 @@ const App = () => {
   {/* prettier-ignore */}
   return (
     <>
+      {/* <div>
+        {(
+          [
+            'error',
+            'success',
+            'warning',
+            'info',
+            'default',
+            'loading',
+          ] as ToastT['type'][]
+        ).map((tt = 'normal') => (
+          <Button onClick={() => toast[tt](tt)}>{tt}</Button>
+        ))}
+      </div> */}
       {initialized && router ? (
         <RouterProvider router={router} />
       ) : (
@@ -160,9 +174,13 @@ const App = () => {
         toastOptions={{
           classNames: {
             error: 'bg-red-400',
-            success: 'text-green-400',
-            warning: 'text-yellow-400',
+            success: 'bg-green-400',
+            warning: 'bg-yellow-400',
             info: 'bg-blue-400',
+            loading: 'bg-blue-400',
+            icon: 'text-white',
+            content: 'text-white',
+            closeButton: 'absolute left-auto right-[-10px] text-black',
           },
         }}
       />

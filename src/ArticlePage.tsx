@@ -171,7 +171,12 @@ export default function ArticlePage() {
       >
         {article && (
           <>
-            <ArticleCard key={article.id} article={article} className="mb-4" />
+            <ArticleCard
+              key={article.id}
+              article={article}
+              className="mb-4"
+              onDeleteSuccess={fetchArticleSync}
+            />
             {article.totalReplyCount > 0 && (
               <div id="comments" className="py-3 mb-4">
                 <Tabs
@@ -194,9 +199,15 @@ export default function ArticlePage() {
               </div>
             ) : (
               Boolean(article.replies.list) &&
-              article.replies.list.map((item) => (
-                <ArticleCard key={item.id} article={item} />
-              ))
+              article.replies.list
+                .filter((item) => !(item.deleted && item.childrenCount == 0))
+                .map((item) => (
+                  <ArticleCard
+                    key={item.id}
+                    article={item}
+                    onDeleteSuccess={fetchArticleSync}
+                  />
+                ))
             )}
           </>
         )}

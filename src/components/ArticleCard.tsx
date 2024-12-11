@@ -1,12 +1,14 @@
-import { PencilIcon } from 'lucide-react'
+import { PencilIcon, Trash2Icon } from 'lucide-react'
 import { HTMLAttributes, MouseEvent, useCallback, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
-import { bus, cn } from '@/lib/utils'
+import { bus, cn, noop } from '@/lib/utils'
 
+import { deleteArticle } from '@/api/article'
 import { EV_ON_EDIT_CLICK, EV_ON_REPLY_CLICK } from '@/constants/constants'
-import { useAuthedUserStore } from '@/state/global'
+import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
 import {
   Article,
   ArticleCardType,
@@ -23,8 +25,7 @@ interface ArticleCardProps extends HTMLAttributes<HTMLDivElement> {
   article: Article
   replyBox?: boolean
   type?: ArticleCardType
-  edit?: boolean
-  onSuccess?: (data: ResponseData<ArticleSubmitResponse>) => void
+  onDeleteSuccess?: () => void
 }
 
 const highlightElement = (element: HTMLElement) => {
@@ -56,9 +57,8 @@ const scrollToElement = (element: HTMLElement) => {
 
 const ArticleCard: React.FC<ArticleCardProps> = ({
   article,
-  onSuccess,
   type = 'item',
-  edit = false,
+  onDeleteSuccess = noop,
   ...props
 }) => {
   /* const isRootArticle = type == 'item' && article.replyToId == '0' */
@@ -67,10 +67,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   /* const articleID = article.id */
   const parent = article.replyToArticle
   const authStore = useAuthedUserStore()
+  const navigate = useNavigate()
   const isMyself = useMemo(
     () => authStore.isMySelf(article.authorId),
     [authStore, article]
   )
+
+  const alertDialog = useAlertDialogStore()
 
   const onEditClick = useCallback(
     (e: MouseEvent) => {
@@ -80,6 +83,30 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
       }
     },
     [article]
+  )
+
+  const onDelClick = useCallback(
+    async (e: MouseEvent) => {
+      try {
+        e.preventDefault()
+        const confirmed = await alertDialog.confirm(
+          '确认',
+          '确定删除帖子？删除后无法撤销',
+          'danger'
+        )
+        console.log('confirmed: ', confirmed)
+        if (confirmed) {
+          const resp = await deleteArticle(article.id)
+          if (!resp.code) {
+            /* navigate(-1) */
+            onDeleteSuccess()
+          }
+        }
+      } catch (err) {
+        console.error('delete article failed: ', err)
+      }
+    },
+    [article, navigate]
   )
 
   return (
@@ -102,10 +129,14 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           </h1>
         )}
         <div className="flex items-center mb-4 text-sm text-gray-500">
-          <Link to={'/users/' + article.authorName}>
-            <BAvatar username={article.authorName} size={24} />{' '}
-            {article.authorName}
-          </Link>
+          {article.deleted ? (
+            <span>未知用户</span>
+          ) : (
+            <Link to={'/users/' + article.authorName}>
+              <BAvatar username={article.authorName} size={24} />{' '}
+              {article.authorName}
+            </Link>
+          )}
           &nbsp;发布于&nbsp;
           <span title={timeFmt(article.createdAt, 'YYYY年M月D日 H时m分s秒')}>
             {timeAgo(article.createdAt)}
@@ -117,10 +148,22 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               asChild
               className="mx-1"
               onClick={onEditClick}
+              title="编辑"
             >
               <Link to={`/articles/${article.id}/edit`}>
                 <PencilIcon size={14} className="inline-block mr-1" />
               </Link>
+            </Button>
+          )}
+          {isMyself && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mx-1"
+              onClick={onDelClick}
+              title="删除"
+            >
+              <Trash2Icon size={14} />
             </Button>
           )}
         </div>
@@ -139,25 +182,37 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                 }
               }}
             >
-              {parent.authorName}: {parent.summary}
-              {parent.summary != parent.content && '...'}
+              {parent.deleted ? (
+                <i className="text-gray-500 text-sm">&lt;已删除&gt;</i>
+              ) : (
+                <span>
+                  {parent.authorName}: {parent.summary}
+                  {parent.summary != parent.content && '...'}
+                </span>
+              )}
             </div>
           )}
-          <div
-            dangerouslySetInnerHTML={{ __html: article.content }}
-            className="whitespace-break-spaces mb-4"
-          ></div>
+          {article.deleted ? (
+            <i className="text-gray-500 text-sm">&lt;已删除&gt;</i>
+          ) : (
+            <div
+              dangerouslySetInnerHTML={{ __html: article.content }}
+              className="whitespace-break-spaces mb-4"
+            ></div>
+          )}
         </div>
-        <ArticleControls
-          article={article}
-          type={type}
-          edit={isMyself}
-          onCommentClick={(e) => {
-            e.preventDefault()
-            bus.emit(EV_ON_REPLY_CLICK, article)
-          }}
-          onEditClick={onEditClick}
-        />
+        {!article.deleted && (
+          <ArticleControls
+            article={article}
+            type={type}
+            edit={isMyself}
+            onCommentClick={(e) => {
+              e.preventDefault()
+              bus.emit(EV_ON_REPLY_CLICK, article)
+            }}
+            onEditClick={onEditClick}
+          />
+        )}
       </Card>
     </div>
   )

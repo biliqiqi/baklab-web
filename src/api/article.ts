@@ -3,6 +3,7 @@ import { Options } from 'ky'
 import request, { authRequest } from '@/lib/request'
 
 import {
+  ArticleDeleteResponse,
   ArticleItemResponse,
   ArticleListResponse,
   ArticleListSort,
@@ -129,3 +130,6 @@ export const getArticle = (
     custom
   )
 }
+
+export const deleteArticle = (id: string) =>
+  authRequest.delete<ResponseData<ArticleDeleteResponse>>(`articles/${id}`)

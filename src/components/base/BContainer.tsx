@@ -7,6 +7,7 @@ import { cn, getCookie } from '@/lib/utils'
 import { NAV_HEIGHT, SITE_NAME } from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
+  useAlertDialogStore,
   useCategoryStore,
   useDialogStore,
   useNotFoundStore,
@@ -18,6 +19,16 @@ import { FrontCategory } from '@/types/types'
 import NotFound from '../NotFound'
 import SigninForm from '../SigninForm'
 import SignupForm from '../SignupForm'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../ui/alert-dialog'
 import { Button } from '../ui/button'
 import {
   Dialog,
@@ -62,6 +73,18 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const { open: sidebarOpen, setOpen: setSidebarOpen } = useSidebarStore()
     const [sidebarOpenMobile, setSidebarOpenMobile] = useState(false)
 
+    const alertDialog = useAlertDialogStore()
+
+    const {
+      type: alertType,
+      open: alertOpen,
+      title: alertTitle,
+      description: alertDescription,
+      setOpen: setAlertOpen,
+      confirmBtnText: alertConfirmBtnText,
+      cancelBtnText: alertCancelBtnText,
+    } = alertDialog
+
     const isMobile = useIsMobile()
 
     /* const [sidebarOpen, setSidebarOpen] = useState(!isMobile) */
@@ -76,6 +99,26 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         isFront: true,
       }
     }
+
+    const onAlertDialogCancel = useCallback(() => {
+      if (alertType == 'confirm') {
+        alertDialog.setState((state) => ({
+          ...state,
+          open: false,
+          confirmed: false,
+        }))
+      }
+    }, [alertDialog])
+
+    const onAlertDialogConfirm = useCallback(() => {
+      if (alertType == 'confirm') {
+        alertDialog.setState((state) => ({
+          ...state,
+          open: false,
+          confirmed: true,
+        }))
+      }
+    }, [alertDialog])
 
     const onToggleTopDrawer = useCallback(() => {
       setShowTopDrawer(!showTopDrawer)
@@ -244,7 +287,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           </main>
         </SidebarProvider>
 
-        <Dialog open={signin} onOpenChange={(open) => updateSignin(open)}>
+        <Dialog open={signin} onOpenChange={updateSignin}>
           <DialogContent className="max-sm:max-w-[90%]">
             <DialogHeader>
               <DialogTitle>登录</DialogTitle>
@@ -259,7 +302,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           </DialogContent>
         </Dialog>
 
-        <Dialog open={signup} onOpenChange={(open) => updateSignup(open)}>
+        <Dialog open={signup} onOpenChange={updateSignup}>
           <DialogContent className="max-sm:max-w-[90%]">
             <DialogHeader>
               <DialogTitle>注册</DialogTitle>
@@ -274,6 +317,38 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             />
           </DialogContent>
         </Dialog>
+
+        <AlertDialog
+          defaultOpen={false}
+          open={alertOpen}
+          onOpenChange={setAlertOpen}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{alertTitle}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {alertDescription}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              {alertType != 'alert' && (
+                <AlertDialogCancel onClick={onAlertDialogCancel}>
+                  {alertCancelBtnText}
+                </AlertDialogCancel>
+              )}
+              <AlertDialogAction
+                onClick={onAlertDialogConfirm}
+                className={
+                  alertDialog.confirmType == 'danger'
+                    ? 'bg-red-600 hover:bg-red-500'
+                    : ''
+                }
+              >
+                {alertConfirmBtnText}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </>
     )
   }

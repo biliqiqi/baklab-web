@@ -260,8 +260,14 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
         {replyToArticle && !replyToArticle.asMainArticle && (
           <div className="flex items-center justify-between bg-gray-100 rounded-sm py-1 px-2 mb-2 text-gray-500 text-sm">
             <span>
-              {replyToArticle.authorName}: {replyToArticle.summary}
-              {replyToArticle.summary != replyToArticle.content && '...'}
+              {replyToArticle.deleted ? (
+                <i className="text-gray-500 text-sm">&lt;已删除&gt;</i>
+              ) : (
+                <span>
+                  {replyToArticle.authorName}: {replyToArticle.summary}
+                  {replyToArticle.summary != replyToArticle.content && '...'}
+                </span>
+              )}
             </span>
             {!isEditting && (
               <Button

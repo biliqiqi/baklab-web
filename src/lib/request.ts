@@ -86,7 +86,7 @@ const defaultOptions: Options = {
               toast.error('应用程序出现了问题')
               break
             default:
-              if (data && data.code > 0) {
+              if (data && data.code > 1) {
                 toast.error(data.message)
               }
               console.error('HTTP error: ', resp)

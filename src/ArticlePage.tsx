@@ -167,6 +167,7 @@ export default function ArticlePage() {
         }
         goBack
         style={{ paddingBottom: 0 }}
+        loading={loading}
       >
         {article && (
           <>

@@ -15,11 +15,6 @@ export interface AuthedDataResponse {
   role: string
 }
 
-export interface CategoryOption {
-  id: string
-  name: string
-}
-
 export interface Category {
   id: string
   frontId: string

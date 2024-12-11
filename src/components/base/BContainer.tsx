@@ -1,21 +1,19 @@
-import { HashIcon, NewspaperIcon } from 'lucide-react'
+import { NewspaperIcon } from 'lucide-react'
 import React, { useCallback, useEffect, useState } from 'react'
-import { Link, useBeforeUnload, useLocation } from 'react-router-dom'
-import stc from 'string-to-color'
+import { Link, useLocation } from 'react-router-dom'
 
-import { toSync } from '@/lib/fire-and-forget'
-import { cn } from '@/lib/utils'
+import { cn, getCookie } from '@/lib/utils'
 
-import { getCategoryList } from '@/api'
 import { NAV_HEIGHT, SITE_NAME } from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
+  useCategoryStore,
   useDialogStore,
   useNotFoundStore,
   useSidebarStore,
   useTopDrawerStore,
 } from '@/state/global'
-import { CategoryOption, FrontCategory } from '@/types/types'
+import { FrontCategory } from '@/types/types'
 
 import NotFound from '../NotFound'
 import SigninForm from '../SigninForm'
@@ -29,6 +27,7 @@ import {
   DialogTitle,
 } from '../ui/dialog'
 import {
+  SIDEBAR_COOKIE_NAME,
   Sidebar,
   SidebarContent,
   SidebarGroup,
@@ -53,11 +52,13 @@ export interface BContainerProps extends React.HTMLAttributes<HTMLDivElement> {
 const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
   ({ children, category, goBack = false, loading = false, ...props }, ref) => {
     /* const [loading, setLoading] = useState(false) */
-    const [cateList, setCateList] = useState<CategoryOption[]>([])
+    const { categories: cateList } = useCategoryStore()
+
     const { open: showTopDrawer, update: setShowTopDrawer } =
       useTopDrawerStore()
     const { signin, signup, updateSignin, updateSignup } = useDialogStore()
     const { showNotFound, updateNotFound } = useNotFoundStore()
+
     const { open: sidebarOpen, setOpen: setSidebarOpen } = useSidebarStore()
     const [sidebarOpenMobile, setSidebarOpenMobile] = useState(false)
 
@@ -76,20 +77,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       }
     }
 
-    const fetchCateList = toSync(async () => {
-      try {
-        /* setLoading(true) */
-        const data = await getCategoryList()
-        if (!data.code) {
-          setCateList([...data.data])
-        }
-      } catch (err) {
-        console.error('fetch category list error: ', err)
-      } finally {
-        /* setLoading(false) */
-      }
-    })
-
     const onToggleTopDrawer = useCallback(() => {
       setShowTopDrawer(!showTopDrawer)
     }, [showTopDrawer, setShowTopDrawer])
@@ -102,15 +89,21 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
      * ) */
 
     useEffect(() => {
-      fetchCateList()
-    }, [])
+      if (isMobile) {
+        setSidebarOpen(false)
+        /* document.cookie = `${SIDEBAR_COOKIE_NAME}=false; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}` */
+      } else {
+        const state = getCookie(SIDEBAR_COOKIE_NAME)
+        setSidebarOpen(state == 'true')
+      }
+    }, [isMobile])
 
     useEffect(() => {
       /* console.log('location change, not found: ', showNotFound) */
       updateNotFound(false)
       return () => {
         if (isMobile) {
-          console.log('close mobile sidebar, current state: ', sidebarOpen)
+          /* console.log('close mobile sidebar, current state: ', sidebarOpen) */
           setSidebarOpenMobile(false)
         }
       }
@@ -144,6 +137,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
         <SidebarProvider
           ref={ref}
+          defaultOpen={false}
           className="max-w-[1000px] mx-auto relative justify-between"
           open={sidebarOpen}
           onOpenChange={setSidebarOpen}
@@ -152,8 +146,9 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         >
           <div
             className={cn(
-              'duration-200 transition-[width] ease-linear w-[var(--sidebar-width)] sticky top-0 left-0 max-h-screen overflow-hidden',
-              (isMobile || !sidebarOpen) && 'w-0'
+              'w-0 sticky top-0 left-0 max-h-screen overflow-hidden',
+              !isMobile && 'duration-200 transition-[width] ease-linear',
+              !isMobile && sidebarOpen && 'w-[var(--sidebar-width)]'
             )}
           >
             <Sidebar className="relative max-h-full" gap={false}>
@@ -227,8 +222,9 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           </div>
           <main
             className={cn(
-              'duration-200 transition-[width] ease-linear flex-grow border-l-[1px] b-bg-main w-[calc(100%-var(--sidebar-width))]',
-              isMobile || (!sidebarOpen && 'w-full')
+              'flex-grow border-l-[1px] b-bg-main w-full',
+              !isMobile && 'duration-200 transition-[width] ease-linear',
+              !isMobile && sidebarOpen && 'w-[calc(100%-var(--sidebar-width))]'
             )}
           >
             <BNav

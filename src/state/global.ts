@@ -2,6 +2,7 @@ import { create } from 'zustand'
 
 import { ROLE_DATA } from '@/constants/roles'
 import { PermissionAction, PermissionModule, Role } from '@/types/permission'
+import { Category } from '@/types/types'
 
 export interface ToastState {
   silence: boolean
@@ -164,8 +165,20 @@ export interface SidebarState {
 }
 
 export const useSidebarStore = create<SidebarState>((set) => ({
-  open: true,
+  open: false,
   setOpen(open) {
     set(() => ({ open }))
+  },
+}))
+
+export interface CategoryState {
+  categories: Category[]
+  updateCategories: (x: Category[]) => void
+}
+
+export const useCategoryStore = create<CategoryState>((set) => ({
+  categories: [],
+  updateCategories(x) {
+    set(() => ({ categories: [...x] }))
   },
 }))

@@ -2,7 +2,7 @@ import request, { authRequest } from '@/lib/request'
 
 import {
   AuthedDataResponse,
-  CategoryOption,
+  Category,
   ResponseData,
   TokenResponse,
 } from '@/types/types'
@@ -36,6 +36,5 @@ export const postSignin = async (
     json: { account, password },
   })
 
-export const getCategoryList = async (): Promise<
-  ResponseData<CategoryOption[]>
-> => authRequest.get(`category_list`)
+export const getCategoryList = async (): Promise<ResponseData<Category[]>> =>
+  authRequest.get(`category_list`)

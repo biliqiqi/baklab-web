@@ -1,29 +1,22 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Check, ChevronsUpDown } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { timeAgo } from '@/lib/dayjs-custom'
-import { toSync } from '@/lib/fire-and-forget'
 import { cn } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
-import { getCategoryList } from '@/api'
 import { submitArticle, updateArticle, updateReply } from '@/api/article'
 import {
   ARTICLE_MAX_CONTENT_LEN,
   ARTICLE_MAX_TITILE_LEN,
 } from '@/constants/constants'
 import useDocumentTitle from '@/hooks/use-page-title'
-import { useNotFoundStore } from '@/state/global'
-import {
-  Article,
-  ArticleSubmitResponse,
-  CategoryOption,
-  ResponseData,
-} from '@/types/types'
+import { useCategoryStore, useNotFoundStore } from '@/state/global'
+import { Article, ArticleSubmitResponse, ResponseData } from '@/types/types'
 
 import BAvatar from './base/BAvatar'
 import BLoader from './base/BLoader'
@@ -79,7 +72,8 @@ export interface ArticleFormProps {
 const ArticleForm = ({ article }: ArticleFormProps) => {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [cateList, setCateList] = useState<CategoryOption[]>([])
+  /* const [cateList, setCateList] = useState<CategoryOption[]>([]) */
+  const { categories: cateList } = useCategoryStore()
 
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -97,20 +91,6 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
     () => Boolean(article && article.replyToId != '0'),
     [article]
   )
-
-  const fetchCateList = toSync(async () => {
-    try {
-      setLoading(true)
-      const data = await getCategoryList()
-      if (!data.code) {
-        setCateList([...data.data])
-      }
-    } catch (err) {
-      console.error('fetch category list error: ', err)
-    } finally {
-      setLoading(false)
-    }
-  })
 
   const defaultArticleData: ArticleScheme =
     isEdit && article
@@ -186,12 +166,6 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
   )
 
   useDocumentTitle(isEdit ? '编辑帖子' : '创建帖子')
-
-  /* console.log('render submit page') */
-
-  useEffect(() => {
-    fetchCateList()
-  }, [])
 
   return (
     <Card className="p-3">

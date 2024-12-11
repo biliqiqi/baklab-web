@@ -71,6 +71,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
       if (isMobile) {
         sidebar.setOpenMobile(!sidebar.openMobile)
       } else {
+        /* console.log('toggle desktop sidebar') */
         sidebar.toggleSidebar()
       }
     }, [isMobile, sidebar])

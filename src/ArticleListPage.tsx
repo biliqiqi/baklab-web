@@ -157,7 +157,7 @@ export default function ArticleListPage() {
 
   return (
     <>
-      <BContainer category={pageState.category}>
+      <BContainer category={pageState.category} loading={loading}>
         <div className="flex justify-between items-center">
           <div>
             {list.length > 0 && (

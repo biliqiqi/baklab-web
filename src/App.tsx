@@ -1,5 +1,5 @@
 import { Router } from '@remix-run/router'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   RouterProvider,
   createBrowserRouter,
@@ -19,6 +19,7 @@ import SigninPage from './SigninPage.tsx'
 import SignupPage from './SignupPage.tsx'
 import SubmitPage from './SubmitPage.tsx'
 import UserPage from './UserPage.tsx'
+import { getCategoryList } from './api/main.ts'
 import { useAuth } from './hooks/use-auth.ts'
 import { useIsMobile } from './hooks/use-mobile.tsx'
 import { toSync } from './lib/fire-and-forget.ts'
@@ -27,6 +28,7 @@ import { noop } from './lib/utils.ts'
 import {
   isLogined,
   useAuthedUserStore,
+  useCategoryStore,
   useSidebarStore,
   useToastStore,
 } from './state/global.ts'
@@ -102,10 +104,29 @@ const App = () => {
 
   const updateToastState = useToastStore((state) => state.update)
   const authed = useAuth()
-  const isMobile = useIsMobile()
-  const { setOpen: setSidebarOpen } = useSidebarStore()
+  const { updateCategories: setCateList } = useCategoryStore()
 
   /* console.log('render app!') */
+
+  const fetchCateList = toSync(
+    useCallback(async () => {
+      try {
+        /* setLoading(true) */
+        const data = await getCategoryList()
+        if (!data.code) {
+          setCateList([...data.data])
+        }
+      } catch (err) {
+        console.error('fetch category list error: ', err)
+      } finally {
+        /* setLoading(false) */
+      }
+    }, [])
+  )
+
+  useEffect(() => {
+    fetchCateList()
+  }, [])
 
   useEffect(() => {
     if (!authed) {
@@ -119,10 +140,6 @@ const App = () => {
       })()
     }
   }, [authed])
-
-  useEffect(() => {
-    setSidebarOpen(!isMobile)
-  }, [isMobile])
 
   {/* prettier-ignore */}
   return (

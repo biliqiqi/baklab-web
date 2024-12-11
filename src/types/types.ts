@@ -47,6 +47,13 @@ export interface ArticleList {
   totalPage: number
 }
 
+export interface CurrUserState {
+  voteType: VoteType
+  saved: boolean
+  reactFrontId: string
+  subscribed: boolean
+}
+
 export interface Article {
   id: string
   title: string
@@ -76,6 +83,7 @@ export interface Article {
   weight: number
   listWeight: number
   participateCount: number
+  currUserState: CurrUserState
   showScore: boolean
   categoryFrontId: string
   category: Category
@@ -123,9 +131,11 @@ export interface ArticleItemResponse {
   sortTabNames: ArticleSortTabMap
 }
 
-export interface ArticleSubmitResponse {
+export interface ArticleResponse {
   id: string
 }
+
+export type ArticleSubmitResponse = ArticleResponse
 
 export interface ArticleDeleteResponse {
   id: string
@@ -194,3 +204,7 @@ export type ArticleListType =
   | 'reply'
   | 'subscribed'
   | 'vote_up'
+
+export type VoteType = 'up' | 'down'
+
+export type ArticleAction = 'delete' | 'save' | VoteType

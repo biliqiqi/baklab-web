@@ -32,7 +32,7 @@ import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 
 import { getArticleList } from './api/article'
 import { toSync } from './lib/fire-and-forget'
-import { useAuthedUserStore } from './state/global'
+import { isLogined, useAuthedUserStore } from './state/global'
 import {
   Article,
   ArticleListSort,
@@ -71,15 +71,17 @@ export default function ArticleListPage() {
   )
 
   const fetchArticles = toSync(
-    async (
-      page: number,
-      pageSize: number,
-      sort: ArticleListSort | null,
-      categoryFrontID: string
-    ) => {
+    useCallback(async () => {
       try {
-        setLoading(true)
-        const resp = await getArticleList(page, pageSize, sort, categoryFrontID)
+        const page = Number(params.get('page')) || 1
+        const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
+        const sort = (params.get('sort') as ArticleListSort | null) || 'best'
+
+        if (list.length == 0) {
+          setLoading(true)
+        }
+
+        const resp = await getArticleList(page, pageSize, sort, category)
         if (!resp.code) {
           /* console.log('article list: ', resp.data) */
           const { data } = resp
@@ -114,7 +116,7 @@ export default function ArticleListPage() {
       } finally {
         setLoading(false)
       }
-    }
+    }, [params, pathParams, list])
   )
 
   const onSwitchTab = (tab: string) => {
@@ -135,11 +137,12 @@ export default function ArticleListPage() {
 
       try {
         const authData = await authStore.loginWithDialog()
-        console.log('authData success', authData)
-        //...
-        setTimeout(() => {
-          navigate(submitPath)
-        }, 0)
+        /* console.log('authData success', authData) */
+        if (isLogined(authData)) {
+          setTimeout(() => {
+            navigate(submitPath)
+          }, 0)
+        }
       } catch (err) {
         console.error('submit click error: ', err)
       }
@@ -148,11 +151,7 @@ export default function ArticleListPage() {
   )
 
   useEffect(() => {
-    const page = Number(params.get('page')) || 1
-    const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
-    const sort = (params.get('sort') as ArticleListSort | null) || 'best'
-
-    fetchArticles(page, pageSize, sort, category)
+    fetchArticles()
   }, [params, pathParams])
 
   return (
@@ -215,7 +214,11 @@ export default function ArticleListPage() {
                     </div>
                   )}
                 </div>
-                <ArticleControls article={item} type="list" />
+                <ArticleControls
+                  article={item}
+                  ctype="list"
+                  onSuccess={() => fetchArticles()}
+                />
               </Card>
             ))
           )}

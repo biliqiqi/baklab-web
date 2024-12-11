@@ -10,7 +10,7 @@ export interface ToastState {
 }
 
 export const useToastStore = create<ToastState>((set) => ({
-  silence: false,
+  silence: true,
   update: (silence) => {
     set(() => ({
       silence,

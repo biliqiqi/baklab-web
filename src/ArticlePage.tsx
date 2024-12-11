@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 
@@ -175,7 +175,7 @@ export default function ArticlePage() {
               key={article.id}
               article={article}
               className="mb-4"
-              onDeleteSuccess={fetchArticleSync}
+              onSuccess={() => fetchArticleSync(false)}
             />
             {article.totalReplyCount > 0 && (
               <div id="comments" className="py-3 mb-4">
@@ -205,7 +205,7 @@ export default function ArticlePage() {
                   <ArticleCard
                     key={item.id}
                     article={item}
-                    onDeleteSuccess={fetchArticleSync}
+                    onSuccess={() => fetchArticleSync(false)}
                   />
                 ))
             )}

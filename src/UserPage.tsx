@@ -249,7 +249,7 @@ export default function UserPage() {
                       </div>
                     )}
                   </div>
-                  <ArticleControls article={item} type="list" />
+                  <ArticleControls article={item} ctype="list" />
                 </Card>
               ))}
               {pageState.totalPage > 1 && (

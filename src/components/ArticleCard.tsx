@@ -1,19 +1,28 @@
 import { PencilIcon, Trash2Icon } from 'lucide-react'
-import { HTMLAttributes, MouseEvent, useCallback, useMemo } from 'react'
+import {
+  HTMLAttributes,
+  MouseEvent,
+  useCallback,
+  useMemo,
+  useState,
+} from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
 import { bus, cn, noop } from '@/lib/utils'
 
-import { deleteArticle } from '@/api/article'
+import {
+  deleteArticle,
+  toggleSaveArticle,
+  toggleVoteArticle,
+} from '@/api/article'
 import { EV_ON_EDIT_CLICK, EV_ON_REPLY_CLICK } from '@/constants/constants'
 import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
 import {
   Article,
+  ArticleAction,
   ArticleCardType,
-  ArticleSubmitResponse,
-  ResponseData,
+  VoteType,
 } from '@/types/types'
 
 import ArticleControls from './ArticleControls'
@@ -24,8 +33,8 @@ import { Card } from './ui/card'
 interface ArticleCardProps extends HTMLAttributes<HTMLDivElement> {
   article: Article
   replyBox?: boolean
-  type?: ArticleCardType
-  onDeleteSuccess?: () => void
+  ctype?: ArticleCardType
+  onSuccess?: (a: ArticleAction) => void
 }
 
 const highlightElement = (element: HTMLElement) => {
@@ -57,14 +66,11 @@ const scrollToElement = (element: HTMLElement) => {
 
 const ArticleCard: React.FC<ArticleCardProps> = ({
   article,
-  type = 'item',
-  onDeleteSuccess = noop,
+  ctype = 'item',
+  onSuccess = noop,
   ...props
 }) => {
-  /* const isRootArticle = type == 'item' && article.replyToId == '0' */
-  /* const [replyBox, setReplyBox] = useState(isRootArticle) */
-
-  /* const articleID = article.id */
+  /* const [loading, setLoading] = useState(false) */
   const parent = article.replyToArticle
   const authStore = useAuthedUserStore()
   const navigate = useNavigate()
@@ -99,7 +105,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           const resp = await deleteArticle(article.id)
           if (!resp.code) {
             /* navigate(-1) */
-            onDeleteSuccess()
+            onSuccess('delete')
           }
         }
       } catch (err) {
@@ -204,13 +210,12 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         {!article.deleted && (
           <ArticleControls
             article={article}
-            type={type}
-            edit={isMyself}
+            ctype={ctype}
             onCommentClick={(e) => {
               e.preventDefault()
               bus.emit(EV_ON_REPLY_CLICK, article)
             }}
-            onEditClick={onEditClick}
+            onSuccess={onSuccess}
           />
         )}
       </Card>

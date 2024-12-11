@@ -8,9 +8,11 @@ import {
   ArticleListResponse,
   ArticleListSort,
   ArticleListType,
+  ArticleResponse,
   ArticleSubmitResponse,
   CustomRequestOptions,
   ResponseData,
+  VoteType,
 } from '@/types/types'
 
 export const submitArticle = (
@@ -100,7 +102,7 @@ export const getArticleList = (
     params.set('type', listType)
   }
 
-  return request.get(`articles`, {
+  return authRequest.get(`articles`, {
     searchParams: params,
   })
 }
@@ -121,7 +123,7 @@ export const getArticle = (
     params.set('no_replies', '1')
   }
 
-  return request.get(
+  return authRequest.get(
     `articles/${id}`,
     {
       searchParams: sort,
@@ -133,3 +135,16 @@ export const getArticle = (
 
 export const deleteArticle = (id: string) =>
   authRequest.delete<ResponseData<ArticleDeleteResponse>>(`articles/${id}`)
+
+export const toggleSaveArticle = (id: string) =>
+  authRequest.post<ResponseData<ArticleResponse>>(`articles/${id}/toggle_save`)
+
+export const toggleVoteArticle = (id: string, voteType: VoteType) =>
+  authRequest.post<ResponseData<ArticleResponse>>(
+    `articles/${id}/toggle_vote`,
+    {
+      json: {
+        voteType: voteType,
+      },
+    }
+  )

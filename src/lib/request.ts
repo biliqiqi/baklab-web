@@ -68,9 +68,6 @@ const defaultOptions: Options = {
               // 如果refresh失败说明登录授权过期，直接退出登录，要求重新授权
               if (isRefreshRequest(req)) {
                 useAuthedUserStore.getState().logout()
-                if (!useToastStore.getState().silence) {
-                  toast.error('请认证或登录后再试')
-                }
               } else {
                 // const logined = isLogined(useAuthedUserStore.getState())
                 // console.log('logined:', logined)
@@ -100,13 +97,58 @@ const defaultOptions: Options = {
   },
 }
 
+const addAuthToHeaders: BeforeRequestHook = (req, _opt) => {
+  const token = useAuthedUserStore.getState().authToken
+  if (token != '') {
+    req.headers.set('Authorization', `Bearer ${token}`)
+  }
+}
+
+const refreshTokenHook: AfterResponseHook = async (req, _opt, resp) => {
+  if (!resp.ok && resp.status == 401 && !isRefreshRequest(req)) {
+    await refreshAuthState()
+  }
+
+  return resp
+}
+
+const authToastHook: AfterResponseHook = (_req, _opt, resp) => {
+  if (resp.status == 401) {
+    if (!useToastStore.getState().silence) {
+      toast.error('请认证或登录后再试')
+    }
+  }
+}
+
+// export const authRequest = request.extend({
+//   credentials: 'include',
+//   hooks: {
+//     beforeRequest: [addAuthToHeaders],
+//     afterResponse: [refreshTokenHook],
+//   },
+// })
+
+const authRequestConfigs: Options = {
+  credentials: 'include',
+  hooks: {
+    beforeRequest: [addAuthToHeaders],
+    afterResponse: [refreshTokenHook, authToastHook],
+  },
+}
+
+const authInstance = ky.create({
+  ...defaultOptions,
+  ...authRequestConfigs,
+})
+
 const instance = ky.create(defaultOptions)
 
 // eslint-disable-next-line
 const request = <T = any>(
   url: string,
   kyOptions?: Options,
-  custom?: CustomRequestOptions
+  custom?: CustomRequestOptions,
+  authRequired: boolean = false
 ): Promise<T> => {
   let kyOpts: Options = {}
   if (custom?.showNotFound) {
@@ -130,7 +172,9 @@ const request = <T = any>(
     }
   }
 
-  return instance(url, kyOpts).json<T>()
+  return authRequired
+    ? authInstance(url, kyOpts).json<T>()
+    : instance(url, kyOpts).json<T>()
 }
 
 // eslint-disable-next-line
@@ -187,37 +231,6 @@ export const refreshAuthState = async () => {
   }
 }
 
-const addAuthToHeaders: BeforeRequestHook = (req, _opt) => {
-  const token = useAuthedUserStore.getState().authToken
-  if (token != '') {
-    req.headers.set('Authorization', `Bearer ${token}`)
-  }
-}
-
-const refreshTokenHook: AfterResponseHook = async (req, _opt, resp) => {
-  if (!resp.ok && resp.status == 401 && !isRefreshRequest(req)) {
-    await refreshAuthState()
-  }
-
-  return resp
-}
-
-// export const authRequest = request.extend({
-//   credentials: 'include',
-//   hooks: {
-//     beforeRequest: [addAuthToHeaders],
-//     afterResponse: [refreshTokenHook],
-//   },
-// })
-
-const authRequestConfigs: Options = {
-  credentials: 'include',
-  hooks: {
-    beforeRequest: [addAuthToHeaders],
-    afterResponse: [refreshTokenHook],
-  },
-}
-
 // eslint-disable-next-line
 export const authRequest = <T = any>(
   url: string,
@@ -228,7 +241,7 @@ export const authRequest = <T = any>(
 
   // console.log('merged options: ', kyOpts)
 
-  return request(url, kyOpts, custom)
+  return request(url, kyOpts, custom, true)
 }
 
 // eslint-disable-next-line

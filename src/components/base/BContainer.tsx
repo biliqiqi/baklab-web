@@ -213,9 +213,10 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                         <SidebarMenuButton
                           asChild
                           isActive={location.pathname == '/'}
+                          className="h-auto"
                         >
                           <Link to="/">
-                            <NewspaperIcon size={16} />
+                            <NewspaperIcon size={32} />
                             信息流
                           </Link>
                         </SidebarMenuButton>
@@ -238,15 +239,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                             className="h-auto"
                           >
                             <Link to={'/categories/' + item.id}>
-                              {/* <HashIcon size={20} />
-                              <span
-                                className="inline-block h-[32px] w-[32px] rounded-full bg-gray-500 text-white text-lg text-center leading-[32px] no-underline"
-                                style={{
-                                  backgroundColor: stc(item.id),
-                                }}
-                              >
-                                {item.name.charAt(0)}
-                              </span> */}
                               <BIconColorChar
                                 id={item.id}
                                 char={item.name}

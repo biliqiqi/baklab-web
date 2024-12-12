@@ -27,3 +27,5 @@ export const getCookie = (name: string) => {
 
   return null
 }
+
+export const extractDomain = (url: string) => new URL(url).hostname

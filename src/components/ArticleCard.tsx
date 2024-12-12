@@ -1,4 +1,4 @@
-import { PencilIcon, Trash2Icon } from 'lucide-react'
+import { PencilIcon, SquareArrowOutUpRightIcon, Trash2Icon } from 'lucide-react'
 import {
   HTMLAttributes,
   MouseEvent,
@@ -9,7 +9,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
-import { bus, cn, noop } from '@/lib/utils'
+import { bus, cn, extractDomain, noop } from '@/lib/utils'
 
 import {
   deleteArticle,
@@ -119,20 +119,40 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     <div id={'comment' + article.id} {...props}>
       <Card className="p-3 my-2 mb-3">
         {article.asMainArticle && (
-          <h1
-            className={cn(
-              'mb-4 font-bold text-lg',
-              article.replyToId != '0' && 'bg-gray-100 py-1 px-2 text-gray-500'
-            )}
-          >
-            {article.replyToId == '0' ? (
-              article.displayTitle
-            ) : (
-              <Link to={'/articles/' + article.replyRootArticleId}>
-                {article.displayTitle}
-              </Link>
-            )}
-          </h1>
+          <>
+            <h1
+              className={cn(
+                'mb-2 font-bold text-lg',
+                article.replyToId != '0' &&
+                  'bg-gray-100 py-1 px-2 text-gray-500'
+              )}
+            >
+              {article.replyToId == '0' ? (
+                article.displayTitle
+              ) : (
+                <Link to={'/articles/' + article.replyRootArticleId}>
+                  {article.displayTitle}
+                </Link>
+              )}
+
+              {article.link && (
+                <span className="text-gray-500 text-base font-normal">
+                  &nbsp; (来源&nbsp;
+                  <a
+                    href={article.link}
+                    target="_blank"
+                    title={article.link}
+                    className="break-all"
+                  >
+                    <SquareArrowOutUpRightIcon size={14} className="inline" />
+                    &nbsp;
+                    {extractDomain(article.link)}...
+                  </a>
+                  )
+                </span>
+              )}
+            </h1>
+          </>
         )}
         <div className="flex items-center mb-4 text-sm text-gray-500">
           {article.deleted ? (

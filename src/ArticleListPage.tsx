@@ -1,3 +1,4 @@
+import { SquareArrowOutUpRightIcon } from 'lucide-react'
 import {
   MouseEvent,
   MouseEventHandler,
@@ -32,6 +33,7 @@ import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 
 import { getArticleList } from './api/article'
 import { toSync } from './lib/fire-and-forget'
+import { extractDomain } from './lib/utils'
 import { isLogined, useAuthedUserStore } from './state/global'
 import {
   Article,
@@ -198,6 +200,25 @@ export default function ArticleListPage() {
                     <Link className="mr-2" to={'/articles/' + item.id}>
                       {item.title}
                     </Link>
+                    {item.link && (
+                      <span className="text-gray-500 text-sm">
+                        (来源&nbsp;
+                        <a
+                          href={item.link}
+                          target="_blank"
+                          title={item.link}
+                          className="break-all"
+                        >
+                          <SquareArrowOutUpRightIcon
+                            size={14}
+                            className="inline"
+                          />
+                          &nbsp;
+                          {extractDomain(item.link)}...
+                        </a>
+                        )
+                      </span>
+                    )}
                   </div>
                   {/* <div className="max-h-5 mb-1 overflow-hidden text-sm text-gray-600 text-nowrap text-ellipsis">
                     {item.summary}

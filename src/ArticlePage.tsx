@@ -87,7 +87,7 @@ export default function ArticlePage() {
         setLoading(false)
       }
     },
-    [articleID]
+    [articleID, params]
   )
 
   const fetchArticleSync = toSync(fetchArticle)
@@ -129,7 +129,7 @@ export default function ArticlePage() {
   }
 
   useEffect(() => {
-    fetchArticleSync()
+    fetchArticleSync(true)
 
     if (replyHandlerRef.current) {
       bus.off(EV_ON_REPLY_CLICK, replyHandlerRef.current)
@@ -150,7 +150,11 @@ export default function ArticlePage() {
         bus.off(EV_ON_EDIT_CLICK, editHandlerRef.current)
       }
     }
-  }, [articleID, params])
+  }, [articleID])
+
+  useEffect(() => {
+    fetchArticleSync(false)
+  }, [params])
 
   return (
     <>

@@ -126,7 +126,7 @@ export const getArticle = (
   return authRequest.get(
     `articles/${id}`,
     {
-      searchParams: sort,
+      searchParams: params,
       ...opt,
     },
     custom

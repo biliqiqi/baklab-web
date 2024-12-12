@@ -39,12 +39,13 @@ interface ArticleControlsProps extends HTMLAttributes<HTMLDivElement> {
   downVote?: boolean // 是否显示踩按钮
   bookmark?: boolean // 是否显示书签（收藏）按钮
   summary?: boolean // 是否显示概览
-  link?: boolean // 是否显示直达链接
+  /* link?: boolean // 是否显示直达链接 */
+  cornerLink?: boolean // 右下角链接
   linkQrCode?: boolean // 是否显示直达链接二维码
   onCommentClick?: MouseEventHandler<HTMLButtonElement>
   /* onSaveClick?: MouseEventHandler<HTMLButtonElement> */
-  onVoteUpClick?: MouseEventHandler<HTMLButtonElement>
-  onVoteDownClick?: MouseEventHandler<HTMLButtonElement>
+  /* onVoteUpClick?: MouseEventHandler<HTMLButtonElement>
+   * onVoteDownClick?: MouseEventHandler<HTMLButtonElement> */
   onSuccess?: (a: ArticleAction) => void
 }
 
@@ -52,15 +53,16 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   disabled = false,
   article,
   className,
-  downVote = true,
+  downVote = false,
   bookmark = true,
-  link = false,
+  /* link = true, */
   linkQrCode = false,
+  cornerLink = false,
   ctype = 'item',
   onCommentClick = noop,
   /* onSaveClick = noop, */
-  onVoteUpClick = noop,
-  onVoteDownClick = noop,
+  /* onVoteUpClick = noop,
+   * onVoteDownClick = noop, */
   onSuccess = noop,
   ...props
 }) => {
@@ -103,7 +105,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
       )}
       {...props}
     >
-      <div className="flex items-center">
+      <div className="flex flex-wrap items-center">
         <Button
           variant="ghost"
           size="sm"
@@ -165,7 +167,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           </Button>
         )}
         {ctype == 'list' && (
-          <>
+          <span className="whitespace-nowrap">
             <Link to={'/categories/' + article.category.frontId}>
               <BIconColorChar
                 id={article.categoryFrontId}
@@ -180,7 +182,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             <span title={timeFmt(article.createdAt, 'YYYY年M月D日 H时m分s秒')}>
               {timeAgo(article.createdAt)}
             </span>
-          </>
+          </span>
         )}
       </div>
       <div className="flex items-center">
@@ -191,10 +193,10 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                 <QrCode size={20} />
               </Button>
             )}
-            {link && (
+            {cornerLink && (
               <Button size="sm" variant="link">
-                <a href="https://example.com/" target="_blank">
-                  京东购买 ¥{(Math.random() * 100).toFixed(2)}
+                <a href={article.link} target="_blank">
+                  来源 {article.link}
                 </a>
               </Button>
             )}

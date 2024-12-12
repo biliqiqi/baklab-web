@@ -29,7 +29,7 @@ const BIconColorChar = React.forwardRef<SVGSVGElement, BIconColorCharProps>(
         <circle
           cx={`${size / 2}`}
           cy={`${size / 2}`}
-          r={`${size / 2 - 2}`}
+          r={`${size / 2}`}
           fill={stc(id)}
         />
         <text

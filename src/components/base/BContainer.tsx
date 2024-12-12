@@ -1,4 +1,4 @@
-import { NewspaperIcon } from 'lucide-react'
+import { NewspaperIcon, PackageIcon } from 'lucide-react'
 import React, { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
@@ -19,6 +19,7 @@ import { FrontCategory } from '@/types/types'
 import NotFound from '../NotFound'
 import SigninForm from '../SigninForm'
 import SignupForm from '../SignupForm'
+import BIconCircle from '../icon/Circle'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -216,7 +217,9 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                           className="h-auto"
                         >
                           <Link to="/">
-                            <NewspaperIcon size={32} />
+                            <BIconCircle id="feed" size={32}>
+                              <PackageIcon size={18} />
+                            </BIconCircle>
                             信息流
                           </Link>
                         </SidebarMenuButton>

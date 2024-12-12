@@ -172,9 +172,9 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
               <BIconColorChar
                 id={article.categoryFrontId}
                 char={article.category.name}
-                size={24}
+                size={20}
                 fontSize={12}
-                className="align-[-7px]"
+                className="align-[-5px] mr-1"
               />
               {article.category.name}
             </Link>

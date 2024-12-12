@@ -153,7 +153,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
         }
 
         if (!data.code) {
-          navigate(`/articles/${data.data.id}`)
+          navigate(`/articles/${data.data.id}`, { replace: true })
         }
       } catch (err) {
         console.error('submit article error: ', err)

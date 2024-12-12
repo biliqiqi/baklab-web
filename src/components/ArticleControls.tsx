@@ -1,8 +1,6 @@
 import {
-  BookMarkedIcon,
   BookmarkCheckIcon,
   BookmarkIcon,
-  LucideBookMarked,
   MessageSquare,
   QrCode,
 } from 'lucide-react'
@@ -12,7 +10,6 @@ import {
   MouseEventHandler,
   useCallback,
   useMemo,
-  useState,
 } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -38,8 +35,7 @@ interface ArticleControlsProps extends HTMLAttributes<HTMLDivElement> {
   ctype: ArticleCardType
   downVote?: boolean // 是否显示踩按钮
   bookmark?: boolean // 是否显示书签（收藏）按钮
-  summary?: boolean // 是否显示概览
-  /* link?: boolean // 是否显示直达链接 */
+  author?: boolean
   cornerLink?: boolean // 右下角链接
   linkQrCode?: boolean // 是否显示直达链接二维码
   onCommentClick?: MouseEventHandler<HTMLButtonElement>
@@ -55,14 +51,11 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   className,
   downVote = false,
   bookmark = true,
-  /* link = true, */
+  author = true,
   linkQrCode = false,
   cornerLink = false,
   ctype = 'item',
   onCommentClick = noop,
-  /* onSaveClick = noop, */
-  /* onVoteUpClick = noop,
-   * onVoteDownClick = noop, */
   onSuccess = noop,
   ...props
 }) => {
@@ -167,22 +160,58 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           </Button>
         )}
         {ctype == 'list' && (
-          <span className="whitespace-nowrap">
-            <Link to={'/categories/' + article.category.frontId}>
-              <BIconColorChar
-                id={article.categoryFrontId}
-                char={article.category.name}
-                size={20}
-                fontSize={12}
-                className="align-[-5px] mr-1"
-              />
-              {article.category.name}
-            </Link>
-            &nbsp;·&nbsp;
-            <span title={timeFmt(article.createdAt, 'YYYY年M月D日 H时m分s秒')}>
-              {timeAgo(article.createdAt)}
+          <>
+            {author && (
+              <span>
+                {article.replyToId == '0' || !article.replyToArticle ? (
+                  <>
+                    <Link
+                      to={'/users/' + article.authorName}
+                      className="text-gray-700"
+                    >
+                      {article.authorName}
+                    </Link>
+                    &nbsp;发布于
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to={'/users/' + article.authorName}
+                      className="text-gray-700"
+                    >
+                      {article.authorName}
+                    </Link>
+                    &nbsp;回复&nbsp;
+                    <Link
+                      to={'/users/' + article.authorName}
+                      className="text-gray-700"
+                    >
+                      {article.replyToArticle.authorName}
+                    </Link>
+                    于
+                  </>
+                )}
+              </span>
+            )}
+            <span className="whitespace-nowrap">
+              <Link to={'/categories/' + article.category.frontId}>
+                <BIconColorChar
+                  id={article.categoryFrontId}
+                  char={article.category.name}
+                  size={20}
+                  fontSize={12}
+                  className="align-[-5px] mx-1"
+                />
+                {article.category.name}
+              </Link>
+              &nbsp;·&nbsp;
+              <span
+                title={timeFmt(article.createdAt, 'YYYY年M月D日 H时m分s秒')}
+              >
+                {timeAgo(article.createdAt)}
+              </span>
             </span>
-          </span>
+          </>
         )}
       </div>
       <div className="flex items-center">

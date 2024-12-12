@@ -44,20 +44,9 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
     const authState = useAuthedUserStore()
     const navigate = useNavigate()
     const isMobile = useIsMobile()
-    /* const sidebarStore = useSidebarStore() */
     const sidebar = useSidebar()
 
     const { updateSignin } = useDialogStore()
-
-    /* const submitPath = useMemo(
-     *   () =>
-     *     category && !category.isFront
-     *       ? '/submit?category=' + category.frontId
-     *       : '/submit',
-     *   [category]
-     * ) */
-
-    /* const isSigninPage = () => location.pathname == '/signin' */
 
     const onDropdownChange = (open: boolean) => {
       if (!open) {
@@ -76,29 +65,6 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
       }
     }, [isMobile, sidebar])
 
-    /* const onSubmitClick = useCallback(
-    *   async (e: MouseEvent) => {
-    *     e.preventDefault()
-
-    *     if (isLogined(authState)) {
-    *       navigate(submitPath)
-    *       return
-    *     }
-
-    *     try {
-    *       const authData = await authState.loginWithDialog()
-    *       console.log('authData success', authData)
-    *       //...
-    *       setTimeout(() => {
-    *         navigate(submitPath)
-    *       }, 0)
-    *     } catch (err) {
-    *       console.error('submit click error: ', err)
-    *     }
-    *   },
-    *   [authState, submitPath, navigate]
-    * ) */
-
     const logout = useCallback(async () => {
       if (loading) return
       try {
@@ -106,7 +72,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
         const data = await logoutToken()
         if (!data.code) {
           authState.logout()
-          navigate('/')
+          navigate(0)
         }
       } catch (e) {
         console.error('logout error: ', e)

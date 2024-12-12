@@ -23,9 +23,10 @@ import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 
 import { getArticleList } from './api/article'
 import { getUser } from './api/user'
+import { useAuth } from './hooks/use-auth'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
-import { useNotFoundStore } from './state/global'
+import { useAuthedUserStore, useNotFoundStore } from './state/global'
 import {
   Article,
   ArticleListSort,
@@ -51,11 +52,14 @@ const TabMapData: UserTabMap = {
   activity: '操作记录',
 }
 
+const defaultTabs: UserTab[] = ['all', 'article', 'reply']
+const authedTabs: UserTab[] = ['saved', 'vote_up', 'subscribed']
+
 export default function UserPage() {
   const [loading, setLoading] = useState(true)
   const [loadingList, setLoadingList] = useState(true)
   const [user, setUser] = useState<UserData | null>(null)
-  const [tabs, setTabs] = useState<UserTab[]>(['all', 'article', 'reply'])
+  const [tabs, setTabs] = useState<UserTab[]>([...defaultTabs])
   /* const [tab, setTab] = useState<UserTab>('activity') */
   const [list, updateList] = useState<Article[]>([])
   const [pageState, setPageState] = useState<ArticleListState>({
@@ -65,6 +69,8 @@ export default function UserPage() {
     totalPage: 0,
   })
 
+  const authStore = useAuthedUserStore()
+
   const { updateNotFound } = useNotFoundStore()
 
   const [params, setParams] = useSearchParams()
@@ -73,84 +79,91 @@ export default function UserPage() {
   const tab = (params.get('tab') as UserTab | null) || 'all'
 
   const fetchUserData = toSync(
-    useCallback(async () => {
-      try {
-        if (!username) {
-          /* redirect('/404') */
-          updateNotFound(true)
-          return
-        }
+    useCallback(
+      async (showLoading: boolean) => {
+        try {
+          if (!username) {
+            /* redirect('/404') */
+            updateNotFound(true)
+            return
+          }
 
-        setLoading(true)
-        const resp = await getUser(username, {}, { showNotFound: true })
+          if (showLoading) setLoading(true)
+          const resp = await getUser(username, {}, { showNotFound: true })
 
-        if (!resp.code) {
-          /* console.log('user data: ', resp.data) */
-          setUser(resp.data)
+          if (!resp.code) {
+            /* console.log('user data: ', resp.data) */
+            setUser(resp.data)
+          }
+        } catch (err) {
+          console.error('fetch user data error:', err)
+        } finally {
+          setLoading(false)
         }
-      } catch (err) {
-        console.error('fetch user data error:', err)
-      } finally {
-        setLoading(false)
-      }
-    }, [username])
+      },
+      [username]
+    )
   )
 
   const fetchArticles = toSync(
-    async (
-      page: number,
-      pageSize: number,
-      sort: ArticleListSort | null,
-      categoryFrontID: string,
-      username: string,
-      listType: ArticleListType
-    ) => {
-      try {
-        setLoadingList(true)
-        const resp = await getArticleList(
-          page,
-          pageSize,
-          sort,
-          categoryFrontID,
-          username,
-          listType
-        )
+    useCallback(
+      async (showLoading: boolean = false) => {
+        try {
+          const page = Number(params.get('page')) || 1
+          const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
+          const sort =
+            (params.get('sort') as ArticleListSort | null) || 'latest'
 
-        if (!resp.code) {
-          /* console.log('article list: ', resp.data) */
-          const { data } = resp
-          let category: FrontCategory | undefined
-          if (data.category) {
-            const { frontId, name, describe } = data.category
-            category = { frontId, name, describe } as FrontCategory
-          }
+          if (showLoading) setLoadingList(true)
 
-          if (data.articles) {
-            updateList([...data.articles])
-            setPageState({
-              currPage: data.currPage,
-              pageSize: data.pageSize,
-              totalCount: data.articleTotal,
-              totalPage: data.totalPage,
-              category,
-            })
-          } else {
-            updateList([])
-            setPageState({
-              currPage: 1,
-              pageSize: data.pageSize,
-              totalCount: data.articleTotal,
-              totalPage: data.totalPage,
-              category,
-            })
+          if (tab != 'activity') {
+            const resp = await getArticleList(
+              page,
+              pageSize,
+              sort,
+              '',
+              username,
+              tab || 'all'
+            )
+
+            if (!resp.code) {
+              /* console.log('article list: ', resp.data) */
+              const { data } = resp
+              let category: FrontCategory | undefined
+              if (data.category) {
+                const { frontId, name, describe } = data.category
+                category = { frontId, name, describe } as FrontCategory
+              }
+
+              if (data.articles) {
+                updateList([...data.articles])
+                setPageState({
+                  currPage: data.currPage,
+                  pageSize: data.pageSize,
+                  totalCount: data.articleTotal,
+                  totalPage: data.totalPage,
+                  category,
+                })
+              } else {
+                updateList([])
+                setPageState({
+                  currPage: 1,
+                  pageSize: data.pageSize,
+                  totalCount: data.articleTotal,
+                  totalPage: data.totalPage,
+                  category,
+                })
+              }
+            }
           }
+        } catch (e) {
+          console.error('get article list error: ', e)
+        } finally {
+          setLoadingList(false)
         }
-      } catch (e) {
-        console.error('get article list error: ', e)
-      } finally {
-        setLoadingList(false)
-      }
-    }
+      },
+      [params, tab, username]
+    )
   )
 
   const onTabChange = (tab: string) => {
@@ -171,20 +184,22 @@ export default function UserPage() {
   )
 
   useEffect(() => {
-    fetchUserData()
+    fetchUserData(true)
   }, [username])
 
   useEffect(() => {
-    const page = Number(params.get('page')) || 1
-    const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
-    const sort = (params.get('sort') as ArticleListSort | null) || 'latest'
-
     if (tab == 'activity') {
       // TODO get activity
     } else {
-      fetchArticles(page, pageSize, sort, '', username || '', tab)
+      fetchArticles(false)
     }
   }, [username, params])
+
+  useEffect(() => {
+    if (authStore.isLogined() && authStore.username == username) {
+      setTabs(() => [...defaultTabs, ...authedTabs])
+    }
+  }, [authStore, username])
 
   return (
     <>
@@ -249,7 +264,11 @@ export default function UserPage() {
                       </div>
                     )}
                   </div>
-                  <ArticleControls article={item} ctype="list" />
+                  <ArticleControls
+                    article={item}
+                    ctype="list"
+                    onSuccess={() => fetchArticles(false)}
+                  />
                 </Card>
               ))}
               {pageState.totalPage > 1 && (

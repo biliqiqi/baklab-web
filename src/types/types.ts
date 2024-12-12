@@ -207,4 +207,4 @@ export type ArticleListType =
 
 export type VoteType = 'up' | 'down'
 
-export type ArticleAction = 'delete' | 'save' | VoteType
+export type ArticleAction = 'delete' | 'save' | 'subscribe' | VoteType

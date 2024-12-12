@@ -148,3 +148,8 @@ export const toggleVoteArticle = (id: string, voteType: VoteType) =>
       },
     }
   )
+
+export const toggleSubscribeArticle = (id: string) =>
+  authRequest.post<ResponseData<ArticleResponse>>(
+    `articles/${id}/toggle_subscribe`
+  )

@@ -1,4 +1,5 @@
 import {
+  BellIcon,
   BookmarkCheckIcon,
   BookmarkIcon,
   MessageSquare,
@@ -16,7 +17,11 @@ import { Link } from 'react-router-dom'
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
 import { cn, noop } from '@/lib/utils'
 
-import { toggleSaveArticle, toggleVoteArticle } from '@/api/article'
+import {
+  toggleSaveArticle,
+  toggleSubscribeArticle,
+  toggleVoteArticle,
+} from '@/api/article'
 import {
   Article,
   ArticleAction,
@@ -33,11 +38,13 @@ interface ArticleControlsProps extends HTMLAttributes<HTMLDivElement> {
   disabled?: boolean
   article: Article
   ctype: ArticleCardType
+  upVote?: boolean
   downVote?: boolean // 是否显示踩按钮
   bookmark?: boolean // 是否显示书签（收藏）按钮
   author?: boolean
   cornerLink?: boolean // 右下角链接
   linkQrCode?: boolean // 是否显示直达链接二维码
+  notify?: boolean
   onCommentClick?: MouseEventHandler<HTMLButtonElement>
   /* onSaveClick?: MouseEventHandler<HTMLButtonElement> */
   /* onVoteUpClick?: MouseEventHandler<HTMLButtonElement>
@@ -49,11 +56,13 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   disabled = false,
   article,
   className,
+  upVote = true,
   downVote = false,
   bookmark = true,
   author = true,
   linkQrCode = false,
   cornerLink = false,
+  notify = true,
   ctype = 'item',
   onCommentClick = noop,
   onSuccess = noop,
@@ -70,6 +79,21 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
         }
       } catch (err) {
         console.error('toggle save article failed: ', err)
+      }
+    },
+    [article]
+  )
+
+  const onSubscribeClick = useCallback(
+    async (e: MouseEvent<HTMLButtonElement>) => {
+      try {
+        e.preventDefault()
+        const resp = await toggleSubscribeArticle(article.id)
+        if (!resp.code) {
+          onSuccess('subscribe')
+        }
+      } catch (err) {
+        console.error('toggle subscribe article failed: ', err)
       }
     },
     [article]
@@ -99,20 +123,22 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
       {...props}
     >
       <div className="flex flex-wrap items-center">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="mr-1 p-0 w-[36px] h-[36px]"
-          onClick={(e) => onVoteClick(e, 'up')}
-          disabled={disabled}
-        >
-          {/* <ThumbsUp size={20} className="inline-block mr-1" /> */}
-          <BIconTriangleUp
-            size={28}
-            variant={userState.voteType == 'up' ? 'full' : 'default'}
-          />
-          {article.voteUp > 0 && article.voteUp}
-        </Button>
+        {upVote && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mr-1 p-0 w-[36px] h-[36px]"
+            onClick={(e) => onVoteClick(e, 'up')}
+            disabled={disabled}
+          >
+            {/* <ThumbsUp size={20} className="inline-block mr-1" /> */}
+            <BIconTriangleUp
+              size={28}
+              variant={userState.voteType == 'up' ? 'full' : 'default'}
+            />
+            {article.voteUp > 0 && article.voteUp}
+          </Button>
+        )}
         {downVote && (
           <Button
             variant="ghost"
@@ -151,12 +177,26 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             onClick={onSaveClick}
             disabled={disabled}
           >
-            {userState.saved ? (
-              <BookmarkCheckIcon size={20} className="text-primary mr-1" />
-            ) : (
-              <BookmarkIcon size={20} className="mr-1" />
-            )}
+            <BookmarkIcon
+              size={20}
+              fill={userState.saved ? 'currentColor' : 'transparent'}
+              className={cn('mr-1', userState.saved && 'text-primary')}
+            />
             {article.totalSavedCount > 0 && article.totalSavedCount}
+          </Button>
+        )}
+        {notify && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onSubscribeClick}
+            disabled={disabled}
+          >
+            <BellIcon
+              size={20}
+              fill={userState.subscribed ? 'currentColor' : 'transparent'}
+              className={cn('mr-1', userState.subscribed && 'text-primary')}
+            />
           </Button>
         )}
         {ctype == 'list' && (

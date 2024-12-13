@@ -208,3 +208,28 @@ export type ArticleListType =
 export type VoteType = 'up' | 'down'
 
 export type ArticleAction = 'delete' | 'save' | 'subscribe' | VoteType
+
+export type ActivityActionType = 'user' | 'manage' | 'anonymous' | 'dev'
+
+export interface Activity {
+  id: string
+  userId: string
+  userName: string
+  type: ActivityActionType
+  action: string
+  targetId: string
+  targetModel: string
+  createdAt: string
+  ipAddr: string
+  deviceInfo: string
+  details: string
+  formattedText: string
+}
+
+export interface ActivityListResponse {
+  list: Activity[]
+  total: number
+  page: number
+  pageSize: number
+  totalPage: number
+}

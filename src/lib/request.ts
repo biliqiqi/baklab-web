@@ -1,6 +1,6 @@
 import ky, { AfterResponseHook, BeforeRequestHook } from 'ky'
 import { Options } from 'node_modules/ky/distribution/types/options'
-import { mergeAll } from 'remeda'
+import { mergeAll, mergeDeep } from 'remeda'
 import { toast } from 'sonner'
 
 import { API_HOST, API_PATH_PREFIX } from '@/constants/constants'
@@ -136,11 +136,6 @@ const authRequestConfigs: Options = {
   },
 }
 
-const authInstance = ky.create({
-  ...defaultOptions,
-  ...authRequestConfigs,
-})
-
 const instance = ky.create(defaultOptions)
 
 // eslint-disable-next-line
@@ -172,9 +167,22 @@ const request = <T = any>(
     }
   }
 
-  return authRequired
-    ? authInstance(url, kyOpts).json<T>()
-    : instance(url, kyOpts).json<T>()
+  if (authRequired) {
+    kyOpts.credentials = 'include'
+    kyOpts.hooks = {
+      ...kyOpts.hooks,
+      beforeRequest: [
+        ...(kyOpts.hooks?.beforeRequest || []),
+        ...(authRequestConfigs.hooks?.beforeRequest || []),
+      ],
+      afterResponse: [
+        ...(kyOpts.hooks?.afterResponse || []),
+        ...(authRequestConfigs.hooks?.afterResponse || []),
+      ],
+    }
+  }
+
+  return instance(url, kyOpts).json<T>()
 }
 
 // eslint-disable-next-line

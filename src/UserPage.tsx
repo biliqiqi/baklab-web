@@ -21,13 +21,15 @@ import ArticleControls from './components/ArticleControls'
 
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 
+import { getActivityList } from './api'
 import { getArticleList } from './api/article'
 import { getUser } from './api/user'
-import { useAuth } from './hooks/use-auth'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
+import { noop } from './lib/utils'
 import { useAuthedUserStore, useNotFoundStore } from './state/global'
 import {
+  Activity,
   Article,
   ArticleListSort,
   ArticleListState,
@@ -53,7 +55,151 @@ const TabMapData: UserTabMap = {
 }
 
 const defaultTabs: UserTab[] = ['all', 'article', 'reply']
-const authedTabs: UserTab[] = ['saved', 'vote_up', 'subscribed']
+const authedTabs: UserTab[] = ['saved', 'vote_up', 'subscribed', 'activity']
+
+interface PaginationProps {
+  pageState: ArticleListState
+}
+
+const UPagination: React.FC<PaginationProps> = ({ pageState }) => {
+  const [params] = useSearchParams()
+
+  const genParamStr = useCallback(
+    (page: number) => {
+      const cloneParams = new URLSearchParams(params.toString())
+      cloneParams.set('page', page ? String(page) : '1')
+      return cloneParams.toString()
+    },
+    [params]
+  )
+
+  return (
+    <>
+      {pageState.totalPage > 1 && (
+        <Card>
+          <Pagination className="py-1">
+            <PaginationContent>
+              {pageState.currPage > 1 && (
+                <PaginationItem>
+                  <PaginationPrevious
+                    to={'?' + genParamStr(pageState.currPage - 1)}
+                  />
+                </PaginationItem>
+              )}
+              <PaginationItem>
+                <PaginationLink
+                  to={'?' + genParamStr(pageState.currPage)}
+                  isActive
+                >
+                  {pageState.currPage}
+                </PaginationLink>
+              </PaginationItem>
+              {pageState.currPage < pageState.totalPage && (
+                <PaginationItem>
+                  <PaginationNext
+                    to={'?' + genParamStr(pageState.currPage + 1)}
+                  />
+                </PaginationItem>
+              )}
+            </PaginationContent>
+          </Pagination>
+        </Card>
+      )}
+    </>
+  )
+}
+
+interface ArticleListProps {
+  list: Article[]
+  tab: UserTab
+  pageState: ArticleListState
+  onSuccess?: () => void
+}
+const ArticleList: React.FC<ArticleListProps> = ({
+  list,
+  tab,
+  pageState,
+  onSuccess = noop,
+}) =>
+  list.length == 0 ? (
+    <div className="flex justify-center py-4">
+      <Badge variant="secondary" className="text-gray-500">
+        空空如也
+      </Badge>
+    </div>
+  ) : (
+    <>
+      {list.map((item) => (
+        <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
+          <div className="mb-3">
+            <div className="mb-1">
+              <Link className="mr-2" to={'/articles/' + item.id}>
+                {item.displayTitle}
+              </Link>
+            </div>
+            {item.replyToId != '0' && (
+              <div className="max-h-5 mb-1 overflow-hidden text-sm text-gray-600 text-nowrap text-ellipsis">
+                {item.content}
+              </div>
+            )}
+          </div>
+          <ArticleControls
+            article={item}
+            ctype="list"
+            bookmark={tab == 'saved'}
+            notify={tab == 'subscribed'}
+            onSuccess={onSuccess}
+          />
+        </Card>
+      ))}
+      <UPagination pageState={pageState} />
+    </>
+  )
+
+interface ActivityListProps {
+  list: Activity[]
+  pageState: ArticleListState
+}
+const ActivityList: React.FC<ActivityListProps> = ({ list, pageState }) =>
+  list.length == 0 ? (
+    <div className="flex justify-center py-4">
+      <Badge variant="secondary" className="text-gray-500">
+        空空如也
+      </Badge>
+    </div>
+  ) : (
+    <>
+      {list.map((item) => (
+        <Card key={item.id} className="p-3 my-2 hover:bg-slate-50 text-sm">
+          <div
+            className="mb-2 text-base activity-title"
+            dangerouslySetInnerHTML={{ __html: item.formattedText }}
+          ></div>
+          <div className="flex">
+            <div className="flex-shrink-0 w-[80px]">
+              <b>IP地址：</b>
+            </div>
+            <div>{item.ipAddr}</div>
+          </div>
+          <div className="flex">
+            <div className="flex-shrink-0 w-[80px]">
+              <b>设备信息：</b>
+            </div>
+            <div>{item.deviceInfo}</div>
+          </div>
+          <div className="flex">
+            <div className="flex-shrink-0 w-[80px]">
+              <b>提交数据：</b>
+            </div>
+            <pre className="flex-grow align-top py-1 px-2 bg-gray-100">
+              {item.details}
+            </pre>
+          </div>
+        </Card>
+      ))}
+      <UPagination pageState={pageState} />
+    </>
+  )
 
 export default function UserPage() {
   const [loading, setLoading] = useState(true)
@@ -62,6 +208,7 @@ export default function UserPage() {
   const [tabs, setTabs] = useState<UserTab[]>([...defaultTabs])
   /* const [tab, setTab] = useState<UserTab>('activity') */
   const [list, updateList] = useState<Article[]>([])
+  const [actList, updateActList] = useState<Activity[]>([])
   const [pageState, setPageState] = useState<ArticleListState>({
     currPage: 1,
     pageSize: DEFAULT_PAGE_SIZE,
@@ -105,7 +252,7 @@ export default function UserPage() {
     )
   )
 
-  const fetchArticles = toSync(
+  const fetchList = toSync(
     useCallback(
       async (showLoading: boolean = false) => {
         try {
@@ -149,15 +296,45 @@ export default function UserPage() {
                 setPageState({
                   currPage: 1,
                   pageSize: data.pageSize,
-                  totalCount: data.articleTotal,
-                  totalPage: data.totalPage,
+                  totalCount: 0,
+                  totalPage: 0,
                   category,
+                })
+              }
+            }
+          } else {
+            const resp = await getActivityList(
+              '',
+              username,
+              undefined,
+              '',
+              page,
+              pageSize
+            )
+            if (!resp.code) {
+              const { data } = resp
+              if (data.list) {
+                updateActList([...data.list])
+                setPageState({
+                  currPage: data.page,
+                  pageSize: data.pageSize,
+                  totalCount: data.total,
+                  totalPage: data.totalPage,
+                  category: undefined,
+                })
+              } else {
+                setPageState({
+                  currPage: 1,
+                  pageSize: data.pageSize,
+                  totalCount: 0,
+                  totalPage: 0,
+                  category: undefined,
                 })
               }
             }
           }
         } catch (e) {
-          console.error('get article list error: ', e)
+          console.error('get list error: ', e)
         } finally {
           setLoadingList(false)
         }
@@ -174,25 +351,12 @@ export default function UserPage() {
     })
   }
 
-  const genParamStr = useCallback(
-    (page: number) => {
-      const cloneParams = new URLSearchParams(params.toString())
-      cloneParams.set('page', page ? String(page) : '1')
-      return cloneParams.toString()
-    },
-    [params]
-  )
-
   useEffect(() => {
     fetchUserData(true)
   }, [username])
 
   useEffect(() => {
-    if (tab == 'activity') {
-      // TODO get activity
-    } else {
-      fetchArticles(false)
-    }
+    fetchList(false)
   }, [username, params])
 
   useEffect(() => {
@@ -242,68 +406,15 @@ export default function UserPage() {
             <div className="flex justify-center">
               <BLoader />
             </div>
-          ) : list.length == 0 ? (
-            <div className="flex justify-center">
-              <Badge variant="secondary" className="text-gray-500">
-                空空如也
-              </Badge>
-            </div>
+          ) : tab == 'activity' ? (
+            <ActivityList list={actList} pageState={pageState} />
           ) : (
-            <>
-              {list.map((item) => (
-                <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
-                  <div className="mb-3">
-                    <div className="mb-1">
-                      <Link className="mr-2" to={'/articles/' + item.id}>
-                        {item.displayTitle}
-                      </Link>
-                    </div>
-                    {item.replyToId != '0' && (
-                      <div className="max-h-5 mb-1 overflow-hidden text-sm text-gray-600 text-nowrap text-ellipsis">
-                        {item.content}
-                      </div>
-                    )}
-                  </div>
-                  <ArticleControls
-                    article={item}
-                    ctype="list"
-                    bookmark={tab == 'saved'}
-                    notify={tab == 'subscribed'}
-                    onSuccess={() => fetchArticles(false)}
-                  />
-                </Card>
-              ))}
-              {pageState.totalPage > 1 && (
-                <Card>
-                  <Pagination className="py-1">
-                    <PaginationContent>
-                      {pageState.currPage > 1 && (
-                        <PaginationItem>
-                          <PaginationPrevious
-                            to={'?' + genParamStr(pageState.currPage - 1)}
-                          />
-                        </PaginationItem>
-                      )}
-                      <PaginationItem>
-                        <PaginationLink
-                          to={'?' + genParamStr(pageState.currPage)}
-                          isActive
-                        >
-                          {pageState.currPage}
-                        </PaginationLink>
-                      </PaginationItem>
-                      {pageState.currPage < pageState.totalPage && (
-                        <PaginationItem>
-                          <PaginationNext
-                            to={'?' + genParamStr(pageState.currPage + 1)}
-                          />
-                        </PaginationItem>
-                      )}
-                    </PaginationContent>
-                  </Pagination>
-                </Card>
-              )}
-            </>
+            <ArticleList
+              list={list}
+              tab={tab}
+              pageState={pageState}
+              onSuccess={() => fetchList(false)}
+            />
           )}
         </div>
       </BContainer>

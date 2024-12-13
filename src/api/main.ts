@@ -1,6 +1,8 @@
 import request, { authRequest } from '@/lib/request'
 
 import {
+  ActivityActionType,
+  ActivityListResponse,
   AuthedDataResponse,
   Category,
   ResponseData,
@@ -38,3 +40,41 @@ export const postSignin = async (
 
 export const getCategoryList = async (): Promise<ResponseData<Category[]>> =>
   authRequest.get(`category_list`)
+
+export const getActivityList = async (
+  userId?: string,
+  username?: string,
+  actType?: ActivityActionType,
+  action?: string,
+  page?: number,
+  pageSize?: number
+): Promise<ResponseData<ActivityListResponse>> => {
+  const params = new URLSearchParams()
+  if (userId) {
+    params.set('userId', userId)
+  }
+
+  if (username) {
+    params.set('username', username)
+  }
+
+  if (actType) {
+    params.set('actType', actType)
+  }
+
+  if (action) {
+    params.set('action', action)
+  }
+
+  if (page) {
+    params.set('page', String(page))
+  }
+
+  if (pageSize) {
+    params.set('pageSize', String(pageSize))
+  }
+
+  return authRequest.get(`activities`, {
+    searchParams: params,
+  })
+}

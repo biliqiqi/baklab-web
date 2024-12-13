@@ -148,6 +148,10 @@ a:hover {
   /* This is mostly intended for prototyping; please download the pattern and re-host for production environments. Thank you! */
 }
 
+.activity-title a {
+  color: hsl(var(--primary));
+}
+
 @keyframes highlight {
   0% {
     background-color: hsl(var(--card));

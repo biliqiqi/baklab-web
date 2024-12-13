@@ -238,6 +238,8 @@ export default function ArticleListPage() {
                 <ArticleControls
                   article={item}
                   ctype="list"
+                  bookmark={false}
+                  notify={false}
                   onSuccess={() => fetchArticles()}
                 />
               </Card>

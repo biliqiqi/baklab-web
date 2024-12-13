@@ -267,6 +267,8 @@ export default function UserPage() {
                   <ArticleControls
                     article={item}
                     ctype="list"
+                    bookmark={tab == 'saved'}
+                    notify={tab == 'subscribed'}
                     onSuccess={() => fetchArticles(false)}
                   />
                 </Card>

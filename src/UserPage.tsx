@@ -1,23 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 
-import { Badge } from './components/ui/badge'
 import { Card } from './components/ui/card'
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from './components/ui/pagination'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 
 import BAvatar from './components/base/BAvatar'
 import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
 
+import { ActivityList } from './components/ActivityList'
 import ArticleControls from './components/ArticleControls'
+import { Empty } from './components/Empty'
+import { ListPagination } from './components/ListPagination'
 
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 
@@ -55,59 +49,7 @@ const TabMapData: UserTabMap = {
 }
 
 const defaultTabs: UserTab[] = ['all', 'article', 'reply']
-const authedTabs: UserTab[] = ['saved', 'vote_up', 'subscribed', 'activity']
-
-interface PaginationProps {
-  pageState: ArticleListState
-}
-
-const UPagination: React.FC<PaginationProps> = ({ pageState }) => {
-  const [params] = useSearchParams()
-
-  const genParamStr = useCallback(
-    (page: number) => {
-      const cloneParams = new URLSearchParams(params.toString())
-      cloneParams.set('page', page ? String(page) : '1')
-      return cloneParams.toString()
-    },
-    [params]
-  )
-
-  return (
-    <>
-      {pageState.totalPage > 1 && (
-        <Card>
-          <Pagination className="py-1">
-            <PaginationContent>
-              {pageState.currPage > 1 && (
-                <PaginationItem>
-                  <PaginationPrevious
-                    to={'?' + genParamStr(pageState.currPage - 1)}
-                  />
-                </PaginationItem>
-              )}
-              <PaginationItem>
-                <PaginationLink
-                  to={'?' + genParamStr(pageState.currPage)}
-                  isActive
-                >
-                  {pageState.currPage}
-                </PaginationLink>
-              </PaginationItem>
-              {pageState.currPage < pageState.totalPage && (
-                <PaginationItem>
-                  <PaginationNext
-                    to={'?' + genParamStr(pageState.currPage + 1)}
-                  />
-                </PaginationItem>
-              )}
-            </PaginationContent>
-          </Pagination>
-        </Card>
-      )}
-    </>
-  )
-}
+const authedTabs: UserTab[] = ['saved', 'vote_up', 'subscribed']
 
 interface ArticleListProps {
   list: Article[]
@@ -115,6 +57,7 @@ interface ArticleListProps {
   pageState: ArticleListState
   onSuccess?: () => void
 }
+
 const ArticleList: React.FC<ArticleListProps> = ({
   list,
   tab,
@@ -122,11 +65,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
   onSuccess = noop,
 }) =>
   list.length == 0 ? (
-    <div className="flex justify-center py-4">
-      <Badge variant="secondary" className="text-gray-500">
-        空空如也
-      </Badge>
-    </div>
+    <Empty />
   ) : (
     <>
       {list.map((item) => (
@@ -152,52 +91,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
           />
         </Card>
       ))}
-      <UPagination pageState={pageState} />
-    </>
-  )
-
-interface ActivityListProps {
-  list: Activity[]
-  pageState: ArticleListState
-}
-const ActivityList: React.FC<ActivityListProps> = ({ list, pageState }) =>
-  list.length == 0 ? (
-    <div className="flex justify-center py-4">
-      <Badge variant="secondary" className="text-gray-500">
-        空空如也
-      </Badge>
-    </div>
-  ) : (
-    <>
-      {list.map((item) => (
-        <Card key={item.id} className="p-3 my-2 hover:bg-slate-50 text-sm">
-          <div
-            className="mb-2 text-base activity-title"
-            dangerouslySetInnerHTML={{ __html: item.formattedText }}
-          ></div>
-          <div className="flex">
-            <div className="flex-shrink-0 w-[80px]">
-              <b>IP地址：</b>
-            </div>
-            <div>{item.ipAddr}</div>
-          </div>
-          <div className="flex">
-            <div className="flex-shrink-0 w-[80px]">
-              <b>设备信息：</b>
-            </div>
-            <div>{item.deviceInfo}</div>
-          </div>
-          <div className="flex">
-            <div className="flex-shrink-0 w-[80px]">
-              <b>提交数据：</b>
-            </div>
-            <pre className="flex-grow align-top py-1 px-2 bg-gray-100">
-              {item.details}
-            </pre>
-          </div>
-        </Card>
-      ))}
-      <UPagination pageState={pageState} />
+      <ListPagination pageState={pageState} />
     </>
   )
 
@@ -357,11 +251,14 @@ export default function UserPage() {
 
   useEffect(() => {
     fetchList(false)
-  }, [username, params])
+  }, [params])
 
   useEffect(() => {
     if (authStore.isLogined() && authStore.username == username) {
       setTabs(() => [...defaultTabs, ...authedTabs])
+      if (authStore.permit('user', 'access_activity')) {
+        setTabs((state) => [...state, 'activity'])
+      }
     }
   }, [authStore, username])
 
@@ -390,7 +287,7 @@ export default function UserPage() {
               <div className="text-sm">{user.introduction}</div>
             </Card>
             <Tabs defaultValue="oldest" value={tab} onValueChange={onTabChange}>
-              <TabsList>
+              <TabsList className="overflow-x-auto overflow-y-hidden max-w-full">
                 {tabs.map((item) => (
                   <TabsTrigger value={item} key={item}>
                     {TabMapData[item]}

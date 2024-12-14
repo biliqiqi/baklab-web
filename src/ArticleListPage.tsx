@@ -1,17 +1,9 @@
 import { SquareArrowOutUpRightIcon } from 'lucide-react'
-import {
-  MouseEvent,
-  MouseEventHandler,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
+import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 
 /* import mockArticleList from '@/mock/articles.json' */
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
-import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 import { Card } from '@/components/ui/card'
@@ -28,6 +20,7 @@ import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
 
 import ArticleControls from './components/ArticleControls'
+import { Empty } from './components/Empty'
 
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 
@@ -55,10 +48,10 @@ export default function ArticleListPage() {
   })
 
   const authStore = useAuthedUserStore()
-  const isMyself = useCallback(
-    (authorID: string) => authStore.isMySelf(authorID),
-    [authStore]
-  )
+  /* const isMyself = useCallback(
+   *   (authorID: string) => authStore.isMySelf(authorID),
+   *   [authStore]
+   * ) */
 
   const [params, setParams] = useSearchParams()
   const pathParams = useParams()
@@ -157,119 +150,110 @@ export default function ArticleListPage() {
   }, [params, pathParams])
 
   return (
-    <>
-      <BContainer category={pageState.category} loading={loading}>
-        <div className="flex justify-between items-center">
-          <div>
-            {list.length > 0 && (
-              <Tabs
-                defaultValue="best"
-                value={sort}
-                onValueChange={onSwitchTab}
-              >
-                <TabsList>
-                  <TabsTrigger value="best">最佳</TabsTrigger>
-                  <TabsTrigger value="latest">最新</TabsTrigger>
-                  <TabsTrigger value="list_hot">热门</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            )}
-          </div>
-          <div>
-            <Button variant="outline" size="sm" asChild onClick={onSubmitClick}>
-              <Link to={submitPath}>+ 提交</Link>
-            </Button>
-          </div>
-        </div>
-        <div className="py-4" key={pathParams.category}>
-          {loading ? (
-            <div className="flex justify-center">
-              <BLoader />
-            </div>
-          ) : list.length == 0 ? (
-            <div className="flex justify-center">
-              <Badge variant="secondary" className="text-gray-500">
-                空空如也
-              </Badge>
-            </div>
-          ) : (
-            list.map((item) => (
-              <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
-                <div className="mb-3">
-                  <div className="mb-1">
-                    <Link className="mr-2" to={'/articles/' + item.id}>
-                      {item.title}
-                    </Link>
-                    {item.link && (
-                      <span className="text-gray-500 text-sm">
-                        (来源&nbsp;
-                        <a
-                          href={item.link}
-                          target="_blank"
-                          title={item.link}
-                          className="break-all"
-                        >
-                          <SquareArrowOutUpRightIcon
-                            size={14}
-                            className="inline"
-                          />
-                          &nbsp;
-                          {extractDomain(item.link)}...
-                        </a>
-                        )
-                      </span>
-                    )}
-                  </div>
-                  {/* <div className="max-h-5 mb-1 overflow-hidden text-sm text-gray-600 text-nowrap text-ellipsis">
-                    {item.summary}
-                  </div> */}
-                  {item.picURL && (
-                    <div className="w-[120px] h-[120px] rounded mr-4 bg-gray-200 shrink-0 overflow-hidden">
-                      <a href="#">
-                        <img
-                          alt={item.title}
-                          src={item.picURL}
-                          className="max-w-full"
-                        />
-                      </a>
-                    </div>
-                  )}
-                </div>
-                <ArticleControls
-                  article={item}
-                  ctype="list"
-                  bookmark={false}
-                  notify={false}
-                  onSuccess={() => fetchArticles()}
-                />
-              </Card>
-            ))
+    <BContainer category={pageState.category} loading={loading}>
+      <div className="flex justify-between items-center">
+        <div>
+          {list.length > 0 && (
+            <Tabs defaultValue="best" value={sort} onValueChange={onSwitchTab}>
+              <TabsList>
+                <TabsTrigger value="best">最佳</TabsTrigger>
+                <TabsTrigger value="latest">最新</TabsTrigger>
+                <TabsTrigger value="list_hot">热门</TabsTrigger>
+              </TabsList>
+            </Tabs>
           )}
         </div>
-
-        {pageState.totalPage > 1 && (
-          <Card>
-            <Pagination className="py-1">
-              <PaginationContent>
-                {pageState.currPage > 1 && (
-                  <PaginationItem>
-                    <PaginationPrevious
-                      to={'?page=' + (pageState.currPage - 1)}
-                    />
-                  </PaginationItem>
+        <div>
+          <Button variant="outline" size="sm" asChild onClick={onSubmitClick}>
+            <Link to={submitPath}>+ 提交</Link>
+          </Button>
+        </div>
+      </div>
+      <div className="py-4" key={pathParams.category}>
+        {loading ? (
+          <div className="flex justify-center">
+            <BLoader />
+          </div>
+        ) : list.length == 0 ? (
+          <Empty />
+        ) : (
+          list.map((item) => (
+            <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
+              <div className="mb-3">
+                <div className="mb-1">
+                  <Link className="mr-2" to={'/articles/' + item.id}>
+                    {item.title}
+                  </Link>
+                  {item.link && (
+                    <span className="text-gray-500 text-sm">
+                      (来源&nbsp;
+                      <a
+                        href={item.link}
+                        target="_blank"
+                        title={item.link}
+                        className="break-all"
+                      >
+                        <SquareArrowOutUpRightIcon
+                          size={14}
+                          className="inline"
+                        />
+                        &nbsp;
+                        {extractDomain(item.link)}...
+                      </a>
+                      )
+                    </span>
+                  )}
+                </div>
+                {/* <div className="max-h-5 mb-1 overflow-hidden text-sm text-gray-600 text-nowrap text-ellipsis">
+                    {item.summary}
+                  </div> */}
+                {item.picURL && (
+                  <div className="w-[120px] h-[120px] rounded mr-4 bg-gray-200 shrink-0 overflow-hidden">
+                    <a href="#">
+                      <img
+                        alt={item.title}
+                        src={item.picURL}
+                        className="max-w-full"
+                      />
+                    </a>
+                  </div>
                 )}
-                {/* <PaginationItem>
+              </div>
+              <ArticleControls
+                article={item}
+                ctype="list"
+                bookmark={false}
+                notify={false}
+                onSuccess={() => fetchArticles()}
+              />
+            </Card>
+          ))
+        )}
+      </div>
+
+      {pageState.totalPage > 1 && (
+        <Card>
+          <Pagination className="py-1">
+            <PaginationContent>
+              {pageState.currPage > 1 && (
+                <PaginationItem>
+                  <PaginationPrevious
+                    to={'?page=' + (pageState.currPage - 1)}
+                  />
+                </PaginationItem>
+              )}
+              {/* <PaginationItem>
             <PaginationLink href="/?page=1">1</PaginationLink>
           </PaginationItem>
           <PaginationItem>
             <PaginationLink href="/?page=2">2</PaginationLink>
           </PaginationItem> */}
-                <PaginationItem>
-                  <PaginationLink to={'?page=' + pageState.currPage} isActive>
-                    {pageState.currPage}
-                  </PaginationLink>
-                </PaginationItem>
-                {/* <PaginationItem>
+              <PaginationItem>
+                <PaginationLink to={'?page=' + pageState.currPage} isActive>
+                  {pageState.currPage}
+                </PaginationLink>
+              </PaginationItem>
+              {/* <PaginationItem>
             <PaginationEllipsis />
           </PaginationItem>
           <PaginationItem>
@@ -278,16 +262,15 @@ export default function ArticleListPage() {
           <PaginationItem>
             <PaginationLink href="/?page=100">100</PaginationLink>
           </PaginationItem> */}
-                {pageState.currPage < pageState.totalPage && (
-                  <PaginationItem>
-                    <PaginationNext to={'?page=' + (pageState.currPage + 1)} />
-                  </PaginationItem>
-                )}
-              </PaginationContent>
-            </Pagination>
-          </Card>
-        )}
-      </BContainer>
-    </>
+              {pageState.currPage < pageState.totalPage && (
+                <PaginationItem>
+                  <PaginationNext to={'?page=' + (pageState.currPage + 1)} />
+                </PaginationItem>
+              )}
+            </PaginationContent>
+          </Pagination>
+        </Card>
+      )}
+    </BContainer>
   )
 }

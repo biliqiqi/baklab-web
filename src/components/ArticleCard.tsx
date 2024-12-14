@@ -73,6 +73,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   /* const [loading, setLoading] = useState(false) */
   const parent = article.replyToArticle
   const authStore = useAuthedUserStore()
+  const permit = useAuthedUserStore((state) => state.permit)
+
   const navigate = useNavigate()
   const isMyself = useMemo(
     () => authStore.isMySelf(article.authorId),
@@ -114,6 +116,11 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     },
     [article, navigate]
   )
+
+  /* console.log(
+   *   "authStore.permit('article', 'delete_others')",
+   *   authStore.permit('article', 'delete_others')
+   * ) */
 
   return (
     <div id={'comment' + article.id} {...props}>
@@ -167,7 +174,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           <span title={timeFmt(article.createdAt, 'YYYY年M月D日 H时m分s秒')}>
             {timeAgo(article.createdAt)}
           </span>
-          {isMyself && (
+          {((isMyself && permit('article', 'edit_mine')) ||
+            permit('article', 'edit_others')) && (
             <Button
               variant="ghost"
               size="sm"
@@ -181,7 +189,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               </Link>
             </Button>
           )}
-          {isMyself && (
+          {((isMyself && permit('article', 'delete_mine')) ||
+            permit('article', 'delete_others')) && (
             <Button
               variant="ghost"
               size="sm"

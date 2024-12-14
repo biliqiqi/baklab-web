@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import BContainer from './components/base/BContainer'
 
@@ -16,8 +17,9 @@ export default function EditPage() {
   const { articleID } = useParams()
   const { updateNotFound } = useNotFoundStore()
   const authState = useAuthedUserStore()
+  const navigate = useNavigate()
 
-  console.log('article id: ', articleID)
+  /* console.log('article id: ', articleID) */
 
   const fetchArticle = useCallback(
     async (showLoading = true) => {
@@ -41,12 +43,16 @@ export default function EditPage() {
 
             article.asMainArticle = true
 
-            if (
-              !authState.isLogined() ||
-              authState.userID != article.authorId
-            ) {
-              updateNotFound(true)
-              return
+            if (authState.isMySelf(article.authorId)) {
+              if (!authState.permit('article', 'edit_mine')) {
+                toast.error('禁止访问')
+                navigate('/', { replace: true, flushSync: true })
+              }
+            } else {
+              if (!authState.permit('article', 'edit_others')) {
+                toast.error('禁止访问')
+                navigate('/', { replace: true, flushSync: true })
+              }
             }
 
             setArticle(article)
@@ -61,17 +67,18 @@ export default function EditPage() {
         setLoading(false)
       }
     },
-    [articleID]
+    [articleID, navigate]
   )
 
   const fetchArticleSync = toSync(fetchArticle)
 
   useEffect(() => {
     fetchArticleSync()
-  }, [articleID])
+  }, [articleID, navigate])
 
   return (
     <BContainer
+      key="edit_article"
       title="提交"
       category={{
         frontId: 'edit',

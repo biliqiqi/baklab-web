@@ -3,7 +3,6 @@ import { Check, ChevronsUpDown } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { timeAgo } from '@/lib/dayjs-custom'
 import { cn } from '@/lib/utils'

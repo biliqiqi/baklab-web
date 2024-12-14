@@ -1,7 +1,12 @@
 import { create } from 'zustand'
 
 import { ROLE_DATA } from '@/constants/roles'
-import { PermissionAction, PermissionModule, Role } from '@/types/permission'
+import {
+  PermissionAction,
+  PermissionModule,
+  PermitFn,
+  Role,
+} from '@/types/permission'
 import { Category } from '@/types/types'
 
 export interface ToastState {
@@ -43,7 +48,7 @@ export interface AuthedUserState {
   loginWithDialog: () => Promise<AuthedUserData>
   isLogined: () => boolean
   isMySelf: (userID: string) => boolean
-  permit: <T extends PermissionModule>(m: T, a: PermissionAction<T>) => boolean
+  permit: PermitFn
 }
 
 export const useAuthedUserStore = create<AuthedUserState>((set, get) => ({
@@ -90,7 +95,7 @@ export const useAuthedUserStore = create<AuthedUserState>((set, get) => ({
     const state = get()
     return isLogined(state) && state.userID == userID
   },
-  permit<T extends PermissionModule>(module: T, action: PermissionAction<T>) {
+  permit(module, action) {
     const permissionId = `${module}.${String(action)}`
     const roleData = ROLE_DATA[get().role]
 

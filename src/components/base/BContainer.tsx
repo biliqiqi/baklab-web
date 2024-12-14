@@ -1,4 +1,4 @@
-import { NewspaperIcon, PackageIcon } from 'lucide-react'
+import { ActivityIcon, NewspaperIcon, PackageIcon } from 'lucide-react'
 import React, { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
@@ -8,6 +8,7 @@ import { NAV_HEIGHT, SITE_NAME } from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
   useAlertDialogStore,
+  useAuthedUserStore,
   useCategoryStore,
   useDialogStore,
   useNotFoundStore,
@@ -73,6 +74,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     const { open: sidebarOpen, setOpen: setSidebarOpen } = useSidebarStore()
     const [sidebarOpenMobile, setSidebarOpenMobile] = useState(false)
+
+    const authPermit = useAuthedUserStore((state) => state.permit)
 
     const alertDialog = useAlertDialogStore()
 
@@ -214,7 +217,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                         <SidebarMenuButton
                           asChild
                           isActive={location.pathname == '/'}
-                          className="h-auto"
                         >
                           <Link to="/">
                             <BIconCircle id="feed" size={32}>
@@ -227,6 +229,25 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     </SidebarMenu>
                   </SidebarGroupContent>
                 </SidebarGroup>
+                {authPermit('manage', 'access') && (
+                  <SidebarGroup>
+                    <SidebarGroupLabel>管理</SidebarGroupLabel>
+                    <SidebarGroupContent>
+                      <SidebarMenu>
+                        <SidebarMenuItem key="activities">
+                          <SidebarMenuButton asChild>
+                            <Link to="/manage/activities">
+                              <BIconCircle id="activities" size={32}>
+                                <ActivityIcon size={18} />
+                              </BIconCircle>
+                              活动记录
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      </SidebarMenu>
+                    </SidebarGroupContent>
+                  </SidebarGroup>
+                )}
                 <SidebarGroup>
                   <SidebarGroupLabel>分类</SidebarGroupLabel>
                   <SidebarGroupContent>
@@ -239,7 +260,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                               location.pathname == '/categories/' + item.id ||
                               category?.frontId == item.id
                             }
-                            className="h-auto"
                           >
                             <Link to={'/categories/' + item.id}>
                               <BIconColorChar

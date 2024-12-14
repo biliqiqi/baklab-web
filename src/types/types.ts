@@ -189,11 +189,14 @@ export type FrontCategory = Pick<Category, 'frontId' | 'name' | 'describe'> & {
   isFront: boolean // 是否由前端定义
 }
 
-export interface ArticleListState {
+export interface ListPageState {
   currPage: number
   pageSize: number
   totalCount: number // 数据总量
   totalPage: number // 总页数
+}
+
+export interface ArticleListState extends ListPageState {
   category?: FrontCategory
 }
 
@@ -226,10 +229,16 @@ export interface Activity {
   formattedText: string
 }
 
+export interface OptionItem {
+  name: string
+  value: string
+}
+
 export interface ActivityListResponse {
-  list: Activity[]
+  list: Activity[] | null
   total: number
   page: number
   pageSize: number
   totalPage: number
+  acActionOptions: OptionItem[]
 }

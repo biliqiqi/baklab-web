@@ -1,6 +1,7 @@
 import { Router } from '@remix-run/router'
-import { useCallback, useEffect, useState } from 'react'
+import { Children, useCallback, useEffect, useState } from 'react'
 import {
+  RouteObject,
   RouterProvider,
   createBrowserRouter,
   redirect,
@@ -11,6 +12,7 @@ import { Toaster } from './components/ui/sonner.tsx'
 
 import BLoader from './components/base/BLoader.tsx'
 
+import ActivityPage from './ActivityPage.tsx'
 import ArticleListPage from './ArticleListPage.tsx'
 import ArticlePage from './ArticlePage.tsx'
 import EditPage from './EditPage.tsx'
@@ -30,6 +32,7 @@ import {
   useCategoryStore,
   useToastStore,
 } from './state/global.ts'
+import { PermissionAction, PermissionModule } from './types/permission.ts'
 
 const notAtAuthed = () => {
   const data = useAuthedUserStore.getState()
@@ -38,23 +41,41 @@ const notAtAuthed = () => {
   return null
 }
 
+const redirectToSignin = (returnUrl?: string) => {
+  if (location.pathname == '/signin' || !returnUrl) {
+    return replace(location.href.replace(location.origin, ''))
+  } else {
+    return redirect(`/signin?return=${encodeURIComponent(returnUrl)}`)
+  }
+}
+
 const mustAuthed = ({ request }: { request: Request }) => {
   const data = useAuthedUserStore.getState()
   const authed = !!data && isLogined(data)
 
-  /* console.log('authed: ', authed) */
-
   if (!authed) {
-    if (location.pathname == '/signin') {
-      return replace(location.href.replace(location.origin, ''))
-    } else {
-      return redirect(`/signin?return=${encodeURIComponent(request.url)}`)
-    }
+    return redirectToSignin(request.url)
   }
   return null
 }
 
-const routes = [
+const needPermission =
+  <T extends PermissionModule>(module: T, action: PermissionAction<T>) =>
+  ({ request }: { request: Request }) => {
+    const authState = useAuthedUserStore.getState()
+
+    if (!authState.isLogined()) {
+      return redirectToSignin(request.url)
+    }
+
+    if (!authState.permit(module, action)) {
+      return redirect('/')
+    }
+
+    return null
+  }
+
+const routes: RouteObject[] = [
   {
     path: '/',
     Component: ArticleListPage,
@@ -89,6 +110,21 @@ const routes = [
   {
     path: '/users/:username',
     Component: UserPage,
+  },
+  {
+    path: '/manage',
+    loader: needPermission('manage', 'access'),
+    children: [
+      {
+        path: '',
+        loader: () => redirect('/manage/activities'),
+      },
+      {
+        path: 'activities',
+        Component: ActivityPage,
+        loader: needPermission('activity', 'access'),
+      },
+    ],
   },
   {
     path: '*',

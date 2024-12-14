@@ -7,3 +7,8 @@ export type Role = keyof RoleData
 export type PermissionModule = keyof PermissionData
 export type PermissionAction<K extends PermissionModule> =
   keyof PermissionData[K]
+
+export type PermitFn = <T extends PermissionModule>(
+  m: T,
+  a: PermissionAction<T>
+) => boolean

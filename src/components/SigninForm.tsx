@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { memo, useState } from 'react'
+import { ChangeEvent, memo, useState } from 'react'
 import { Control, Controller, Path, useForm } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
+import { noop } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { postSignin } from '@/api'
@@ -57,15 +58,19 @@ const FormInput = memo(
   )
 )
 
-const isInnerURL = (url: string) => new URL(url).origin == location.origin
+/* const isInnerURL = (url: string) => new URL(url).origin == location.origin */
 
 export interface SigninFromProps {
   dialog?: boolean
+  email?: string
+  setEmail?: (x: string) => void
   onSuccess?: () => void
 }
 
 const SigninForm: React.FC<SigninFromProps> = ({
   dialog = false,
+  email,
+  setEmail = noop,
   onSuccess,
 }) => {
   const [loading, setLoading] = useState(false)
@@ -73,7 +78,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
 
   const [searchParams, _setSearchParams] = useSearchParams()
   const { updateSignin, updateSignup } = useDialogStore()
-  const account = searchParams.get('account')
+  const account = searchParams.get('account') || email
 
   /* const navigate = useNavigate() */
 
@@ -82,6 +87,18 @@ const SigninForm: React.FC<SigninFromProps> = ({
     defaultValues: {
       account: account || '',
       password: '',
+    },
+  })
+
+  signinForm.register('account', {
+    onChange: (e: ChangeEvent<HTMLInputElement>) => {
+      /* console.log('email: ', e.target.value) */
+      try {
+        const email = emailRule.parse(e.target.value)
+        setEmail(email)
+      } catch (_err) {
+        setEmail('')
+      }
     },
   })
 

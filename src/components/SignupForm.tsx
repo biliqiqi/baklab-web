@@ -1,9 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useRef, useState } from 'react'
+import { ChangeEvent, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { noop } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { completeEmailSign, postEmailSinup, postEmailVerify } from '@/api'
@@ -50,11 +51,15 @@ enum SignupType {
 
 interface SignupFormProps {
   dialog?: boolean
+  email?: string
+  setEmail?: (x: string) => void
   onSuccess?: () => void
 }
 
 const SignupForm: React.FC<SignupFormProps> = ({
   dialog = false,
+  email: propEmail,
+  setEmail = noop,
   onSuccess,
 }) => {
   const [isPhone, setIsPhone] = useState(false)
@@ -81,7 +86,14 @@ const SignupForm: React.FC<SignupFormProps> = ({
     resolver: zodResolver(emailScheme),
     defaultValues: {
       /* email: 'test@example.com', */
-      email: '',
+      email: propEmail,
+    },
+  })
+
+  emailForm.register('email', {
+    onChange: (e: ChangeEvent<HTMLInputElement>) => {
+      /* console.log('email: ', e.target.value) */
+      setEmail(e.target.value)
     },
   })
 

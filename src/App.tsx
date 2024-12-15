@@ -22,6 +22,7 @@ import SignupPage from './SignupPage.tsx'
 import SubmitPage from './SubmitPage.tsx'
 import UserPage from './UserPage.tsx'
 import { getCategoryList } from './api/main.ts'
+import { PermissionAction, PermissionModule } from './constants/types.ts'
 import { useAuth } from './hooks/use-auth.ts'
 import { toSync } from './lib/fire-and-forget.ts'
 import { refreshAuthState } from './lib/request.ts'
@@ -32,7 +33,6 @@ import {
   useCategoryStore,
   useToastStore,
 } from './state/global.ts'
-import { PermissionAction, PermissionModule } from './types/permission.ts'
 
 const notAtAuthed = () => {
   const data = useAuthedUserStore.getState()

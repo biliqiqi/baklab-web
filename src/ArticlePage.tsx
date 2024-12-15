@@ -32,11 +32,6 @@ export default function ArticlePage() {
     replyToArticle: null,
   })
 
-  /* const [isEditting, setIsEditting] = useState(true) */
-  /* const [replyToID, setReplyToID] = useState('0') */
-  /* const [replyToArticle, setReplyToArticle] = useState<Article | null>(null) */
-  /* const [edittingArticle, setEdittingArticle] = useState<Article | null>(null) */
-
   const replyHandlerRef = useRef<((x: Article) => void) | null>(null)
   const editHandlerRef = useRef<((x: Article) => void) | null>(null)
 

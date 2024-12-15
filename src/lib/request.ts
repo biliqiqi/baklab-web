@@ -4,12 +4,12 @@ import { mergeAll, mergeDeep } from 'remeda'
 import { toast } from 'sonner'
 
 import { API_HOST, API_PATH_PREFIX } from '@/constants/constants'
+import { Role } from '@/constants/types'
 import {
   useAuthedUserStore,
   useNotFoundStore,
   useToastStore,
 } from '@/state/global'
-import { Role } from '@/types/permission'
 import {
   AuthedDataResponse,
   CustomRequestOptions,

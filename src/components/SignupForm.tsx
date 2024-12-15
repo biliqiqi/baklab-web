@@ -15,9 +15,9 @@ import {
   phoneRule,
   usernameRule,
 } from '@/constants/rules'
+import { Role } from '@/constants/types'
 import useDocumentTitle from '@/hooks/use-page-title'
 import { useAuthedUserStore, useDialogStore } from '@/state/global'
-import { Role } from '@/types/permission'
 
 import CodeForm, { CodeScheme } from './CodeForm'
 import BLoader from './base/BLoader'

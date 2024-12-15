@@ -133,8 +133,17 @@ export const getArticle = (
   )
 }
 
-export const deleteArticle = (id: string) =>
-  authRequest.delete<ResponseData<ArticleDeleteResponse>>(`articles/${id}`)
+export const deleteArticle = (id: string, reason?: string) => {
+  const params = new URLSearchParams()
+  if (reason) {
+    params.set('reason', reason)
+  }
+
+  return authRequest.delete<ResponseData<ArticleDeleteResponse>>(
+    `articles/${id}`,
+    { searchParams: params }
+  )
+}
 
 export const toggleSaveArticle = (id: string) =>
   authRequest.post<ResponseData<ArticleResponse>>(`articles/${id}/toggle_save`)

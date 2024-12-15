@@ -1,12 +1,7 @@
 import { create } from 'zustand'
 
 import { ROLE_DATA } from '@/constants/roles'
-import {
-  PermissionAction,
-  PermissionModule,
-  PermitFn,
-  Role,
-} from '@/types/permission'
+import { PermitFn, Role } from '@/constants/types'
 import { Category } from '@/types/types'
 
 export interface ToastState {

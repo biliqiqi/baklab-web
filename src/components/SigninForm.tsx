@@ -1,16 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ChangeEvent, memo, useState } from 'react'
 import { Control, Controller, Path, useForm } from 'react-hook-form'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { noop } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { postSignin } from '@/api'
 import { emailRule, passwordRule } from '@/constants/rules'
+import { Role } from '@/constants/types'
 import useDocumentTitle from '@/hooks/use-page-title'
 import { useAuthedUserStore, useDialogStore } from '@/state/global'
-import { Role } from '@/types/permission'
 
 import BLoader from './base/BLoader'
 import { Button } from './ui/button'

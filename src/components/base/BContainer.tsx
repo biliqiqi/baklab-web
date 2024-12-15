@@ -1,4 +1,10 @@
-import { ActivityIcon, NewspaperIcon, PackageIcon } from 'lucide-react'
+import {
+  ActivityIcon,
+  NewspaperIcon,
+  PackageIcon,
+  TrashIcon,
+  UsersRoundIcon,
+} from 'lucide-react'
 import React, { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
@@ -64,6 +70,7 @@ export interface BContainerProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
   ({ children, category, goBack = false, loading = false, ...props }, ref) => {
+    const [regEmail, setRegEmail] = useState('')
     /* const [loading, setLoading] = useState(false) */
     const { categories: cateList } = useCategoryStore()
 
@@ -244,6 +251,26 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
+                        <SidebarMenuItem key="trash">
+                          <SidebarMenuButton asChild>
+                            <Link to="/manage/trash">
+                              <BIconCircle id="trash" size={32}>
+                                <TrashIcon size={18} />
+                              </BIconCircle>
+                              回收站
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                        <SidebarMenuItem key="users">
+                          <SidebarMenuButton asChild>
+                            <Link to="/manage/users">
+                              <BIconCircle id="users" size={32}>
+                                <UsersRoundIcon size={18} />
+                              </BIconCircle>
+                              用户列表
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
                       </SidebarMenu>
                     </SidebarGroupContent>
                   </SidebarGroup>
@@ -310,6 +337,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             </DialogHeader>
             <SigninForm
               dialog
+              email={regEmail}
+              setEmail={setRegEmail}
               onSuccess={() => {
                 updateSignin(false)
               }}
@@ -326,6 +355,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
             <SignupForm
               dialog
+              email={regEmail}
+              setEmail={setRegEmail}
               onSuccess={() => {
                 updateSignup(false)
               }}

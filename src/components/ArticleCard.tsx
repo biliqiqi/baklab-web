@@ -1,3 +1,4 @@
+import { zodResolver } from '@hookform/resolvers/zod'
 import { PencilIcon, SquareArrowOutUpRightIcon, Trash2Icon } from 'lucide-react'
 import {
   HTMLAttributes,
@@ -6,29 +7,33 @@ import {
   useMemo,
   useState,
 } from 'react'
+import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
 import { bus, cn, extractDomain, noop } from '@/lib/utils'
+import { z } from '@/lib/zod-custom'
 
-import {
-  deleteArticle,
-  toggleSaveArticle,
-  toggleVoteArticle,
-} from '@/api/article'
+import { deleteArticle } from '@/api/article'
 import { EV_ON_EDIT_CLICK, EV_ON_REPLY_CLICK } from '@/constants/constants'
 import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
-import {
-  Article,
-  ArticleAction,
-  ArticleCardType,
-  VoteType,
-} from '@/types/types'
+import { Article, ArticleAction, ArticleCardType } from '@/types/types'
 
 import ArticleControls from './ArticleControls'
 import BAvatar from './base/BAvatar'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from './ui/alert-dialog'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
+import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form'
+import { Input } from './ui/input'
 
 interface ArticleCardProps extends HTMLAttributes<HTMLDivElement> {
   article: Article
@@ -36,6 +41,12 @@ interface ArticleCardProps extends HTMLAttributes<HTMLDivElement> {
   ctype?: ArticleCardType
   onSuccess?: (a: ArticleAction) => void
 }
+
+const delReasonScheme = z.object({
+  reason: z.string().min(1, '请输入删除原因').max(500, '不要超过500各字符'),
+})
+
+type DelReasonScheme = z.infer<typeof delReasonScheme>
 
 const highlightElement = (element: HTMLElement) => {
   element.classList.add('b-highlight')
@@ -70,7 +81,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   onSuccess = noop,
   ...props
 }) => {
-  /* const [loading, setLoading] = useState(false) */
+  const [alertOpen, setAlertOpen] = useState(false)
   const parent = article.replyToArticle
   const authStore = useAuthedUserStore()
   const permit = useAuthedUserStore((state) => state.permit)
@@ -82,6 +93,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   )
 
   const alertDialog = useAlertDialogStore()
+
+  const form = useForm<DelReasonScheme>({
+    resolver: zodResolver(delReasonScheme),
+    defaultValues: {
+      reason: '',
+    },
+  })
 
   const onEditClick = useCallback(
     (e: MouseEvent) => {
@@ -97,12 +115,18 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     async (e: MouseEvent) => {
       try {
         e.preventDefault()
+        if (!authStore.isMySelf(article.authorId)) {
+          setAlertOpen(true)
+          return
+        }
+
         const confirmed = await alertDialog.confirm(
           '确认',
           '确定删除帖子？删除后无法撤销',
           'danger'
         )
-        console.log('confirmed: ', confirmed)
+
+        /* console.log('confirmed: ', confirmed) */
         if (confirmed) {
           const resp = await deleteArticle(article.id)
           if (!resp.code) {
@@ -117,10 +141,27 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     [article, navigate]
   )
 
-  /* console.log(
-   *   "authStore.permit('article', 'delete_others')",
-   *   authStore.permit('article', 'delete_others')
-   * ) */
+  const onDelConfirmCancel = useCallback(() => {
+    form.reset({ reason: '' })
+    setAlertOpen(false)
+  }, [form])
+
+  const onDelConfirmClick = useCallback(
+    async ({ reason }: DelReasonScheme) => {
+      try {
+        const resp = await deleteArticle(article.id, reason)
+        if (!resp.code) {
+          /* navigate(-1) */
+          form.reset({ reason: '' })
+          setAlertOpen(false)
+          onSuccess('delete')
+        }
+      } catch (err) {
+        console.error('confirm delete error: ', err)
+      }
+    },
+    [article, navigate, form]
+  )
 
   return (
     <div id={'comment' + article.id} {...props}>
@@ -248,6 +289,49 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           />
         )}
       </Card>
+
+      <AlertDialog
+        defaultOpen={false}
+        open={alertOpen}
+        onOpenChange={setAlertOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认</AlertDialogTitle>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onDelConfirmClick)}>
+                <FormField
+                  control={form.control}
+                  name="reason"
+                  render={({ field, fieldState }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="请输入删除原因"
+                          state={fieldState.invalid ? 'invalid' : 'default'}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                ></FormField>
+              </form>
+            </Form>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={onDelConfirmCancel}>
+              取消
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={form.handleSubmit(onDelConfirmClick)}
+              className="bg-red-600 hover:bg-red-500"
+            >
+              确认
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

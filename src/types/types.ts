@@ -94,6 +94,7 @@ export interface Article {
   fadeOut: boolean
   replyRootArticleId: string
   replyRootArticleTitle: string
+  delLog: Activity
 }
 
 export interface ArticleListResponse {
@@ -207,6 +208,7 @@ export type ArticleListType =
   | 'reply'
   | 'subscribed'
   | 'vote_up'
+  | 'deleted'
 
 export type VoteType = 'up' | 'down'
 
@@ -225,7 +227,8 @@ export interface Activity {
   createdAt: string
   ipAddr: string
   deviceInfo: string
-  details: string
+  // eslint-disable-next-line
+  details: any
   formattedText: string
 }
 

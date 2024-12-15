@@ -57,7 +57,7 @@ export const ActivityList: React.FC<ActivityListProps> = ({
                 <b>提交数据：</b>
               </div>
               <pre className="flex-grow align-top py-1 whitespace-break-spaces">
-                {item.details}
+                {JSON.stringify(item.details)}
               </pre>
             </div>
           </div>

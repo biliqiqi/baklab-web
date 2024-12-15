@@ -128,7 +128,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
         /* console.log('confirmed: ', confirmed) */
         if (confirmed) {
-          const resp = await deleteArticle(article.id)
+          const resp = await deleteArticle(article.id, authStore.username)
           if (!resp.code) {
             /* navigate(-1) */
             onSuccess('delete')
@@ -149,7 +149,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   const onDelConfirmClick = useCallback(
     async ({ reason }: DelReasonScheme) => {
       try {
-        const resp = await deleteArticle(article.id, reason)
+        const resp = await deleteArticle(article.id, authStore.username, reason)
         if (!resp.code) {
           /* navigate(-1) */
           form.reset({ reason: '' })
@@ -161,6 +161,12 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
       }
     },
     [article, navigate, form]
+  )
+
+  console.log('isMyself', isMyself)
+  console.log(
+    "permit('article', 'delete_mine')",
+    permit('article', 'delete_mine')
   )
 
   return (
@@ -299,7 +305,10 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           <AlertDialogHeader>
             <AlertDialogTitle>确认</AlertDialogTitle>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onDelConfirmClick)}>
+              <form
+                onSubmit={form.handleSubmit(onDelConfirmClick)}
+                className="py-4"
+              >
                 <FormField
                   control={form.control}
                   name="reason"

@@ -20,6 +20,7 @@ import NotFoundPage from './NotFoundPage.tsx'
 import SigninPage from './SigninPage.tsx'
 import SignupPage from './SignupPage.tsx'
 import SubmitPage from './SubmitPage.tsx'
+import TrashPage from './TrashPage.tsx'
 import UserPage from './UserPage.tsx'
 import { getCategoryList } from './api/main.ts'
 import { PermissionAction, PermissionModule } from './constants/types.ts'
@@ -123,6 +124,10 @@ const routes: RouteObject[] = [
         path: 'activities',
         Component: ActivityPage,
         loader: needPermission('activity', 'access'),
+      },
+      {
+        path: 'trash',
+        Component: TrashPage,
       },
     ],
   },

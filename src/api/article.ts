@@ -133,8 +133,13 @@ export const getArticle = (
   )
 }
 
-export const deleteArticle = (id: string, reason?: string) => {
+export const deleteArticle = (
+  id: string,
+  deletedBy: string, // 删除者用户名
+  reason?: string
+) => {
   const params = new URLSearchParams()
+  params.set('deleted_by', deletedBy)
   if (reason) {
     params.set('reason', reason)
   }

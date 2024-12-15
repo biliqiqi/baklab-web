@@ -32,7 +32,7 @@ import {
   UserData,
 } from './types/types'
 
-type UserTab = ArticleListType | 'activity'
+type UserTab = Exclude<ArticleListType, 'deleted'> | 'activity'
 
 type UserTabMap = {
   [key in UserTab]: string

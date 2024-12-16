@@ -1,5 +1,5 @@
 import { Router } from '@remix-run/router'
-import { Children, useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   RouteObject,
   RouterProvider,
@@ -26,7 +26,7 @@ import { getCategoryList } from './api/main.ts'
 import { PermissionAction, PermissionModule } from './constants/types.ts'
 import { useAuth } from './hooks/use-auth.ts'
 import { toSync } from './lib/fire-and-forget.ts'
-import { refreshAuthState } from './lib/request.ts'
+import { refreshAuthState, refreshToken } from './lib/request.ts'
 import { noop } from './lib/utils.ts'
 import {
   isLogined,
@@ -163,8 +163,13 @@ const App = () => {
     }, [])
   )
 
+  const refreshTokenSync = toSync(refreshToken)
+
   useEffect(() => {
     fetchCateList()
+    window.onfocus = () => {
+      refreshTokenSync()
+    }
   }, [])
 
   useEffect(() => {

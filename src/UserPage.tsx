@@ -254,8 +254,12 @@ export default function UserPage() {
   }, [params])
 
   useEffect(() => {
-    if (authStore.isLogined() && authStore.username == username) {
+    if (
+      (authStore.isLogined() && authStore.username == username) ||
+      authStore.permit('user', 'manage')
+    ) {
       setTabs(() => [...defaultTabs, ...authedTabs])
+
       if (authStore.permit('user', 'access_activity')) {
         setTabs((state) => [...state, 'activity'])
       }

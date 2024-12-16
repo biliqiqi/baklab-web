@@ -221,7 +221,7 @@ request.delete = <T = any>(
 ): Promise<T> => request(url, { method: 'delete', ...kyOptions }, custom)
 
 // 避免循环引用，refreshToken 放在 request.ts 里面
-export const refresToken = async () =>
+export const refreshToken = async () =>
   request.get<ResponseData<AuthedDataResponse>>(`refresh_token`, {
     credentials: 'include',
     retry: 0,
@@ -229,7 +229,7 @@ export const refresToken = async () =>
 
 export const refreshAuthState = async () => {
   try {
-    const { data, code } = await refresToken()
+    const { data, code } = await refreshToken()
     if (!code) {
       const state = useAuthedUserStore.getState()
       state.update(data.token, data.username, data.userID, data.role as Role)

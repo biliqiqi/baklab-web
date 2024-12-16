@@ -163,11 +163,11 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     [article, navigate, form]
   )
 
-  console.log('isMyself', isMyself)
-  console.log(
-    "permit('article', 'delete_mine')",
-    permit('article', 'delete_mine')
-  )
+  /* console.log('isMyself', isMyself)
+   * console.log(
+   *   "permit('article', 'delete_mine')",
+   *   permit('article', 'delete_mine')
+   * ) */
 
   return (
     <div id={'comment' + article.id} {...props}>

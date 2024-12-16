@@ -74,7 +74,8 @@ export const getArticleList = (
   sort?: ArticleListSort | null,
   categoryFrontID?: string,
   username?: string,
-  listType?: ArticleListType
+  listType?: ArticleListType,
+  keywords?: string
 ): Promise<ResponseData<ArticleListResponse>> => {
   const params = new URLSearchParams()
 
@@ -100,6 +101,10 @@ export const getArticleList = (
 
   if (listType) {
     params.set('type', listType)
+  }
+
+  if (keywords) {
+    params.set('keywords', keywords)
   }
 
   return authRequest.get(`articles`, {

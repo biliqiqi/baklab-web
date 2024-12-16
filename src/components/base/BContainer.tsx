@@ -280,17 +280,18 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                   <SidebarGroupContent>
                     <SidebarMenu>
                       {cateList.map((item) => (
-                        <SidebarMenuItem key={item.id}>
+                        <SidebarMenuItem key={item.frontId}>
                           <SidebarMenuButton
                             asChild
                             isActive={
-                              location.pathname == '/categories/' + item.id ||
-                              category?.frontId == item.id
+                              location.pathname ==
+                                '/categories/' + item.frontId ||
+                              category?.frontId == item.frontId
                             }
                           >
-                            <Link to={'/categories/' + item.id}>
+                            <Link to={'/categories/' + item.frontId}>
                               <BIconColorChar
-                                id={item.id}
+                                id={item.frontId}
                                 char={item.name}
                                 size={32}
                               />

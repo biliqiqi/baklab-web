@@ -21,6 +21,7 @@ import BLoader from './components/base/BLoader'
 
 import ArticleControls from './components/ArticleControls'
 import { Empty } from './components/Empty'
+import { ListPagination } from './components/ListPagination'
 
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 
@@ -231,46 +232,7 @@ export default function ArticleListPage() {
         )}
       </div>
 
-      {pageState.totalPage > 1 && (
-        <Card>
-          <Pagination className="py-1">
-            <PaginationContent>
-              {pageState.currPage > 1 && (
-                <PaginationItem>
-                  <PaginationPrevious
-                    to={'?page=' + (pageState.currPage - 1)}
-                  />
-                </PaginationItem>
-              )}
-              {/* <PaginationItem>
-            <PaginationLink href="/?page=1">1</PaginationLink>
-          </PaginationItem>
-          <PaginationItem>
-            <PaginationLink href="/?page=2">2</PaginationLink>
-          </PaginationItem> */}
-              <PaginationItem>
-                <PaginationLink to={'?page=' + pageState.currPage} isActive>
-                  {pageState.currPage}
-                </PaginationLink>
-              </PaginationItem>
-              {/* <PaginationItem>
-            <PaginationEllipsis />
-          </PaginationItem>
-          <PaginationItem>
-            <PaginationLink href="/?page=99">99</PaginationLink>
-          </PaginationItem>
-          <PaginationItem>
-            <PaginationLink href="/?page=100">100</PaginationLink>
-          </PaginationItem> */}
-              {pageState.currPage < pageState.totalPage && (
-                <PaginationItem>
-                  <PaginationNext to={'?page=' + (pageState.currPage + 1)} />
-                </PaginationItem>
-              )}
-            </PaginationContent>
-          </Pagination>
-        </Card>
-      )}
+      {pageState.totalPage > 1 && <ListPagination pageState={pageState} />}
     </BContainer>
   )
 }

@@ -236,7 +236,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             <span className="whitespace-nowrap">
               <Link to={'/categories/' + article.category.frontId}>
                 <BIconColorChar
-                  id={article.categoryFrontId}
+                  iconId={article.categoryFrontId}
                   char={article.category.name}
                   size={20}
                   fontSize={12}

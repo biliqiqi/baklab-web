@@ -1,32 +1,36 @@
 import React from 'react'
 
-import { cn, idIcon } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
+import BIconColorChar from './BIconColorChar'
 
-export interface BAvatarProps extends React.HTMLAttributes<HTMLSpanElement> {
+export interface BAvatarProps extends React.HTMLAttributes<SVGSVGElement> {
   username: string
   size?: number
+  fontSize?: number
 }
 
-const BAvatar = React.forwardRef<HTMLSpanElement, BAvatarProps>(
-  ({ username, className, size = 40, ...props }, ref) => {
-    return (
-      <Avatar
-        className={cn('inline-block align-middle', className)}
-        title={username}
-        ref={ref}
+const BAvatar: React.FC<BAvatarProps> = ({
+  username,
+  size,
+  className,
+  ...props
+}) => {
+  return (
+    <span
+      className={cn(
+        `inline-block align-middle overflow-hidden w-[${size}px] h-[${size}px]`,
+        className
+      )}
+    >
+      <BIconColorChar
+        iconId={username}
+        char={username}
+        size={size}
         {...props}
-        style={{
-          width: size + 'px',
-          height: size + 'px',
-        }}
-      >
-        <AvatarImage src={idIcon(username)} />
-        <AvatarFallback>{username}</AvatarFallback>
-      </Avatar>
-    )
-  }
-)
+      />
+    </span>
+  )
+}
 
 export default BAvatar

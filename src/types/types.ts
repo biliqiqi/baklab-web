@@ -245,3 +245,11 @@ export interface ActivityListResponse {
   totalPage: number
   acActionOptions: OptionItem[]
 }
+
+export interface UserListResponse {
+  list: UserData[] | null
+  total: number
+  page: number
+  pageSize: number
+  totalPage: number
+}

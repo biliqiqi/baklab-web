@@ -291,7 +291,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                           >
                             <Link to={'/categories/' + item.frontId}>
                               <BIconColorChar
-                                id={item.frontId}
+                                iconId={item.frontId}
                                 char={item.name}
                                 size={32}
                               />

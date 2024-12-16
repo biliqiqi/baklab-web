@@ -2,6 +2,7 @@ import { ChevronLeftIcon, GripIcon, Loader, MenuIcon } from 'lucide-react'
 import React, { MouseEvent, useCallback, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import stc from 'string-to-color'
 
 import { cn } from '@/lib/utils'
 
@@ -82,9 +83,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
       }
     }, [authState, loading, navigate])
 
-    /* console.log('goback: ', goBack) */
-
-    /* console.log('sidebar open in nav: ', sidebar.open) */
+    /* console.log('username color: ', stc(authState.username)) */
 
     return (
       <div
@@ -154,7 +153,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
           <Button
             variant="ghost"
             size="sm"
-            className="rounded-full mr-2"
+            className="w-[36px] h-[36px] p-0 rounded-full mr-2"
             onClick={() => {
               if (onGripClick && typeof onGripClick == 'function') {
                 onGripClick()
@@ -166,10 +165,16 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
           {isLogined(authState) ? (
             <DropdownMenu onOpenChange={onDropdownChange}>
               <DropdownMenuTrigger asChild>
-                <BAvatar
-                  username={authState.username}
-                  className="cursor-pointer"
-                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-[36px] h-[36px] p-0 rounded-full"
+                >
+                  <BAvatar
+                    username={authState.username}
+                    className="cursor-pointer"
+                  />
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="px-0" align="end" sideOffset={8}>
                 <DropdownMenuItem

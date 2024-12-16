@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 
 import { Card } from './components/ui/card'
@@ -38,7 +38,7 @@ type UserTabMap = {
   [key in UserTab]: string
 }
 
-const TabMapData: UserTabMap = {
+const tabMapData: UserTabMap = {
   all: '全部',
   reply: '回复',
   article: '帖子',
@@ -50,6 +50,17 @@ const TabMapData: UserTabMap = {
 
 const defaultTabs: UserTab[] = ['all', 'article', 'reply']
 const authedTabs: UserTab[] = ['saved', 'vote_up', 'subscribed']
+
+type ActivityTab = 'all' | 'manage'
+type ActivityTabMap = {
+  [key in ActivityTab]: string
+}
+
+const activitySubTabs: ActivityTab[] = ['all', 'manage']
+const activityTabMap: ActivityTabMap = {
+  all: '全部',
+  manage: '管理',
+}
 
 interface ArticleListProps {
   list: Article[]
@@ -117,7 +128,15 @@ export default function UserPage() {
   const [params, setParams] = useSearchParams()
   const { username } = useParams()
 
+  const managePermitted = useMemo(() => {
+    if (user) {
+      return user.permissions.some((item) => item.frontId == 'manage.access')
+    }
+    return false
+  }, [user])
+
   const tab = (params.get('tab') as UserTab | null) || 'all'
+  const actType = (params.get('act_type') as ActivityTab | null) || 'all'
 
   const fetchUserData = toSync(
     useCallback(
@@ -200,7 +219,7 @@ export default function UserPage() {
             const resp = await getActivityList(
               '',
               username,
-              undefined,
+              actType == 'all' ? undefined : actType,
               '',
               page,
               pageSize
@@ -241,6 +260,14 @@ export default function UserPage() {
     setParams((prevParams) => {
       prevParams.delete('page')
       prevParams.set('tab', tab)
+      return prevParams
+    })
+  }
+
+  const onActTabChange = (tab: string) => {
+    setParams((prevParams) => {
+      prevParams.delete('page')
+      prevParams.set('act_type', tab)
       return prevParams
     })
   }
@@ -294,11 +321,28 @@ export default function UserPage() {
               <TabsList className="overflow-x-auto overflow-y-hidden max-w-full">
                 {tabs.map((item) => (
                   <TabsTrigger value={item} key={item}>
-                    {TabMapData[item]}
+                    {tabMapData[item]}
                   </TabsTrigger>
                 ))}
               </TabsList>
             </Tabs>
+
+            {tab == 'activity' && managePermitted && (
+              <Tabs
+                defaultValue="all"
+                value={actType}
+                onValueChange={onActTabChange}
+                className="mt-4"
+              >
+                <TabsList className="overflow-x-auto overflow-y-hidden max-w-full">
+                  {activitySubTabs.map((item) => (
+                    <TabsTrigger value={item} key={item}>
+                      {activityTabMap[item]}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            )}
           </>
         )}
 

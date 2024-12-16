@@ -173,6 +173,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                   <BAvatar
                     username={authState.username}
                     className="cursor-pointer"
+                    size={32}
                   />
                 </Button>
               </DropdownMenuTrigger>

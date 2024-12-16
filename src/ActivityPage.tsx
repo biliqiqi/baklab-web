@@ -50,19 +50,23 @@ export default function ActivityPage() {
     totalCount: 0,
     totalPage: 0,
   })
-  const [searchData, setSearchData] = useState<SearchFields>({
-    ...defaultSearchData,
-  })
   const usernameRef = useRef<HTMLInputElement | null>(null)
   const [params, setParams] = useSearchParams()
   const location = useLocation()
+
+  const [searchData, setSearchData] = useState<SearchFields>({
+    ...defaultSearchData,
+    username: params.get('username') || '',
+    actType: (params.get('actType') as ActivityActionType) || '',
+    action: params.get('action') || '',
+  })
 
   const resetParams = useCallback(() => {
     setParams((params) => {
       params.delete('page')
       params.delete('pageSize')
       params.delete('username')
-      params.delete('actionType')
+      params.delete('act_type')
       params.delete('action')
       return params
     })

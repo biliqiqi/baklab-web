@@ -66,12 +66,25 @@ export default function TrashPage() {
     totalCount: 0,
     totalPage: 0,
   })
-  const [searchData, setSearchData] = useState<SearchFields>({
-    ...defaultSearchData,
-  })
 
   const location = useLocation()
   const [params, setParams] = useSearchParams()
+  const [searchData, setSearchData] = useState<SearchFields>({
+    ...defaultSearchData,
+    keywords: params.get('keywords') || '',
+    category: params.get('category') || '',
+  })
+
+  const resetParams = useCallback(() => {
+    setParams((params) => {
+      params.delete('page')
+      params.delete('pageSize')
+      params.delete('keywords')
+      params.delete('category')
+      return params
+    })
+  }, [params])
+
   const cateStore = useCategoryStore()
   const alertDialog = useAlertDialogStore()
 
@@ -136,16 +149,6 @@ export default function TrashPage() {
       [params]
     )
   )
-
-  const resetParams = useCallback(() => {
-    setParams((params) => {
-      params.delete('page')
-      params.delete('pageSize')
-      params.delete('keywords')
-      params.delete('category')
-      return params
-    })
-  }, [params])
 
   const onResetClick = useCallback(() => {
     setSearchData({ ...defaultSearchData })

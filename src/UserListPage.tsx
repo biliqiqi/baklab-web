@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
@@ -40,15 +40,19 @@ export default function UserListPage() {
   const [loading, setLoading] = useState(false)
   const [list, setList] = useState<UserData[]>([])
   const [params, setParams] = useSearchParams()
-  const [searchData, setSearchData] = useState<SearchFields>({
-    ...defaultSearchData,
-  })
+  const location = useLocation()
 
   const [pageState, setPageState] = useState<ListPageState>({
     currPage: 1,
     pageSize: DEFAULT_PAGE_SIZE,
     totalCount: 0,
     totalPage: 0,
+  })
+
+  const [searchData, setSearchData] = useState<SearchFields>({
+    ...defaultSearchData,
+    keywords: params.get('keywords') || '',
+    role: params.get('role') || '',
   })
 
   const resetParams = useCallback(() => {
@@ -127,7 +131,7 @@ export default function UserListPage() {
 
   useEffect(() => {
     fetchUserList(true)
-  }, [params])
+  }, [location])
 
   return (
     <BContainer

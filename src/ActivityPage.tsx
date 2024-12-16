@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
@@ -55,6 +55,18 @@ export default function ActivityPage() {
   })
   const usernameRef = useRef<HTMLInputElement | null>(null)
   const [params, setParams] = useSearchParams()
+  const location = useLocation()
+
+  const resetParams = useCallback(() => {
+    setParams((params) => {
+      params.delete('page')
+      params.delete('pageSize')
+      params.delete('username')
+      params.delete('actionType')
+      params.delete('action')
+      return params
+    })
+  }, [params])
 
   const fetchList = toSync(
     useCallback(
@@ -112,15 +124,11 @@ export default function ActivityPage() {
 
   const onResetClick = useCallback(() => {
     setSearchData({ ...defaultSearchData })
-    setParams((params) => {
-      params.delete('username')
-      params.delete('act_type')
-      params.delete('action')
-      return params
-    })
+    resetParams()
   }, [params])
 
   const onSearchClick = useCallback(() => {
+    resetParams()
     setParams((params) => {
       const { username, actType, action } = searchData
       if (username) {
@@ -140,7 +148,7 @@ export default function ActivityPage() {
 
   useEffect(() => {
     fetchList(true)
-  }, [params])
+  }, [location])
 
   return (
     <BContainer
@@ -151,68 +159,72 @@ export default function ActivityPage() {
         describe: '站点成员活动记录',
       }}
     >
-      <Card className="flex flex-wrap p-2">
-        <Input
-          placeholder="用户名"
-          className="w-[140px] h-[36px] mr-3"
-          ref={usernameRef}
-          value={searchData.username}
-          onChange={() =>
-            setSearchData((state) => ({
-              ...state,
-              username: usernameRef.current?.value || '',
-            }))
-          }
-        />
-        <Select
-          value={searchData.actType}
-          onValueChange={(actType) =>
-            setSearchData((state) => ({ ...state, actType }))
-          }
-        >
-          <SelectTrigger
-            className={cn(
-              'w-[140px] h-[36px] mr-3 bg-white',
-              !searchData.actType && 'text-gray-500'
-            )}
+      <Card className="flex flex-wrap justify-between p-2">
+        <div className="flex flex-wrap">
+          <Input
+            placeholder="用户名"
+            className="w-[140px] h-[36px] mr-3"
+            ref={usernameRef}
+            value={searchData.username}
+            onChange={() =>
+              setSearchData((state) => ({
+                ...state,
+                username: usernameRef.current?.value || '',
+              }))
+            }
+          />
+          <Select
+            value={searchData.actType}
+            onValueChange={(actType) =>
+              setSearchData((state) => ({ ...state, actType }))
+            }
           >
-            <SelectValue placeholder="操作类别" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="user">普通用户</SelectItem>
-            <SelectItem value="manage">管理</SelectItem>
-            <SelectItem value="anonymous">匿名</SelectItem>
-            <SelectItem value="dev">开发</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select
-          value={searchData.action}
-          onValueChange={(action) =>
-            setSearchData((state) => ({ ...state, action }))
-          }
-        >
-          <SelectTrigger
-            className={cn(
-              'w-[140px] h-[36px] mr-3 bg-white',
-              !searchData.action && 'text-gray-500'
-            )}
+            <SelectTrigger
+              className={cn(
+                'w-[140px] h-[36px] mr-3 bg-white',
+                !searchData.actType && 'text-gray-500'
+              )}
+            >
+              <SelectValue placeholder="操作类别" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="user">普通用户</SelectItem>
+              <SelectItem value="manage">管理</SelectItem>
+              <SelectItem value="anonymous">匿名</SelectItem>
+              <SelectItem value="dev">开发</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
+            value={searchData.action}
+            onValueChange={(action) =>
+              setSearchData((state) => ({ ...state, action }))
+            }
           >
-            <SelectValue placeholder="操作名称" />
-          </SelectTrigger>
-          <SelectContent>
-            {actionList.map((item) => (
-              <SelectItem value={item.value} key={item.value}>
-                {item.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button size="sm" onClick={onResetClick} className="mr-3">
-          重置
-        </Button>
-        <Button size="sm" onClick={onSearchClick}>
-          搜索
-        </Button>
+            <SelectTrigger
+              className={cn(
+                'w-[140px] h-[36px] mr-3 bg-white',
+                !searchData.action && 'text-gray-500'
+              )}
+            >
+              <SelectValue placeholder="操作名称" />
+            </SelectTrigger>
+            <SelectContent>
+              {actionList.map((item) => (
+                <SelectItem value={item.value} key={item.value}>
+                  {item.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Button size="sm" onClick={onResetClick} className="mr-3">
+            重置
+          </Button>
+          <Button size="sm" onClick={onSearchClick}>
+            搜索
+          </Button>
+        </div>
       </Card>
       {loading ? (
         <div className="flex justify-center py-4">

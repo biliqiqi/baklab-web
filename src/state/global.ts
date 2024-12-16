@@ -160,10 +160,14 @@ export interface AlertDialogState {
   cancelBtnText: string
   confirmed: boolean
   confirmType: AlertConfirmType
-  setOpen: (x: boolean) => void
-  setConfirm: (x: boolean) => void
-  alert: (x: string, y?: string) => void
-  confirm: (x: string, y?: string, z?: AlertConfirmType) => Promise<boolean>
+  setOpen: (open: boolean) => void
+  setConfirm: (confirm: boolean) => void
+  alert: (title: string, description?: string) => void
+  confirm: (
+    title: string,
+    description?: string,
+    confirmType?: AlertConfirmType
+  ) => Promise<boolean>
   setState: (fn: (x: AlertDialogState) => AlertDialogState) => void
 }
 

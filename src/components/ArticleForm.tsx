@@ -80,7 +80,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
 
   const cateMap: CategoryMap = useMemo(() => {
     return cateList.reduce((obj: CategoryMap, item) => {
-      obj[item.id] = item.name
+      obj[item.frontId] = item.name
       return obj
     }, {})
   }, [cateList])
@@ -227,7 +227,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                               {categoryVal()
                                 ? '发布到【' +
                                   cateList.find(
-                                    (cate) => cate.id === categoryVal()
+                                    (cate) => cate.frontId === categoryVal()
                                   )?.name +
                                   '】'
                                 : '发布到...'}
@@ -246,8 +246,8 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                                 <CommandGroup>
                                   {cateList.map((cate) => (
                                     <CommandItem
-                                      key={cate.id}
-                                      value={cate.id}
+                                      key={cate.frontId}
+                                      value={cate.frontId}
                                       onSelect={(currentValue) => {
                                         form.setValue(
                                           'category',

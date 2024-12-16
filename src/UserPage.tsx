@@ -239,7 +239,7 @@ export default function UserPage() {
 
   const onTabChange = (tab: string) => {
     setParams((prevParams) => {
-      prevParams.set('page', '1')
+      prevParams.delete('page')
       prevParams.set('tab', tab)
       return prevParams
     })

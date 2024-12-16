@@ -75,7 +75,8 @@ export const getArticleList = (
   categoryFrontID?: string,
   username?: string,
   listType?: ArticleListType,
-  keywords?: string
+  keywords?: string,
+  deleted?: boolean
 ): Promise<ResponseData<ArticleListResponse>> => {
   const params = new URLSearchParams()
 
@@ -105,6 +106,10 @@ export const getArticleList = (
 
   if (keywords) {
     params.set('keywords', keywords)
+  }
+
+  if (deleted) {
+    params.set('deleted', '1')
   }
 
   return authRequest.get(`articles`, {
@@ -172,3 +177,6 @@ export const toggleSubscribeArticle = (id: string) =>
   authRequest.post<ResponseData<ArticleResponse>>(
     `articles/${id}/toggle_subscribe`
   )
+
+export const recoverArticle = (id: string) =>
+  authRequest.patch<ResponseData<ArticleResponse>>(`articles/${id}/recover`)

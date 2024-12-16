@@ -134,7 +134,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             {/* <ThumbsUp size={20} className="inline-block mr-1" /> */}
             <BIconTriangleUp
               size={28}
-              variant={userState.voteType == 'up' ? 'full' : 'default'}
+              variant={userState?.voteType == 'up' ? 'full' : 'default'}
             />
             {article.voteUp > 0 && article.voteUp}
           </Button>
@@ -149,7 +149,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           >
             <BIconTriangleDown
               size={28}
-              variant={userState.voteType == 'down' ? 'full' : 'default'}
+              variant={userState?.voteType == 'down' ? 'full' : 'default'}
             />
             {article.voteDown > 0 && article.voteDown}
           </Button>

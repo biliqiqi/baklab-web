@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
@@ -11,19 +11,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from './components/ui/select'
+import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 
 import BContainer from './components/base/BContainer'
+import BLoader from './components/base/BLoader'
 
 import ArticleControls from './components/ArticleControls'
+import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 
-import { getArticleList } from './api/article'
+import { getArticleList, recoverArticle } from './api/article'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { cn } from './lib/utils'
-import { useCategoryStore } from './state/global'
-import { Article, ArticleListSort, ListPageState } from './types/types'
+import { useAlertDialogStore, useCategoryStore } from './state/global'
+import {
+  Article,
+  ArticleListSort,
+  ArticleListType,
+  ListPageState,
+} from './types/types'
 
 interface SearchFields {
   keywords?: string
@@ -34,6 +42,20 @@ const defaultSearchData: SearchFields = {
   keywords: '',
   category: '',
 }
+
+type ArticleTab = 'all' | 'article' | 'reply'
+
+type UserTabMap = {
+  [key in ArticleTab]: string
+}
+
+const TabMapData: UserTabMap = {
+  all: '全部',
+  reply: '回复',
+  article: '帖子',
+}
+
+const defaultTabs: ArticleTab[] = ['all', 'article', 'reply']
 
 export default function TrashPage() {
   const [loadingList, setLoadingList] = useState(true)
@@ -48,8 +70,12 @@ export default function TrashPage() {
     ...defaultSearchData,
   })
 
+  const location = useLocation()
   const [params, setParams] = useSearchParams()
   const cateStore = useCategoryStore()
+  const alertDialog = useAlertDialogStore()
+
+  let tab = (params.get('tab') as ArticleTab | null) || 'all'
 
   const fetchList = toSync(
     useCallback(
@@ -62,6 +88,10 @@ export default function TrashPage() {
           const keywords = params.get('keywords') || ''
           const category = params.get('category') || ''
 
+          if (!defaultTabs.includes(tab)) {
+            tab = 'all'
+          }
+
           if (showLoading) {
             setLoadingList(true)
           }
@@ -72,8 +102,9 @@ export default function TrashPage() {
             sort,
             category,
             '',
-            'deleted',
-            keywords
+            tab,
+            keywords,
+            true
           )
 
           if (!resp.code) {
@@ -137,9 +168,35 @@ export default function TrashPage() {
     })
   }, [params, searchData])
 
+  const onRecoverClick = async (id: string, title: string) => {
+    try {
+      const confirmed = await alertDialog.confirm(
+        '确认',
+        `确认恢复《${title}》？`,
+        'normal'
+      )
+      if (!confirmed) return
+
+      const resp = await recoverArticle(id)
+      if (!resp.code) {
+        fetchList(false)
+      }
+    } catch (err) {
+      console.error('recover article error: ', err)
+    }
+  }
+
+  const onTabChange = (tab: string) => {
+    setParams((prevParams) => {
+      prevParams.delete('page')
+      prevParams.set('tab', tab)
+      return prevParams
+    })
+  }
+
   useEffect(() => {
     fetchList(true)
-  }, [params])
+  }, [location])
 
   return (
     <BContainer
@@ -151,7 +208,7 @@ export default function TrashPage() {
       }}
     >
       <Card
-        className="flex flex-wrap justify-between p-2"
+        className="flex flex-wrap justify-between p-2 mb-3"
         onKeyUp={(e) => {
           if (e.ctrlKey && e.key == 'Enter') {
             onSearchClick()
@@ -202,48 +259,85 @@ export default function TrashPage() {
           </Button>
         </div>
       </Card>
-      {list.map((item) => (
-        <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
-          <div className="mb-3">
-            <div className="mb-1">
-              <Link className="mr-2" to={'/articles/' + item.id}>
-                {item.displayTitle}
-              </Link>
-            </div>
-            {item.replyToId != '0' && (
-              <div className="max-h-5 mb-1 overflow-hidden text-sm text-gray-600 text-nowrap text-ellipsis">
-                {item.content}
+
+      <Tabs
+        defaultValue="oldest"
+        value={tab}
+        onValueChange={onTabChange}
+        className="mb-4"
+      >
+        <TabsList className="overflow-x-auto overflow-y-hidden max-w-full">
+          {defaultTabs.map((item) => (
+            <TabsTrigger value={item} key={item}>
+              {TabMapData[item]}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+
+      {loadingList && (
+        <div className="flex justify-center py-4">
+          <BLoader />
+        </div>
+      )}
+
+      {pageState.totalCount == 0 ? (
+        <Empty />
+      ) : (
+        list.map((item) => (
+          <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
+            <div className="mb-3">
+              <div className="mb-1">
+                <Link className="mr-2" to={'/articles/' + item.id}>
+                  {item.displayTitle}
+                </Link>
               </div>
-            )}
-          </div>
-          <ArticleControls
-            upVote={false}
-            bookmark={false}
-            notify={false}
-            article={item}
-            ctype="list"
-          />
-          <div className="p-2 bg-gray-200 text-sm">
-            {item.delLog.details && (
-              <>
-                由&nbsp;
-                <Link
-                  to={'/users/' + item.delLog.details['deleted_by']}
-                  className="text-primary"
-                >
-                  {item.delLog.details['deleted_by']}
-                </Link>{' '}
-                删除于 {timeFmt(item.delLog.createdAt, 'YYYY-M-D h:m:s')}
-                {item.delLog.type == 'manage' && (
-                  <div className="mt-2">
-                    原因：{item.delLog.details['reason']}
-                  </div>
+              {item.replyToId != '0' && (
+                <div className="max-h-5 mb-1 overflow-hidden text-sm text-gray-600 text-nowrap text-ellipsis">
+                  {item.content}
+                </div>
+              )}
+            </div>
+            <ArticleControls
+              upVote={false}
+              bookmark={false}
+              notify={false}
+              article={item}
+              ctype="list"
+            />
+            <div className="flex justify-between p-2 bg-gray-200 text-sm">
+              <div>
+                {item.delLog.details && (
+                  <>
+                    由&nbsp;
+                    <Link
+                      to={'/users/' + item.delLog.details['deleted_by']}
+                      className="text-primary"
+                    >
+                      {item.delLog.details['deleted_by']}
+                    </Link>{' '}
+                    删除于 {timeFmt(item.delLog.createdAt, 'YYYY-M-D h:m:s')}
+                    {item.delLog.type == 'manage' && (
+                      <div className="mt-2">
+                        原因：{item.delLog.details['reason']}
+                      </div>
+                    )}
+                  </>
                 )}
-              </>
-            )}
-          </div>
-        </Card>
-      ))}
+              </div>
+              <div>
+                <Button
+                  variant="outline"
+                  onClick={() => onRecoverClick(item.id, item.displayTitle)}
+                  size="sm"
+                >
+                  恢复
+                </Button>
+              </div>
+            </div>
+          </Card>
+        ))
+      )}
       <ListPagination pageState={pageState} />
     </BContainer>
   )

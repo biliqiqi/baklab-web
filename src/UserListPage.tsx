@@ -198,7 +198,10 @@ export default function UserListPage() {
       ) : (
         <div className="flex flex-wrap">
           {list.map((item) => (
-            <div className="w-[50%] flex-shrink-0 p-2" key={item.id}>
+            <div
+              className="w-[50%] flex-shrink-0 p-2 even:pr-0 odd:pl-0"
+              key={item.id}
+            >
               <Card className="p-3 hover:bg-slate-50">
                 <div className="flex">
                   <Link to={'/users/' + item.name}>

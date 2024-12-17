@@ -162,7 +162,7 @@ export interface Permission {
 }
 
 export interface UserData {
-  id: number
+  id: string
   name: string
   email: string
   registeredAt: string // ISO date string
@@ -216,6 +216,11 @@ export type ArticleAction = 'delete' | 'save' | 'subscribe' | VoteType
 
 export type ActivityActionType = 'user' | 'manage' | 'anonymous' | 'dev'
 
+export interface ActivityDetails {
+  // eslint-disable-next-line
+  [x: string]: any
+}
+
 export interface Activity {
   id: string
   userId: string
@@ -227,8 +232,7 @@ export interface Activity {
   createdAt: string
   ipAddr: string
   deviceInfo: string
-  // eslint-disable-next-line
-  details: any
+  details: ActivityDetails
   formattedText: string
 }
 
@@ -252,4 +256,8 @@ export interface UserListResponse {
   page: number
   pageSize: number
   totalPage: number
+}
+
+export interface UserSubmitResponse {
+  id: string
 }

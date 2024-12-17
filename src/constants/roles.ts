@@ -2,7 +2,7 @@ export const ROLE_LIST = ['common_user', 'banned_user', 'moderator', 'admin']
 
 export const ROLE_DATA = {
   common_user: {
-    name: 'Common User',
+    name: '普通用户',
     adapt_id: 'common_user',
     permissions: [
       'article.create',
@@ -17,12 +17,12 @@ export const ROLE_DATA = {
     ],
   },
   banned_user: {
-    name: 'Banned User',
+    name: '被禁用户',
     adapt_id: 'banned_user',
     permissions: null,
   },
   moderator: {
-    name: 'Moderator',
+    name: '版主',
     adapt_id: 'moderator',
     permissions: [
       'article.create',
@@ -43,13 +43,14 @@ export const ROLE_DATA = {
       'reply.edit_others',
       'reply.delete_others',
       'user.manage',
+      'user.access_activity',
       'user.update_role',
       'user.ban',
       'user.update_intro_others',
     ],
   },
   admin: {
-    name: 'Admin',
+    name: '管理员',
     adapt_id: 'admin',
     permissions: [
       'article.create',

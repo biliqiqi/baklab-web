@@ -7,14 +7,6 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Button } from './components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 import { Card } from '@/components/ui/card'
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination'
 
 import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'

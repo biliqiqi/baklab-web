@@ -1,7 +1,34 @@
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 
-import { Card } from './components/ui/card'
+import { z } from '@/lib/zod-custom'
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from './components/ui/alert-dialog'
+import { Badge } from './components/ui/badge'
+import { Button } from './components/ui/button'
+import { Card, CardTitle } from './components/ui/card'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from './components/ui/form'
+import { Input } from './components/ui/input'
+import { RadioGroup, RadioGroupItem } from './components/ui/radio-group'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 
 import BAvatar from './components/base/BAvatar'
@@ -15,12 +42,13 @@ import { ListPagination } from './components/ListPagination'
 
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 
-import { getActivityList } from './api'
 import { getArticleList } from './api/article'
-import { getUser } from './api/user'
+import { getUser, getUserActivityList, setUserRole } from './api/user'
+import { ROLE_DATA } from './constants/roles'
+import { Role } from './constants/types'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
-import { noop } from './lib/utils'
+import { cn, getPermissionName, getRoleName, noop } from './lib/utils'
 import { useAuthedUserStore, useNotFoundStore } from './state/global'
 import {
   Activity,
@@ -56,11 +84,27 @@ type ActivityTabMap = {
   [key in ActivityTab]: string
 }
 
+type EditableRole = 'common_user' | 'moderator' | 'admin'
+
 const activitySubTabs: ActivityTab[] = ['all', 'manage']
 const activityTabMap: ActivityTabMap = {
   all: '全部',
   manage: '管理',
 }
+
+const roleEditScheme = z.object({
+  roleFrontId: z.enum(['common_user', 'moderator', 'admin'], {
+    errorMap: () => ({ message: '请选择角色' }),
+  }),
+  remark: z.string(),
+})
+
+const defaultRoleEditData: RoleEditScheme = {
+  roleFrontId: 'common_user',
+  remark: '',
+}
+
+type RoleEditScheme = z.infer<typeof roleEditScheme>
 
 interface ArticleListProps {
   list: Article[]
@@ -120,6 +164,11 @@ export default function UserPage() {
     totalCount: 0,
     totalPage: 0,
   })
+  const [alertOpen, setAlertOpen] = useState(false)
+
+  const [editableRoles, setEditableRoles] = useState<EditableRole[]>([
+    'common_user',
+  ])
 
   const authStore = useAuthedUserStore()
 
@@ -127,6 +176,13 @@ export default function UserPage() {
 
   const [params, setParams] = useSearchParams()
   const { username } = useParams()
+
+  const form = useForm<RoleEditScheme>({
+    resolver: zodResolver(roleEditScheme),
+    defaultValues: {
+      ...defaultRoleEditData,
+    },
+  })
 
   const managePermitted = useMemo(() => {
     if (user) {
@@ -216,9 +272,9 @@ export default function UserPage() {
               }
             }
           } else {
-            const resp = await getActivityList(
-              '',
+            const resp = await getUserActivityList(
               username,
+              '',
               actType == 'all' ? undefined : actType,
               '',
               page,
@@ -272,6 +328,30 @@ export default function UserPage() {
     })
   }
 
+  const onChancelRoleUpdate = () => {
+    setAlertOpen(false)
+  }
+
+  const onUpdateRole = useCallback(
+    async ({ roleFrontId, remark }: RoleEditScheme) => {
+      try {
+        if (!username) return
+
+        const resp = await setUserRole(username, roleFrontId, remark)
+        if (!resp.code) {
+          /* const {data} */
+          form.reset({ ...defaultRoleEditData })
+          setAlertOpen(false)
+          toast.success('用户角色已更新')
+          fetchUserData(false)
+        }
+      } catch (err) {
+        console.error('confirm delete error: ', err)
+      }
+    },
+    [username, user, form]
+  )
+
   useEffect(() => {
     fetchUserData(true)
   }, [username])
@@ -291,6 +371,14 @@ export default function UserPage() {
         setTabs((state) => [...state, 'activity'])
       }
     }
+
+    if (authStore.permit('user', 'set_moderator')) {
+      setEditableRoles(['common_user', 'moderator'])
+    }
+
+    if (authStore.permit('user', 'set_admin')) {
+      setEditableRoles(['common_user', 'moderator', 'admin'])
+    }
   }, [authStore, username])
 
   return (
@@ -305,6 +393,60 @@ export default function UserPage() {
       >
         {!loading && user && (
           <>
+            {authStore.permit('user', 'manage') && (
+              <Card className="p-3 mb-4 rounded-0">
+                <CardTitle>用户管理</CardTitle>
+                <div className="space-y-4 mt-4">
+                  <div>
+                    <b>邮箱：</b>
+                    {user.email}
+                  </div>
+                  <div>
+                    <b>角色：</b>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        user.roleFrontId == 'banned_user'
+                          ? 'border-red-500'
+                          : '',
+                        'font-normal'
+                      )}
+                    >
+                      {getRoleName(user.roleFrontId as Role)}
+                    </Badge>
+                  </div>
+                  <div>
+                    <b>权限：</b>
+                    {user.permissions.map((item) => (
+                      <Badge
+                        variant="outline"
+                        className="mr-1 mb-1 font-normal"
+                        key={item.frontId}
+                      >
+                        {getPermissionName(item.frontId) || ''}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                <hr className="my-4" />
+                <div className="flex justify-between">
+                  <div></div>
+                  {!authStore.isMySelf(user.id) && (
+                    <div>
+                      <Button
+                        variant="outline"
+                        onClick={() => setAlertOpen(true)}
+                      >
+                        更新角色
+                      </Button>
+                      <Button variant="outline" className="ml-2">
+                        封禁
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            )}
             <Card className="p-3 mb-4">
               <div className="flex mb-4">
                 <BAvatar username={user.name} size={80} className="mr-4" />
@@ -362,6 +504,77 @@ export default function UserPage() {
             />
           )}
         </div>
+
+        <AlertDialog
+          defaultOpen={false}
+          open={alertOpen}
+          onOpenChange={setAlertOpen}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>更新角色</AlertDialogTitle>
+              <AlertDialogDescription>
+                将用户 {user?.name} 的角色更新为
+              </AlertDialogDescription>
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onUpdateRole)}
+                  className="py-4 space-y-8"
+                >
+                  <FormField
+                    control={form.control}
+                    name="roleFrontId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={user?.roleFrontId}
+                            className="flex space-x-4"
+                          >
+                            {editableRoles.map((item) => (
+                              <FormItem
+                                className="flex items-center space-x-3 space-y-0"
+                                key={item}
+                              >
+                                <FormControl>
+                                  <RadioGroupItem value={item} />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                  {ROLE_DATA[item].name}
+                                </FormLabel>
+                              </FormItem>
+                            ))}
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  ></FormField>
+                  <FormField
+                    control={form.control}
+                    name="remark"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input placeholder="备注" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  ></FormField>
+                </form>
+              </Form>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={onChancelRoleUpdate}>
+                取消
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={form.handleSubmit(onUpdateRole)}>
+                确认
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </BContainer>
     </>
   )

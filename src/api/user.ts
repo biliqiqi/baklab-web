@@ -3,10 +3,13 @@ import { Options } from 'ky'
 import { authRequest } from '@/lib/request'
 
 import {
+  ActivityActionType,
+  ActivityListResponse,
   CustomRequestOptions,
   ResponseData,
   UserData,
   UserListResponse,
+  UserSubmitResponse,
 } from '@/types/types'
 
 export const getUser = (
@@ -41,6 +44,55 @@ export const getUserList = (
   }
 
   return authRequest.get<ResponseData<UserListResponse>>(`users`, {
+    searchParams: params,
+  })
+}
+
+export const setUserRole = (
+  username: string,
+  roleFrontId: string,
+  remark?: string
+) =>
+  authRequest.patch<ResponseData<UserSubmitResponse>>(
+    `users/${username}/set_role`,
+    {
+      json: {
+        roleFrontId,
+        remark: remark || '',
+      },
+    }
+  )
+
+export const getUserActivityList = async (
+  username?: string,
+  userId?: string,
+  actType?: ActivityActionType,
+  action?: string,
+  page?: number,
+  pageSize?: number
+): Promise<ResponseData<ActivityListResponse>> => {
+  const params = new URLSearchParams()
+  if (userId) {
+    params.set('userId', userId)
+  }
+
+  if (actType) {
+    params.set('actType', actType)
+  }
+
+  if (action) {
+    params.set('action', action)
+  }
+
+  if (page) {
+    params.set('page', String(page))
+  }
+
+  if (pageSize) {
+    params.set('pageSize', String(pageSize))
+  }
+
+  return authRequest.get(`users/${username}/activities`, {
     searchParams: params,
   })
 }

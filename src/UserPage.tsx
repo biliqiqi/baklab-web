@@ -390,10 +390,10 @@ export default function UserPage() {
       setActSubTabs(['user', 'manage', 'all'])
     }
 
-    console.log(
-      'authStore.levelCompare(user.roleFrontId as Role)',
-      authStore.levelCompare(user?.roleFrontId as Role)
-    )
+    /* console.log(
+     *   'authStore.levelCompare(user.roleFrontId as Role)',
+     *   authStore.levelCompare(user?.roleFrontId as Role)
+     * ) */
   }, [authStore, username, user])
 
   return (

@@ -117,6 +117,11 @@ export const PERMISSION_DATA = {
       adapt_id: 'user.access_activity',
       enabled: false,
     },
+    access_manage_activity: {
+      name: '访问管理活动',
+      adapt_id: 'user.access_manage_activity',
+      enabled: false,
+    },
   },
   manage: {
     access: {

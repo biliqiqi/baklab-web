@@ -2,6 +2,7 @@ export const ROLE_LIST = ['common_user', 'banned_user', 'moderator', 'admin']
 
 export const ROLE_DATA = {
   common_user: {
+    level: 3,
     name: '普通用户',
     adapt_id: 'common_user',
     permissions: [
@@ -17,11 +18,13 @@ export const ROLE_DATA = {
     ],
   },
   banned_user: {
+    level: 4,
     name: '被禁用户',
     adapt_id: 'banned_user',
     permissions: null,
   },
   moderator: {
+    level: 2,
     name: '版主',
     adapt_id: 'moderator',
     permissions: [
@@ -50,6 +53,7 @@ export const ROLE_DATA = {
     ],
   },
   admin: {
+    level: 1,
     name: '管理员',
     adapt_id: 'admin',
     permissions: [
@@ -77,6 +81,7 @@ export const ROLE_DATA = {
       'user.list_access',
       'user.set_moderator',
       'user.access_activity',
+      'user.access_manage_activity',
       'manage.access',
       'permission.access',
       'role.access',

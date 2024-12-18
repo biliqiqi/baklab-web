@@ -79,17 +79,18 @@ const tabMapData: UserTabMap = {
 const defaultTabs: UserTab[] = ['all', 'article', 'reply']
 const authedTabs: UserTab[] = ['saved', 'vote_up', 'subscribed']
 
-type ActivityTab = 'all' | 'manage'
+type ActivityTab = 'all' | 'manage' | 'user'
 type ActivityTabMap = {
   [key in ActivityTab]: string
 }
 
 type EditableRole = 'common_user' | 'moderator' | 'admin'
 
-const activitySubTabs: ActivityTab[] = ['all', 'manage']
+const defaultActSubTabs: ActivityTab[] = ['user']
 const activityTabMap: ActivityTabMap = {
   all: '全部',
-  manage: '管理',
+  manage: '管理行为',
+  user: '用户行为',
 }
 
 const roleEditScheme = z.object({
@@ -170,6 +171,10 @@ export default function UserPage() {
     'common_user',
   ])
 
+  const [actSubTabs, setActSubTabs] = useState<ActivityTab[]>([
+    ...defaultActSubTabs,
+  ])
+
   const authStore = useAuthedUserStore()
 
   const { updateNotFound } = useNotFoundStore()
@@ -192,7 +197,7 @@ export default function UserPage() {
   }, [user])
 
   const tab = (params.get('tab') as UserTab | null) || 'all'
-  const actType = (params.get('act_type') as ActivityTab | null) || 'all'
+  const actType = (params.get('act_type') as ActivityTab | null) || 'user'
 
   const fetchUserData = toSync(
     useCallback(
@@ -292,6 +297,7 @@ export default function UserPage() {
                   category: undefined,
                 })
               } else {
+                updateActList([])
                 setPageState({
                   currPage: 1,
                   pageSize: data.pageSize,
@@ -379,7 +385,16 @@ export default function UserPage() {
     if (authStore.permit('user', 'set_admin')) {
       setEditableRoles(['common_user', 'moderator', 'admin'])
     }
-  }, [authStore, username])
+
+    if (authStore.permit('user', 'access_manage_activity')) {
+      setActSubTabs(['user', 'manage', 'all'])
+    }
+
+    console.log(
+      'authStore.levelCompare(user.roleFrontId as Role)',
+      authStore.levelCompare(user?.roleFrontId as Role)
+    )
+  }, [authStore, username, user])
 
   return (
     <>
@@ -415,23 +430,25 @@ export default function UserPage() {
                       {getRoleName(user.roleFrontId as Role)}
                     </Badge>
                   </div>
-                  <div>
-                    <b>权限：</b>
-                    {user.permissions.map((item) => (
-                      <Badge
-                        variant="outline"
-                        className="mr-1 mb-1 font-normal"
-                        key={item.frontId}
-                      >
-                        {getPermissionName(item.frontId) || ''}
-                      </Badge>
-                    ))}
-                  </div>
+                  {authStore.levelCompare(user.roleFrontId as Role) < 1 && (
+                    <div>
+                      <b>权限：</b>
+                      {user.permissions.map((item) => (
+                        <Badge
+                          variant="outline"
+                          className="mr-1 mb-1 font-normal"
+                          key={item.frontId}
+                        >
+                          {getPermissionName(item.frontId) || ''}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <hr className="my-4" />
                 <div className="flex justify-between">
                   <div></div>
-                  {!authStore.isMySelf(user.id) && (
+                  {authStore.levelCompare(user.roleFrontId as Role) < 0 && (
                     <div>
                       <Button
                         variant="outline"
@@ -471,13 +488,13 @@ export default function UserPage() {
 
             {tab == 'activity' && managePermitted && (
               <Tabs
-                defaultValue="all"
+                defaultValue="user"
                 value={actType}
                 onValueChange={onActTabChange}
                 className="mt-4"
               >
                 <TabsList className="overflow-x-auto overflow-y-hidden max-w-full">
-                  {activitySubTabs.map((item) => (
+                  {actSubTabs.map((item) => (
                     <TabsTrigger value={item} key={item}>
                       {activityTabMap[item]}
                     </TabsTrigger>

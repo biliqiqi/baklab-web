@@ -9,6 +9,7 @@ import {
   PermissionItem,
   PermissionModule,
   Role,
+  RoleItem,
 } from '@/constants/types'
 
 export function cn(...inputs: ClassValue[]) {
@@ -41,6 +42,10 @@ export const extractDomain = (url: string) => new URL(url).hostname
 
 export const getRoleName = (roleFrontId: Role) => {
   return ROLE_DATA[roleFrontId]?.name || ''
+}
+
+export const getRoleItem = (roleFrontId: Role): RoleItem | undefined => {
+  return ROLE_DATA[roleFrontId]
 }
 
 export const getPermissionName = <K extends PermissionModule>(

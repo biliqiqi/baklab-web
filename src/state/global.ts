@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 
+import { getRoleItem } from '@/lib/utils'
+
 import { ROLE_DATA } from '@/constants/roles'
 import { PermitFn, Role } from '@/constants/types'
 import { Category } from '@/types/types'
@@ -42,7 +44,13 @@ export interface AuthedUserState {
   logout: () => void
   loginWithDialog: () => Promise<AuthedUserData>
   isLogined: () => boolean
-  isMySelf: (userID: string) => boolean
+  isMySelf: (targetUserId: string) => boolean
+  /**
+     层级比较
+     @paramm targetLevel 被比较的目标层级
+     @reuturns 0 - 对方为同级, 1 - 对方为上级, -1 - 对方为下级
+   */
+  levelCompare: (targetRoleFrontId: Role) => number
   permit: PermitFn
 }
 
@@ -86,13 +94,29 @@ export const useAuthedUserStore = create<AuthedUserState>((set, get) => ({
   isLogined() {
     return isLogined(get())
   },
-  isMySelf(userID: string) {
+  isMySelf(targetUserId: string) {
     const state = get()
-    return isLogined(state) && state.userID == userID
+    return isLogined(state) && state.userID == targetUserId
+  },
+  levelCompare(targetRoleFrontId) {
+    const targetRoleItem = getRoleItem(targetRoleFrontId)
+    const roleItem = getRoleItem(get().role)
+
+    if (!roleItem || !targetRoleItem) {
+      return 0
+    }
+
+    if (roleItem.level == targetRoleItem.level) {
+      return 0
+    } else if (roleItem.level < targetRoleItem.level) {
+      return -1
+    } else {
+      return 1
+    }
   },
   permit(module, action) {
     const permissionId = `${module}.${String(action)}`
-    const roleData = ROLE_DATA[get().role]
+    const roleData = getRoleItem(get().role)
 
     if (!roleData || !roleData.permissions?.includes(permissionId)) return false
     return true

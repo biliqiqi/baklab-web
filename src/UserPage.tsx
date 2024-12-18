@@ -43,13 +43,23 @@ import { ListPagination } from './components/ListPagination'
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 
 import { getArticleList } from './api/article'
-import { getUser, getUserActivityList, setUserRole } from './api/user'
+import {
+  banUser,
+  getUser,
+  getUserActivityList,
+  setUserRole,
+  unBanUser,
+} from './api/user'
 import { ROLE_DATA } from './constants/roles'
 import { Role } from './constants/types'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { cn, getPermissionName, getRoleName, noop } from './lib/utils'
-import { useAuthedUserStore, useNotFoundStore } from './state/global'
+import {
+  useAlertDialogStore,
+  useAuthedUserStore,
+  useNotFoundStore,
+} from './state/global'
 import {
   Activity,
   Article,
@@ -100,12 +110,24 @@ const roleEditScheme = z.object({
   remark: z.string(),
 })
 
+type RoleEditScheme = z.infer<typeof roleEditScheme>
+
 const defaultRoleEditData: RoleEditScheme = {
   roleFrontId: 'common_user',
   remark: '',
 }
 
-type RoleEditScheme = z.infer<typeof roleEditScheme>
+const banScheme = z.object({
+  reason: z.string().min(1, '请输入封禁原因'),
+  duration: z.string().min(1, '请输入封禁时长'), // seconds
+})
+
+type BanScheme = z.infer<typeof banScheme>
+
+const defaultBanData: BanScheme = {
+  reason: '',
+  duration: '',
+}
 
 interface ArticleListProps {
   list: Article[]
@@ -151,6 +173,9 @@ const ArticleList: React.FC<ArticleListProps> = ({
     </>
   )
 
+const banDays = [1, 2, 3, 4, 5, 6, 7, -1]
+const banReasons = ['广告营销', '不友善', '违反法律法规', 'others']
+
 export default function UserPage() {
   const [loading, setLoading] = useState(true)
   const [loadingList, setLoadingList] = useState(true)
@@ -166,6 +191,7 @@ export default function UserPage() {
     totalPage: 0,
   })
   const [alertOpen, setAlertOpen] = useState(false)
+  const [banOpen, setBanOpen] = useState(false)
 
   const [editableRoles, setEditableRoles] = useState<EditableRole[]>([
     'common_user',
@@ -175,12 +201,17 @@ export default function UserPage() {
     ...defaultActSubTabs,
   ])
 
+  const [banCustom, setBanCustom] = useState(1)
+  const [otherReason, setOtherReason] = useState('')
+
   const authStore = useAuthedUserStore()
 
   const { updateNotFound } = useNotFoundStore()
 
   const [params, setParams] = useSearchParams()
   const { username } = useParams()
+
+  const alertDialog = useAlertDialogStore()
 
   const form = useForm<RoleEditScheme>({
     resolver: zodResolver(roleEditScheme),
@@ -189,9 +220,19 @@ export default function UserPage() {
     },
   })
 
+  const banForm = useForm<BanScheme>({
+    resolver: zodResolver(banScheme),
+    defaultValues: {
+      ...defaultBanData,
+    },
+  })
+
   const managePermitted = useMemo(() => {
     if (user) {
-      return user.permissions.some((item) => item.frontId == 'manage.access')
+      return (
+        user.permissions?.some((item) => item.frontId == 'manage.access') ||
+        false
+      )
     }
     return false
   }, [user])
@@ -334,7 +375,7 @@ export default function UserPage() {
     })
   }
 
-  const onChancelRoleUpdate = () => {
+  const onCancelRoleUpdate = () => {
     setAlertOpen(false)
   }
 
@@ -357,6 +398,63 @@ export default function UserPage() {
     },
     [username, user, form]
   )
+
+  const onCancelBanAlert = () => {
+    setBanOpen(false)
+  }
+
+  const onBanSubmit = useCallback(
+    async ({ duration, reason }: BanScheme) => {
+      const durationVal = duration == 'custom' ? banCustom : Number(duration)
+      const reasonVal = reason == 'others' ? otherReason : reason
+
+      if (!durationVal || durationVal < -1) {
+        banForm.setError('duration', { message: '数据有误' })
+        return
+      }
+
+      if (!reasonVal.trim()) {
+        banForm.setError('reason', { message: '请输入封禁原因' })
+        return
+      }
+
+      /* console.log('durationVal', durationVal)
+       * console.log('reasonVal', reasonVal) */
+
+      try {
+        if (!username) return
+
+        const resp = await banUser(username, durationVal, reasonVal)
+        if (!resp.code) {
+          setBanOpen(false)
+          banForm.reset({ duration: '1', reason: '' })
+          fetchUserData(false)
+        }
+      } catch (err) {
+        console.error('ban user error: ', err)
+      }
+    },
+    [banForm, banCustom, otherReason, username]
+  )
+
+  const onUnbanClick = useCallback(async () => {
+    try {
+      if (!username) return
+
+      const confirmed = await alertDialog.confirm(
+        '确认',
+        `确定解封 ${username} ？`
+      )
+      if (confirmed) {
+        const resp = await unBanUser(username)
+        if (!resp.code) {
+          fetchUserData(false)
+        }
+      }
+    } catch (err) {
+      console.error('unban user error: ', err)
+    }
+  }, [username])
 
   useEffect(() => {
     fetchUserData(true)
@@ -429,19 +527,28 @@ export default function UserPage() {
                     >
                       {getRoleName(user.roleFrontId as Role)}
                     </Badge>
+                    {user.banned && (
+                      <span className="text-sm text-gray-500">
+                        &nbsp;&nbsp; ( 封禁于{' '}
+                        {timeFmt(user.bannedStartAt, 'YYYY-M-D h:m:s')}
+                        ，封禁时长：{user.bannedDayNum} 天 )
+                      </span>
+                    )}
                   </div>
                   {authStore.levelCompare(user.roleFrontId as Role) < 1 && (
                     <div>
                       <b>权限：</b>
-                      {user.permissions.map((item) => (
-                        <Badge
-                          variant="outline"
-                          className="mr-1 mb-1 font-normal"
-                          key={item.frontId}
-                        >
-                          {getPermissionName(item.frontId) || ''}
-                        </Badge>
-                      ))}
+                      {user.permissions
+                        ? user.permissions.map((item) => (
+                            <Badge
+                              variant="outline"
+                              className="mr-1 mb-1 font-normal"
+                              key={item.frontId}
+                            >
+                              {getPermissionName(item.frontId) || ''}
+                            </Badge>
+                          ))
+                        : '-'}
                     </div>
                   )}
                 </div>
@@ -450,15 +557,32 @@ export default function UserPage() {
                   <div></div>
                   {authStore.levelCompare(user.roleFrontId as Role) < 0 && (
                     <div>
-                      <Button
-                        variant="outline"
-                        onClick={() => setAlertOpen(true)}
-                      >
-                        更新角色
-                      </Button>
-                      <Button variant="outline" className="ml-2">
-                        封禁
-                      </Button>
+                      {!user.banned && (
+                        <Button
+                          variant="outline"
+                          onClick={() => setAlertOpen(true)}
+                        >
+                          更新角色
+                        </Button>
+                      )}
+
+                      {user.banned ? (
+                        <Button
+                          variant="outline"
+                          className="ml-2"
+                          onClick={onUnbanClick}
+                        >
+                          解封
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          className="ml-2"
+                          onClick={() => setBanOpen(true)}
+                        >
+                          封禁
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -533,60 +657,191 @@ export default function UserPage() {
               <AlertDialogDescription>
                 将用户 {user?.name} 的角色更新为
               </AlertDialogDescription>
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onUpdateRole)}
-                  className="py-4 space-y-8"
-                >
-                  <FormField
-                    control={form.control}
-                    name="roleFrontId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={user?.roleFrontId}
-                            className="flex space-x-4"
-                          >
-                            {editableRoles.map((item) => (
-                              <FormItem
-                                className="flex items-center space-x-3 space-y-0"
-                                key={item}
-                              >
-                                <FormControl>
-                                  <RadioGroupItem value={item} />
-                                </FormControl>
-                                <FormLabel className="font-normal">
-                                  {ROLE_DATA[item].name}
-                                </FormLabel>
-                              </FormItem>
-                            ))}
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  ></FormField>
-                  <FormField
-                    control={form.control}
-                    name="remark"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input placeholder="备注" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  ></FormField>
-                </form>
-              </Form>
             </AlertDialogHeader>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onUpdateRole)}
+                className="py-4 space-y-8"
+              >
+                <FormField
+                  control={form.control}
+                  name="roleFrontId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={user?.roleFrontId}
+                          className="flex space-x-4"
+                        >
+                          {editableRoles.map((item) => (
+                            <FormItem
+                              className="flex items-center space-x-3 space-y-0"
+                              key={item}
+                            >
+                              <FormControl>
+                                <RadioGroupItem value={item} />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                {ROLE_DATA[item].name}
+                              </FormLabel>
+                            </FormItem>
+                          ))}
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                ></FormField>
+                <FormField
+                  control={form.control}
+                  name="remark"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input placeholder="备注" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                ></FormField>
+              </form>
+            </Form>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={onChancelRoleUpdate}>
+              <AlertDialogCancel onClick={onCancelRoleUpdate}>
                 取消
               </AlertDialogCancel>
               <AlertDialogAction onClick={form.handleSubmit(onUpdateRole)}>
+                确认
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog
+          defaultOpen={false}
+          open={banOpen}
+          onOpenChange={setBanOpen}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>封禁</AlertDialogTitle>
+              <AlertDialogDescription>
+                封禁用户 {user?.name}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <Form {...banForm}>
+              <form
+                onSubmit={banForm.handleSubmit(onBanSubmit)}
+                className="py-4 space-y-8"
+              >
+                <FormField
+                  control={banForm.control}
+                  name="duration"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>封禁时长</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue="1"
+                          className="flex flex-wrap"
+                          value={banForm.getValues('duration')}
+                        >
+                          {banDays.map((item) => (
+                            <FormItem
+                              className="flex items-center space-x-3 space-y-0 mr-4"
+                              key={item}
+                            >
+                              <FormControl>
+                                <RadioGroupItem value={String(item)} />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                {item == -1 ? '永久' : item + ' 天'}
+                              </FormLabel>
+                            </FormItem>
+                          ))}
+                          <FormItem
+                            className="flex items-center space-x-3 space-y-0"
+                            key="custom"
+                          >
+                            <FormControl>
+                              <RadioGroupItem value="custom" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              <Input
+                                type="number"
+                                pattern="/\d+/"
+                                className="inline-block w-[80px]"
+                                value={banCustom}
+                                onFocus={() =>
+                                  banForm.setValue('duration', 'custom')
+                                }
+                                onChange={(e) => {
+                                  const custom = parseInt(e.target.value, 10)
+                                  if (!custom || custom < 1) {
+                                    banForm.setError('duration', {
+                                      message: '数据有误',
+                                    })
+                                    return
+                                  }
+                                  setBanCustom(custom)
+                                }}
+                              />{' '}
+                              天
+                            </FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={banForm.control}
+                  name="reason"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>封禁原因</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue="广告营销"
+                          className="flex flex-wrap"
+                          value={banForm.getValues('reason')}
+                        >
+                          {banReasons.map((item) => (
+                            <FormItem
+                              className="flex items-center space-x-3 space-y-0 mr-4"
+                              key={item}
+                            >
+                              <FormControl>
+                                <RadioGroupItem value={item} />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                {item == 'others' ? '其他' : item}
+                              </FormLabel>
+                            </FormItem>
+                          ))}
+                          {banForm.getValues('reason') == 'others' && (
+                            <Input
+                              placeholder="请填写其他原因"
+                              className="mt-4"
+                              onChange={(e) => setOtherReason(e.target.value)}
+                            />
+                          )}
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </form>
+            </Form>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={onCancelBanAlert}>
+                取消
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={banForm.handleSubmit(onBanSubmit)}>
                 确认
               </AlertDialogAction>
             </AlertDialogFooter>

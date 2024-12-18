@@ -96,3 +96,14 @@ export const getUserActivityList = async (
     searchParams: params,
   })
 }
+
+export const banUser = (username: string, duration: number, reason: string) =>
+  authRequest.patch<ResponseData<UserSubmitResponse>>(`users/${username}/ban`, {
+    json: {
+      duration,
+      reason,
+    },
+  })
+
+export const unBanUser = (username: string) =>
+  authRequest.patch<ResponseData<UserSubmitResponse>>(`users/${username}/unban`)

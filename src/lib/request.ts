@@ -53,7 +53,7 @@ const defaultOptions: Options = {
 
           switch (true) {
             case status == 400:
-              if (data && data.message) {
+              if (data?.message) {
                 toast.error(data.message)
               } else {
                 toast.error('提交数据有误')
@@ -77,7 +77,11 @@ const defaultOptions: Options = {
               }
               break
             case status == 403:
-              toast.error('禁止访问')
+              if (data?.message) {
+                toast.error(data.message)
+              } else {
+                toast.error('禁止访问')
+              }
               break
             case status >= 500 && status <= 599:
               toast.error('应用程序出现了问题')

@@ -173,7 +173,7 @@ export default function ArticleListPage() {
           list.map((item) => (
             <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
               <div className="mb-3">
-                <div className="mb-1">
+                <div className="mb-1 font-bold">
                   <Link className="mr-2" to={'/articles/' + item.id}>
                     {item.title}
                   </Link>
@@ -197,9 +197,7 @@ export default function ArticleListPage() {
                     </span>
                   )}
                 </div>
-                {/* <div className="max-h-5 mb-1 overflow-hidden text-sm text-gray-600 text-nowrap text-ellipsis">
-                    {item.summary}
-                  </div> */}
+                <div className="mb-1">{item.summary}</div>
                 {item.picURL && (
                   <div className="w-[120px] h-[120px] rounded mr-4 bg-gray-200 shrink-0 overflow-hidden">
                     <a href="#">

@@ -64,7 +64,7 @@ export const setUserRole = (
   )
 
 export const getUserActivityList = async (
-  username?: string,
+  username: string,
   userId?: string,
   actType?: ActivityActionType,
   action?: string,
@@ -96,6 +96,11 @@ export const getUserActivityList = async (
     searchParams: params,
   })
 }
+
+export const getUserPunishedList = async (username: string) =>
+  authRequest.get<ResponseData<ActivityListResponse>>(
+    `users/${username}/punished_log`
+  )
 
 export const banUser = (username: string, duration: number, reason: string) =>
   authRequest.patch<ResponseData<UserSubmitResponse>>(`users/${username}/ban`, {

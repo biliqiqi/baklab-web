@@ -47,6 +47,7 @@ import {
   banUser,
   getUser,
   getUserActivityList,
+  getUserPunishedList,
   setUserRole,
   unBanUser,
 } from './api/user'
@@ -62,15 +63,17 @@ import {
 } from './state/global'
 import {
   Activity,
+  ActivityListResponse,
   Article,
   ArticleListSort,
   ArticleListState,
   ArticleListType,
   FrontCategory,
+  ResponseData,
   UserData,
 } from './types/types'
 
-type UserTab = Exclude<ArticleListType, 'deleted'> | 'activity'
+type UserTab = Exclude<ArticleListType, 'deleted'> | 'activity' | 'violation'
 
 type UserTabMap = {
   [key in UserTab]: string
@@ -84,6 +87,7 @@ const tabMapData: UserTabMap = {
   subscribed: '已订阅',
   vote_up: '已投票',
   activity: '操作记录',
+  violation: '违规记录',
 }
 
 const defaultTabs: UserTab[] = ['all', 'article', 'reply']
@@ -278,7 +282,7 @@ export default function UserPage() {
 
           if (showLoading) setLoadingList(true)
 
-          if (tab != 'activity') {
+          if (tab != 'activity' && tab != 'violation') {
             const resp = await getArticleList(
               page,
               pageSize,
@@ -318,14 +322,23 @@ export default function UserPage() {
               }
             }
           } else {
-            const resp = await getUserActivityList(
-              username,
-              '',
-              actType == 'all' ? undefined : actType,
-              '',
-              page,
-              pageSize
-            )
+            if (!username) return
+
+            let resp: ResponseData<ActivityListResponse> | undefined
+
+            if (tab == 'activity') {
+              resp = await getUserActivityList(
+                username,
+                '',
+                actType == 'all' ? undefined : actType,
+                '',
+                page,
+                pageSize
+              )
+            } else {
+              resp = await getUserPunishedList(username)
+            }
+
             if (!resp.code) {
               const { data } = resp
               if (data.list) {
@@ -472,7 +485,7 @@ export default function UserPage() {
       setTabs(() => [...defaultTabs, ...authedTabs])
 
       if (authStore.permit('user', 'access_activity')) {
-        setTabs((state) => [...state, 'activity'])
+        setTabs((state) => [...state, 'activity', 'violation'])
       }
     }
 
@@ -531,7 +544,8 @@ export default function UserPage() {
                       <span className="text-sm text-gray-500">
                         &nbsp;&nbsp; ( 封禁于{' '}
                         {timeFmt(user.bannedStartAt, 'YYYY-M-D h:m:s')}
-                        ，封禁时长：{user.bannedDayNum} 天 )
+                        ，封禁时长：{user.bannedDayNum} 天，总封禁次数：
+                        {user.bannedCount} 次 )
                       </span>
                     )}
                   </div>
@@ -634,7 +648,7 @@ export default function UserPage() {
             <div className="flex justify-center">
               <BLoader />
             </div>
-          ) : tab == 'activity' ? (
+          ) : tab == 'activity' || tab == 'violation' ? (
             <ActivityList list={actList} pageState={pageState} />
           ) : (
             <ArticleList

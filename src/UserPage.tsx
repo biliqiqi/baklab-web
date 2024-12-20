@@ -517,6 +517,8 @@ export default function UserPage() {
           return
         }
         setBanCustom((state) => ({ ...state, [inputType]: val }))
+
+        banForm.setValue('duration', 'custom')
       }
     },
     [banForm]

@@ -102,6 +102,11 @@ export const getUserPunishedList = async (username: string) =>
     `users/${username}/punished_log`
   )
 
+/**
+   @param username 被封禁用户
+   @param duration 封禁时长（分钟）
+   @param reason 封禁原因
+ */
 export const banUser = (username: string, duration: number, reason: string) =>
   authRequest.patch<ResponseData<UserSubmitResponse>>(`users/${username}/ban`, {
     json: {

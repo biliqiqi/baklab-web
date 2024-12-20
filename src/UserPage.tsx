@@ -1,5 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { format } from 'path'
+import {
+  ChangeEvent,
+  MouseEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -55,7 +63,13 @@ import { ROLE_DATA } from './constants/roles'
 import { Role } from './constants/types'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
-import { cn, getPermissionName, getRoleName, noop } from './lib/utils'
+import {
+  cn,
+  formatMinutes,
+  getPermissionName,
+  getRoleName,
+  noop,
+} from './lib/utils'
 import {
   useAlertDialogStore,
   useAuthedUserStore,
@@ -180,6 +194,18 @@ const ArticleList: React.FC<ArticleListProps> = ({
 const banDays = [1, 2, 3, 4, 5, 6, 7, -1]
 const banReasons = ['广告营销', '不友善', '违反法律法规', 'others']
 
+interface BanCustomInputs {
+  days: number
+  hours: number
+  minutes: number
+}
+
+const defaultBanCustomInputs: BanCustomInputs = {
+  days: 0,
+  hours: 0,
+  minutes: 0,
+}
+
 export default function UserPage() {
   const [loading, setLoading] = useState(true)
   const [loadingList, setLoadingList] = useState(true)
@@ -205,7 +231,9 @@ export default function UserPage() {
     ...defaultActSubTabs,
   ])
 
-  const [banCustom, setBanCustom] = useState(1)
+  const [banCustom, setBanCustom] = useState<BanCustomInputs>({
+    ...defaultBanCustomInputs,
+  })
   const [otherReason, setOtherReason] = useState('')
 
   const authStore = useAuthedUserStore()
@@ -418,7 +446,11 @@ export default function UserPage() {
 
   const onBanSubmit = useCallback(
     async ({ duration, reason }: BanScheme) => {
-      const durationVal = duration == 'custom' ? banCustom : Number(duration)
+      const durationVal =
+        duration == 'custom'
+          ? banCustom.days * 24 * 60 + banCustom.hours * 60 + banCustom.minutes
+          : Number(duration) * 24 * 60
+
       const reasonVal = reason == 'others' ? otherReason : reason
 
       if (!durationVal || durationVal < -1) {
@@ -468,6 +500,27 @@ export default function UserPage() {
       console.error('unban user error: ', err)
     }
   }, [username])
+
+  const onBanInputFocus = useCallback(
+    () => banForm.setValue('duration', 'custom'),
+    [banForm]
+  )
+
+  const onBanInputChange = useCallback(
+    (inputType: keyof BanCustomInputs) => {
+      return (e: ChangeEvent<HTMLInputElement>) => {
+        const val = parseInt(e.target.value, 10)
+        if (!val || val < 1) {
+          banForm.setError('duration', {
+            message: '数据有误',
+          })
+          return
+        }
+        setBanCustom((state) => ({ ...state, [inputType]: val }))
+      }
+    },
+    [banForm]
+  )
 
   useEffect(() => {
     fetchUserData(true)
@@ -522,49 +575,60 @@ export default function UserPage() {
             {authStore.permit('user', 'manage') && (
               <Card className="p-3 mb-4 rounded-0">
                 <CardTitle>用户管理</CardTitle>
-                <div className="space-y-4 mt-4">
-                  <div>
-                    <b>邮箱：</b>
-                    {user.email}
+                <div className="table mt-4 w-full">
+                  <div className="table-row">
+                    <b className="table-cell py-2 w-14">邮箱：</b>
+                    <span className="table-cell py-2">{user.email}</span>
                   </div>
-                  <div>
-                    <b>角色：</b>
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        user.roleFrontId == 'banned_user'
-                          ? 'border-red-500'
-                          : '',
-                        'font-normal'
+                  <div className="table-row">
+                    <b className="table-cell py-2">角色：</b>
+                    <div className="table-cell py-2">
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          user.roleFrontId == 'banned_user'
+                            ? 'border-red-500'
+                            : '',
+                          'font-normal'
+                        )}
+                      >
+                        {getRoleName(user.roleFrontId as Role)}
+                      </Badge>
+                      {user.banned && (
+                        <div className="bg-gray-100 text-sm mt-2 p-2 leading-6">
+                          封禁于 {timeFmt(user.bannedStartAt, 'YYYY-M-D h:m:s')}
+                          <br />
+                          封禁时长：
+                          {user.bannedMinutes == -1
+                            ? '永久'
+                            : formatMinutes(user.bannedMinutes)}
+                          <br />
+                          总封禁次数：
+                          {user.bannedCount} 次 <br />
+                        </div>
                       )}
-                    >
-                      {getRoleName(user.roleFrontId as Role)}
-                    </Badge>
-                    {user.banned && (
-                      <span className="text-sm text-gray-500">
-                        &nbsp;&nbsp; ( 封禁于{' '}
-                        {timeFmt(user.bannedStartAt, 'YYYY-M-D h:m:s')}
-                        ，封禁时长：{user.bannedDayNum} 天，总封禁次数：
-                        {user.bannedCount} 次 )
-                      </span>
+                    </div>
+                  </div>
+                  <div className="table-row">
+                    {authStore.levelCompare(user.roleFrontId as Role) < 1 && (
+                      <>
+                        <b className="table-cell py-2">权限：</b>
+                        <div className="table-cell py-2">
+                          {user.permissions
+                            ? user.permissions.map((item) => (
+                                <Badge
+                                  variant="outline"
+                                  className="mr-1 mb-1 font-normal"
+                                  key={item.frontId}
+                                >
+                                  {getPermissionName(item.frontId) || ''}
+                                </Badge>
+                              ))
+                            : '-'}
+                        </div>
+                      </>
                     )}
                   </div>
-                  {authStore.levelCompare(user.roleFrontId as Role) < 1 && (
-                    <div>
-                      <b>权限：</b>
-                      {user.permissions
-                        ? user.permissions.map((item) => (
-                            <Badge
-                              variant="outline"
-                              className="mr-1 mb-1 font-normal"
-                              key={item.frontId}
-                            >
-                              {getPermissionName(item.frontId) || ''}
-                            </Badge>
-                          ))
-                        : '-'}
-                    </div>
-                  )}
                 </div>
                 <hr className="my-4" />
                 <div className="flex justify-between">
@@ -786,22 +850,29 @@ export default function UserPage() {
                                 type="number"
                                 pattern="/\d+/"
                                 className="inline-block w-[80px]"
-                                value={banCustom}
-                                onFocus={() =>
-                                  banForm.setValue('duration', 'custom')
-                                }
-                                onChange={(e) => {
-                                  const custom = parseInt(e.target.value, 10)
-                                  if (!custom || custom < 1) {
-                                    banForm.setError('duration', {
-                                      message: '数据有误',
-                                    })
-                                    return
-                                  }
-                                  setBanCustom(custom)
-                                }}
+                                value={banCustom.days}
+                                onFocus={onBanInputFocus}
+                                onChange={onBanInputChange('days')}
                               />{' '}
                               天
+                              <Input
+                                type="number"
+                                pattern="/\d+/"
+                                className="inline-block w-[80px]"
+                                value={banCustom.hours}
+                                onFocus={onBanInputFocus}
+                                onChange={onBanInputChange('hours')}
+                              />{' '}
+                              小时
+                              <Input
+                                type="number"
+                                pattern="/\d+/"
+                                className="inline-block w-[80px]"
+                                value={banCustom.minutes}
+                                onFocus={onBanInputFocus}
+                                onChange={onBanInputChange('minutes')}
+                              />{' '}
+                              分
                             </FormLabel>
                           </FormItem>
                         </RadioGroup>

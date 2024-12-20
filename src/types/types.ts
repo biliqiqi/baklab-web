@@ -178,7 +178,7 @@ export interface UserData {
   reputation: number
   bannedStartAt: string // ISO date string
   bannedEndAt: string // ISO date string
-  bannedDayNum: number
+  bannedMinutes: number
   bannedCount: number
 }
 

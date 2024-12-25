@@ -78,3 +78,10 @@ export const getActivityList = async (
     searchParams: params,
   })
 }
+
+export const eventsPong = (clientID: string) =>
+  request.get<ResponseData<null>>(`pong`, {
+    searchParams: {
+      clientID,
+    },
+  })

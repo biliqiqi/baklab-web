@@ -186,6 +186,9 @@ const request = <T = any>(
     }
   }
 
+  // console.log('request url: ', url)
+  // console.log('request credential: ', kyOptions?.credentials)
+
   return instance(url, kyOpts).json<T>()
 }
 
@@ -224,16 +227,27 @@ request.delete = <T = any>(
   custom?: CustomRequestOptions
 ): Promise<T> => request(url, { method: 'delete', ...kyOptions }, custom)
 
-// 避免循环引用，refreshToken 放在 request.ts 里面
-export const refreshToken = async () =>
-  request.get<ResponseData<AuthedDataResponse>>(`refresh_token`, {
+/**
+   刷新 access token
+   避免循环引用，refreshToken 放在 request.ts 里面
+   @param refreshUser 是否同时从数据库刷新用户数据
+ */
+export const refreshToken = async (refresUser = false) => {
+  const params = new URLSearchParams()
+  if (refresUser) {
+    params.set('refresh_data', '1')
+  }
+
+  return request.get<ResponseData<AuthedDataResponse>>(`refresh_token`, {
     credentials: 'include',
     retry: 0,
+    searchParams: params,
   })
+}
 
-export const refreshAuthState = async () => {
+export const refreshAuthState = async (refreshUser = false) => {
   try {
-    const { data, code } = await refreshToken()
+    const { data, code } = await refreshToken(refreshUser)
     if (!code) {
       const state = useAuthedUserStore.getState()
       state.update(data.token, data.username, data.userID, data.role as Role)

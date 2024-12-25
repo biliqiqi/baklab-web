@@ -23,8 +23,10 @@ import SubmitPage from './SubmitPage.tsx'
 import TrashPage from './TrashPage.tsx'
 import UserListPage from './UserListPage.tsx'
 import UserPage from './UserPage.tsx'
-import { getCategoryList } from './api/main.ts'
-import { PermissionAction, PermissionModule } from './constants/types.ts'
+import { eventsPong, getCategoryList } from './api/main.ts'
+import { getUser } from './api/user.ts'
+import { API_HOST, API_PATH_PREFIX } from './constants/constants.ts'
+import { PermissionAction, PermissionModule, Role } from './constants/types.ts'
 import { useAuth } from './hooks/use-auth.ts'
 import { toSync } from './lib/fire-and-forget.ts'
 import { refreshAuthState, refreshToken } from './lib/request.ts'
@@ -35,6 +37,7 @@ import {
   useCategoryStore,
   useToastStore,
 } from './state/global.ts'
+import { ArticleSubmitResponse, UserData } from './types/types.ts'
 
 const notAtAuthed = () => {
   const data = useAuthedUserStore.getState()
@@ -143,11 +146,55 @@ const routes: RouteObject[] = [
   },
 ]
 
+interface PingData {
+  clientID: string
+}
+
+/* const EVENT_CLIENT_KEY = 'event_client' */
+const EVENT_URL = `${API_HOST}${API_PATH_PREFIX}events`
+
+const connectEvents = () => {
+  const eventSource = new EventSource(EVENT_URL, {
+    withCredentials: true,
+  })
+
+  eventSource.addEventListener('ping', (event: MessageEvent<string>) => {
+    /* console.log('ping event: ', event) */
+    try {
+      const data = JSON.parse(atob(event.data)) as PingData
+      /* console.log('event data: ', data) */
+    } catch (err) {
+      console.error('parse event data error: ', err)
+    }
+  })
+
+  eventSource.addEventListener(
+    'updaterole',
+    async (event: MessageEvent<string>) => {
+      const data = JSON.parse(atob(event.data)) as UserData
+      console.log('unban user data: ', data)
+      await refreshAuthState(true)
+    }
+  )
+
+  /* eventSource.onmessage = (event) => {
+   *   console.log('on message: ', event.data)
+   * } */
+
+  eventSource.onerror = (err) => {
+    console.error('event source error: ', err)
+    /* eventSource.close() */
+  }
+
+  return eventSource
+}
+
 const App = () => {
   const [initialized, setInitialized] = useState(false)
   const [router, setRouter] = useState<Router | null>(null)
 
   const updateToastState = useToastStore((state) => state.update)
+  const authStore = useAuthedUserStore()
   const authed = useAuth()
   const { updateCategories: setCateList } = useCategoryStore()
 
@@ -169,14 +216,43 @@ const App = () => {
     }, [])
   )
 
-  const refreshTokenSync = toSync(refreshToken)
+  const refreshTokenSync = toSync(useCallback(refreshAuthState, [authStore]))
+
+  /* const refreshCurrUser = toSync(
+   *   useCallback(async () => {
+   *     try {
+   *       console.log('authStore: ', authStore)
+   *       if (authStore.isLogined() && authStore.username != '') {
+   *         const resp = await getUser(authStore.username)
+   *         if (!resp.code) {
+   *           const { data } = resp
+   *           authStore.updateObj((state) => ({
+   *             ...state,
+   *             role: data.roleFrontId as Role,
+   *           }))
+   *         }
+   *       }
+   *     } catch (err) {
+   *       console.error('refresh curent user error: ', err)
+   *     }
+   *   }, [authStore])
+   * ) */
+
+  useEffect(() => {
+    const eventSource = connectEvents()
+
+    return () => {
+      eventSource.close()
+    }
+  }, [])
 
   useEffect(() => {
     fetchCateList()
     window.onfocus = () => {
-      refreshTokenSync()
+      fetchCateList()
+      refreshTokenSync(true)
     }
-  }, [])
+  }, [authStore])
 
   useEffect(() => {
     if (!authed) {
@@ -188,6 +264,8 @@ const App = () => {
           updateToastState(false)
         }, 0)
       })()
+    } else {
+      refreshTokenSync(true)
     }
   }, [authed])
 

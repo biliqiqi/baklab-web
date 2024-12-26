@@ -38,9 +38,6 @@ export const postSignin = async (
     json: { account, password },
   })
 
-export const getCategoryList = async (): Promise<ResponseData<Category[]>> =>
-  authRequest.get(`category_list`)
-
 export const getActivityList = async (
   userId?: string,
   username?: string,

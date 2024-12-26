@@ -27,6 +27,10 @@ export interface Category {
   totalArticleCount: number
 }
 
+export interface CategoryExists {
+  exists: boolean
+}
+
 export type ArticleListSort =
   | 'best'
   | 'oldest'
@@ -258,6 +262,8 @@ export interface UserListResponse {
   totalPage: number
 }
 
-export interface UserSubmitResponse {
+export interface ResponseID {
   id: string
 }
+
+export type UserSubmitResponse = ResponseID

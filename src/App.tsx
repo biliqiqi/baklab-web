@@ -23,13 +23,12 @@ import SubmitPage from './SubmitPage.tsx'
 import TrashPage from './TrashPage.tsx'
 import UserListPage from './UserListPage.tsx'
 import UserPage from './UserPage.tsx'
-import { eventsPong, getCategoryList } from './api/main.ts'
-import { getUser } from './api/user.ts'
+import { getCategoryList } from './api/category.ts'
 import { API_HOST, API_PATH_PREFIX } from './constants/constants.ts'
-import { PermissionAction, PermissionModule, Role } from './constants/types.ts'
+import { PermissionAction, PermissionModule } from './constants/types.ts'
 import { useAuth } from './hooks/use-auth.ts'
 import { toSync } from './lib/fire-and-forget.ts'
-import { refreshAuthState, refreshToken } from './lib/request.ts'
+import { refreshAuthState } from './lib/request.ts'
 import { noop } from './lib/utils.ts'
 import {
   isLogined,
@@ -37,7 +36,7 @@ import {
   useCategoryStore,
   useToastStore,
 } from './state/global.ts'
-import { ArticleSubmitResponse, UserData } from './types/types.ts'
+import { UserData } from './types/types.ts'
 
 const notAtAuthed = () => {
   const data = useAuthedUserStore.getState()
@@ -202,16 +201,9 @@ const App = () => {
 
   const fetchCateList = toSync(
     useCallback(async () => {
-      try {
-        /* setLoading(true) */
-        const data = await getCategoryList()
-        if (!data.code) {
-          setCateList([...data.data])
-        }
-      } catch (err) {
-        console.error('fetch category list error: ', err)
-      } finally {
-        /* setLoading(false) */
+      const data = await getCategoryList()
+      if (!data.code) {
+        setCateList([...data.data])
       }
     }, [])
   )

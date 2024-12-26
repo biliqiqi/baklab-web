@@ -1,7 +1,7 @@
 import {
   ActivityIcon,
-  NewspaperIcon,
   PackageIcon,
+  PlusIcon,
   TrashIcon,
   UsersRoundIcon,
 } from 'lucide-react'
@@ -10,6 +10,7 @@ import { Link, useLocation } from 'react-router-dom'
 
 import { cn, getCookie } from '@/lib/utils'
 
+import { getCategoryList } from '@/api/category'
 import { NAV_HEIGHT, SITE_NAME } from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
@@ -23,6 +24,7 @@ import {
 } from '@/state/global'
 import { FrontCategory } from '@/types/types'
 
+import CategoryForm from '../CategoryForm'
 import NotFound from '../NotFound'
 import SigninForm from '../SigninForm'
 import SignupForm from '../SignupForm'
@@ -72,7 +74,9 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
   ({ children, category, goBack = false, loading = false, ...props }, ref) => {
     const [regEmail, setRegEmail] = useState('')
     /* const [loading, setLoading] = useState(false) */
-    const { categories: cateList } = useCategoryStore()
+    const { categories: cateList, updateCategories } = useCategoryStore()
+
+    const [showCategoryForm, setShowCategoryForm] = useState(false)
 
     const { open: showTopDrawer, update: setShowTopDrawer } =
       useTopDrawerStore()
@@ -81,6 +85,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     const { open: sidebarOpen, setOpen: setSidebarOpen } = useSidebarStore()
     const [sidebarOpenMobile, setSidebarOpenMobile] = useState(false)
+    const [categoryFormDirty, setCategoryFormDirty] = useState(false)
 
     const authPermit = useAuthedUserStore((state) => state.permit)
 
@@ -141,6 +146,33 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
      *   },
      *   [sidebarStore]
      * ) */
+
+    const onCategoryFormClose = useCallback(async () => {
+      if (categoryFormDirty) {
+        alertDialog.setState((state) => ({
+          ...state,
+          confirmBtnText: '确定舍弃',
+          cancelBtnText: '继续创建',
+        }))
+        const confirmed = await alertDialog.confirm(
+          '确认',
+          '分类创建未完成，确认舍弃？'
+        )
+        if (confirmed) {
+          setShowCategoryForm(false)
+        }
+      } else {
+        setShowCategoryForm(false)
+      }
+    }, [categoryFormDirty])
+
+    const onCategoryCreated = useCallback(async () => {
+      setShowCategoryForm(false)
+      const resp = await getCategoryList()
+      if (!resp.code) {
+        updateCategories([...resp.data])
+      }
+    }, [])
 
     useEffect(() => {
       if (isMobile) {
@@ -276,7 +308,18 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                   </SidebarGroup>
                 )}
                 <SidebarGroup>
-                  <SidebarGroupLabel>分类</SidebarGroupLabel>
+                  <SidebarGroupLabel className="flex justify-between">
+                    <span>分类</span>
+                    {authPermit('category', 'create') && (
+                      <Button
+                        variant="ghost"
+                        className="p-0 w-[24px] h-[24px] rounded-full"
+                        onClick={() => setShowCategoryForm(true)}
+                      >
+                        <PlusIcon size={18} className="text-gray-500" />
+                      </Button>
+                    )}
+                  </SidebarGroupLabel>
                   <SidebarGroupContent>
                     <SidebarMenu>
                       {cateList.map((item) => (
@@ -361,6 +404,20 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               onSuccess={() => {
                 updateSignup(false)
               }}
+            />
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showCategoryForm} onOpenChange={onCategoryFormClose}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>创建分类</DialogTitle>
+              <DialogDescription></DialogDescription>
+            </DialogHeader>
+
+            <CategoryForm
+              onChange={setCategoryFormDirty}
+              onSuccess={onCategoryCreated}
             />
           </DialogContent>
         </Dialog>

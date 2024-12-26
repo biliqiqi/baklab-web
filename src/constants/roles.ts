@@ -88,6 +88,9 @@ export const ROLE_DATA = {
       'role.add',
       'role.edit',
       'activity.access',
+      'category.create',
+      'category.edit',
+      'category.delete',
     ],
   },
 }

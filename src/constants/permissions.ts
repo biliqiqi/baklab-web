@@ -161,4 +161,21 @@ export const PERMISSION_DATA = {
       enabled: false,
     },
   },
+  category: {
+    create: {
+      name: '创建分类',
+      adapt_id: 'category.create',
+      enable: false,
+    },
+    edit: {
+      name: '编辑分类',
+      adapt_id: 'category.edit',
+      enable: false,
+    },
+    delete: {
+      name: '删除分类',
+      adapt_id: 'category.delete',
+      enable: false,
+    },
+  },
 }

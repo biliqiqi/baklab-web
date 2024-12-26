@@ -209,7 +209,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           </>
         )}
         <div className="flex items-center mb-4 text-sm text-gray-500">
-          {article.deleted ? (
+          {article.deleted && !authStore.permit('article', 'delete_others') ? (
             <span>未知用户</span>
           ) : (
             <Link to={'/users/' + article.authorName}>
@@ -275,7 +275,15 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             </div>
           )}
           {article.deleted ? (
-            <i className="text-gray-500 text-sm">&lt;已删除&gt;</i>
+            <>
+              <i className="text-gray-500 text-sm">&lt;已删除&gt;</i>
+              {authStore.permit('article', 'delete_others') && (
+                <div
+                  dangerouslySetInnerHTML={{ __html: article.content }}
+                  className="whitespace-break-spaces mb-4"
+                ></div>
+              )}
+            </>
           ) : (
             <div
               dangerouslySetInnerHTML={{ __html: article.content }}

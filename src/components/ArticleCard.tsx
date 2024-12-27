@@ -122,7 +122,9 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
         const confirmed = await alertDialog.confirm(
           '确认',
-          '确定删除帖子？删除后无法撤销',
+          authStore.permit('article', 'delete_others')
+            ? '确定删除？'
+            : '确定删除？删除后无法撤销',
           'danger'
         )
 

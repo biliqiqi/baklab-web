@@ -243,6 +243,8 @@ export const useAlertDialogStore = create<AlertDialogState>((set) => ({
       open: true,
       title,
       description,
+      confirmBtnText: defaultAlertState.confirmBtnText,
+      confirmType: 'normal',
     }))
   },
   confirm: (title, description, confirmType = 'normal') =>

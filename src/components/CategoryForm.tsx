@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { describe } from 'node:test'
-import { useCallback, useEffect, useState } from 'react'
+import { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { debounce } from 'remeda'
 import { toast } from 'sonner'
@@ -8,11 +8,14 @@ import { toast } from 'sonner'
 import { noop, summryText } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
+import { getArticleList } from '@/api/article'
 import {
   checkCategoryExists,
+  deleteCategory,
   submitCategory,
   updateCategory,
 } from '@/api/category'
+import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
 import { Category, ResponseData, ResponseID } from '@/types/types'
 
 import BIconColorChar from './base/BIconColorChar'
@@ -55,7 +58,7 @@ const categoryEditScheme = z.object({
 
 type CategoryScheme = z.infer<typeof categoryScheme>
 
-type CategoryEditScheme = z.infer<typeof categoryEditScheme>
+/* type CategoryEditScheme = z.infer<typeof categoryEditScheme> */
 
 interface CategoryFormProps {
   isEdit?: boolean
@@ -70,17 +73,28 @@ const defaultCategoryData: CategoryScheme = {
   description: '',
 }
 
+const defaultCategory: Category = {
+  id: '0',
+  frontId: '',
+  name: '',
+  describe: '',
+  authorId: '',
+  createdAt: '',
+  approved: false,
+  approvalComment: '',
+  totalArticleCount: 0,
+}
+
 const CategoryForm: React.FC<CategoryFormProps> = ({
   isEdit = false,
-  category = {
-    frontId: '',
-    name: '',
-    describe: '',
-  },
+  category = defaultCategory,
   onSuccess = noop,
   onChange = noop,
 }) => {
   /* const [frontIDExists, setFrontIDExists] = useState(false) */
+
+  const alertDialog = useAlertDialogStore()
+  const authStore = useAuthedUserStore()
 
   const form = useForm<CategoryScheme>({
     resolver: zodResolver(
@@ -133,6 +147,35 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
       }
     },
     [form, isEdit, onSuccess, category]
+  )
+
+  const onDeleteClick = useCallback(
+    async (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault()
+      if (!isEdit || !category.frontId) return
+
+      const resp = await getArticleList(1, 1, 'latest', category.frontId)
+      if (!resp.code) {
+        if (resp.data.articleTotal > 0) {
+          alertDialog.alert('无法删除', '该分类下存在内容，无法删除')
+          return
+        }
+      }
+
+      const confirmed = await alertDialog.confirm(
+        '确认',
+        '删除之后无法撤回，确认删除？',
+        'danger'
+      )
+
+      if (!confirmed) return
+
+      const respD = await deleteCategory(category.frontId)
+      if (!respD.code) {
+        onSuccess()
+      }
+    },
+    [isEdit, category]
   )
 
   useEffect(() => {
@@ -231,7 +274,18 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
           )}
         />
         <div className="flex justify-between">
-          <span></span>
+          <span>
+            {isEdit && authStore.permit('category', 'delete') && (
+              <Button
+                variant="outline"
+                className="border-destructive outline-destructive"
+                size="sm"
+                onClick={onDeleteClick}
+              >
+                删除
+              </Button>
+            )}
+          </span>
           <Button type="submit" size="sm">
             提交
           </Button>

@@ -1,13 +1,19 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { describe } from 'node:test'
 import { useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { debounce } from 'remeda'
 import { toast } from 'sonner'
 
-import { noop } from '@/lib/utils'
+import { noop, summryText } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
-import { checkCategoryExists, submitCategory } from '@/api/category'
+import {
+  checkCategoryExists,
+  submitCategory,
+  updateCategory,
+} from '@/api/category'
+import { Category, ResponseData, ResponseID } from '@/types/types'
 
 import BIconColorChar from './base/BIconColorChar'
 import { Button } from './ui/button'
@@ -27,21 +33,33 @@ const frontIDScheme = z
   )
   .regex(/^[a-zA-Z0-9_]+$/, '分类标识由数字、字母和下划线组成，不区分大小写')
 
+const nameScheme = z
+  .string()
+  .min(1, '请输入分类名称')
+  .max(
+    MAX_CATEGORY_NAME_LENGTH,
+    `分类名称不得超过${MAX_CATEGORY_NAME_LENGTH}个字符`
+  )
+const descriptionScheme = z.string()
+
 const categoryScheme = z.object({
   frontID: frontIDScheme,
-  name: z
-    .string()
-    .min(1, '请输入分类名称')
-    .max(
-      MAX_CATEGORY_NAME_LENGTH,
-      `分类名称不得超过${MAX_CATEGORY_NAME_LENGTH}个字符`
-    ),
-  description: z.string(),
+  name: nameScheme,
+  description: descriptionScheme,
+})
+
+const categoryEditScheme = z.object({
+  name: nameScheme,
+  description: descriptionScheme,
 })
 
 type CategoryScheme = z.infer<typeof categoryScheme>
 
+type CategoryEditScheme = z.infer<typeof categoryEditScheme>
+
 interface CategoryFormProps {
+  isEdit?: boolean
+  category?: Category
   onSuccess?: () => void
   onChange?: (isDirty: boolean) => void
 }
@@ -53,44 +71,69 @@ const defaultCategoryData: CategoryScheme = {
 }
 
 const CategoryForm: React.FC<CategoryFormProps> = ({
+  isEdit = false,
+  category = {
+    frontId: '',
+    name: '',
+    describe: '',
+  },
   onSuccess = noop,
   onChange = noop,
 }) => {
   /* const [frontIDExists, setFrontIDExists] = useState(false) */
-  const onSubmit = async ({ frontID, name, description }: CategoryScheme) => {
-    /* console.log('category vals: ', vals) */
-    try {
-      const exists = await checkCategoryExists(frontID)
-      /* console.log('frontID exists: ', exists) */
-      if (exists) {
-        form.setError(
-          'frontID',
-          { message: '分类标识已存在' },
-          { shouldFocus: true }
-        )
-        return
-      } else {
-        form.clearErrors('frontID')
-      }
-
-      const resp = await submitCategory(frontID, name, description)
-      if (!resp.code) {
-        onSuccess()
-      }
-    } catch (err) {
-      console.error('validate front id error: ', err)
-    }
-  }
 
   const form = useForm<CategoryScheme>({
-    resolver: zodResolver(categoryScheme, {}, { mode: 'async' }),
+    resolver: zodResolver(
+      isEdit ? categoryEditScheme : categoryScheme,
+      {},
+      { mode: 'async' }
+    ),
     defaultValues: {
-      ...defaultCategoryData,
+      ...(isEdit
+        ? {
+            name: category.name,
+            description: category.describe,
+          }
+        : defaultCategoryData),
     },
     mode: 'onChange',
   })
 
   const formVals = form.watch()
+
+  const onSubmit = useCallback(
+    async ({ frontID, name, description }: CategoryScheme) => {
+      /* console.log('category vals: ', vals) */
+      try {
+        let resp: ResponseData<ResponseID> | undefined
+
+        if (isEdit) {
+          resp = await updateCategory(category.frontId, name, description)
+        } else {
+          const exists = await checkCategoryExists(frontID)
+          /* console.log('frontID exists: ', exists) */
+          if (exists) {
+            form.setError(
+              'frontID',
+              { message: '分类标识已存在' },
+              { shouldFocus: true }
+            )
+            return
+          } else {
+            form.clearErrors('frontID')
+          }
+
+          resp = await submitCategory(frontID, name, description)
+        }
+        if (!resp?.code) {
+          onSuccess()
+        }
+      } catch (err) {
+        console.error('validate front id error: ', err)
+      }
+    },
+    [form, isEdit, onSuccess, category]
+  )
 
   useEffect(() => {
     onChange(form.formState.isDirty)
@@ -108,39 +151,44 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
       >
         <div className="flex items-start mb-4">
           <BIconColorChar
-            iconId={formVals.frontID.toLowerCase() || 'x'}
+            iconId={
+              isEdit ? category.frontId : formVals.frontID.toLowerCase() || 'x'
+            }
             char={formVals.name}
             size={66}
             className="w-[66px] flex-shink-0"
           />
           <div className="pl-4 flex-grow max-w-[calc(100%-82px)] overflow-hidden">
             <div className="text-sm text-gray-500 h-5">
-              {'/categories/' + formVals.frontID.toLowerCase()}
+              {'/categories/' +
+                (isEdit ? category.frontId : formVals.frontID.toLowerCase())}
             </div>
             <div className="h-6">{formVals.name}</div>
             <div className="text-sm text-gray-500 h-6 overflow-hidden text-ellipsis">
-              {formVals.description}
+              {summryText(formVals.description, 20)}
             </div>
           </div>
         </div>
-        <FormField
-          control={form.control}
-          name="frontID"
-          key="frontID"
-          render={({ field, fieldState }) => (
-            <FormItem className="mb-8">
-              <FormControl>
-                <Input
-                  placeholder="请输入分类标识"
-                  autoComplete="off"
-                  state={fieldState.invalid ? 'invalid' : 'default'}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {!isEdit && (
+          <FormField
+            control={form.control}
+            name="frontID"
+            key="frontID"
+            render={({ field, fieldState }) => (
+              <FormItem className="mb-8">
+                <FormControl>
+                  <Input
+                    placeholder="请输入分类标识"
+                    autoComplete="off"
+                    state={fieldState.invalid ? 'invalid' : 'default'}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <FormField
           control={form.control}
           name="name"

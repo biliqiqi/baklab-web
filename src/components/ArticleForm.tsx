@@ -14,7 +14,11 @@ import {
   ARTICLE_MAX_TITILE_LEN,
 } from '@/constants/constants'
 import useDocumentTitle from '@/hooks/use-page-title'
-import { useCategoryStore, useNotFoundStore } from '@/state/global'
+import {
+  useAuthedUserStore,
+  useCategoryStore,
+  useNotFoundStore,
+} from '@/state/global'
 import { Article, ArticleSubmitResponse, ResponseData } from '@/types/types'
 
 import BAvatar from './base/BAvatar'
@@ -90,6 +94,8 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
     () => Boolean(article && article.replyToId != '0'),
     [article]
   )
+
+  const authStore = useAuthedUserStore()
 
   const defaultArticleData: ArticleScheme =
     isEdit && article
@@ -222,7 +228,11 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                               role="combobox"
                               aria-expanded={open}
                               className="w-[200px] justify-between text-gray-700"
-                              disabled={loading || isEdit}
+                              disabled={
+                                loading ||
+                                (isEdit &&
+                                  !authStore.permit('article', 'edit_others'))
+                              }
                             >
                               {categoryVal()
                                 ? '发布到【' +

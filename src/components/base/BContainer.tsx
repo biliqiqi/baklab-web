@@ -1,11 +1,12 @@
 import {
   ActivityIcon,
   PackageIcon,
+  PencilIcon,
   PlusIcon,
   TrashIcon,
   UsersRoundIcon,
 } from 'lucide-react'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
 import { cn, getCookie } from '@/lib/utils'
@@ -22,7 +23,7 @@ import {
   useSidebarStore,
   useTopDrawerStore,
 } from '@/state/global'
-import { FrontCategory } from '@/types/types'
+import { Category, FrontCategory } from '@/types/types'
 
 import CategoryForm from '../CategoryForm'
 import NotFound from '../NotFound'
@@ -55,6 +56,7 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
@@ -68,6 +70,11 @@ export interface BContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   category?: FrontCategory
   goBack?: boolean
   loading?: boolean
+}
+
+interface EditCategoryData {
+  editting: boolean
+  data: Category | undefined
 }
 
 const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
@@ -86,6 +93,10 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const { open: sidebarOpen, setOpen: setSidebarOpen } = useSidebarStore()
     const [sidebarOpenMobile, setSidebarOpenMobile] = useState(false)
     const [categoryFormDirty, setCategoryFormDirty] = useState(false)
+    const [editCategory, setEditCategory] = useState<EditCategoryData>({
+      editting: false,
+      data: undefined,
+    })
 
     const authPermit = useAuthedUserStore((state) => state.permit)
 
@@ -149,14 +160,15 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     const onCategoryFormClose = useCallback(async () => {
       if (categoryFormDirty) {
+        const { editting } = editCategory
         alertDialog.setState((state) => ({
           ...state,
           confirmBtnText: '确定舍弃',
-          cancelBtnText: '继续创建',
+          cancelBtnText: editting ? '继续设置' : '继续创建',
         }))
         const confirmed = await alertDialog.confirm(
           '确认',
-          '分类创建未完成，确认舍弃？'
+          editting ? '分类设置未完成，确认舍弃？' : '分类创建未完成，确认舍弃？'
         )
         if (confirmed) {
           setShowCategoryForm(false)
@@ -164,7 +176,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       } else {
         setShowCategoryForm(false)
       }
-    }, [categoryFormDirty])
+    }, [categoryFormDirty, editCategory])
 
     const onCategoryCreated = useCallback(async () => {
       setShowCategoryForm(false)
@@ -173,6 +185,27 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         updateCategories([...resp.data])
       }
     }, [])
+
+    const onCreateCategoryClick = (ev: MouseEvent<HTMLButtonElement>) => {
+      ev.preventDefault()
+      setEditCategory({
+        editting: false,
+        data: undefined,
+      })
+      setShowCategoryForm(true)
+    }
+
+    const onEditCategoryClick = (
+      ev: MouseEvent<HTMLButtonElement>,
+      category: Category
+    ) => {
+      ev.preventDefault()
+      setEditCategory({
+        editting: true,
+        data: category,
+      })
+      setShowCategoryForm(true)
+    }
 
     useEffect(() => {
       if (isMobile) {
@@ -314,7 +347,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                       <Button
                         variant="ghost"
                         className="p-0 w-[24px] h-[24px] rounded-full"
-                        onClick={() => setShowCategoryForm(true)}
+                        onClick={onCreateCategoryClick}
                       >
                         <PlusIcon size={18} className="text-gray-500" />
                       </Button>
@@ -341,6 +374,22 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                               {item.name}
                             </Link>
                           </SidebarMenuButton>
+                          {authPermit('category', 'edit') && (
+                            <SidebarMenuAction
+                              style={{
+                                top: '10px',
+                                width: '28px',
+                                height: '28px',
+                              }}
+                              className="rounded-full"
+                              onClick={(e) => onEditCategoryClick(e, item)}
+                            >
+                              <PencilIcon
+                                size={14}
+                                className="inline-block mr-1 text-gray-500"
+                              />
+                            </SidebarMenuAction>
+                          )}
                         </SidebarMenuItem>
                       ))}
                     </SidebarMenu>
@@ -411,11 +460,15 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         <Dialog open={showCategoryForm} onOpenChange={onCategoryFormClose}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>创建分类</DialogTitle>
+              <DialogTitle>
+                {editCategory.editting ? '设置分类' : '创建分类'}
+              </DialogTitle>
               <DialogDescription></DialogDescription>
             </DialogHeader>
 
             <CategoryForm
+              isEdit={editCategory.editting}
+              category={editCategory.data}
               onChange={setCategoryFormDirty}
               onSuccess={onCategoryCreated}
             />

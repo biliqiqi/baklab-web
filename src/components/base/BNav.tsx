@@ -1,10 +1,11 @@
+import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog'
 import { ChevronLeftIcon, GripIcon, Loader, MenuIcon } from 'lucide-react'
 import React, { MouseEvent, useCallback, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import stc from 'string-to-color'
 
-import { cn } from '@/lib/utils'
+import { cn, summryText } from '@/lib/utils'
 
 import { logoutToken } from '@/api'
 import { NAV_HEIGHT } from '@/constants/constants'
@@ -18,6 +19,7 @@ import {
 import { FrontCategory } from '@/types/types'
 
 import { Button } from '../ui/button'
+import { Dialog, DialogContent, DialogHeader } from '../ui/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,15 +35,14 @@ export interface NavProps extends React.HTMLAttributes<HTMLDivElement> {
   onGripClick?: () => void
 }
 
-const summryText = (text: string, max: number) =>
-  text.length > max ? text.slice(0, max) + '...' : text
-
 const isOneOfPath = (loc: Location, pathes: string[]) =>
   pathes.some((path) => loc.pathname == path)
 
 const BNav = React.forwardRef<HTMLDivElement, NavProps>(
   ({ className, category, goBack = false, onGripClick, ...props }, ref) => {
     const [loading, setLoading] = useState(false)
+    const [showCategoryDetail, setShowCategoryDetail] = useState(false)
+
     const authState = useAuthedUserStore()
     const navigate = useNavigate()
     const isMobile = useIsMobile()
@@ -125,7 +126,10 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                   {category.name}
                 </Link>
               )}
-              <span className="px-4 ml-4 border-l-2 text-sm text-gray-500 cursor-pointer flex-grow overflow-hidden whitespace-nowrap text-ellipsis">
+              <span
+                className="px-4 ml-4 border-l-2 text-sm text-gray-500 cursor-pointer flex-grow overflow-hidden whitespace-nowrap text-ellipsis"
+                onClick={() => setShowCategoryDetail(true)}
+              >
                 {summryText(category.describe, 20)}{' '}
               </span>
             </>
@@ -209,6 +213,15 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
             )
           )}
         </div>
+
+        <Dialog open={showCategoryDetail} onOpenChange={setShowCategoryDetail}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="font-bold">{category?.name}</DialogTitle>
+              <DialogDescription>{category?.describe}</DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
       </div>
     )
   }

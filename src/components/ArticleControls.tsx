@@ -45,6 +45,7 @@ interface ArticleControlsProps extends HTMLAttributes<HTMLDivElement> {
   cornerLink?: boolean // 右下角链接
   linkQrCode?: boolean // 是否显示直达链接二维码
   notify?: boolean
+  isTopArticle?: boolean
   onCommentClick?: MouseEventHandler<HTMLButtonElement>
   /* onSaveClick?: MouseEventHandler<HTMLButtonElement> */
   /* onVoteUpClick?: MouseEventHandler<HTMLButtonElement>
@@ -64,6 +65,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   cornerLink = false,
   notify = true,
   ctype = 'item',
+  isTopArticle = false,
   onCommentClick = noop,
   onSuccess = noop,
   ...props
@@ -252,6 +254,11 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
               </span>
             </span>
           </>
+        )}
+        {isTopArticle && (
+          <span className="text-gray-500">
+            {article.totalReplyCount} 个回复
+          </span>
         )}
       </div>
       <div className="flex items-center">

@@ -157,24 +157,22 @@ const connectEvents = () => {
     withCredentials: true,
   })
 
-  eventSource.addEventListener('ping', (event: MessageEvent<string>) => {
+  eventSource.addEventListener('ping', (_event: MessageEvent<string>) => {
     /* console.log('ping event: ', event) */
     try {
-      const data = JSON.parse(atob(event.data)) as PingData
+      /* const data = JSON.parse(atob(event.data)) as PingData */
       /* console.log('event data: ', data) */
     } catch (err) {
       console.error('parse event data error: ', err)
     }
   })
 
-  eventSource.addEventListener(
-    'updaterole',
-    async (event: MessageEvent<string>) => {
-      const data = JSON.parse(atob(event.data)) as UserData
-      console.log('unban user data: ', data)
-      await refreshAuthState(true)
-    }
-  )
+  eventSource.addEventListener('updaterole', (_event: MessageEvent<string>) => {
+    /* const data = JSON.parse(atob(event.data)) as UserData */
+    /* console.log('unban user data: ', data) */
+
+    toSync(refreshAuthState)(true)
+  })
 
   /* eventSource.onmessage = (event) => {
    *   console.log('on message: ', event.data)

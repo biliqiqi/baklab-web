@@ -171,6 +171,7 @@ export default function ArticlePage() {
         {article && (
           <>
             <ArticleCard
+              isTop
               key={article.id}
               article={article}
               className="mb-4"
@@ -213,14 +214,16 @@ export default function ArticlePage() {
 
         <ReplyBox
           {...replyBoxState}
-          onSuccess={() =>
+          onSuccess={(_resp, actionType) =>
             fetchArticle(false).then(() => {
-              setTimeout(() => {
-                window.scrollTo({
-                  top: document.body.scrollHeight,
-                  behavior: 'smooth',
-                })
-              }, 0)
+              if (actionType == 'reply') {
+                setTimeout(() => {
+                  window.scrollTo({
+                    top: document.body.scrollHeight,
+                    behavior: 'smooth',
+                  })
+                }, 0)
+              }
             })
           }
           onRemoveReply={() => {

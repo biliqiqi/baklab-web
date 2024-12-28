@@ -152,6 +152,14 @@ a:hover {
   color: hsl(var(--primary));
 }
 
+.b-article-content p {
+  margin-bottom: 1em;
+}
+
+.b-article-content pre {
+  @apply py-2 px-3 bg-gray-100 text-sm font-mono overflow-y-scroll;
+}
+
 @keyframes highlight {
   0% {
     background-color: hsl(var(--card));

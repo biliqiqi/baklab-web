@@ -11,7 +11,7 @@ import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
-import { bus, cn, extractDomain, noop } from '@/lib/utils'
+import { bus, cn, extractDomain, md2text, noop, renderMD } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { deleteArticle } from '@/api/article'
@@ -40,6 +40,7 @@ interface ArticleCardProps extends HTMLAttributes<HTMLDivElement> {
   replyBox?: boolean
   ctype?: ArticleCardType
   onSuccess?: (a: ArticleAction) => void
+  isTop?: boolean
 }
 
 const delReasonScheme = z.object({
@@ -79,6 +80,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   article,
   ctype = 'item',
   onSuccess = noop,
+  isTop = false,
   ...props
 }) => {
   const [alertOpen, setAlertOpen] = useState(false)
@@ -270,8 +272,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                 <i className="text-gray-500 text-sm">&lt;已删除&gt;</i>
               ) : (
                 <span>
-                  {parent.authorName}: {parent.summary}
-                  {parent.summary != parent.content && '...'}
+                  {parent.authorName}: {md2text(parent.summary)} ...
                 </span>
               )}
             </div>
@@ -281,20 +282,23 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               <i className="text-gray-500 text-sm">&lt;已删除&gt;</i>
               {authStore.permit('article', 'delete_others') && (
                 <div
-                  dangerouslySetInnerHTML={{ __html: article.content }}
-                  className="whitespace-break-spaces mb-4"
+                  dangerouslySetInnerHTML={{
+                    __html: renderMD(article.content),
+                  }}
+                  className="b-article-content mb-4"
                 ></div>
               )}
             </>
           ) : (
             <div
-              dangerouslySetInnerHTML={{ __html: article.content }}
-              className="whitespace-break-spaces mb-4"
+              dangerouslySetInnerHTML={{ __html: renderMD(article.content) }}
+              className="b-article-content mb-4"
             ></div>
           )}
         </div>
         {!article.deleted && (
           <ArticleControls
+            isTopArticle={isTop}
             article={article}
             ctype={ctype}
             onCommentClick={(e) => {

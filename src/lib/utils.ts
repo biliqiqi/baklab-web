@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from 'clsx'
 import EventEmitter from 'events'
+import MarkdownIt from 'markdown-it'
 import { twMerge } from 'tailwind-merge'
 
 import { PERMISSION_DATA } from '@/constants/permissions'
@@ -90,3 +91,21 @@ export const formatMinutes = (totalMinutes: number): string => {
 
 export const summryText = (text: string, max: number) =>
   text.length > max ? text.slice(0, max) + '...' : text
+
+export const extractText = (html: string) => {
+  const div = document.createElement('div')
+  div.innerHTML = html
+  return div.textContent || div.innerText || ''
+}
+
+const md = new MarkdownIt()
+
+export const renderMD = (markdown: string) => md.render(markdown)
+
+export const md2text = (markdown: string) => {
+  const htmlStr = renderMD(markdown)
+  const tmpEl = document.createElement('div')
+  tmpEl.innerHTML = htmlStr
+
+  return tmpEl.textContent || ''
+}

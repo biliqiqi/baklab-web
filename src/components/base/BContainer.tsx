@@ -275,7 +275,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 <div
                   className="flex items-center border-b-2 px-2"
                   style={{
-                    height: NAV_HEIGHT,
+                    height: `${NAV_HEIGHT}px`,
                   }}
                 >
                   <Link className="font-bold text-2xl text-pink-900" to="/">

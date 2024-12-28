@@ -1,21 +1,15 @@
 import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog'
 import { ChevronLeftIcon, GripIcon, Loader, MenuIcon } from 'lucide-react'
-import React, { MouseEvent, useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import stc from 'string-to-color'
 
 import { cn, summryText } from '@/lib/utils'
 
 import { logoutToken } from '@/api'
 import { NAV_HEIGHT } from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
-import {
-  isLogined,
-  useAuthedUserStore,
-  useDialogStore,
-  useSidebarStore,
-} from '@/state/global'
+import { isLogined, useAuthedUserStore, useDialogStore } from '@/state/global'
 import { FrontCategory } from '@/types/types'
 
 import { Button } from '../ui/button'
@@ -93,7 +87,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
           className
         )}
         style={{
-          height: NAV_HEIGHT,
+          height: `${NAV_HEIGHT}px`,
         }}
         ref={ref}
         {...props}

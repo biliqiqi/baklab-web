@@ -41,6 +41,7 @@ interface ArticleCardProps extends HTMLAttributes<HTMLDivElement> {
   ctype?: ArticleCardType
   onSuccess?: (a: ArticleAction) => void
   isTop?: boolean
+  previewMode?: boolean
 }
 
 const delReasonScheme = z.object({
@@ -81,6 +82,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   ctype = 'item',
   onSuccess = noop,
   isTop = false,
+  previewMode = false,
   ...props
 }) => {
   const [alertOpen, setAlertOpen] = useState(false)
@@ -226,32 +228,34 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             {timeAgo(article.createdAt)}
           </span>
           {((isMyself && permit('article', 'edit_mine')) ||
-            permit('article', 'edit_others')) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
-              className="mx-1"
-              onClick={onEditClick}
-              title="编辑"
-            >
-              <Link to={`/articles/${article.id}/edit`}>
-                <PencilIcon size={14} className="inline-block mr-1" />
-              </Link>
-            </Button>
-          )}
+            permit('article', 'edit_others')) &&
+            !previewMode && (
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="mx-1"
+                onClick={onEditClick}
+                title="编辑"
+              >
+                <Link to={`/articles/${article.id}/edit`}>
+                  <PencilIcon size={14} className="inline-block mr-1" />
+                </Link>
+              </Button>
+            )}
           {((isMyself && permit('article', 'delete_mine')) ||
-            permit('article', 'delete_others')) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="mx-1"
-              onClick={onDelClick}
-              title="删除"
-            >
-              <Trash2Icon size={14} />
-            </Button>
-          )}
+            permit('article', 'delete_others')) &&
+            !previewMode && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mx-1"
+                onClick={onDelClick}
+                title="删除"
+              >
+                <Trash2Icon size={14} />
+              </Button>
+            )}
         </div>
         <div>
           {parent && (
@@ -296,7 +300,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             ></div>
           )}
         </div>
-        {!article.deleted && (
+        {!article.deleted && !previewMode && (
           <ArticleControls
             isTopArticle={isTop}
             article={article}

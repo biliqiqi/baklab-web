@@ -198,7 +198,7 @@ export default function ArticlePage() {
                 <BLoader />
               </div>
             ) : (
-              Boolean(article.replies.list) &&
+              article.replies?.list &&
               article.replies.list
                 .filter((item) => !(item.deleted && item.childrenCount == 0))
                 .map((item) => (

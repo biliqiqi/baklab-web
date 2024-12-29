@@ -3,6 +3,7 @@ import CodeBlock from '@tiptap/extension-code-block'
 import Document from '@tiptap/extension-document'
 import History from '@tiptap/extension-history'
 import Paragraph from '@tiptap/extension-paragraph'
+import Placeholder from '@tiptap/extension-placeholder'
 import Strike from '@tiptap/extension-strike'
 import Text from '@tiptap/extension-text'
 import { TextSelection } from '@tiptap/pm/state'
@@ -51,11 +52,15 @@ const tiptapVariant = cva(
 )
 
 export interface TipTapProps
-  extends Omit<EditorContentProps, 'editor' | 'onChange' | 'value'>,
+  extends Omit<
+      EditorContentProps,
+      'editor' | 'onChange' | 'value' | 'onResize'
+    >,
     VariantProps<typeof tiptapVariant> {
   onChange?: (val: string) => void
   value?: string
   hideBubble?: boolean
+  onResize?: (width: number, height: number) => void
 }
 
 export interface TipTapRef {
@@ -71,13 +76,13 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
       onChange = noop,
       hideBubble = false,
       value,
+      placeholder,
+      onResize = noop,
       ...props
     },
     ref
   ) => {
     const elementRef = React.useRef<HTMLDivElement>(null)
-
-    /* value = unescapeAll(value || '') */
 
     const editor = useEditor({
       content: value,
@@ -96,6 +101,9 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
         Strike,
         History,
         Markdown,
+        Placeholder.configure({
+          placeholder,
+        }),
       ],
       editorProps: {
         attributes: {
@@ -164,7 +172,22 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
     }, [value, editor])
 
     React.useEffect(() => {
+      let resizeObserver: ResizeObserver | null = null
+
+      if (elementRef.current) {
+        resizeObserver = new ResizeObserver((entries) => {
+          for (const entry of entries) {
+            const { width, height } = entry.contentRect
+            onResize(width, height)
+          }
+        })
+        resizeObserver.observe(elementRef.current)
+      }
+
       return () => {
+        if (resizeObserver) {
+          resizeObserver.disconnect()
+        }
         if (editor) {
           editor.destroy()
         }

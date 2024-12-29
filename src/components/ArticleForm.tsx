@@ -1,18 +1,28 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Check, ChevronsUpDown } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { escapeHtml } from 'markdown-it/lib/common/utils.mjs'
+import {
+  MouseEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { timeAgo } from '@/lib/dayjs-custom'
-import { cn } from '@/lib/utils'
+import { cn, renderMD } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { submitArticle, updateArticle, updateReply } from '@/api/article'
 import {
   ARTICLE_MAX_CONTENT_LEN,
   ARTICLE_MAX_TITILE_LEN,
+  NAV_HEIGHT,
 } from '@/constants/constants'
+import { defaultArticle } from '@/constants/defaults'
 import useDocumentTitle from '@/hooks/use-page-title'
 import {
   useAuthedUserStore,
@@ -21,6 +31,8 @@ import {
 } from '@/state/global'
 import { Article, ArticleSubmitResponse, ResponseData } from '@/types/types'
 
+import ArticleCard from './ArticleCard'
+import TipTap from './TipTap'
 import BAvatar from './base/BAvatar'
 import BLoader from './base/BLoader'
 import { Button } from './ui/button'
@@ -72,9 +84,26 @@ export interface ArticleFormProps {
   article?: Article
 }
 
+const MIN_CONTENT_BOX_HEIGHT = 40
+const INIT_CONTENT_BOX_HEIGHT = 320
+
+type InputType = 'textarea' | 'tiptap'
+interface DraggingInfo {
+  inputType: InputType
+  dragging: boolean
+}
+
 const ArticleForm = ({ article }: ArticleFormProps) => {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [markdownMode, setMarkdownMode] = useState(false)
+  const [isPreview, setPreview] = useState(false)
+  /* const [isDragging, setDragging] = useState(false) */
+
+  const [contentBoxHeight, setContentBoxHeight] = useState(
+    INIT_CONTENT_BOX_HEIGHT
+  )
+
   /* const [cateList, setCateList] = useState<CategoryOption[]>([]) */
   const { categories: cateList } = useCategoryStore()
 
@@ -94,6 +123,11 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
     () => Boolean(article && article.replyToId != '0'),
     [article]
   )
+
+  const draggingRef = useRef<DraggingInfo>({
+    inputType: 'tiptap',
+    dragging: isEdit,
+  })
 
   const authStore = useAuthedUserStore()
 
@@ -123,6 +157,8 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
     resolver: isReply ? zodResolver(contentScheme) : zodResolver(articleScheme),
     defaultValues: defaultArticleData,
   })
+
+  const formVals = form.watch()
 
   const categoryVal = () => form.getValues('category')
 
@@ -169,11 +205,70 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
     [article, isEdit, isReply, navigate, notFound]
   )
 
+  const onMarkdownModeClick = useCallback(
+    (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault()
+      setMarkdownMode(!markdownMode)
+    },
+    [markdownMode]
+  )
+
+  const onPreviewClick = useCallback(
+    (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault()
+      setPreview(!isPreview)
+    },
+    [isPreview]
+  )
+
+  const onContentBoxResize = useCallback((_width: number, height: number) => {
+    /* console.log('content height: ', height)
+     * console.log('draggingRef: ', draggingRef.current) */
+
+    if (!draggingRef.current.dragging) return
+
+    if (height < MIN_CONTENT_BOX_HEIGHT) {
+      setContentBoxHeight(MIN_CONTENT_BOX_HEIGHT)
+    } else {
+      setContentBoxHeight(height)
+    }
+  }, [])
+
+  const onMouseDown =
+    (it: InputType) =>
+    (e: MouseEvent<HTMLDivElement | HTMLTextAreaElement>) => {
+      const target = e.target as Element
+      const rect = target.getBoundingClientRect()
+      const clickableRadius = 20
+
+      if (
+        e.pageX < rect.right - clickableRadius ||
+        e.pageX > rect.right + clickableRadius ||
+        e.pageY < rect.bottom - clickableRadius ||
+        e.pageY > rect.bottom + clickableRadius
+      )
+        return
+
+      draggingRef.current.inputType = it
+      draggingRef.current.dragging = true
+    }
+
+  const onMouseUp = () => {
+    draggingRef.current.dragging = false
+  }
+
   useDocumentTitle(isEdit ? '编辑帖子' : '创建帖子')
+
+  useEffect(() => {
+    document.addEventListener('mouseup', onMouseUp)
+    return () => {
+      document.removeEventListener('mouseup', onMouseUp)
+    }
+  }, [])
 
   return (
     <Card className="p-3">
-      {article && (
+      {article && !isPreview && (
         <div className="py-2 mb-4 text-gray-500 text-sm">
           <BAvatar size={24} username={article.authorName} />{' '}
           <Link to={`/users/${article.authorName}`}>{article.authorName}</Link>{' '}
@@ -198,7 +293,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                 name="title"
                 key="title"
                 render={({ field, fieldState }) => (
-                  <FormItem>
+                  <FormItem style={{ display: isPreview ? 'none' : '' }}>
                     <FormControl>
                       <Input
                         placeholder="请输入标题"
@@ -216,7 +311,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                 name="category"
                 key="category"
                 render={({ fieldState }) => (
-                  <FormItem>
+                  <FormItem style={{ display: isPreview ? 'none' : '' }}>
                     <div>
                       <FormControl>
                         <Popover open={open} onOpenChange={setOpen}>
@@ -296,7 +391,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                 name="link"
                 key="link"
                 render={({ field, fieldState }) => (
-                  <FormItem>
+                  <FormItem style={{ display: isPreview ? 'none' : '' }}>
                     <FormControl>
                       <Input
                         placeholder="请输入来源链接"
@@ -317,32 +412,97 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
             name="content"
             key="content"
             render={({ field, fieldState }) => (
-              <FormItem>
+              <FormItem style={{ display: isPreview ? 'none' : '' }}>
                 <FormControl>
-                  <Textarea
-                    {...field}
-                    state={fieldState.invalid ? 'invalid' : 'default'}
-                    placeholder="请输入内容"
-                    className="h-[320px]"
-                  />
+                  <>
+                    <Textarea
+                      {...field}
+                      state={fieldState.invalid ? 'invalid' : 'default'}
+                      placeholder="请输入内容"
+                      style={{
+                        display: !markdownMode ? 'none' : '',
+                        height:
+                          draggingRef.current.inputType == 'tiptap'
+                            ? `${contentBoxHeight}px`
+                            : '',
+                      }}
+                      onResize={onContentBoxResize}
+                      onMouseDown={onMouseDown('textarea')}
+                    />
+
+                    <TipTap
+                      placeholder="请输入内容"
+                      {...field}
+                      state={fieldState.invalid ? 'invalid' : 'default'}
+                      style={{
+                        display: markdownMode ? 'none' : '',
+                        marginTop: 0,
+                        height:
+                          draggingRef.current.inputType == 'textarea'
+                            ? `${contentBoxHeight}px`
+                            : '',
+                      }}
+                      onChange={field.onChange}
+                      value={escapeHtml(field.value)}
+                      hideBubble={markdownMode}
+                      className={cn(
+                        'resize-y overflow-auto min-h-[40px]',
+                        !isEdit && `h-[${INIT_CONTENT_BOX_HEIGHT}px]`
+                      )}
+                      onResize={onContentBoxResize}
+                      onMouseDown={onMouseDown('tiptap')}
+                    />
+                  </>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
+          {isPreview && (
+            <ArticleCard
+              previewMode
+              article={{
+                ...defaultArticle,
+                asMainArticle: true,
+                authorName: article?.authorName || '',
+                id: article?.id || '0',
+                replyToId: article?.replyToId || '0',
+                replyToArticle: article?.replyToArticle || null,
+                title: formVals.title,
+                displayTitle: formVals.title,
+                categoryFrontId: formVals.category,
+                link: formVals.link || '',
+                content: formVals.content,
+              }}
+            />
+          )}
+
           <div className="flex items-center justify-between">
-            <div></div>
+            <div>
+              {!isPreview && (
+                <>
+                  <Button
+                    variant={markdownMode ? 'default' : 'ghost'}
+                    size="icon"
+                    onClick={onMarkdownModeClick}
+                    title="Markdown模式"
+                    className="w-8 h-[24px] align-middle"
+                  >
+                    M
+                  </Button>
+                </>
+              )}
+            </div>
             <div>
               <Button
                 variant="outline"
                 disabled={loading}
+                className="mt-2"
                 size="sm"
-                onClick={(e) => {
-                  e.preventDefault()
-                }}
+                onClick={onPreviewClick}
               >
-                {loading ? <BLoader /> : '预览'}
+                {isPreview ? '继续' : '预览'}
               </Button>
               <Button
                 type="submit"

@@ -310,7 +310,7 @@ export default function TrashPage() {
             />
             <div className="flex justify-between p-2 bg-gray-200 text-sm">
               <div>
-                {item.delLog.details && (
+                {item.delLog?.details && (
                   <>
                     由&nbsp;
                     <Link

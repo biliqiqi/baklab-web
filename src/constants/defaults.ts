@@ -1,0 +1,63 @@
+import { Article, Category, CurrUserState } from '@/types/types'
+
+export const defaultCategory: Category = {
+  id: '',
+  frontId: '',
+  name: '',
+  describe: '',
+  authorId: '',
+  createdAt: '',
+  approved: false,
+  approvalComment: '',
+  totalArticleCount: 0,
+}
+
+export const defaultCurrState: CurrUserState = {
+  voteType: 'up',
+  saved: false,
+  reactFrontId: '',
+  subscribed: false,
+}
+
+export const defaultArticle: Article = {
+  id: '',
+  title: '',
+  displayTitle: '',
+  asMainArticle: false, // 是否在前端作为顶层文章
+  link: '',
+  picURL: '',
+  price: 0,
+  authorName: '',
+  authorId: '',
+  content: '',
+  summary: '',
+  createdAt: '',
+  updatedAt: '',
+  createdAtStr: '',
+  updatedAtStr: '',
+  replyToId: '',
+  replyToArticle: null,
+  deleted: false,
+  replies: null,
+  totalReplyCount: 0,
+  totalSavedCount: 0,
+  childrenCount: 0,
+  voteUp: 0,
+  voteDown: 0,
+  voteScore: 0,
+  weight: 0,
+  listWeight: 0,
+  participateCount: 0,
+  currUserState: { ...defaultCurrState },
+  showScore: false,
+  categoryFrontId: '',
+  category: { ...defaultCategory },
+  locked: false,
+  pinned: false,
+  pinnedExpireAt: '',
+  blocked: false,
+  fadeOut: false,
+  replyRootArticleId: '',
+  replyRootArticleTitle: '',
+  delLog: null,
+}

@@ -269,6 +269,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
         }, 200)
       }
     } else {
+      form.clearErrors('content')
       if (replyBoxHeight > REPLY_BOX_INITIAL_HEIGHT) {
         targetInputEl.classList.add('duration-200', 'transition-all')
         setReplyBoxHeight(REPLY_BOX_INITIAL_HEIGHT)
@@ -278,7 +279,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
         }, 200)
       }
     }
-  }, [isActive, replyBoxHeight, targetInputEl])
+  }, [isActive, replyBoxHeight, targetInputEl, form])
 
   useEffect(() => {
     /* console.log('editting: ', isEditting) */
@@ -432,7 +433,6 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
                       display: isPreview || !markdownMode ? 'none' : '',
                     }}
                     onFocus={onTextareaFocus}
-                    value={field.value}
                   />
 
                   <TipTap

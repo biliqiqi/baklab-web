@@ -75,9 +75,9 @@ export interface Article {
   createdAtStr: string
   updatedAtStr: string
   replyToId: string
-  replyToArticle: Article
+  replyToArticle: Article | null
   deleted: boolean
-  replies: ArticleList
+  replies: ArticleList | null
   totalReplyCount: number
   totalSavedCount: number
   childrenCount: number
@@ -98,7 +98,7 @@ export interface Article {
   fadeOut: boolean
   replyRootArticleId: string
   replyRootArticleTitle: string
-  delLog: Activity
+  delLog: Activity | null
 }
 
 export interface ArticleListResponse {

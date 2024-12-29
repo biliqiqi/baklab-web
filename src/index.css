@@ -160,6 +160,14 @@ a:hover {
   @apply py-2 px-3 bg-gray-100 text-sm font-mono overflow-y-scroll;
 }
 
+.tiptap p.is-editor-empty:first-child::before {
+  @apply text-gray-500;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
 @keyframes highlight {
   0% {
     background-color: hsl(var(--card));

@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ArrowDownToLineIcon, XIcon } from 'lucide-react'
+import { escapeHtml } from 'markdown-it/lib/common/utils.mjs'
 import {
   MouseEvent,
   useCallback,
@@ -11,7 +12,7 @@ import {
 import { useForm } from 'react-hook-form'
 
 import { toSync } from '@/lib/fire-and-forget'
-import { bus, extractText, md2text, renderMD, summryText } from '@/lib/utils'
+import { bus, md2text, renderMD, summryText } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { submitReply, updateReply } from '@/api/article'
@@ -27,6 +28,7 @@ import TipTap, { TipTapRef } from './TipTap'
 import BLoader from './base/BLoader'
 import { Button } from './ui/button'
 import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form'
+import { Textarea } from './ui/textarea'
 
 const articleScheme = z.object({
   content: z.string().trim().min(1, '请输入内容').max(ARTICLE_MAX_CONTENT_LEN),
@@ -77,11 +79,27 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   const [isActive, setIsActive] = useState(false)
   const [isPreview, setPreview] = useState(false)
   const [markdownMode, setMarkdownMode] = useState(false)
+  const [updateRef, setUpdateRef] = useState(false)
 
-  const textareaRef = useRef<TipTapRef | null>(null)
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+  const tiptapRef = useRef<TipTapRef | null>(null)
+
   const replyBoxRef = useRef<ReplyBoxData>({
     ...defaultBoxRef,
   })
+
+  const targetInputEl: HTMLElement | null = useMemo(() => {
+    let targetEl: HTMLElement
+    if (markdownMode) {
+      if (!textareaRef.current) return null
+      targetEl = textareaRef.current
+    } else {
+      if (!tiptapRef.current?.element) return null
+      targetEl = tiptapRef.current.element
+    }
+
+    return targetEl
+  }, [markdownMode, updateRef])
 
   const reset = () => {
     setLoading(false)
@@ -148,23 +166,6 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
     [replyToArticle, isEditting, edittingArticle, form, onSuccess]
   )
 
-  const setupForm = useCallback(() => {
-    setTimeout(() => {
-      if (textareaRef.current?.editor) {
-        /* console.log('clicked set focus !', textareaRef.current) */
-        textareaRef.current.editor.commands.focus()
-      }
-    }, 100)
-  }, [textareaRef])
-
-  if (!replyBoxRef.current.handleReplyClick) {
-    replyBoxRef.current.handleReplyClick = setupForm
-  }
-
-  if (!replyBoxRef.current.handleEditClick) {
-    replyBoxRef.current.handleEditClick = setupForm
-  }
-
   const onMouseMove = useCallback((e: globalThis.MouseEvent) => {
     const currData = replyBoxRef.current
 
@@ -226,58 +227,68 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
     [markdownMode]
   )
 
+  const createSetupForm = (isMarkdownMode: boolean) => {
+    return () => {
+      /* console.log('onclick, markdown mode: ', isMarkdownMode) */
+      setTimeout(() => {
+        if (isMarkdownMode) {
+          if (textareaRef.current) {
+            textareaRef.current.focus()
+          }
+        } else {
+          if (tiptapRef.current?.editor) {
+            /* console.log('clicked set focus !', tiptapRef.current) */
+            tiptapRef.current.editor.commands.focus()
+          }
+        }
+      }, 100)
+    }
+  }
+
+  if (!replyBoxRef.current.handleReplyClick) {
+    replyBoxRef.current.handleReplyClick = createSetupForm(markdownMode)
+  }
+
+  if (!replyBoxRef.current.handleEditClick) {
+    replyBoxRef.current.handleEditClick = createSetupForm(markdownMode)
+  }
+
   useEffect(() => {
+    /* console.log('replyBoxHeight: ', targetInputEl) */
+    if (!targetInputEl) return
+
+    /* console.log('replyBoxHeight: ', replyBoxHeight) */
+
     if (isActive) {
-      if (textareaRef.current?.element && replyBoxHeight < 80) {
-        textareaRef.current.element.classList.add(
-          'duration-200',
-          'transition-all'
-        )
+      if (replyBoxHeight < 80) {
+        targetInputEl.classList.add('duration-200', 'transition-all')
         setReplyBoxHeight(80)
         setTimeout(() => {
-          if (textareaRef.current?.element)
-            textareaRef.current.element.classList.remove(
-              'duration-200',
-              'transition-all'
-            )
+          if (targetInputEl)
+            targetInputEl.classList.remove('duration-200', 'transition-all')
         }, 200)
       }
     } else {
-      if (
-        textareaRef.current?.element &&
-        replyBoxHeight > REPLY_BOX_INITIAL_HEIGHT
-      ) {
-        textareaRef.current.element.classList.add(
-          'duration-200',
-          'transition-all'
-        )
+      if (replyBoxHeight > REPLY_BOX_INITIAL_HEIGHT) {
+        targetInputEl.classList.add('duration-200', 'transition-all')
         setReplyBoxHeight(REPLY_BOX_INITIAL_HEIGHT)
         setTimeout(() => {
-          if (textareaRef.current?.element)
-            textareaRef.current.element.classList.remove(
-              'duration-200',
-              'transition-all'
-            )
+          if (targetInputEl)
+            targetInputEl.classList.remove('duration-200', 'transition-all')
         }, 200)
       }
     }
-  }, [isActive, replyBoxHeight])
+  }, [isActive, replyBoxHeight, targetInputEl])
 
   useEffect(() => {
     /* console.log('editting: ', isEditting) */
     form.reset({
       content: isEditting && edittingArticle ? edittingArticle.content : '',
     })
-  }, [isEditting, edittingArticle])
+  }, [isEditting, edittingArticle, form])
 
   useEffect(() => {
     const currData = replyBoxRef.current
-
-    /* console.log('textarea ref: ', textareaRef.current) */
-    if (textareaRef.current?.element) {
-      setReplyBoxHeight(textareaRef.current.element.offsetHeight)
-      currData.startHeight = textareaRef.current.element.offsetHeight
-    }
 
     /* console.log('listeners before bind: ', bus.listeners(EV_ON_REPLY_CLICK)) */
     if (currData.handleReplyClick) {
@@ -316,6 +327,36 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
     }
   }, [form])
 
+  useEffect(() => {
+    const currData = replyBoxRef.current
+    /* console.log('markdown mode change: ', markdownMode) */
+
+    if (currData.handleReplyClick) {
+      bus.off(EV_ON_REPLY_CLICK, currData.handleReplyClick)
+    }
+    currData.handleReplyClick = createSetupForm(markdownMode)
+    bus.on(EV_ON_REPLY_CLICK, currData.handleReplyClick)
+
+    if (currData.handleEditClick) {
+      bus.off(EV_ON_EDIT_CLICK, currData.handleEditClick)
+    }
+    currData.handleEditClick = createSetupForm(markdownMode)
+    bus.on(EV_ON_EDIT_CLICK, currData.handleEditClick)
+  }, [markdownMode, updateRef])
+
+  useEffect(() => {
+    const currData = replyBoxRef.current
+    /* console.log('textarea ref: ', textareaRef.current) */
+    if (targetInputEl) {
+      setReplyBoxHeight(targetInputEl.offsetHeight)
+      currData.startHeight = targetInputEl.offsetHeight
+    }
+  }, [targetInputEl])
+
+  useEffect(() => {
+    setUpdateRef(true)
+  }, [])
+
   return (
     <Form {...form}>
       <form
@@ -337,8 +378,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
             const currData = replyBoxRef.current
             e.preventDefault()
 
-            if (textareaRef.current?.element)
-              currData.startHeight = textareaRef.current.element.offsetHeight
+            if (targetInputEl) currData.startHeight = targetInputEl.offsetHeight
 
             currData.isAdjusting = true
             currData.startY = e.pageY
@@ -382,18 +422,34 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
           render={({ field, fieldState }) => (
             <FormItem>
               <FormControl>
-                <TipTap
-                  {...field}
-                  state={fieldState.invalid ? 'invalid' : 'default'}
-                  ref={textareaRef}
-                  style={{
-                    height: replyBoxHeight + 'px',
-                    display: isPreview ? 'none' : '',
-                  }}
-                  onFocus={onTextareaFocus}
-                  onChange={field.onChange}
-                  value={field.value}
-                />
+                <>
+                  <Textarea
+                    {...field}
+                    state={fieldState.invalid ? 'invalid' : 'default'}
+                    ref={textareaRef}
+                    style={{
+                      height: replyBoxHeight + 'px',
+                      display: isPreview || !markdownMode ? 'none' : '',
+                    }}
+                    onFocus={onTextareaFocus}
+                    value={field.value}
+                  />
+
+                  <TipTap
+                    {...field}
+                    state={fieldState.invalid ? 'invalid' : 'default'}
+                    ref={tiptapRef}
+                    style={{
+                      height: replyBoxHeight + 'px',
+                      display: isPreview || markdownMode ? 'none' : '',
+                      marginTop: 0,
+                    }}
+                    onFocus={onTextareaFocus}
+                    onChange={field.onChange}
+                    value={escapeHtml(field.value)}
+                    hideBubble={markdownMode}
+                  />
+                </>
               </FormControl>
               {isPreview && (
                 <div
@@ -414,26 +470,27 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
           <div className="flex justify-between mt-1 items-center">
             <div>
               {!isPreview && (
-                <Button
-                  variant="link"
-                  size="sm"
-                  onClick={() => setIsActive(false)}
-                  title="收起"
-                  className="h-[24px] text-gray-500 px-0 align-middle"
-                >
-                  <ArrowDownToLineIcon size={18} /> 收起
-                </Button>
+                <>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    onClick={() => setIsActive(false)}
+                    title="收起"
+                    className="h-[24px] text-gray-500 px-0 align-middle"
+                  >
+                    <ArrowDownToLineIcon size={18} /> 收起
+                  </Button>
+                  <Button
+                    variant={markdownMode ? 'default' : 'ghost'}
+                    size="icon"
+                    onClick={onMarkdownModeClick}
+                    title="Markdown模式"
+                    className="mx-2 w-8 h-[24px] align-middle"
+                  >
+                    M
+                  </Button>
+                </>
               )}
-
-              <Button
-                variant={markdownMode ? 'default' : 'ghost'}
-                size="icon"
-                onClick={onMarkdownModeClick}
-                title="Markdown模式"
-                className="mx-2 h-[24px] align-middle"
-              >
-                MD
-              </Button>
             </div>
             <div>
               <Button

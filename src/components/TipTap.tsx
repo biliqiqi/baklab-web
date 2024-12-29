@@ -15,6 +15,7 @@ import {
 } from '@tiptap/react'
 import { VariantProps, cva } from 'class-variance-authority'
 import { CodeIcon } from 'lucide-react'
+import { unescapeAll } from 'markdown-it/lib/common/utils.mjs'
 import * as React from 'react'
 import { Markdown } from 'tiptap-markdown'
 
@@ -29,7 +30,7 @@ import {
 import { Button } from './ui/button'
 
 const tiptapVariant = cva(
-  'min-h-[40px] h-full w-full rounded-md border border-input bg-white px-3 py-2 text-base \
+  'min-h-[40px] h-full w-full mt-0 rounded-md border border-input bg-white px-3 py-2 text-base \
   ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none \
   focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 \
   disabled:cursor-not-allowed disabled:opacity-50 \
@@ -49,13 +50,12 @@ const tiptapVariant = cva(
   }
 )
 
-/* const content = '<p>Hello World!</p>' */
-
 export interface TipTapProps
   extends Omit<EditorContentProps, 'editor' | 'onChange' | 'value'>,
     VariantProps<typeof tiptapVariant> {
   onChange?: (val: string) => void
   value?: string
+  hideBubble?: boolean
 }
 
 export interface TipTapRef {
@@ -64,15 +64,30 @@ export interface TipTapRef {
 }
 
 const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
-  ({ state, disabled = false, onChange = noop, value, ...props }, ref) => {
+  (
+    {
+      state,
+      disabled = false,
+      onChange = noop,
+      hideBubble = false,
+      value,
+      ...props
+    },
+    ref
+  ) => {
     const elementRef = React.useRef<HTMLDivElement>(null)
+
+    /* value = unescapeAll(value || '') */
+
     const editor = useEditor({
       content: value,
       extensions: [
         Document,
         Bold,
         Paragraph,
-        Text,
+        Text.configure({
+          code: true,
+        }),
         CustomHardBreak,
         AutoBreak,
         CodeBlock,
@@ -104,14 +119,12 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
       },
       editable: !disabled,
       onUpdate({ editor }) {
-        /* const content = editor.getHTML() */
-
         /* eslint-disable-next-line */
-        const markdown = editor.storage.markdown.getMarkdown() as string
-        /* console.log('markdown: ', markdown) */
+        const mdVal = unescapeAll(editor.storage.markdown.getMarkdown() || '')
+        /* console.log('markdown: ', mdVal) */
 
-        if (markdown != value) {
-          onChange(markdown)
+        if (mdVal != value) {
+          onChange(mdVal)
         }
       },
     })
@@ -140,8 +153,12 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
 
     React.useEffect(() => {
       /* console.log('value change: ', value) */
-      /* eslint-disable-next-line */
-      if (editor && value != editor.storage.markdown.getMarkdown()) {
+      if (
+        editor &&
+        editor.storage.markdown &&
+        /* eslint-disable-next-line */
+        value != editor.storage.markdown.getMarkdown()
+      ) {
         editor.commands.setContent(value || '')
       }
     }, [value, editor])
@@ -154,51 +171,54 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
       }
     }, [editor])
 
+    if (!editor) return null
+
     return (
       <>
-        {editor && (
-          <BubbleMenu
-            editor={editor}
-            className="flex items-center px-2 h-[32px] bg-white border-[1px] rounded-sm shadow-md overflow-hidden"
+        <BubbleMenu
+          editor={editor}
+          className={cn(
+            'flex items-center px-2 h-[32px] bg-white border-[1px] rounded-sm shadow-md overflow-hidden',
+            hideBubble && 'hidden'
+          )}
+        >
+          <Button
+            variant={editor.isActive('bold') ? 'default' : 'ghost'}
+            size="sm"
+            className="px-3 h-full text-lg rounded-none"
+            onClick={(e) => {
+              e.preventDefault()
+              editor.commands.toggleBold()
+            }}
+            title="加粗"
           >
-            <Button
-              variant={editor.isActive('bold') ? 'default' : 'ghost'}
-              size="sm"
-              className="px-3 h-full text-lg rounded-none"
-              onClick={(e) => {
-                e.preventDefault()
-                editor.commands.toggleBold()
-              }}
-              title="加粗"
-            >
-              <b>B</b>
-            </Button>
-            <Button
-              variant={editor.isActive('codeBlock') ? 'default' : 'ghost'}
-              size="sm"
-              className="px-3 h-full text-lg rounded-none font-sans"
-              onClick={(e) => {
-                e.preventDefault()
-                editor.commands.toggleCodeBlock()
-              }}
-              title="代码块"
-            >
-              <CodeIcon size={18} className="align-bottom" />
-            </Button>
-            <Button
-              variant={editor.isActive('strike') ? 'default' : 'ghost'}
-              size="sm"
-              className="px-3 h-full text-lg rounded-none"
-              onClick={(e) => {
-                e.preventDefault()
-                editor.commands.toggleStrike()
-              }}
-              title="中横线"
-            >
-              <del>S</del>
-            </Button>
-          </BubbleMenu>
-        )}
+            <b>B</b>
+          </Button>
+          <Button
+            variant={editor.isActive('codeBlock') ? 'default' : 'ghost'}
+            size="sm"
+            className="px-3 h-full text-lg rounded-none font-sans"
+            onClick={(e) => {
+              e.preventDefault()
+              editor.commands.toggleCodeBlock()
+            }}
+            title="代码块"
+          >
+            <CodeIcon size={18} className="align-bottom" />
+          </Button>
+          <Button
+            variant={editor.isActive('strike') ? 'default' : 'ghost'}
+            size="sm"
+            className="px-3 h-full text-lg rounded-none"
+            onClick={(e) => {
+              e.preventDefault()
+              editor.commands.toggleStrike()
+            }}
+            title="中横线"
+          >
+            <del>S</del>
+          </Button>
+        </BubbleMenu>
         <EditorContent
           ref={elementRef}
           editor={editor}

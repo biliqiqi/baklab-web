@@ -193,6 +193,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             size="sm"
             onClick={onSubscribeClick}
             disabled={disabled}
+            className="mr-1"
           >
             <BellIcon
               size={20}

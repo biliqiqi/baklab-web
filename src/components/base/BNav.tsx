@@ -1,5 +1,11 @@
 import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog'
-import { ChevronLeftIcon, GripIcon, Loader, MenuIcon } from 'lucide-react'
+import {
+  BellIcon,
+  ChevronLeftIcon,
+  GripIcon,
+  Loader,
+  MenuIcon,
+} from 'lucide-react'
 import React, { useCallback, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -161,36 +167,69 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
             <GripIcon size={20} />
           </Button>
           {isLogined(authState) ? (
-            <DropdownMenu onOpenChange={onDropdownChange}>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-[36px] h-[36px] p-0 rounded-full"
+            <>
+              <DropdownMenu onOpenChange={onDropdownChange}>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-[36px] h-[36px] p-0 rounded-full mr-2"
+                    onClick={() => {
+                      console.log('bell click!')
+                    }}
+                  >
+                    <BellIcon size={20} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  sideOffset={6}
+                  align="center"
+                  className="w-[360px] p-2 mr-[134px] bg-gray-200 text-sm"
                 >
-                  <BAvatar
-                    username={authState.username}
-                    className="cursor-pointer"
-                    size={32}
-                  />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="px-0" align="end" sideOffset={8}>
-                <DropdownMenuItem
-                  className="py-1 px-2 hover:bg-gray-200 hover:outline-0"
-                  asChild
+                  <div className="p-3 mb-2 rounded-sm bg-white hover:opacity-80">
+                    这是通知内容
+                  </div>
+                  <div className="p-3 rounded-sm bg-white hover:opacity-80">
+                    这是通知内容
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu onOpenChange={onDropdownChange}>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-[36px] h-[36px] p-0 rounded-full"
+                  >
+                    <BAvatar
+                      username={authState.username}
+                      className="cursor-pointer"
+                      size={32}
+                    />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className="px-0"
+                  align="end"
+                  sideOffset={6}
                 >
-                  <Link to={'/users/' + authState.username}>个人主页</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="cursor-pointer py-1 px-2 hover:bg-gray-200 hover:outline-0"
-                  onClick={logout}
-                  disabled={loading}
-                >
-                  {loading ? <Loader /> : '退出'}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <DropdownMenuItem
+                    className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                    asChild
+                  >
+                    <Link to={'/users/' + authState.username}>个人主页</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                    onClick={logout}
+                    disabled={loading}
+                  >
+                    {loading ? <Loader /> : '退出'}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           ) : (
             !isOneOfPath(location, ['/signin']) && (
               <Button

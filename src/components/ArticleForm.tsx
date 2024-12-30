@@ -440,15 +440,14 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                         height:
                           draggingRef.current.inputType == 'textarea'
                             ? `${contentBoxHeight}px`
-                            : '',
+                            : isEdit
+                              ? ''
+                              : `${INIT_CONTENT_BOX_HEIGHT}px`,
                       }}
                       onChange={field.onChange}
                       value={escapeHtml(field.value)}
                       hideBubble={markdownMode}
-                      className={cn(
-                        'resize-y overflow-auto min-h-[40px]',
-                        !isEdit && `h-[${INIT_CONTENT_BOX_HEIGHT}px]`
-                      )}
+                      className={cn('resize-y overflow-auto min-h-[40px]')}
                       onResize={onContentBoxResize}
                       onMouseDown={onMouseDown('tiptap')}
                     />

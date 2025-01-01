@@ -6,18 +6,26 @@ import {
   Loader,
   MenuIcon,
 } from 'lucide-react'
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { cn, summryText } from '@/lib/utils'
 
 import { logoutToken } from '@/api'
+import { getNotifications } from '@/api/message'
 import { NAV_HEIGHT } from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { isLogined, useAuthedUserStore, useDialogStore } from '@/state/global'
-import { FrontCategory } from '@/types/types'
+import {
+  isLogined,
+  useAuthedUserStore,
+  useDialogStore,
+  useNotificationStore,
+} from '@/state/global'
+import { FrontCategory, Message } from '@/types/types'
 
+import { Empty } from '../Empty'
+import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { Dialog, DialogContent, DialogHeader } from '../ui/dialog'
 import {
@@ -28,6 +36,7 @@ import {
 } from '../ui/dropdown-menu'
 import { useSidebar } from '../ui/sidebar'
 import BAvatar from './BAvatar'
+import BLoader from './BLoader'
 
 export interface NavProps extends React.HTMLAttributes<HTMLDivElement> {
   category?: FrontCategory
@@ -47,12 +56,25 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
     const navigate = useNavigate()
     const isMobile = useIsMobile()
     const sidebar = useSidebar()
+    const [notiList, setNotiList] = useState<Message[]>([])
 
     const { updateSignin } = useDialogStore()
+    const notiStore = useNotificationStore()
 
     const onDropdownChange = (open: boolean) => {
       if (!open) {
         document.body.style.pointerEvents = ''
+      }
+    }
+
+    const onNotiClick = async (open: boolean) => {
+      if (!open) {
+        document.body.style.pointerEvents = ''
+      }
+
+      const resp = await getNotifications(1, 10, 'unread')
+      if (!resp.code && resp.data.list) {
+        setNotiList([...resp.data.list])
       }
     }
 
@@ -168,30 +190,56 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
           </Button>
           {isLogined(authState) ? (
             <>
-              <DropdownMenu onOpenChange={onDropdownChange}>
+              <DropdownMenu onOpenChange={onNotiClick}>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="w-[36px] h-[36px] p-0 rounded-full mr-2"
-                    onClick={() => {
-                      console.log('bell click!')
-                    }}
+                    className="relative w-[36px] h-[36px] p-0 rounded-full mr-2"
                   >
                     <BellIcon size={20} />
+                    {notiStore.unreadCount > 0 && (
+                      <Badge className="absolute bg-rose-500 hover:bg-rose-500 right-[2px] top-[3px] text-xs px-[4px] py-[0px]">
+                        {notiStore.unreadCount}
+                      </Badge>
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   sideOffset={6}
-                  align="center"
-                  className="w-[360px] p-2 mr-[134px] bg-gray-200 text-sm"
+                  align="end"
+                  className={cn(
+                    `w-[360px] p-2 bg-gray-200 text-sm overflow-y-auto`
+                  )}
+                  style={{
+                    maxHeight: `calc(100vh - ${NAV_HEIGHT}px)`,
+                  }}
                 >
-                  <div className="p-3 mb-2 rounded-sm bg-white hover:opacity-80">
-                    这是通知内容
-                  </div>
-                  <div className="p-3 rounded-sm bg-white hover:opacity-80">
-                    这是通知内容
-                  </div>
+                  {notiList.length == 0 && <Empty text="暂无未读消息" />}
+                  {loading && <BLoader />}
+                  {notiList.map((item) => (
+                    <Link
+                      to={'/articles/' + item.contentArticle.id}
+                      className="hover:no-underline"
+                      key={item.id}
+                    >
+                      <div className="p-3 mb-2 rounded-sm bg-white hover:opacity-80">
+                        <div className="flex items-center mb-2">
+                          <BAvatar
+                            size={20}
+                            fontSize={12}
+                            username={item.senderUserName}
+                          />
+                          &nbsp;
+                          {item.senderUserName}
+                          &nbsp; 回复了你
+                        </div>
+                        <div className="text-gray-500">
+                          {item.contentArticle.content}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
                 </DropdownMenuContent>
               </DropdownMenu>
 

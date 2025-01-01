@@ -96,6 +96,7 @@ export interface Article {
   pinnedExpireAt: string
   blocked: boolean
   fadeOut: boolean
+  replyRootAuthorId: string
   replyRootArticleId: string
   replyRootArticleTitle: string
   delLog: Activity | null
@@ -220,10 +221,12 @@ export type ArticleAction = 'delete' | 'save' | 'subscribe' | VoteType
 
 export type ActivityActionType = 'user' | 'manage' | 'anonymous' | 'dev'
 
-export interface ActivityDetails {
+export interface JSONMap {
   // eslint-disable-next-line
   [x: string]: any
 }
+
+export type ActivityDetails = JSONMap
 
 export interface Activity {
   id: string
@@ -267,3 +270,32 @@ export interface ResponseID {
 }
 
 export type UserSubmitResponse = ResponseID
+
+export type MessageStatus = 'read' | 'unread'
+export interface Message<T = Article> {
+  id: string
+  senderUserId: string
+  senderUserName: string
+  receiverUserId: string
+  receiverUserName: string
+  targetModel: string
+  targetID: string
+  targetData: T
+  contentArticle: Article
+  isRead: boolean
+  createdAt: string
+  type: string
+}
+
+export interface NotificationUnreadCount {
+  total: number
+}
+
+export interface NotificationListResponse<T = Article> {
+  list: Message<T>[] | null
+  page: number
+  pageSize: number
+  total: number
+  totalPage: number
+  status: string
+}

@@ -36,7 +36,7 @@ const tiptapVariant = cva(
   focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 \
   disabled:cursor-not-allowed disabled:opacity-50 \
   data-[disabled="1"]:cursor-not-allowed data-[disabled="1"]:opacity-50 \
-  overflow-y-scroll',
+  overflow-y-auto',
   {
     variants: {
       state: {

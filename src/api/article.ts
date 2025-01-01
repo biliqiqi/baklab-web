@@ -122,7 +122,9 @@ export const getArticle = (
   sort?: ArticleListSort,
   opt?: Options,
   custom?: CustomRequestOptions,
-  noReplies?: boolean
+  noReplies?: boolean,
+  page?: number,
+  pageSize?: number
 ): Promise<ResponseData<ArticleItemResponse>> => {
   const params = new URLSearchParams()
   if (sort) {
@@ -131,6 +133,14 @@ export const getArticle = (
 
   if (noReplies) {
     params.set('no_replies', '1')
+  }
+
+  if (page) {
+    params.set('page', String(page))
+  }
+
+  if (pageSize) {
+    params.set('pageSize', String(pageSize))
   }
 
   return authRequest.get(

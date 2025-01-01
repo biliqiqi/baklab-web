@@ -37,6 +37,7 @@ export const defaultArticle: Article = {
   updatedAtStr: '',
   replyToId: '',
   replyToArticle: null,
+  replyRootAuthorId: '',
   deleted: false,
   replies: null,
   totalReplyCount: 0,

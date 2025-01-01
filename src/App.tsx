@@ -24,6 +24,7 @@ import TrashPage from './TrashPage.tsx'
 import UserListPage from './UserListPage.tsx'
 import UserPage from './UserPage.tsx'
 import { getCategoryList } from './api/category.ts'
+import { getNotificationUnreadCount } from './api/message.ts'
 import { API_HOST, API_PATH_PREFIX } from './constants/constants.ts'
 import { PermissionAction, PermissionModule } from './constants/types.ts'
 import { useAuth } from './hooks/use-auth.ts'
@@ -34,9 +35,9 @@ import {
   isLogined,
   useAuthedUserStore,
   useCategoryStore,
+  useNotificationStore,
   useToastStore,
 } from './state/global.ts'
-import { UserData } from './types/types.ts'
 
 const notAtAuthed = () => {
   const data = useAuthedUserStore.getState()
@@ -145,9 +146,18 @@ const routes: RouteObject[] = [
   },
 ]
 
-interface PingData {
-  clientID: string
-}
+const fetchNotiCount = toSync(async () => {
+  const notiState = useNotificationStore.getState()
+  const resp = await getNotificationUnreadCount()
+  /* console.log('notification unread resp: ', resp) */
+  if (!resp.code) {
+    notiState.setUnreadCount(resp.data.total)
+  }
+})
+
+/* interface PingData {
+ *   clientID: string
+ * } */
 
 /* const EVENT_CLIENT_KEY = 'event_client' */
 const EVENT_URL = `${API_HOST}${API_PATH_PREFIX}events`
@@ -172,6 +182,11 @@ const connectEvents = () => {
     /* console.log('unban user data: ', data) */
 
     toSync(refreshAuthState)(true)
+  })
+
+  eventSource.addEventListener('updatenoties', (_ev) => {
+    /* console.log('updatenoties:', ev) */
+    fetchNotiCount()
   })
 
   /* eventSource.onmessage = (event) => {
@@ -238,6 +253,10 @@ const App = () => {
 
   useEffect(() => {
     fetchCateList()
+    if (authStore.isLogined()) {
+      fetchNotiCount()
+    }
+
     window.onfocus = () => {
       fetchCateList()
       refreshTokenSync(true)

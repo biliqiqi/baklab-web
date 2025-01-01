@@ -22,6 +22,7 @@ import {
   toggleSubscribeArticle,
   toggleVoteArticle,
 } from '@/api/article'
+import { useAuthedUserStore } from '@/state/global'
 import {
   Article,
   ArticleAction,
@@ -71,6 +72,9 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   ...props
 }) => {
   const userState = useMemo(() => article.currUserState, [article])
+
+  const isRootArticle = useMemo(() => article.replyToId == '0', [article])
+
   const onSaveClick = useCallback(
     async (e: MouseEvent<HTMLButtonElement>) => {
       try {
@@ -187,7 +191,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             {article.totalSavedCount > 0 && article.totalSavedCount}
           </Button>
         )}
-        {notify && (
+        {notify && isRootArticle && (
           <Button
             variant="ghost"
             size="sm"

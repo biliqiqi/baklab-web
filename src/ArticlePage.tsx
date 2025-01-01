@@ -7,15 +7,20 @@ import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
 
 import ArticleCard from './components/ArticleCard'
+import { ListPagination } from './components/ListPagination'
 import ReplyBox, { ReplyBoxProps } from './components/ReplyBox'
 
-import { EV_ON_EDIT_CLICK, EV_ON_REPLY_CLICK } from '@/constants/constants'
+import {
+  DEFAULT_PAGE_SIZE,
+  EV_ON_EDIT_CLICK,
+  EV_ON_REPLY_CLICK,
+} from '@/constants/constants'
 
 import { getArticle } from './api/article'
 import { toSync } from './lib/fire-and-forget'
 import { bus } from './lib/utils'
 import { useNotFoundStore } from './state/global'
-import { Article, ArticleListSort } from './types/types'
+import { Article, ArticleListSort, ArticleListState } from './types/types'
 
 type ReplyBoxState = Pick<
   ReplyBoxProps,
@@ -25,6 +30,13 @@ type ReplyBoxState = Pick<
 export default function ArticlePage() {
   const [loading, setLoading] = useState(false)
   const [article, setArticle] = useState<Article | null>(null)
+
+  const [pageState, setPageState] = useState<ArticleListState>({
+    currPage: 1,
+    pageSize: DEFAULT_PAGE_SIZE,
+    totalCount: 0,
+    totalPage: 0,
+  })
 
   const [replyBoxState, setReplyBoxState] = useState<ReplyBoxState>({
     isEditting: false,
@@ -49,12 +61,18 @@ export default function ArticlePage() {
           setLoading(true)
         }
 
+        const page = Number(params.get('page')) || 1
+        const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
+
         if (articleID) {
           const resp = await getArticle(
             articleID,
             sort,
             {},
-            { showNotFound: true }
+            { showNotFound: true },
+            false,
+            page,
+            pageSize
           )
           /* console.log('article resp: ', resp.data) */
           if (!resp.code) {
@@ -71,6 +89,22 @@ export default function ArticlePage() {
               replyToArticle: article,
               edittingArticle: null,
             })
+
+            if (article.replies) {
+              setPageState({
+                currPage: article.replies.currPage,
+                pageSize: article.replies.pageSize,
+                totalCount: article.replies.total,
+                totalPage: article.replies.totalPage,
+              })
+            } else {
+              setPageState({
+                currPage: 1,
+                pageSize: DEFAULT_PAGE_SIZE,
+                totalCount: 0,
+                totalPage: 0,
+              })
+            }
           }
         } else {
           updateNotFound(true)
@@ -211,6 +245,8 @@ export default function ArticlePage() {
             )}
           </>
         )}
+
+        {pageState.totalPage > 1 && <ListPagination pageState={pageState} />}
 
         <ReplyBox
           {...replyBoxState}

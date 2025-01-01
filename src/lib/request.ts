@@ -1,6 +1,6 @@
 import ky, { AfterResponseHook, BeforeRequestHook } from 'ky'
 import { Options } from 'node_modules/ky/distribution/types/options'
-import { mergeAll, mergeDeep } from 'remeda'
+import { mergeAll } from 'remeda'
 import { toast } from 'sonner'
 
 import { API_HOST, API_PATH_PREFIX } from '@/constants/constants'

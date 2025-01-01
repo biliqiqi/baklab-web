@@ -157,7 +157,12 @@ a:hover {
 }
 
 .b-article-content pre {
-  @apply py-2 px-3 bg-gray-100 text-sm font-mono overflow-y-scroll;
+  @apply py-2 px-3 bg-gray-100 text-sm font-mono overflow-y-auto;
+}
+
+.tiptap p.is-empty {
+  margin-bottom: 0;
+  line-height: 1em;
 }
 
 .tiptap p.is-editor-empty:first-child::before {

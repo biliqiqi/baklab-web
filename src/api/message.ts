@@ -29,3 +29,11 @@ export const getNotifications = (
     searchParams: params,
   })
 }
+
+export const readAllNotifications = () =>
+  authRequest.post<ResponseData<null>>(`messages/read_all`)
+
+export const readArticle = (articleId: string) =>
+  authRequest.post<ResponseData<null>>(`messages/read_article`, {
+    json: { articleId },
+  })

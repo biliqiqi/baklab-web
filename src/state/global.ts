@@ -2,6 +2,7 @@ import { create } from 'zustand'
 
 import { getRoleItem } from '@/lib/utils'
 
+import { getNotificationUnreadCount } from '@/api/message'
 import { ROLE_DATA } from '@/constants/roles'
 import { PermitFn, Role } from '@/constants/types'
 import { Category } from '@/types/types'
@@ -315,11 +316,22 @@ export const useCategoryStore = create<CategoryState>((set) => ({
 export interface NotificationState {
   unreadCount: number
   setUnreadCount: (count: number) => void
+  fetchUnread: () => Promise<number>
 }
 
 export const useNotificationStore = create<NotificationState>((set) => ({
   unreadCount: 0,
   setUnreadCount(count) {
     set(() => ({ unreadCount: count }))
+  },
+  fetchUnread: async () => {
+    const resp = await getNotificationUnreadCount()
+    /* console.log('notification unread resp: ', resp) */
+    if (!resp.code) {
+      set(() => ({ unreadCount: resp.data.total }))
+      return resp.data.total
+    }
+    set(() => ({ unreadCount: 0 }))
+    return 0
   },
 }))

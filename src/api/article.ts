@@ -12,6 +12,7 @@ import {
   ArticleSubmitResponse,
   CustomRequestOptions,
   ResponseData,
+  SubscribeAction,
   VoteType,
 } from '@/types/types'
 
@@ -183,9 +184,14 @@ export const toggleVoteArticle = (id: string, voteType: VoteType) =>
     }
   )
 
-export const toggleSubscribeArticle = (id: string) =>
+export const toggleSubscribeArticle = (id: string, action?: SubscribeAction) =>
   authRequest.post<ResponseData<ArticleResponse>>(
-    `articles/${id}/toggle_subscribe`
+    `articles/${id}/toggle_subscribe`,
+    {
+      json: {
+        action: action || SubscribeAction.Toggle,
+      },
+    }
   )
 
 export const recoverArticle = (id: string) =>

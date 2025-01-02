@@ -2,27 +2,34 @@ import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog'
 import {
   BellIcon,
   ChevronLeftIcon,
+  EllipsisVerticalIcon,
   GripIcon,
   Loader,
   MenuIcon,
 } from 'lucide-react'
-import React, { useCallback, useState } from 'react'
+import React, { MouseEvent, useCallback, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { cn, summryText } from '@/lib/utils'
 
 import { logoutToken } from '@/api'
-import { getNotifications } from '@/api/message'
+import { toggleSubscribeArticle } from '@/api/article'
+import {
+  getNotifications,
+  readAllNotifications,
+  readArticle,
+} from '@/api/message'
 import { NAV_HEIGHT } from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
   isLogined,
+  useAlertDialogStore,
   useAuthedUserStore,
   useDialogStore,
   useNotificationStore,
 } from '@/state/global'
-import { FrontCategory, Message } from '@/types/types'
+import { FrontCategory, Message, SubscribeAction } from '@/types/types'
 
 import { Empty } from '../Empty'
 import { Badge } from '../ui/badge'
@@ -36,7 +43,7 @@ import {
 } from '../ui/dropdown-menu'
 import { useSidebar } from '../ui/sidebar'
 import BAvatar from './BAvatar'
-import BLoader from './BLoader'
+import { BLoaderBlock } from './BLoader'
 
 export interface NavProps extends React.HTMLAttributes<HTMLDivElement> {
   category?: FrontCategory
@@ -56,7 +63,9 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
     const navigate = useNavigate()
     const isMobile = useIsMobile()
     const sidebar = useSidebar()
+    const alertDialog = useAlertDialogStore()
     const [notiList, setNotiList] = useState<Message[]>([])
+    const [notiTotal, setNotiTotal] = useState(0)
 
     const { updateSignin } = useDialogStore()
     const notiStore = useNotificationStore()
@@ -67,15 +76,23 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
       }
     }
 
+    const fetchNotifications = async () => {
+      const resp = await getNotifications(1, 10, 'unread')
+      if (!resp.code && resp.data.list) {
+        setNotiList([...resp.data.list])
+        setNotiTotal(resp.data.total)
+      } else {
+        setNotiList([])
+        setNotiTotal(0)
+      }
+    }
+
     const onNotiClick = async (open: boolean) => {
       if (!open) {
         document.body.style.pointerEvents = ''
       }
 
-      const resp = await getNotifications(1, 10, 'unread')
-      if (!resp.code && resp.data.list) {
-        setNotiList([...resp.data.list])
-      }
+      await fetchNotifications()
     }
 
     const onMenuClick = useCallback(() => {
@@ -88,6 +105,21 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
         sidebar.toggleSidebar()
       }
     }, [isMobile, sidebar])
+
+    const onReadAllClick = async () => {
+      const confirmed = await alertDialog.confirm(
+        '确认',
+        '确定把全部未读消息标记为已读？'
+      )
+      if (!confirmed) return
+
+      setLoading(true)
+      const resp = await readAllNotifications()
+      if (!resp.code) {
+        await Promise.all([fetchNotifications(), notiStore.fetchUnread()])
+      }
+      setLoading(false)
+    }
 
     const logout = useCallback(async () => {
       if (loading) return
@@ -105,6 +137,22 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
         setLoading(false)
       }
     }, [authState, loading, navigate])
+
+    const onUnsubscribeClick = async (
+      e: MouseEvent<HTMLDivElement>,
+      contentArticleId: string,
+      targetArticleId: string
+    ) => {
+      e.preventDefault()
+      const respR = await readArticle(contentArticleId)
+      if (respR.code) return
+      const resp = await toggleSubscribeArticle(
+        targetArticleId,
+        SubscribeAction.Unsubscribe
+      )
+      if (resp.code) return
+      await Promise.all([fetchNotifications(), notiStore.fetchUnread()])
+    }
 
     /* console.log('username color: ', stc(authState.username)) */
 
@@ -215,31 +263,97 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                     maxHeight: `calc(100vh - ${NAV_HEIGHT}px)`,
                   }}
                 >
-                  {notiList.length == 0 && <Empty text="暂无未读消息" />}
-                  {loading && <BLoader />}
-                  {notiList.map((item) => (
-                    <Link
-                      to={'/articles/' + item.contentArticle.id}
-                      className="hover:no-underline"
-                      key={item.id}
-                    >
-                      <div className="p-3 mb-2 rounded-sm bg-white hover:opacity-80">
-                        <div className="flex items-center mb-2">
-                          <BAvatar
-                            size={20}
-                            fontSize={12}
-                            username={item.senderUserName}
-                          />
-                          &nbsp;
-                          {item.senderUserName}
-                          &nbsp; 回复了你
+                  {notiList.length > 0 && (
+                    <div className="flex justify-between items-center mb-4 text-sm">
+                      <span className="font-bold">{notiTotal} 条未读消息</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-sm"
+                        onClick={onReadAllClick}
+                      >
+                        全部标称为已读
+                      </Button>
+                    </div>
+                  )}
+
+                  {loading && <BLoaderBlock />}
+                  {notiList.length == 0 ? (
+                    <Empty text="暂无未读消息" />
+                  ) : (
+                    notiList.map((item) => (
+                      <Link
+                        to={'/articles/' + item.contentArticle.id}
+                        className="hover:no-underline"
+                        key={item.id}
+                      >
+                        <div className="p-3 mb-2 rounded-sm bg-white hover:opacity-80">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <BAvatar
+                                size={20}
+                                fontSize={12}
+                                username={item.senderUserName}
+                                showUsername
+                              />
+                              &nbsp;
+                              {item.targetData.authorId == authState.userID ? (
+                                <>
+                                  在帖子&nbsp;<b>{item.targetData.title}</b>
+                                  &nbsp;中回复了你
+                                </>
+                              ) : (
+                                <>
+                                  回复了帖子&nbsp;<b>{item.targetData.title}</b>
+                                </>
+                              )}
+                            </div>
+                            <div className="pl-2">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="py-0 px-0 w-[24px] h-[24px]"
+                                  >
+                                    <EllipsisVerticalIcon size={18} />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                  className="px-0"
+                                  align="end"
+                                  sideOffset={6}
+                                >
+                                  <DropdownMenuItem
+                                    className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                                    onClick={(e) =>
+                                      onUnsubscribeClick(
+                                        e,
+                                        item.contentArticle.id,
+                                        item.targetID
+                                      )
+                                    }
+                                  >
+                                    不再提醒
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </div>
+                          <div className="text-gray-500">
+                            {item.contentArticle.content}
+                          </div>
                         </div>
-                        <div className="text-gray-500">
-                          {item.contentArticle.content}
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
+                      </Link>
+                    ))
+                  )}
+                  {notiTotal > notiList.length && (
+                    <div className="flex justify-center mt-4">
+                      <Button variant="secondary" size="sm" asChild>
+                        <Link to="/messages">查看全部</Link>
+                      </Button>
+                    </div>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
 

@@ -148,10 +148,10 @@ const routes: RouteObject[] = [
 
 const fetchNotiCount = toSync(async () => {
   const notiState = useNotificationStore.getState()
-  const resp = await getNotificationUnreadCount()
-  /* console.log('notification unread resp: ', resp) */
-  if (!resp.code) {
-    notiState.setUnreadCount(resp.data.total)
+  const authState = useAuthedUserStore.getState()
+
+  if (authState.isLogined()) {
+    await notiState.fetchUnread()
   }
 })
 
@@ -187,6 +187,11 @@ const connectEvents = () => {
   eventSource.addEventListener('updatenoties', (_ev) => {
     /* console.log('updatenoties:', ev) */
     fetchNotiCount()
+  })
+
+  eventSource.addEventListener('close', (ev) => {
+    console.log('close:', ev)
+    eventSource.close()
   })
 
   /* eventSource.onmessage = (event) => {
@@ -253,13 +258,13 @@ const App = () => {
 
   useEffect(() => {
     fetchCateList()
-    if (authStore.isLogined()) {
-      fetchNotiCount()
-    }
 
     window.onfocus = () => {
       fetchCateList()
       refreshTokenSync(true)
+      if (authStore.isLogined()) {
+        fetchNotiCount()
+      }
     }
   }, [authStore])
 
@@ -275,6 +280,7 @@ const App = () => {
       })()
     } else {
       refreshTokenSync(true)
+      fetchNotiCount()
     }
   }, [authed])
 

@@ -29,6 +29,7 @@ type ReplyBoxState = Pick<
 
 export default function ArticlePage() {
   const [loading, setLoading] = useState(false)
+  const [initialized, setInitialized] = useState(false)
   const [article, setArticle] = useState<Article | null>(null)
 
   const [pageState, setPageState] = useState<ArticleListState>({
@@ -82,6 +83,8 @@ export default function ArticlePage() {
             article.asMainArticle = true
 
             setArticle(article)
+
+            setInitialized(true)
 
             /* setReplyToArticle(article) */
             setReplyBoxState({
@@ -182,8 +185,10 @@ export default function ArticlePage() {
   }, [articleID])
 
   useEffect(() => {
-    fetchArticleSync(false)
-  }, [params])
+    if (initialized) {
+      fetchArticleSync(false)
+    }
+  }, [params, initialized])
 
   return (
     <>

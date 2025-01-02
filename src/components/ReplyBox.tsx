@@ -362,7 +362,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="max-w-[800px] -mx-2 sticky bottom-0 bg-white px-3 pb-3 rounded-lg border-[1px]"
+        className="max-w-[800px] -mx-2 mt-[10px] sticky bottom-0 bg-white px-3 pb-3 rounded-lg border-[1px]"
         style={{
           boxShadow:
             '0 0 15px -3px rgb(0 0 0 / 0.1), 0 0 6px -4px rgb(0 0 0 / 0.1)',

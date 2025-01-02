@@ -299,3 +299,9 @@ export interface NotificationListResponse<T = Article> {
   totalPage: number
   status: string
 }
+
+export enum SubscribeAction {
+  Toggle = 0,
+  Subscribe,
+  Unsubscribe,
+}

@@ -8,12 +8,14 @@ export interface BAvatarProps extends React.HTMLAttributes<SVGSVGElement> {
   username: string
   size?: number
   fontSize?: number
+  showUsername?: boolean
 }
 
 const BAvatar: React.FC<BAvatarProps> = ({
   username,
   size,
   className,
+  showUsername = false,
   ...props
 }) => {
   return (
@@ -28,7 +30,9 @@ const BAvatar: React.FC<BAvatarProps> = ({
         char={username}
         size={size}
         {...props}
+        className={cn(`inline-block align-text-top`, showUsername && 'mr-1')}
       />
+      {showUsername && username}
     </span>
   )
 }

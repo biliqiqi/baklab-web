@@ -1,9 +1,10 @@
-import { useCallback } from 'react'
+import { KeyboardEvent, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { ListPageState } from '@/types/types'
 
 import { Card } from './ui/card'
+import { Input } from './ui/input'
 import {
   Pagination,
   PaginationContent,
@@ -20,7 +21,7 @@ export interface ListPaginationProps {
 export const ListPagination: React.FC<ListPaginationProps> = ({
   pageState,
 }) => {
-  const [params] = useSearchParams()
+  const [params, setParams] = useSearchParams()
 
   const genParamStr = useCallback(
     (page: number) => {
@@ -29,6 +30,20 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
       return cloneParams.toString()
     },
     [params]
+  )
+
+  const onPageEnter = useCallback(
+    (e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key == 'Enter') {
+        e.preventDefault()
+        let page = parseInt(e.currentTarget.value, 10) || 1
+        if (page > pageState.totalPage || page < 1) {
+          page = 1
+        }
+        setParams((params) => ({ ...params, page: page }))
+      }
+    },
+    [pageState]
   )
 
   return (
@@ -45,12 +60,15 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
                 </PaginationItem>
               )}
               <PaginationItem>
-                <PaginationLink
-                  to={'?' + genParamStr(pageState.currPage)}
-                  isActive
-                >
-                  {pageState.currPage}
-                </PaginationLink>
+                <Input
+                  key={pageState.currPage}
+                  defaultValue={pageState.currPage}
+                  autoComplete="off"
+                  pattern="[0-9]+"
+                  className="inline-block w-[30px] h-[30px] rounded-full text-center"
+                  onKeyUp={onPageEnter}
+                />{' '}
+                <span className="text-gray-500">/ {pageState.totalPage}</span>
               </PaginationItem>
               {pageState.currPage < pageState.totalPage && (
                 <PaginationItem>

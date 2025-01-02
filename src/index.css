@@ -158,6 +158,7 @@ a:hover {
 
 .b-article-content pre {
   @apply py-2 px-3 bg-gray-100 text-sm font-mono overflow-y-auto;
+  margin-bottom: 1em;
 }
 
 .tiptap p.is-empty {

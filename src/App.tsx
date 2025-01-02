@@ -16,6 +16,7 @@ import ActivityPage from './ActivityPage.tsx'
 import ArticleListPage from './ArticleListPage.tsx'
 import ArticlePage from './ArticlePage.tsx'
 import EditPage from './EditPage.tsx'
+import MessagePage from './MessagePage.tsx'
 import NotFoundPage from './NotFoundPage.tsx'
 import SigninPage from './SigninPage.tsx'
 import SignupPage from './SignupPage.tsx'
@@ -115,6 +116,11 @@ const routes: RouteObject[] = [
   {
     path: '/users/:username',
     Component: UserPage,
+  },
+  {
+    path: '/messages',
+    Component: MessagePage,
+    loader: mustAuthed,
   },
   {
     path: '/manage',

@@ -19,20 +19,22 @@ const BAvatar: React.FC<BAvatarProps> = ({
   ...props
 }) => {
   return (
-    <span
-      className={cn(
-        `inline-block align-middle overflow-hidden w-[${size}px] h-[${size}px]`,
-        className
-      )}
-    >
-      <BIconColorChar
-        iconId={username}
-        char={username}
-        size={size}
-        {...props}
-        className={cn(`inline-block align-text-top`, showUsername && 'mr-1')}
-      />
-      {showUsername && username}
+    <span className="inline-flex items-center">
+      <span
+        className={cn(
+          `overflow-hidden w-[${size}px] h-[${size}px]`,
+          className,
+          showUsername && 'mr-1'
+        )}
+      >
+        <BIconColorChar
+          iconId={username}
+          char={username}
+          size={size}
+          {...props}
+        />
+      </span>
+      {showUsername && <span className="flex-shrink-0">{username}</span>}
     </span>
   )
 }

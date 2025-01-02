@@ -298,6 +298,7 @@ export interface NotificationListResponse<T = Article> {
   total: number
   totalPage: number
   status: string
+  unreadTotal: number
 }
 
 export enum SubscribeAction {

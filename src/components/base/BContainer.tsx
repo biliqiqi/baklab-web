@@ -4,6 +4,7 @@ import {
   PencilIcon,
   PlusIcon,
   TrashIcon,
+  UserIcon,
   UsersRoundIcon,
 } from 'lucide-react'
 import React, { MouseEvent, useCallback, useEffect, useState } from 'react'
@@ -306,36 +307,54 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     <SidebarGroupLabel>管理</SidebarGroupLabel>
                     <SidebarGroupContent>
                       <SidebarMenu>
-                        <SidebarMenuItem key="activities">
-                          <SidebarMenuButton asChild>
-                            <Link to="/manage/activities">
-                              <BIconCircle id="activities" size={32}>
-                                <ActivityIcon size={18} />
-                              </BIconCircle>
-                              活动记录
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                        <SidebarMenuItem key="trash">
-                          <SidebarMenuButton asChild>
-                            <Link to="/manage/trash">
-                              <BIconCircle id="trash" size={32}>
-                                <TrashIcon size={18} />
-                              </BIconCircle>
-                              回收站
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                        <SidebarMenuItem key="users">
-                          <SidebarMenuButton asChild>
-                            <Link to="/manage/users">
-                              <BIconCircle id="users" size={32}>
-                                <UsersRoundIcon size={18} />
-                              </BIconCircle>
-                              用户列表
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
+                        {authPermit('activity', 'access') && (
+                          <SidebarMenuItem key="activities">
+                            <SidebarMenuButton asChild>
+                              <Link to="/manage/activities">
+                                <BIconCircle id="activities" size={32}>
+                                  <ActivityIcon size={18} />
+                                </BIconCircle>
+                                活动记录
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        )}
+                        {authPermit('article', 'delete_others') && (
+                          <SidebarMenuItem key="trash">
+                            <SidebarMenuButton asChild>
+                              <Link to="/manage/trash">
+                                <BIconCircle id="trash" size={32}>
+                                  <TrashIcon size={18} />
+                                </BIconCircle>
+                                回收站
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        )}
+                        {authPermit('user', 'manage') && (
+                          <SidebarMenuItem key="users">
+                            <SidebarMenuButton asChild>
+                              <Link to="/manage/users">
+                                <BIconCircle id="users" size={32}>
+                                  <UsersRoundIcon size={18} />
+                                </BIconCircle>
+                                用户列表
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        )}
+                        {authPermit('role', 'access') && (
+                          <SidebarMenuItem key="user_roles">
+                            <SidebarMenuButton asChild>
+                              <Link to="/manage/user_roles">
+                                <BIconCircle id="users" size={32}>
+                                  <UserIcon size={18} />
+                                </BIconCircle>
+                                用户角色
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        )}
                       </SidebarMenu>
                     </SidebarGroupContent>
                   </SidebarGroup>

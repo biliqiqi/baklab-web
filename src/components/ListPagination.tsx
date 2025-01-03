@@ -1,4 +1,4 @@
-import { KeyboardEvent, useCallback } from 'react'
+import { KeyboardEvent, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { ListPageState } from '@/types/types'
@@ -45,6 +45,14 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
     },
     [pageState]
   )
+
+  useEffect(() => {
+    setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+      })
+    }, 200)
+  }, [params])
 
   return (
     <>

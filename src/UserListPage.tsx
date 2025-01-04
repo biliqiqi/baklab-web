@@ -45,7 +45,7 @@ export default function UserListPage() {
   const [pageState, setPageState] = useState<ListPageState>({
     currPage: 1,
     pageSize: DEFAULT_PAGE_SIZE,
-    totalCount: 0,
+    total: 0,
     totalPage: 0,
   })
 
@@ -85,7 +85,7 @@ export default function UserListPage() {
               setPageState({
                 currPage: data.page,
                 pageSize: data.pageSize,
-                totalCount: data.total,
+                total: data.total,
                 totalPage: data.totalPage,
               })
             } else {
@@ -93,7 +93,7 @@ export default function UserListPage() {
               setPageState({
                 currPage: 1,
                 pageSize: data.pageSize,
-                totalCount: 0,
+                total: 0,
                 totalPage: 0,
               })
             }

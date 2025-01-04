@@ -179,3 +179,13 @@ export const PERMISSION_DATA = {
     },
   },
 }
+
+export const PERMISSION_MODULE_DATA = {
+  article: '文章',
+  user: '用户',
+  manage: '管理',
+  permission: '权限',
+  role: '角色',
+  activity: '活动记录',
+  category: '分类',
+}

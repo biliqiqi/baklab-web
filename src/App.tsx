@@ -18,6 +18,7 @@ import ArticlePage from './ArticlePage.tsx'
 import EditPage from './EditPage.tsx'
 import MessagePage from './MessagePage.tsx'
 import NotFoundPage from './NotFoundPage.tsx'
+import RoleManagePage from './RoleManagePage.tsx'
 import SigninPage from './SigninPage.tsx'
 import SignupPage from './SignupPage.tsx'
 import SubmitPage from './SubmitPage.tsx'
@@ -143,6 +144,11 @@ const routes: RouteObject[] = [
         path: 'users',
         Component: UserListPage,
         loader: needPermission('user', 'manage'),
+      },
+      {
+        path: 'roles',
+        Component: RoleManagePage,
+        loader: needPermission('role', 'access'),
       },
     ],
   },

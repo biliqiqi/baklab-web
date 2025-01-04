@@ -5,6 +5,7 @@ import {
   ActivityListResponse,
   AuthedDataResponse,
   Category,
+  PermissionListResponse,
   ResponseData,
   TokenResponse,
 } from '@/types/types'
@@ -82,3 +83,6 @@ export const eventsPong = (clientID: string) =>
       clientID,
     },
   })
+
+export const getPermissionList = () =>
+  authRequest.get<ResponseData<PermissionListResponse>>(`permissions`)

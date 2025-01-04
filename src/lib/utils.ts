@@ -3,7 +3,10 @@ import EventEmitter from 'events'
 import MarkdownIt from 'markdown-it'
 import { twMerge } from 'tailwind-merge'
 
-import { PERMISSION_DATA } from '@/constants/permissions'
+import {
+  PERMISSION_DATA,
+  PERMISSION_MODULE_DATA,
+} from '@/constants/permissions'
 import { ROLE_DATA } from '@/constants/roles'
 import {
   PermissionAction,
@@ -61,6 +64,9 @@ export const getPermissionName = <K extends PermissionModule>(
     return undefined
   }
 }
+
+export const getPermissionModuleName = (moduleId: PermissionModule) =>
+  PERMISSION_MODULE_DATA[moduleId] || '未知模块'
 
 export const formatMinutes = (totalMinutes: number): string => {
   if (totalMinutes < 0) {

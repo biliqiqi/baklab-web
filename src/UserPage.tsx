@@ -217,7 +217,7 @@ export default function UserPage() {
   const [pageState, setPageState] = useState<ArticleListState>({
     currPage: 1,
     pageSize: DEFAULT_PAGE_SIZE,
-    totalCount: 0,
+    total: 0,
     totalPage: 0,
   })
   const [alertOpen, setAlertOpen] = useState(false)
@@ -334,7 +334,7 @@ export default function UserPage() {
                 setPageState({
                   currPage: data.currPage,
                   pageSize: data.pageSize,
-                  totalCount: data.articleTotal,
+                  total: data.articleTotal,
                   totalPage: data.totalPage,
                   category,
                 })
@@ -343,7 +343,7 @@ export default function UserPage() {
                 setPageState({
                   currPage: 1,
                   pageSize: data.pageSize,
-                  totalCount: 0,
+                  total: 0,
                   totalPage: 0,
                   category,
                 })
@@ -374,7 +374,7 @@ export default function UserPage() {
                 setPageState({
                   currPage: data.page,
                   pageSize: data.pageSize,
-                  totalCount: data.total,
+                  total: data.total,
                   totalPage: data.totalPage,
                   category: undefined,
                 })
@@ -383,7 +383,7 @@ export default function UserPage() {
                 setPageState({
                   currPage: 1,
                   pageSize: data.pageSize,
-                  totalCount: 0,
+                  total: 0,
                   totalPage: 0,
                   category: undefined,
                 })

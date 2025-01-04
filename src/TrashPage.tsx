@@ -58,7 +58,7 @@ export default function TrashPage() {
   const [pageState, setPageState] = useState<ListPageState>({
     currPage: 1,
     pageSize: DEFAULT_PAGE_SIZE,
-    totalCount: 0,
+    total: 0,
     totalPage: 0,
   })
 
@@ -122,7 +122,7 @@ export default function TrashPage() {
               setPageState({
                 currPage: data.currPage,
                 pageSize: data.pageSize,
-                totalCount: data.articleTotal,
+                total: data.articleTotal,
                 totalPage: data.totalPage,
               })
             } else {
@@ -130,7 +130,7 @@ export default function TrashPage() {
               setPageState({
                 currPage: 1,
                 pageSize: data.pageSize,
-                totalCount: 0,
+                total: 0,
                 totalPage: 0,
               })
             }
@@ -279,7 +279,7 @@ export default function TrashPage() {
         </div>
       )}
 
-      {pageState.totalCount == 0 ? (
+      {pageState.total == 0 ? (
         <Empty />
       ) : (
         list.map((item) => (

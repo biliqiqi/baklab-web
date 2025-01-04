@@ -166,6 +166,21 @@ export interface Permission {
   module: string
 }
 
+export interface PermissionListItem {
+  module: string
+  list: Permission[]
+}
+
+export interface PermissionListResponse {
+  list: Permission[]
+  total: number
+  currPage: number
+  totalPage: number
+  pageSize: number
+  module: string
+  formattedList: PermissionListItem[]
+}
+
 export interface UserData {
   id: string
   name: string
@@ -198,7 +213,7 @@ export type FrontCategory = Pick<Category, 'frontId' | 'name' | 'describe'> & {
 export interface ListPageState {
   currPage: number
   pageSize: number
-  totalCount: number // 数据总量
+  total: number // 数据总量
   totalPage: number // 总页数
 }
 
@@ -305,4 +320,24 @@ export enum SubscribeAction {
   Toggle = 0,
   Subscribe,
   Unsubscribe,
+}
+
+export interface Role {
+  id: string
+  frontId: string
+  name: string
+  createdAt: string
+  deleted: boolean
+  isDefault: boolean
+  permissions: Permission[]
+  formattedPermissions: PermissionListItem[]
+  level: number
+}
+
+export interface RoleListResponse extends ListPageState {
+  list: Role[]
+}
+
+export interface RoleSubmitResponse {
+  id: string
 }

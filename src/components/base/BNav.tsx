@@ -192,7 +192,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                   >
                     <BellIcon size={20} />
                     {notiStore.unreadCount > 0 && (
-                      <Badge className="absolute bg-rose-500 hover:bg-rose-500 right-[2px] top-[3px] text-xs px-[4px] py-[0px]">
+                      <Badge className="absolute bg-pink-600 hover:bg-pink-600 right-[2px] top-[3px] text-xs px-[4px] py-[0px]">
                         {notiStore.unreadCount}
                       </Badge>
                     )}

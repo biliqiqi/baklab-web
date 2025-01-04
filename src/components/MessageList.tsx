@@ -64,7 +64,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
       currPage: 1,
       pageSize: DEFAULT_PAGE_SIZE,
       totalPage: 0,
-      totalCount: 0,
+      total: 0,
     })
 
     const [params] = useSearchParams()
@@ -89,7 +89,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
           setPageState({
             currPage: data.page,
             pageSize: data.pageSize,
-            totalCount: data.total,
+            total: data.total,
             totalPage: data.totalPage,
           })
         } else {
@@ -97,7 +97,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
           setPageState({
             currPage: 1,
             pageSize: DEFAULT_PAGE_SIZE,
-            totalCount: 0,
+            total: 0,
             totalPage: 0,
           })
         }

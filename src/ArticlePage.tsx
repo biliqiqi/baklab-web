@@ -35,7 +35,7 @@ export default function ArticlePage() {
   const [pageState, setPageState] = useState<ArticleListState>({
     currPage: 1,
     pageSize: DEFAULT_PAGE_SIZE,
-    totalCount: 0,
+    total: 0,
     totalPage: 0,
   })
 
@@ -97,14 +97,14 @@ export default function ArticlePage() {
               setPageState({
                 currPage: article.replies.currPage,
                 pageSize: article.replies.pageSize,
-                totalCount: article.replies.total,
+                total: article.replies.total,
                 totalPage: article.replies.totalPage,
               })
             } else {
               setPageState({
                 currPage: 1,
                 pageSize: DEFAULT_PAGE_SIZE,
-                totalCount: 0,
+                total: 0,
                 totalPage: 0,
               })
             }

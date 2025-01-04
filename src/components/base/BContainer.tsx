@@ -346,8 +346,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                         {authPermit('role', 'access') && (
                           <SidebarMenuItem key="user_roles">
                             <SidebarMenuButton asChild>
-                              <Link to="/manage/user_roles">
-                                <BIconCircle id="users" size={32}>
+                              <Link to="/manage/roles">
+                                <BIconCircle id="user_roles" size={32}>
                                   <UserIcon size={18} />
                                 </BIconCircle>
                                 用户角色

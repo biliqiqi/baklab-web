@@ -36,7 +36,7 @@ export default function ArticleListPage() {
   const [pageState, setPageState] = useState<ArticleListState>({
     currPage: 1,
     pageSize: DEFAULT_PAGE_SIZE,
-    totalCount: 0,
+    total: 0,
     totalPage: 0,
   })
 
@@ -84,7 +84,7 @@ export default function ArticleListPage() {
             setPageState({
               currPage: data.currPage,
               pageSize: data.pageSize,
-              totalCount: data.articleTotal,
+              total: data.articleTotal,
               totalPage: data.totalPage,
               category,
             })
@@ -93,7 +93,7 @@ export default function ArticleListPage() {
             setPageState({
               currPage: 1,
               pageSize: data.pageSize,
-              totalCount: data.articleTotal,
+              total: data.articleTotal,
               totalPage: data.totalPage,
               category,
             })

@@ -22,6 +22,8 @@ export type PermissionModule = keyof PermissionData
 export type PermissionAction<K extends PermissionModule> =
   keyof PermissionData[K]
 
+export type PermissionModuleData = Record<PermissionModule, string>
+
 export interface PermissionItem {
   name: string
   adapt_id: string

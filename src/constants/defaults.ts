@@ -1,4 +1,6 @@
-import { Article, Category, CurrUserState } from '@/types/types'
+import { Article, Category, CurrUserState, ListPageState } from '@/types/types'
+
+import { DEFAULT_PAGE_SIZE } from './constants'
 
 export const defaultCategory: Category = {
   id: '',
@@ -61,4 +63,11 @@ export const defaultArticle: Article = {
   replyRootArticleId: '',
   replyRootArticleTitle: '',
   delLog: null,
+}
+
+export const defaultPageState: ListPageState = {
+  currPage: 1,
+  pageSize: DEFAULT_PAGE_SIZE,
+  total: 0,
+  totalPage: 0,
 }

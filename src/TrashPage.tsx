@@ -26,12 +26,7 @@ import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { cn } from './lib/utils'
 import { useAlertDialogStore, useCategoryStore } from './state/global'
-import {
-  Article,
-  ArticleListSort,
-  ArticleListType,
-  ListPageState,
-} from './types/types'
+import { Article, ArticleListSort, ListPageState } from './types/types'
 
 interface SearchFields {
   keywords?: string
@@ -302,11 +297,13 @@ export default function TrashPage() {
               )}
             </div>
             <ArticleControls
+              comment={false}
               upVote={false}
               bookmark={false}
               notify={false}
               article={item}
               ctype="list"
+              className="mb-2"
             />
             <div className="flex justify-between p-2 bg-gray-200 text-sm">
               <div>

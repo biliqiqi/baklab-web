@@ -46,6 +46,7 @@ interface ArticleControlsProps extends HTMLAttributes<HTMLDivElement> {
   cornerLink?: boolean // 右下角链接
   linkQrCode?: boolean // 是否显示直达链接二维码
   notify?: boolean
+  comment?: boolean
   isTopArticle?: boolean
   onCommentClick?: MouseEventHandler<HTMLButtonElement>
   /* onSaveClick?: MouseEventHandler<HTMLButtonElement> */
@@ -65,6 +66,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   linkQrCode = false,
   cornerLink = false,
   notify = true,
+  comment = true,
   ctype = 'item',
   isTopArticle = false,
   onCommentClick = noop,
@@ -160,22 +162,24 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             {article.voteDown > 0 && article.voteDown}
           </Button>
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          asChild={ctype == 'list'}
-          onClick={onCommentClick}
-          className="mr-1"
-        >
-          {ctype == 'list' ? (
-            <Link to={'/articles/' + article.id}>
+        {comment && (
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild={ctype == 'list'}
+            onClick={onCommentClick}
+            className="mr-1"
+          >
+            {ctype == 'list' ? (
+              <Link to={'/articles/' + article.id}>
+                <MessageSquare size={20} className="inline-block mr-1" />
+                {article.totalReplyCount > 0 && article.totalReplyCount}
+              </Link>
+            ) : (
               <MessageSquare size={20} className="inline-block mr-1" />
-              {article.totalReplyCount > 0 && article.totalReplyCount}
-            </Link>
-          ) : (
-            <MessageSquare size={20} className="inline-block mr-1" />
-          )}
-        </Button>
+            )}
+          </Button>
+        )}
         {bookmark && (
           <Button
             variant="ghost"

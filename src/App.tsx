@@ -201,8 +201,8 @@ const connectEvents = () => {
     fetchNotiCount()
   })
 
-  eventSource.addEventListener('close', (ev) => {
-    console.log('close:', ev)
+  eventSource.addEventListener('close', (_ev) => {
+    /* console.log('close:', ev) */
     eventSource.close()
   })
 
@@ -266,7 +266,7 @@ const App = () => {
     return () => {
       eventSource.close()
     }
-  }, [])
+  }, [authStore.username])
 
   useEffect(() => {
     fetchCateList()

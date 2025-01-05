@@ -89,7 +89,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
         const data = await logoutToken()
         if (!data.code) {
           authState.logout()
-          navigate(0)
+          /* navigate(0) */
         }
       } catch (e) {
         console.error('logout error: ', e)

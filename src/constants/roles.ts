@@ -19,7 +19,7 @@ export const ROLE_DATA = {
   },
   banned_user: {
     level: 4,
-    name: '被禁用户',
+    name: '受限用户',
     adapt_id: 'banned_user',
     permissions: null,
   },

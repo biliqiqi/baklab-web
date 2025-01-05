@@ -329,7 +329,7 @@ export interface Role {
   name: string
   createdAt: string
   deleted: boolean
-  isDefault: boolean
+  isSystem: boolean
   permissions: Permission[]
   formattedPermissions: PermissionListItem[]
   level: number
@@ -337,5 +337,5 @@ export interface Role {
 }
 
 export interface RoleListResponse extends ListPageState {
-  list: Role[]
+  list: Role[] | null
 }

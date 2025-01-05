@@ -1,15 +1,28 @@
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { useCallback, useEffect, useState } from 'react'
+import { CheckIcon, ChevronsUpDown } from 'lucide-react'
+import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { useSearchParams } from 'react-router-dom'
+
+import { z } from '@/lib/zod-custom'
 
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from './components/ui/command'
 import {
   Dialog,
   DialogContent,
@@ -17,6 +30,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from './components/ui/dialog'
+import { Form, FormControl, FormField, FormItem } from './components/ui/form'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from './components/ui/popover'
 import {
   Table,
   TableBody,
@@ -33,11 +52,19 @@ import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 import RoleForm from './components/RoleForm'
 
-import { getRoles } from './api/role'
+import roleAPI, { getDefaultRole, getRoles } from './api/role'
+import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { defaultPageState } from './constants/defaults'
 import { toSync } from './lib/fire-and-forget'
+import { cn } from './lib/utils'
 import { useAlertDialogStore } from './state/global'
 import { ListPageState, Role } from './types/types'
+
+const defaultRoleSchema = z.object({
+  roleId: z.string().min(1, '请选择角色'),
+})
+
+type DefaultRoleSchema = z.infer<typeof defaultRoleSchema>
 
 interface EditRoleState {
   editting: boolean
@@ -46,12 +73,26 @@ interface EditRoleState {
 
 export default function RoleManagePage() {
   const [loading, setLoading] = useState(false)
+  const [searchLoading, setSearchLoading] = useState(false)
   const [pageState, setPageState] = useState<ListPageState>({
     ...defaultPageState,
   })
   const [roleList, setRoleList] = useState<Role[]>([])
+  const [roleOptions, setRoleOptions] = useState<Role[]>([])
   const [showRoleForm, setShowRoleForm] = useState(false)
   const [roleFormDirty, setRoleFormDirty] = useState(false)
+  const [openRoleOptions, setOpenRoleOptions] = useState(false)
+  const [editDefaultRole, setEditDefaultRole] = useState(false)
+  const [searchRole, setSearchRole] = useState('')
+
+  const [defaultRole, setDefaultRole] = useState<Role | null>(null)
+
+  /* const roleMap: JSONMap = useMemo(() => {
+   *   return roleList.reduce((obj: JSONMap, item) => {
+   *     obj[item.frontId] = item.name
+   *     return obj
+   *   }, {})
+   * }, [roleList]) */
 
   const [editRole, setEditRole] = useState<EditRoleState>({
     editting: false,
@@ -61,6 +102,15 @@ export default function RoleManagePage() {
   const [params] = useSearchParams()
 
   const alertDialog = useAlertDialogStore()
+
+  const defaultRoleForm = useForm<DefaultRoleSchema>({
+    resolver: zodResolver(defaultRoleSchema),
+    defaultValues: {
+      roleId: '',
+    },
+  })
+
+  const formVals = defaultRoleForm.watch()
 
   const columns: ColumnDef<Role>[] = [
     {
@@ -105,26 +155,51 @@ export default function RoleManagePage() {
   })
 
   const fetchRoleList = toSync(
-    useCallback(async () => {
-      setLoading(true)
-      const page = parseInt(params.get('page') || '', 10) || 1
-      const { code, data } = await getRoles(page)
-      if (!code) {
-        console.log('role list: ', data)
-        setRoleList([...data.list])
-        setPageState({
-          currPage: data.currPage,
-          pageSize: data.pageSize,
-          total: data.total,
-          totalPage: data.totalPage,
-        })
-      } else {
-        setRoleList([])
-        setPageState({ ...defaultPageState })
-      }
-      setLoading(false)
-    }, [params])
+    useCallback(
+      async (keywords?: string) => {
+        setLoading(true)
+        const page = parseInt(params.get('page') || '', 10) || 1
+
+        const { code, data } = await getRoles(page, DEFAULT_PAGE_SIZE, keywords)
+        if (!code && data.list) {
+          console.log('role list: ', data)
+          setRoleList([...data.list])
+          setPageState({
+            currPage: data.currPage,
+            pageSize: data.pageSize,
+            total: data.total,
+            totalPage: data.totalPage,
+          })
+        } else {
+          setRoleList([])
+          setPageState({ ...defaultPageState })
+        }
+        setLoading(false)
+      },
+      [params]
+    )
   )
+
+  const searchRoleList = toSync(async (keywords?: string) => {
+    setSearchLoading(true)
+
+    const { code, data } = await getRoles(1, DEFAULT_PAGE_SIZE, keywords)
+    if (!code && data.list) {
+      console.log('role list: ', data)
+      setRoleOptions([...data.list])
+    } else {
+      setRoleOptions([])
+    }
+    setSearchLoading(false)
+  })
+
+  const fetchDefaultRole = toSync(async () => {
+    const { code, data } = await getDefaultRole()
+    console.log('default role: ', data)
+    if (!code) {
+      setDefaultRole({ ...data })
+    }
+  })
 
   const onRoleFormClose = useCallback(async () => {
     if (roleFormDirty) {
@@ -146,13 +221,56 @@ export default function RoleManagePage() {
     }
   }, [roleFormDirty, editRole])
 
+  const onDefaultRoleSubmit = useCallback(
+    async ({ roleId }: DefaultRoleSchema) => {
+      /* console.log('roleId: ', roleId) */
+      const id = roleOptions.find((role) => role.frontId == roleId)?.id
+      if (!id) return
+
+      const { code } = await roleAPI.setDefaultRole(id)
+      if (!code) {
+        fetchDefaultRole()
+        setEditDefaultRole(false)
+        defaultRoleForm.reset({ roleId: '' })
+      }
+    },
+    [roleOptions, defaultRoleForm]
+  )
+
+  const selectedRoleName = useMemo(() => {
+    const selected = roleOptions.find(
+      (role) => role.frontId === formVals.roleId
+    )
+    return selected?.name
+  }, [formVals, roleOptions])
+
+  const onCancelEditDefaultRole = useCallback(
+    (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault()
+      setEditDefaultRole(false)
+      defaultRoleForm.reset({ roleId: '' })
+    },
+    [defaultRoleForm]
+  )
+
   useEffect(() => {
     fetchRoleList()
   }, [params])
 
-  /* useEffect(() => {
-   *   fetchRoleList()
-   * }, []) */
+  useEffect(() => {
+    fetchDefaultRole()
+  }, [])
+
+  useEffect(() => {
+    /* console.log('form change, role id: ', formVals.roleId) */
+    const timer = setTimeout(() => {
+      searchRoleList(searchRole)
+    }, 200)
+
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [searchRole])
 
   return (
     <BContainer
@@ -163,6 +281,135 @@ export default function RoleManagePage() {
         describe: '',
       }}
     >
+      {defaultRole && (
+        <Card className="flex justify-between items-center p-4 text-sm mb-4">
+          <div>
+            <b>用户默认角色</b>：{' '}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setEditRole({
+                  editting: true,
+                  role: defaultRole,
+                })
+                setShowRoleForm(true)
+              }}
+            >
+              {defaultRole.name}
+            </Button>
+          </div>
+          <div>
+            {editDefaultRole && (
+              <Form {...defaultRoleForm}>
+                <form
+                  onSubmit={defaultRoleForm.handleSubmit(onDefaultRoleSubmit)}
+                  className="inline-block"
+                >
+                  <FormField
+                    control={defaultRoleForm.control}
+                    name="roleId"
+                    key="roleId"
+                    render={({ fieldState }) => (
+                      <FormItem className="inline-block mr-2">
+                        <FormControl>
+                          <Popover
+                            open={openRoleOptions}
+                            onOpenChange={setOpenRoleOptions}
+                          >
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant={
+                                  fieldState.invalid ? 'invalid' : 'outline'
+                                }
+                                role="combobox"
+                                className="justify-between text-gray-700"
+                                size="sm"
+                              >
+                                {formVals.roleId && selectedRoleName
+                                  ? '设置默认角色为【' + selectedRoleName + '】'
+                                  : '设置默认角色为...'}
+                                <ChevronsUpDown className="opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[200px] p-0">
+                              <Command>
+                                <CommandInput
+                                  placeholder="搜索角色.."
+                                  onValueChange={setSearchRole}
+                                />
+                                <CommandList>
+                                  {searchLoading ? (
+                                    <BLoaderBlock />
+                                  ) : (
+                                    <CommandEmpty>未找到角色</CommandEmpty>
+                                  )}
+                                  <CommandGroup>
+                                    {roleOptions.map((role) => (
+                                      <CommandItem
+                                        key={role.frontId}
+                                        value={role.frontId}
+                                        onSelect={(currentValue) => {
+                                          console.log(
+                                            'currentValue: ',
+                                            currentValue
+                                          )
+                                          defaultRoleForm.setValue(
+                                            'roleId',
+                                            currentValue === formVals.roleId
+                                              ? ''
+                                              : currentValue
+                                          )
+                                          setOpenRoleOptions(false)
+                                        }}
+                                      >
+                                        {role.name}
+                                        <CheckIcon
+                                          className={cn(
+                                            'ml-auto',
+                                            formVals.roleId === role.frontId
+                                              ? 'opacity-100'
+                                              : 'opacity-0'
+                                          )}
+                                        />
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="mr-2"
+                    onClick={onCancelEditDefaultRole}
+                  >
+                    取消
+                  </Button>
+                  <Button type="submit" size="sm">
+                    确认
+                  </Button>
+                </form>
+              </Form>
+            )}
+
+            {!editDefaultRole && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEditDefaultRole(true)}
+              >
+                设置
+              </Button>
+            )}
+          </div>
+        </Card>
+      )}
       <div className="flex justify-between items-center">
         <div>
           <Badge variant="secondary">{pageState.total} 个用户角色</Badge>

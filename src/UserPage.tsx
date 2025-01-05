@@ -586,7 +586,7 @@ export default function UserPage() {
                           'font-normal'
                         )}
                       >
-                        {getRoleName(user.roleFrontId as FrontRole)}
+                        {user.roleName}
                       </Badge>
                       {user.banned && (
                         <div className="bg-gray-100 text-sm mt-2 p-2 leading-6">

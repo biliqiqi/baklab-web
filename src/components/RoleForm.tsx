@@ -75,7 +75,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
   }, [role])
 
   const systemRole = useMemo(
-    () => Boolean(isEdit && role && role.isDefault),
+    () => Boolean(isEdit && role && role.isSystem),
     [isEdit, role]
   )
 

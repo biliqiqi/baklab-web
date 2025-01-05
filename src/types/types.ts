@@ -333,6 +333,7 @@ export interface Role {
   permissions: Permission[]
   formattedPermissions: PermissionListItem[]
   level: number
+  relateUserCount: number
 }
 
 export interface RoleListResponse extends ListPageState {

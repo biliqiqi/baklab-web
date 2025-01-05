@@ -23,7 +23,7 @@ export const getUserList = (
   page?: number,
   pageSize?: number,
   keywords?: string,
-  role?: string
+  roleFrontId?: string
 ) => {
   const params = new URLSearchParams()
 
@@ -31,8 +31,8 @@ export const getUserList = (
     params.set('keywords', keywords)
   }
 
-  if (role) {
-    params.set('role', role)
+  if (roleFrontId) {
+    params.set('role', roleFrontId)
   }
 
   if (page) {

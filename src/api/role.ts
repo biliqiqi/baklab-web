@@ -37,3 +37,7 @@ export const updateRole = (
     json: { name, level, permissionFrontIDs },
   })
 }
+
+export const deleteRole = (roleId: string) => {
+  return authRequest.delete<ResponseData<null>>(`roles/${roleId}`)
+}

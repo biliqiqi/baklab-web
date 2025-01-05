@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { CircleAlertIcon } from 'lucide-react'
+import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { toSync } from '@/lib/fire-and-forget'
@@ -7,9 +8,11 @@ import { getPermissionModuleName, getPermissionName, noop } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { getPermissionList } from '@/api'
-import { submitRole, updateRole } from '@/api/role'
+import { deleteRole, submitRole, updateRole } from '@/api/role'
+import { getUserList } from '@/api/user'
 import { MIN_ROLE_LEVEL } from '@/constants/roles'
 import { PermissionModule } from '@/constants/types'
+import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
 import {
   PermissionListItem,
   ResponseData,
@@ -64,10 +67,17 @@ const RoleForm: React.FC<RoleFormProps> = ({
   const [formattedPermissions, setFormattedPermissions] = useState<
     PermissionListItem[]
   >([])
+  const authStore = useAuthedUserStore()
+  const alertDialog = useAlertDialogStore()
 
   const edittingPermissionIds = useMemo(() => {
     return role?.permissions ? role.permissions.map((item) => item.frontId) : []
   }, [role])
+
+  const systemRole = useMemo(
+    () => Boolean(isEdit && role && role.isDefault),
+    [isEdit, role]
+  )
 
   const form = useForm<RoleSchema>({
     resolver: zodResolver(roleSchema),
@@ -97,6 +107,8 @@ const RoleForm: React.FC<RoleFormProps> = ({
   const onSubmit = useCallback(
     async (vals: RoleSchema) => {
       /* console.log('vals: ', vals) */
+      if (systemRole) return
+
       let resp: ResponseData<ResponseID> | undefined
 
       const level = parseInt(vals.level, 10) || 0
@@ -123,7 +135,38 @@ const RoleForm: React.FC<RoleFormProps> = ({
         onSuccess()
       }
     },
-    [form, isEdit, role]
+    [form, isEdit, role, systemRole]
+  )
+
+  const onDeleteClick = useCallback(
+    async (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault()
+
+      if (!isEdit || !role?.frontId) return
+
+      const { code, data } = await getUserList(1, 1, '', role.frontId)
+
+      if (!code) {
+        if (data.total > 0) {
+          alertDialog.alert('无法删除', '该角色有关联用户，无法删除')
+          return
+        }
+      }
+
+      const confirmed = await alertDialog.confirm(
+        '确认',
+        '删除之后无法撤回，确认删除？',
+        'danger'
+      )
+
+      if (!confirmed) return
+
+      const respD = await deleteRole(role.id)
+      if (!respD.code) {
+        onSuccess()
+      }
+    },
+    [isEdit, role]
   )
 
   useEffect(() => {
@@ -133,6 +176,8 @@ const RoleForm: React.FC<RoleFormProps> = ({
   useEffect(() => {
     onChange(form.formState.isDirty)
   }, [form, formVals])
+
+  if (isEdit && !role) return null
 
   return (
     <Form {...form}>
@@ -149,6 +194,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
                   placeholder="请输入角色名称"
                   autoComplete="off"
                   state={fieldState.invalid ? 'invalid' : 'default'}
+                  disabled={systemRole}
                   {...field}
                 />
               </FormControl>
@@ -170,6 +216,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
                   autoComplete="off"
                   pattern="^\d+$"
                   state={fieldState.invalid ? 'invalid' : 'default'}
+                  disabled={systemRole}
                   {...field}
                 />
               </FormControl>
@@ -211,6 +258,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
                             checked={
                               field.value?.includes(item.frontId) || false
                             }
+                            disabled={systemRole}
                             onCheckedChange={(checked) => {
                               const newVal = checked
                                 ? [...(field.value || []), item.frontId]
@@ -231,19 +279,52 @@ const RoleForm: React.FC<RoleFormProps> = ({
         />
 
         <div className="flex justify-between mt-4">
-          <div></div>
           <div>
-            <Button
-              variant="secondary"
-              onClick={(e) => {
-                e.preventDefault()
-                onCancel()
-              }}
-              className="mr-2"
-            >
-              取消
-            </Button>
-            <Button type="submit">提交</Button>
+            {isEdit && authStore.permit('role', 'edit') && !systemRole && (
+              <Button
+                variant="outline"
+                className="border-destructive outline-destructive"
+                size="sm"
+                disabled={systemRole}
+                onClick={onDeleteClick}
+              >
+                删除
+              </Button>
+            )}
+          </div>
+          <div>
+            {systemRole ? (
+              <>
+                <span className="inline-block mr-4 text-gray-500 text-sm">
+                  <CircleAlertIcon size={16} className="inline-block" />{' '}
+                  系统角色无法修改
+                </span>
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    onCancel()
+                  }}
+                >
+                  确定
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="secondary"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    onCancel()
+                  }}
+                  className="mr-2"
+                >
+                  取消
+                </Button>
+                <Button type="submit" disabled={systemRole}>
+                  提交
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </form>

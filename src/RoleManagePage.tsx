@@ -36,6 +36,7 @@ import RoleForm from './components/RoleForm'
 import { getRoles } from './api/role'
 import { defaultPageState } from './constants/defaults'
 import { toSync } from './lib/fire-and-forget'
+import { useAlertDialogStore } from './state/global'
 import { ListPageState, Role } from './types/types'
 
 interface EditRoleState {
@@ -50,12 +51,16 @@ export default function RoleManagePage() {
   })
   const [roleList, setRoleList] = useState<Role[]>([])
   const [showRoleForm, setShowRoleForm] = useState(false)
+  const [roleFormDirty, setRoleFormDirty] = useState(false)
+
   const [editRole, setEditRole] = useState<EditRoleState>({
     editting: false,
     role: undefined,
   })
 
   const [params] = useSearchParams()
+
+  const alertDialog = useAlertDialogStore()
 
   const columns: ColumnDef<Role>[] = [
     {
@@ -67,7 +72,7 @@ export default function RoleManagePage() {
       header: '权限级别',
     },
     {
-      accessorKey: 'users',
+      accessorKey: 'relateUserCount',
       header: '关联用户',
     },
     {
@@ -79,7 +84,6 @@ export default function RoleManagePage() {
             variant="ghost"
             size="sm"
             onClick={() => {
-              console.log('edit role:', row.original)
               setEditRole({
                 editting: true,
                 role: row.original,
@@ -121,6 +125,26 @@ export default function RoleManagePage() {
       setLoading(false)
     }, [params])
   )
+
+  const onRoleFormClose = useCallback(async () => {
+    if (roleFormDirty) {
+      const { editting } = editRole
+      alertDialog.setState((state) => ({
+        ...state,
+        confirmBtnText: '确定舍弃',
+        cancelBtnText: editting ? '继续设置' : '继续添加',
+      }))
+      const confirmed = await alertDialog.confirm(
+        '确认',
+        editting ? '角色数据有改动，确认舍弃？' : '角色添加未完成，确认舍弃？'
+      )
+      if (confirmed) {
+        setShowRoleForm(false)
+      }
+    } else {
+      setShowRoleForm(false)
+    }
+  }, [roleFormDirty, editRole])
 
   useEffect(() => {
     fetchRoleList()
@@ -215,7 +239,7 @@ export default function RoleManagePage() {
         <ListPagination pageState={pageState} />
       </Card>
 
-      <Dialog open={showRoleForm} onOpenChange={setShowRoleForm}>
+      <Dialog open={showRoleForm} onOpenChange={onRoleFormClose}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -226,10 +250,13 @@ export default function RoleManagePage() {
           <RoleForm
             isEdit={editRole.editting}
             role={editRole.role}
-            onCancel={() => setShowRoleForm(false)}
+            onCancel={onRoleFormClose}
             onSuccess={() => {
               setShowRoleForm(false)
               fetchRoleList()
+            }}
+            onChange={(dirty) => {
+              setRoleFormDirty(dirty)
             }}
           />
         </DialogContent>

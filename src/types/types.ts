@@ -338,7 +338,3 @@ export interface Role {
 export interface RoleListResponse extends ListPageState {
   list: Role[]
 }
-
-export interface RoleSubmitResponse {
-  id: string
-}

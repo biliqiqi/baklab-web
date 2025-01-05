@@ -3,7 +3,7 @@ import { ROLE_DATA } from '@/constants/roles'
 
 export type RoleData = typeof ROLE_DATA
 export type PermissionData = typeof PERMISSION_DATA
-export type Role = keyof RoleData
+export type FrontRole = keyof RoleData
 
 /**
    @property level 角色层级，数值越小权限越大

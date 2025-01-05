@@ -35,9 +35,13 @@ import RoleForm from './components/RoleForm'
 
 import { getRoles } from './api/role'
 import { defaultPageState } from './constants/defaults'
-import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { ListPageState, Role } from './types/types'
+
+interface EditRoleState {
+  editting: boolean
+  role?: Role
+}
 
 export default function RoleManagePage() {
   const [loading, setLoading] = useState(false)
@@ -46,8 +50,12 @@ export default function RoleManagePage() {
   })
   const [roleList, setRoleList] = useState<Role[]>([])
   const [showRoleForm, setShowRoleForm] = useState(false)
+  const [editRole, setEditRole] = useState<EditRoleState>({
+    editting: false,
+    role: undefined,
+  })
 
-  const [params, setParams] = useSearchParams()
+  const [params] = useSearchParams()
 
   const columns: ColumnDef<Role>[] = [
     {
@@ -55,28 +63,29 @@ export default function RoleManagePage() {
       header: '名称',
     },
     {
-      accessorKey: 'isDefault',
-      header: '系统角色',
-      cell: ({ cell }) => (cell.getValue() ? '是' : '否'),
-    },
-    {
       accessorKey: 'level',
       header: '权限级别',
     },
     {
-      accessorKey: 'createdAt',
-      header: '创建时间',
-      cell: ({ cell }) => timeFmt(cell.getValue() as string, 'YYYY-M-D'),
+      accessorKey: 'users',
+      header: '关联用户',
     },
     {
       accessorKey: 'contorles',
       header: '操作',
-      cell: () => (
+      cell: ({ row }) => (
         <>
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowRoleForm(true)}
+            onClick={() => {
+              console.log('edit role:', row.original)
+              setEditRole({
+                editting: true,
+                role: row.original,
+              })
+              setShowRoleForm(true)
+            }}
           >
             详细
           </Button>
@@ -138,7 +147,13 @@ export default function RoleManagePage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setShowRoleForm(true)}
+            onClick={() => {
+              setEditRole({
+                editting: false,
+                role: undefined,
+              })
+              setShowRoleForm(true)
+            }}
           >
             + 添加
           </Button>
@@ -203,10 +218,14 @@ export default function RoleManagePage() {
       <Dialog open={showRoleForm} onOpenChange={setShowRoleForm}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>创建角色</DialogTitle>
+            <DialogTitle>
+              {editRole.editting ? '角色详情' : '创建角色'}
+            </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
           <RoleForm
+            isEdit={editRole.editting}
+            role={editRole.role}
             onCancel={() => setShowRoleForm(false)}
             onSuccess={() => {
               setShowRoleForm(false)

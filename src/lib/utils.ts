@@ -9,10 +9,10 @@ import {
 } from '@/constants/permissions'
 import { ROLE_DATA } from '@/constants/roles'
 import {
+  FrontRole,
   PermissionAction,
   PermissionItem,
   PermissionModule,
-  Role,
   RoleItem,
 } from '@/constants/types'
 
@@ -44,11 +44,11 @@ export const getCookie = (name: string) => {
 
 export const extractDomain = (url: string) => new URL(url).hostname
 
-export const getRoleName = (roleFrontId: Role) => {
+export const getRoleName = (roleFrontId: FrontRole) => {
   return ROLE_DATA[roleFrontId]?.name || ''
 }
 
-export const getRoleItem = (roleFrontId: Role): RoleItem | undefined => {
+export const getRoleItem = (roleFrontId: FrontRole): RoleItem | undefined => {
   return ROLE_DATA[roleFrontId]
 }
 

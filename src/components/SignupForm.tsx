@@ -15,7 +15,7 @@ import {
   phoneRule,
   usernameRule,
 } from '@/constants/rules'
-import { Role } from '@/constants/types'
+import { FrontRole } from '@/constants/types'
 import useDocumentTitle from '@/hooks/use-page-title'
 import { useAuthedUserStore, useDialogStore } from '@/state/global'
 
@@ -191,7 +191,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
       if (!data.code) {
         setCodeVerified(true)
         const { token, username, userID, role } = data.data
-        autheState.update(token, username, userID, role as Role)
+        autheState.update(token, username, userID, role as FrontRole)
 
         if (onSuccess && typeof onSuccess == 'function') {
           onSuccess()

@@ -3,8 +3,7 @@ import { create } from 'zustand'
 import { getRoleItem } from '@/lib/utils'
 
 import { getNotificationUnreadCount } from '@/api/message'
-import { ROLE_DATA } from '@/constants/roles'
-import { PermitFn, Role } from '@/constants/types'
+import { FrontRole, PermitFn } from '@/constants/types'
 import { Category } from '@/types/types'
 
 export interface ToastState {
@@ -39,8 +38,13 @@ export interface AuthedUserState {
   authToken: string
   username: string
   userID: string
-  role: Role
-  update: (token: string, username: string, userID: string, role: Role) => void
+  role: FrontRole
+  update: (
+    token: string,
+    username: string,
+    userID: string,
+    role: FrontRole
+  ) => void
   updateObj: (fn: (obj: AuthedUserData) => AuthedUserData) => void
   logout: () => void
   loginWithDialog: () => Promise<AuthedUserData>
@@ -51,7 +55,7 @@ export interface AuthedUserState {
      @paramm targetLevel 被比较的目标层级
      @reuturns 0 - 对方为同级, 1 - 对方为上级, -1 - 对方为下级
    */
-  levelCompare: (targetRoleFrontId: Role) => number
+  levelCompare: (targetRoleFrontId: FrontRole) => number
   permit: PermitFn
 }
 

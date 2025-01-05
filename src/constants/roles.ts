@@ -94,3 +94,5 @@ export const ROLE_DATA = {
     ],
   },
 }
+
+export const MIN_ROLE_LEVEL = 2

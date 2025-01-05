@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { toSync } from '@/lib/fire-and-forget'
@@ -7,15 +7,22 @@ import { getPermissionModuleName, getPermissionName, noop } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { getPermissionList } from '@/api'
-import { submitRole } from '@/api/role'
+import { submitRole, updateRole } from '@/api/role'
+import { MIN_ROLE_LEVEL } from '@/constants/roles'
 import { PermissionModule } from '@/constants/types'
-import { Permission, PermissionListItem } from '@/types/types'
+import {
+  PermissionListItem,
+  ResponseData,
+  ResponseID,
+  Role,
+} from '@/types/types'
 
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -26,41 +33,58 @@ import { Switch } from './ui/switch'
 
 interface RoleFormProps {
   isEdit?: boolean
+  role?: Role
   onCancel?: () => void
   onSuccess?: () => void
+  onChange?: (isDirty: boolean) => void
 }
 
 const roleSchema = z.object({
   name: z.string().min(1, '请填写角色名称'),
   level: z.string().min(1, '请填写权限级别'),
-  permissionFrontIds: z.array(z.string()).optional(),
+  permissionFrontIds: z.string().array().optional(),
 })
 
 type RoleSchema = z.infer<typeof roleSchema>
 
 const defaultRoleData: RoleSchema = {
   name: '',
-  level: '3',
+  level: String(MIN_ROLE_LEVEL),
   permissionFrontIds: [],
 }
 
 const RoleForm: React.FC<RoleFormProps> = ({
+  isEdit = false,
+  role,
   onCancel = noop,
   onSuccess = noop,
+  onChange = noop,
 }) => {
   /* const [permissionOptions, setPermissionOptions] = useState<Permission[]>([]) */
   const [formattedPermissions, setFormattedPermissions] = useState<
     PermissionListItem[]
   >([])
 
+  const edittingPermissionIds = useMemo(() => {
+    return role?.permissions ? role.permissions.map((item) => item.frontId) : []
+  }, [role])
+
   const form = useForm<RoleSchema>({
     resolver: zodResolver(roleSchema),
-    defaultValues: { ...defaultRoleData },
+    defaultValues: isEdit
+      ? ({
+          name: role?.name || '',
+          level: role ? String(role.level) : String(MIN_ROLE_LEVEL),
+          permissionFrontIds: edittingPermissionIds,
+        } as RoleSchema)
+      : { ...defaultRoleData },
   })
+
+  const formVals = form.watch()
 
   const fetchPermisisonList = toSync(async () => {
     const { code, data } = await getPermissionList()
-    console.log('permission data: ', data)
+    /* console.log('permission data: ', data) */
     if (!code) {
       /* setPermissionOptions([...data.list]) */
       setFormattedPermissions([...data.formattedList])
@@ -72,30 +96,43 @@ const RoleForm: React.FC<RoleFormProps> = ({
 
   const onSubmit = useCallback(
     async (vals: RoleSchema) => {
-      console.log('vals: ', vals)
+      /* console.log('vals: ', vals) */
+      let resp: ResponseData<ResponseID> | undefined
+
       const level = parseInt(vals.level, 10) || 0
-      if (level < 3) {
+      if (level < MIN_ROLE_LEVEL) {
         form.setError('level', {
-          message: '权限级别不能小于 3',
+          message: `权限级别不能小于 ${MIN_ROLE_LEVEL}`,
         })
+        return
       }
 
-      const { code } = await submitRole(
-        vals.name,
-        level,
-        vals.permissionFrontIds || []
-      )
+      if (isEdit) {
+        if (!role) return
+        resp = await updateRole(
+          role.id,
+          vals.name,
+          level,
+          vals.permissionFrontIds || []
+        )
+      } else {
+        resp = await submitRole(vals.name, level, vals.permissionFrontIds || [])
+      }
 
-      if (!code) {
+      if (!resp.code) {
         onSuccess()
       }
     },
-    [form]
+    [form, isEdit, role]
   )
 
   useEffect(() => {
     fetchPermisisonList()
   }, [])
+
+  useEffect(() => {
+    onChange(form.formState.isDirty)
+  }, [form, formVals])
 
   return (
     <Form {...form}>
@@ -126,6 +163,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
           render={({ field, fieldState }) => (
             <FormItem className="mb-8">
               <FormLabel>权限级别</FormLabel>
+              <FormDescription>数值越大，级别越低</FormDescription>
               <FormControl>
                 <Input
                   placeholder="请输入权限级别"
@@ -147,7 +185,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
             <>
               <FormLabel>权限</FormLabel>
               <div
-                className="overflow-y-auto mt-2"
+                className="overflow-y-auto mt-2 pb-4"
                 style={{ maxHeight: 'calc(100vh - 600px)', minHeight: '200px' }}
               >
                 {formattedPermissions.map((fItem) => (

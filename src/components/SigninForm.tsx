@@ -8,7 +8,7 @@ import { z } from '@/lib/zod-custom'
 
 import { postSignin } from '@/api'
 import { emailRule, passwordRule } from '@/constants/rules'
-import { Role } from '@/constants/types'
+import { FrontRole } from '@/constants/types'
 import useDocumentTitle from '@/hooks/use-page-title'
 import { useAuthedUserStore, useDialogStore } from '@/state/global'
 
@@ -115,7 +115,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
 
       if (!data.code) {
         const { token, userID, username, role } = data.data
-        updateAuthState(token, username, userID, role as Role)
+        updateAuthState(token, username, userID, role as FrontRole)
         /* console.log('is inner url: ', isInnerURL(returnURL)) */
 
         if (onSuccess && typeof onSuccess == 'function') {

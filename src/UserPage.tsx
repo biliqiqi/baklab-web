@@ -1,13 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { format } from 'path'
-import {
-  ChangeEvent,
-  MouseEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -60,7 +52,7 @@ import {
   unBanUser,
 } from './api/user'
 import { ROLE_DATA } from './constants/roles'
-import { Role } from './constants/types'
+import { FrontRole } from './constants/types'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import {
@@ -594,7 +586,7 @@ export default function UserPage() {
                           'font-normal'
                         )}
                       >
-                        {getRoleName(user.roleFrontId as Role)}
+                        {getRoleName(user.roleFrontId as FrontRole)}
                       </Badge>
                       {user.banned && (
                         <div className="bg-gray-100 text-sm mt-2 p-2 leading-6">
@@ -612,7 +604,8 @@ export default function UserPage() {
                     </div>
                   </div>
                   <div className="table-row">
-                    {authStore.levelCompare(user.roleFrontId as Role) < 1 && (
+                    {authStore.levelCompare(user.roleFrontId as FrontRole) <
+                      1 && (
                       <>
                         <b className="table-cell py-2">权限：</b>
                         <div className="table-cell py-2">
@@ -635,7 +628,8 @@ export default function UserPage() {
                 <hr className="my-4" />
                 <div className="flex justify-between">
                   <div></div>
-                  {authStore.levelCompare(user.roleFrontId as Role) < 0 && (
+                  {authStore.levelCompare(user.roleFrontId as FrontRole) <
+                    0 && (
                     <div>
                       {!user.banned && (
                         <Button

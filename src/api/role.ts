@@ -1,10 +1,6 @@
 import { authRequest } from '@/lib/request'
 
-import {
-  ResponseData,
-  RoleListResponse,
-  RoleSubmitResponse,
-} from '@/types/types'
+import { ResponseData, ResponseID, RoleListResponse } from '@/types/types'
 
 export const getRoles = (page?: number, pageSize?: number) => {
   const params = new URLSearchParams()
@@ -26,7 +22,18 @@ export const submitRole = (
   level: number,
   permissionFrontIDs: string[]
 ) => {
-  return authRequest.post<ResponseData<RoleSubmitResponse>>(`roles`, {
+  return authRequest.post<ResponseData<ResponseID>>(`roles`, {
+    json: { name, level, permissionFrontIDs },
+  })
+}
+
+export const updateRole = (
+  roleId: string,
+  name: string,
+  level: number,
+  permissionFrontIDs: string[]
+) => {
+  return authRequest.patch<ResponseData<ResponseID>>(`roles/${roleId}`, {
     json: { name, level, permissionFrontIDs },
   })
 }

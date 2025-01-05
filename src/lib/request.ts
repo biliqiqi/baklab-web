@@ -4,7 +4,7 @@ import { mergeAll } from 'remeda'
 import { toast } from 'sonner'
 
 import { API_HOST, API_PATH_PREFIX } from '@/constants/constants'
-import { Role } from '@/constants/types'
+import { FrontRole } from '@/constants/types'
 import {
   useAuthedUserStore,
   useNotFoundStore,
@@ -262,7 +262,12 @@ export const refreshAuthState = async (refreshUser = false) => {
     const { data, code } = await refreshToken(refreshUser)
     if (!code) {
       const state = useAuthedUserStore.getState()
-      state.update(data.token, data.username, data.userID, data.role as Role)
+      state.update(
+        data.token,
+        data.username,
+        data.userID,
+        data.role as FrontRole
+      )
     }
   } catch (e) {
     console.error('refresh auth state error: ', e)

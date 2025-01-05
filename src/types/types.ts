@@ -203,7 +203,8 @@ export interface UserData {
 }
 
 export interface CustomRequestOptions {
-  showNotFound: boolean
+  showNotFound?: boolean
+  showAuthToast?: boolean
 }
 
 export type FrontCategory = Pick<Category, 'frontId' | 'name' | 'describe'> & {

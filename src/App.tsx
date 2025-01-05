@@ -274,9 +274,7 @@ const App = () => {
     window.onfocus = () => {
       fetchCateList()
       refreshTokenSync(true)
-      if (authStore.isLogined()) {
-        fetchNotiCount()
-      }
+      fetchNotiCount()
     }
   }, [authStore])
 

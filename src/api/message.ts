@@ -9,7 +9,9 @@ import {
 
 export const getNotificationUnreadCount = () =>
   authRequest.get<ResponseData<NotificationUnreadCount>>(
-    `messages/unread_count`
+    `messages/unread_count`,
+    {},
+    { showAuthToast: false }
   )
 
 export const getNotifications = (

@@ -132,12 +132,22 @@ const authToastHook: AfterResponseHook = (_req, _opt, resp) => {
 //   },
 // })
 
-const authRequestConfigs: Options = {
-  credentials: 'include',
-  hooks: {
-    beforeRequest: [addAuthToHeaders],
-    afterResponse: [refreshTokenHook, authToastHook],
-  },
+const makeAuthRequestConfigs = (
+  custom: CustomRequestOptions = { showAuthToast: true }
+): Options => {
+  const opt: Options = {
+    credentials: 'include',
+    hooks: {
+      beforeRequest: [addAuthToHeaders],
+      afterResponse: [refreshTokenHook],
+    },
+  }
+
+  if (custom.showAuthToast && opt.hooks?.afterResponse) {
+    opt.hooks.afterResponse.push(authToastHook)
+  }
+
+  return opt
 }
 
 const instance = ky.create(defaultOptions)
@@ -170,6 +180,8 @@ const request = <T = any>(
       kyOpts = kyOptions
     }
   }
+
+  const authRequestConfigs = makeAuthRequestConfigs(custom)
 
   if (authRequired) {
     kyOpts.credentials = 'include'
@@ -263,7 +275,11 @@ export const authRequest = <T = any>(
   kyOptions?: Options,
   custom?: CustomRequestOptions
 ): Promise<T> => {
-  const kyOpts: Options = mergeAll([{}, authRequestConfigs, kyOptions || {}])
+  const kyOpts: Options = mergeAll([
+    {},
+    makeAuthRequestConfigs(custom),
+    kyOptions || {},
+  ])
 
   // console.log('merged options: ', kyOpts)
 

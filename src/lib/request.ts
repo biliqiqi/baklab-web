@@ -262,12 +262,7 @@ export const refreshAuthState = async (refreshUser = false) => {
     const { data, code } = await refreshToken(refreshUser)
     if (!code) {
       const state = useAuthedUserStore.getState()
-      state.update(
-        data.token,
-        data.username,
-        data.userID,
-        data.role as FrontRole
-      )
+      state.update(data.token, data.username, data.userID, data.user)
     }
   } catch (e) {
     console.error('refresh auth state error: ', e)

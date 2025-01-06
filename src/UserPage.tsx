@@ -52,16 +52,9 @@ import {
   unBanUser,
 } from './api/user'
 import { ROLE_DATA } from './constants/roles'
-import { FrontRole } from './constants/types'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
-import {
-  cn,
-  formatMinutes,
-  getPermissionName,
-  getRoleName,
-  noop,
-} from './lib/utils'
+import { cn, formatMinutes, getPermissionName, noop } from './lib/utils'
 import {
   useAlertDialogStore,
   useAuthedUserStore,
@@ -604,8 +597,7 @@ export default function UserPage() {
                     </div>
                   </div>
                   <div className="table-row">
-                    {authStore.levelCompare(user.roleFrontId as FrontRole) <
-                      1 && (
+                    {authStore.levelCompare(user.role) < 1 && (
                       <>
                         <b className="table-cell py-2">权限：</b>
                         <div className="table-cell py-2">
@@ -628,8 +620,7 @@ export default function UserPage() {
                 <hr className="my-4" />
                 <div className="flex justify-between">
                   <div></div>
-                  {authStore.levelCompare(user.roleFrontId as FrontRole) <
-                    0 && (
+                  {authStore.levelCompare(user.role) < 0 && (
                     <div>
                       {!user.banned && (
                         <Button

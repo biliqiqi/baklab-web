@@ -4,7 +4,7 @@ import { getRoleItem } from '@/lib/utils'
 
 import { getNotificationUnreadCount } from '@/api/message'
 import { FrontRole, PermitFn } from '@/constants/types'
-import { Category } from '@/types/types'
+import { Category, Permission, Role, UserData } from '@/types/types'
 
 export interface ToastState {
   silence: boolean
@@ -22,7 +22,7 @@ export const useToastStore = create<ToastState>((set) => ({
 
 export type AuthedUserData = Pick<
   AuthedUserState,
-  'authToken' | 'username' | 'userID' | 'role'
+  'authToken' | 'username' | 'userID' | 'user'
 >
 
 export const AUTHED_USER_LOCAL_STORE_NAME = 'auth_info'
@@ -31,19 +31,19 @@ export const emptyAuthedUserData: AuthedUserData = {
   authToken: '',
   username: '',
   userID: '',
-  role: 'common_user',
+  user: null,
 }
 
 export interface AuthedUserState {
   authToken: string
   username: string
   userID: string
-  role: FrontRole
+  user: UserData | null
   update: (
     token: string,
     username: string,
     userID: string,
-    role: FrontRole
+    user: UserData | null
   ) => void
   updateObj: (fn: (obj: AuthedUserData) => AuthedUserData) => void
   logout: () => void
@@ -55,18 +55,18 @@ export interface AuthedUserState {
      @paramm targetLevel 被比较的目标层级
      @reuturns 0 - 对方为同级, 1 - 对方为上级, -1 - 对方为下级
    */
-  levelCompare: (targetRoleFrontId: FrontRole) => number
+  levelCompare: (targetRole: Role) => number
   permit: PermitFn
 }
 
 export const useAuthedUserStore = create<AuthedUserState>((set, get) => ({
   ...emptyAuthedUserData,
-  update: (token, username, userID, role) => {
+  update: (token, username, userID, user) => {
     const newState = {
       authToken: token,
       username,
       userID,
-      role,
+      user,
     }
     set((state) => ({ ...state, ...newState }))
     // localStorage.setItem(AUTHED_USER_LOCAL_STORE_NAME, JSON.stringify(newState))
@@ -103,28 +103,17 @@ export const useAuthedUserStore = create<AuthedUserState>((set, get) => ({
     const state = get()
     return isLogined(state) && state.userID == targetUserId
   },
-  levelCompare(targetRoleFrontId) {
-    const targetRoleItem = getRoleItem(targetRoleFrontId)
-    const roleItem = getRoleItem(get().role)
-
-    if (!roleItem || !targetRoleItem) {
-      return 0
-    }
-
-    if (roleItem.level == targetRoleItem.level) {
-      return 0
-    } else if (roleItem.level < targetRoleItem.level) {
-      return -1
-    } else {
-      return 1
-    }
+  levelCompare(targetRole) {
+    const { user } = get()
+    if (!user?.role) return 1
+    return user.role.level - targetRole.level
   },
   permit(module, action) {
     const permissionId = `${module}.${String(action)}`
-    const roleData = getRoleItem(get().role)
+    const user = get().user
+    if (!user?.permissions) return false
 
-    if (!roleData || !roleData.permissions?.includes(permissionId)) return false
-    return true
+    return user.permissions.some((item) => item.frontId == permissionId)
   },
 }))
 

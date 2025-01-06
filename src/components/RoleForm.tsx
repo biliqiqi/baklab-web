@@ -52,7 +52,7 @@ type RoleSchema = z.infer<typeof roleSchema>
 
 const defaultRoleData: RoleSchema = {
   name: '',
-  level: String(MIN_ROLE_LEVEL),
+  level: '3',
   permissionFrontIds: [],
 }
 

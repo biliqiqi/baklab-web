@@ -114,8 +114,8 @@ const SigninForm: React.FC<SigninFromProps> = ({
       console.log('sign in resp data:', data)
 
       if (!data.code) {
-        const { token, userID, username, role } = data.data
-        updateAuthState(token, username, userID, role as FrontRole)
+        const { token, userID, username, user } = data.data
+        updateAuthState(token, username, userID, user)
         /* console.log('is inner url: ', isInnerURL(returnURL)) */
 
         if (onSuccess && typeof onSuccess == 'function') {

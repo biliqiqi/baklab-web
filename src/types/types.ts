@@ -13,6 +13,7 @@ export interface AuthedDataResponse {
   username: string
   userID: string
   role: string
+  user: UserData
 }
 
 export interface Category {
@@ -192,6 +193,7 @@ export interface UserData {
   banned: boolean
   roleName: string
   roleFrontId: string
+  role: Role
   permissions: Permission[]
   super: boolean
   authFrom: AuthType

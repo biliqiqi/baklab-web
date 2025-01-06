@@ -159,7 +159,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
       if (!data.code) {
         setCodeVerified(true)
-        autheState.update(data.data.token, '', '', 'common_user')
+        autheState.update(data.data.token, '', '', null)
       } else {
         if (data.code == SERVER_ERR_ACCOUNT_EXIST) {
           toast.info('邮箱已注册，请直接登录')
@@ -190,8 +190,8 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
       if (!data.code) {
         setCodeVerified(true)
-        const { token, username, userID, role } = data.data
-        autheState.update(token, username, userID, role as FrontRole)
+        const { token, username, userID, user } = data.data
+        autheState.update(token, username, userID, user)
 
         if (onSuccess && typeof onSuccess == 'function') {
           onSuccess()

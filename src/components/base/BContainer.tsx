@@ -350,7 +350,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                                 <BIconCircle id="user_roles" size={32}>
                                   <UserIcon size={18} />
                                 </BIconCircle>
-                                用户角色
+                                角色
                               </Link>
                             </SidebarMenuButton>
                           </SidebarMenuItem>

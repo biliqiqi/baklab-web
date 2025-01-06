@@ -1,10 +1,8 @@
 import { create } from 'zustand'
 
-import { getRoleItem } from '@/lib/utils'
-
 import { getNotificationUnreadCount } from '@/api/message'
-import { FrontRole, PermitFn } from '@/constants/types'
-import { Category, Permission, Role, UserData } from '@/types/types'
+import { PermitFn } from '@/constants/types'
+import { Category, Role, UserData } from '@/types/types'
 
 export interface ToastState {
   silence: boolean

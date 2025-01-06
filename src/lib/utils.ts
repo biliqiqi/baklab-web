@@ -7,13 +7,10 @@ import {
   PERMISSION_DATA,
   PERMISSION_MODULE_DATA,
 } from '@/constants/permissions'
-import { ROLE_DATA } from '@/constants/roles'
 import {
-  FrontRole,
   PermissionAction,
   PermissionItem,
   PermissionModule,
-  RoleItem,
 } from '@/constants/types'
 
 export function cn(...inputs: ClassValue[]) {
@@ -44,13 +41,13 @@ export const getCookie = (name: string) => {
 
 export const extractDomain = (url: string) => new URL(url).hostname
 
-export const getRoleName = (roleFrontId: FrontRole) => {
-  return ROLE_DATA[roleFrontId]?.name || ''
-}
+// export const getRoleName = (roleFrontId: FrontRole) => {
+//   return ROLE_DATA[roleFrontId]?.name || ''
+// }
 
-export const getRoleItem = (roleFrontId: FrontRole): RoleItem | undefined => {
-  return ROLE_DATA[roleFrontId]
-}
+// export const getRoleItem = (roleFrontId: FrontRole): RoleItem | undefined => {
+//   return ROLE_DATA[roleFrontId]
+// }
 
 export const getPermissionName = <K extends PermissionModule>(
   permissFrontId: string

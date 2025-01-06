@@ -8,7 +8,6 @@ import { z } from '@/lib/zod-custom'
 
 import { postSignin } from '@/api'
 import { emailRule, passwordRule } from '@/constants/rules'
-import { FrontRole } from '@/constants/types'
 import useDocumentTitle from '@/hooks/use-page-title'
 import { useAuthedUserStore, useDialogStore } from '@/state/global'
 

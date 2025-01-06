@@ -43,6 +43,7 @@ import { ListPagination } from './components/ListPagination'
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 
 import { getArticleList } from './api/article'
+import { getRoles } from './api/role'
 import {
   banUser,
   getUser,
@@ -51,7 +52,6 @@ import {
   setUserRole,
   unBanUser,
 } from './api/user'
-import { ROLE_DATA } from './constants/roles'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { cn, formatMinutes, getPermissionName, noop } from './lib/utils'
@@ -69,6 +69,7 @@ import {
   ArticleListType,
   FrontCategory,
   ResponseData,
+  Role,
   UserData,
 } from './types/types'
 
@@ -97,7 +98,7 @@ type ActivityTabMap = {
   [key in ActivityTab]: string
 }
 
-type EditableRole = 'common_user' | 'moderator' | 'admin'
+/* type EditableRole = 'common_user' | 'moderator' | 'admin' */
 
 const defaultActSubTabs: ActivityTab[] = ['user']
 const activityTabMap: ActivityTabMap = {
@@ -107,9 +108,7 @@ const activityTabMap: ActivityTabMap = {
 }
 
 const roleEditScheme = z.object({
-  roleFrontId: z.enum(['common_user', 'moderator', 'admin'], {
-    errorMap: () => ({ message: '请选择角色' }),
-  }),
+  roleFrontId: z.string().min(1, '请选择角色'),
   remark: z.string(),
 })
 
@@ -191,6 +190,10 @@ const defaultBanCustomInputs: BanCustomInputs = {
   minutes: 0,
 }
 
+interface EditableRolesMap {
+  [x: string]: Role
+}
+
 export default function UserPage() {
   const [loading, setLoading] = useState(true)
   const [loadingList, setLoadingList] = useState(true)
@@ -208,9 +211,11 @@ export default function UserPage() {
   const [alertOpen, setAlertOpen] = useState(false)
   const [banOpen, setBanOpen] = useState(false)
 
-  const [editableRoles, setEditableRoles] = useState<EditableRole[]>([
-    'common_user',
-  ])
+  /* const [editableRoles, setEditableRoles] = useState<EditableRole[]>([
+   *   'common_user',
+   * ]) */
+
+  const [editableRoles, setEditableRoles] = useState<Role[]>([])
 
   const [actSubTabs, setActSubTabs] = useState<ActivityTab[]>([
     ...defaultActSubTabs,
@@ -230,12 +235,27 @@ export default function UserPage() {
 
   const alertDialog = useAlertDialogStore()
 
+  const editableRolesMap = useMemo(
+    () =>
+      editableRoles.reduce<EditableRolesMap>((obj, item) => {
+        obj[item.frontId] = item
+        return obj
+      }, {}),
+    [editableRoles]
+  )
+
   const form = useForm<RoleEditScheme>({
     resolver: zodResolver(roleEditScheme),
     defaultValues: {
       ...defaultRoleEditData,
     },
   })
+
+  const formVals = form.watch()
+  const selectedPermissions = useMemo(
+    () => editableRolesMap[formVals.roleFrontId]?.permissions || [],
+    [editableRolesMap, formVals]
+  )
 
   const banForm = useForm<BanScheme>({
     resolver: zodResolver(banScheme),
@@ -385,6 +405,18 @@ export default function UserPage() {
     )
   )
 
+  const fetchEditableRoles = toSync(
+    useCallback(async () => {
+      if (!authStore.isLogined()) return
+      const { code, data } = await getRoles()
+      if (!code && data.list) {
+        setEditableRoles([...data.list])
+      } else {
+        setEditableRoles([])
+      }
+    }, [authStore])
+  )
+
   const onTabChange = (tab: string) => {
     setParams((prevParams) => {
       prevParams.delete('page')
@@ -409,6 +441,8 @@ export default function UserPage() {
     async ({ roleFrontId, remark }: RoleEditScheme) => {
       try {
         if (!username) return
+
+        console.log('role front id: ', roleFrontId)
 
         const resp = await setUserRole(username, roleFrontId, remark)
         if (!resp.code) {
@@ -529,22 +563,11 @@ export default function UserPage() {
       }
     }
 
-    if (authStore.permit('user', 'set_moderator')) {
-      setEditableRoles(['common_user', 'moderator'])
-    }
-
-    if (authStore.permit('user', 'set_admin')) {
-      setEditableRoles(['common_user', 'moderator', 'admin'])
-    }
-
     if (authStore.permit('user', 'access_manage_activity')) {
       setActSubTabs(['user', 'manage', 'all'])
     }
 
-    /* console.log(
-     *   'authStore.levelCompare(user.roleFrontId as Role)',
-     *   authStore.levelCompare(user?.roleFrontId as Role)
-     * ) */
+    fetchEditableRoles()
   }, [authStore, username, user])
 
   return (
@@ -564,7 +587,7 @@ export default function UserPage() {
                 <CardTitle>用户管理</CardTitle>
                 <div className="table mt-4 w-full">
                   <div className="table-row">
-                    <b className="table-cell py-2 w-14">邮箱：</b>
+                    <b className="table-cell py-2 w-24">邮箱：</b>
                     <span className="table-cell py-2">{user.email}</span>
                   </div>
                   <div className="table-row">
@@ -595,6 +618,10 @@ export default function UserPage() {
                         </div>
                       )}
                     </div>
+                  </div>
+                  <div className="table-row">
+                    <b className="table-cell py-2">权限级别：</b>{' '}
+                    {user.role.level}
                   </div>
                   <div className="table-row">
                     {authStore.levelCompare(user.role) < 1 && (
@@ -737,18 +764,21 @@ export default function UserPage() {
                         <RadioGroup
                           onValueChange={field.onChange}
                           defaultValue={user?.roleFrontId}
-                          className="flex space-x-4"
+                          className="flex flex-wrap"
                         >
                           {editableRoles.map((item) => (
                             <FormItem
-                              className="flex items-center space-x-3 space-y-0"
-                              key={item}
+                              className="flex items-center space-y-0 mr-2 mb-2"
+                              key={item.frontId}
                             >
                               <FormControl>
-                                <RadioGroupItem value={item} />
+                                <RadioGroupItem
+                                  value={item.frontId}
+                                  className="mr-1"
+                                />
                               </FormControl>
                               <FormLabel className="font-normal">
-                                {ROLE_DATA[item].name}
+                                {item.name}
                               </FormLabel>
                             </FormItem>
                           ))}
@@ -758,6 +788,25 @@ export default function UserPage() {
                     </FormItem>
                   )}
                 ></FormField>
+
+                <div className="p-2 mb-2 border-[1px] rounded-sm bg-white text-sm text-gray-500">
+                  {selectedPermissions.length > 0 ? (
+                    <>
+                      <div className="mb-4">角色拥有权限：</div>
+                      {selectedPermissions.map((item) => (
+                        <Badge
+                          variant="outline"
+                          key={item.frontId}
+                          className="mr-2 mb-2"
+                        >
+                          {getPermissionName(item.frontId)}
+                        </Badge>
+                      ))}
+                    </>
+                  ) : (
+                    '所选角色没有任何权限'
+                  )}
+                </div>
                 <FormField
                   control={form.control}
                   name="remark"
@@ -814,11 +863,14 @@ export default function UserPage() {
                         >
                           {banDays.map((item) => (
                             <FormItem
-                              className="flex items-center space-x-3 space-y-0 mr-4"
+                              className="flex items-center space-y-0 mr-4 mb-4"
                               key={item}
                             >
                               <FormControl>
-                                <RadioGroupItem value={String(item)} />
+                                <RadioGroupItem
+                                  value={String(item)}
+                                  className="mr-1"
+                                />
                               </FormControl>
                               <FormLabel className="font-normal">
                                 {item == -1 ? '永久' : item + ' 天'}

@@ -15,7 +15,6 @@ import {
   phoneRule,
   usernameRule,
 } from '@/constants/rules'
-import { FrontRole } from '@/constants/types'
 import useDocumentTitle from '@/hooks/use-page-title'
 import { useAuthedUserStore, useDialogStore } from '@/state/global'
 

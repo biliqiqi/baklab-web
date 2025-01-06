@@ -4,7 +4,6 @@ import { mergeAll } from 'remeda'
 import { toast } from 'sonner'
 
 import { API_HOST, API_PATH_PREFIX } from '@/constants/constants'
-import { FrontRole } from '@/constants/types'
 import {
   useAuthedUserStore,
   useNotFoundStore,

@@ -561,13 +561,15 @@ export default function UserPage() {
       if (authStore.permit('user', 'access_activity')) {
         setTabs((state) => [...state, 'activity', 'violation'])
       }
+
+      if (authStore.permit('user', 'update_role')) {
+        fetchEditableRoles()
+      }
     }
 
     if (authStore.permit('user', 'access_manage_activity')) {
       setActSubTabs(['user', 'manage', 'all'])
     }
-
-    fetchEditableRoles()
   }, [authStore, username, user])
 
   return (

@@ -5,8 +5,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { CheckIcon, ChevronsUpDown } from 'lucide-react'
-import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useSearchParams } from 'react-router-dom'
 
@@ -16,14 +15,6 @@ import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from './components/ui/command'
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -31,11 +22,6 @@ import {
   DialogTitle,
 } from './components/ui/dialog'
 import { Form, FormControl, FormField, FormItem } from './components/ui/form'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from './components/ui/popover'
 import {
   Table,
   TableBody,
@@ -51,12 +37,12 @@ import { BLoaderBlock } from './components/base/BLoader'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 import RoleForm from './components/RoleForm'
+import RoleSelector from './components/RoleSelector'
 
 import roleAPI, { getDefaultRole, getRoles } from './api/role'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { defaultPageState } from './constants/defaults'
 import { toSync } from './lib/fire-and-forget'
-import { cn } from './lib/utils'
 import { useAlertDialogStore } from './state/global'
 import { ListPageState, Role } from './types/types'
 
@@ -73,17 +59,14 @@ interface EditRoleState {
 
 export default function RoleManagePage() {
   const [loading, setLoading] = useState(false)
-  const [searchLoading, setSearchLoading] = useState(false)
+
   const [pageState, setPageState] = useState<ListPageState>({
     ...defaultPageState,
   })
   const [roleList, setRoleList] = useState<Role[]>([])
-  const [roleOptions, setRoleOptions] = useState<Role[]>([])
   const [showRoleForm, setShowRoleForm] = useState(false)
   const [roleFormDirty, setRoleFormDirty] = useState(false)
-  const [openRoleOptions, setOpenRoleOptions] = useState(false)
   const [editDefaultRole, setEditDefaultRole] = useState(false)
-  const [searchRole, setSearchRole] = useState('')
 
   const [defaultRole, setDefaultRole] = useState<Role | null>(null)
 
@@ -109,8 +92,6 @@ export default function RoleManagePage() {
       roleId: '',
     },
   })
-
-  const formVals = defaultRoleForm.watch()
 
   const columns: ColumnDef<Role>[] = [
     {
@@ -180,19 +161,6 @@ export default function RoleManagePage() {
     )
   )
 
-  const searchRoleList = toSync(async (keywords?: string) => {
-    setSearchLoading(true)
-
-    const { code, data } = await getRoles(1, DEFAULT_PAGE_SIZE, keywords)
-    if (!code && data.list) {
-      console.log('role list: ', data)
-      setRoleOptions([...data.list])
-    } else {
-      setRoleOptions([])
-    }
-    setSearchLoading(false)
-  })
-
   const fetchDefaultRole = toSync(async () => {
     const { code, data } = await getDefaultRole()
     console.log('default role: ', data)
@@ -224,25 +192,17 @@ export default function RoleManagePage() {
   const onDefaultRoleSubmit = useCallback(
     async ({ roleId }: DefaultRoleSchema) => {
       /* console.log('roleId: ', roleId) */
-      const id = roleOptions.find((role) => role.frontId == roleId)?.id
-      if (!id) return
+      if (!roleId) return
 
-      const { code } = await roleAPI.setDefaultRole(id)
+      const { code } = await roleAPI.setDefaultRole(roleId)
       if (!code) {
         fetchDefaultRole()
         setEditDefaultRole(false)
         defaultRoleForm.reset({ roleId: '' })
       }
     },
-    [roleOptions, defaultRoleForm]
+    [defaultRoleForm]
   )
-
-  const selectedRoleName = useMemo(() => {
-    const selected = roleOptions.find(
-      (role) => role.frontId === formVals.roleId
-    )
-    return selected?.name
-  }, [formVals, roleOptions])
 
   const onCancelEditDefaultRole = useCallback(
     (e: MouseEvent<HTMLButtonElement>) => {
@@ -260,17 +220,6 @@ export default function RoleManagePage() {
   useEffect(() => {
     fetchDefaultRole()
   }, [])
-
-  useEffect(() => {
-    /* console.log('form change, role id: ', formVals.roleId) */
-    const timer = setTimeout(() => {
-      searchRoleList(searchRole)
-    }, 200)
-
-    return () => {
-      clearTimeout(timer)
-    }
-  }, [searchRole])
 
   return (
     <BContainer
@@ -310,75 +259,20 @@ export default function RoleManagePage() {
                     control={defaultRoleForm.control}
                     name="roleId"
                     key="roleId"
-                    render={({ fieldState }) => (
+                    render={({ field, fieldState }) => (
                       <FormItem className="inline-block mr-2">
                         <FormControl>
-                          <Popover
-                            open={openRoleOptions}
-                            onOpenChange={setOpenRoleOptions}
-                          >
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant={
-                                  fieldState.invalid ? 'invalid' : 'outline'
-                                }
-                                role="combobox"
-                                className="justify-between text-gray-700"
-                                size="sm"
-                              >
-                                {formVals.roleId && selectedRoleName
-                                  ? '设置默认角色为【' + selectedRoleName + '】'
-                                  : '设置默认角色为...'}
-                                <ChevronsUpDown className="opacity-50" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-[200px] p-0">
-                              <Command>
-                                <CommandInput
-                                  placeholder="搜索角色.."
-                                  onValueChange={setSearchRole}
-                                />
-                                <CommandList>
-                                  {searchLoading ? (
-                                    <BLoaderBlock />
-                                  ) : (
-                                    <CommandEmpty>未找到角色</CommandEmpty>
-                                  )}
-                                  <CommandGroup>
-                                    {roleOptions.map((role) => (
-                                      <CommandItem
-                                        key={role.frontId}
-                                        value={role.frontId}
-                                        onSelect={(currentValue) => {
-                                          console.log(
-                                            'currentValue: ',
-                                            currentValue
-                                          )
-                                          defaultRoleForm.setValue(
-                                            'roleId',
-                                            currentValue === formVals.roleId
-                                              ? ''
-                                              : currentValue
-                                          )
-                                          setOpenRoleOptions(false)
-                                        }}
-                                      >
-                                        {role.name}
-                                        <CheckIcon
-                                          className={cn(
-                                            'ml-auto',
-                                            formVals.roleId === role.frontId
-                                              ? 'opacity-100'
-                                              : 'opacity-0'
-                                          )}
-                                        />
-                                      </CommandItem>
-                                    ))}
-                                  </CommandGroup>
-                                </CommandList>
-                              </Command>
-                            </PopoverContent>
-                          </Popover>
+                          <RoleSelector
+                            valid={!fieldState.invalid}
+                            value={field.value}
+                            onChange={(role) => {
+                              if (role) {
+                                defaultRoleForm.setValue('roleId', role.id)
+                              } else {
+                                defaultRoleForm.setValue('roleId', '')
+                              }
+                            }}
+                          />
                         </FormControl>
                       </FormItem>
                     )}

@@ -39,6 +39,7 @@ import { ActivityList } from './components/ActivityList'
 import ArticleControls from './components/ArticleControls'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
+import RoleSelector from './components/RoleSelector'
 
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 
@@ -215,6 +216,8 @@ export default function UserPage() {
    *   'common_user',
    * ]) */
 
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null)
+
   const [editableRoles, setEditableRoles] = useState<Role[]>([])
 
   const [actSubTabs, setActSubTabs] = useState<ActivityTab[]>([
@@ -251,10 +254,10 @@ export default function UserPage() {
     },
   })
 
-  const formVals = form.watch()
+  /* const formVals = form.watch() */
   const selectedPermissions = useMemo(
-    () => editableRolesMap[formVals.roleFrontId]?.permissions || [],
-    [editableRolesMap, formVals]
+    () => selectedRole?.permissions || [],
+    [selectedRole]
   )
 
   const banForm = useForm<BanScheme>({
@@ -748,9 +751,7 @@ export default function UserPage() {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>更新角色</AlertDialogTitle>
-              <AlertDialogDescription>
-                将用户 {user?.name} 的角色更新为
-              </AlertDialogDescription>
+              <AlertDialogDescription></AlertDialogDescription>
             </AlertDialogHeader>
             <Form {...form}>
               <form
@@ -762,29 +763,17 @@ export default function UserPage() {
                   name="roleFrontId"
                   render={({ field }) => (
                     <FormItem>
+                      <FormLabel>
+                        将用户 {user?.name} 的角色更新为 &nbsp;
+                      </FormLabel>
                       <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={user?.roleFrontId}
-                          className="flex flex-wrap"
-                        >
-                          {editableRoles.map((item) => (
-                            <FormItem
-                              className="flex items-center space-y-0 mr-2 mb-2"
-                              key={item.frontId}
-                            >
-                              <FormControl>
-                                <RadioGroupItem
-                                  value={item.frontId}
-                                  className="mr-1"
-                                />
-                              </FormControl>
-                              <FormLabel className="font-normal">
-                                {item.name}
-                              </FormLabel>
-                            </FormItem>
-                          ))}
-                        </RadioGroup>
+                        <RoleSelector
+                          value={field.value}
+                          onChange={(role) => {
+                            field.onChange(role?.frontId || '')
+                            setSelectedRole(role || null)
+                          }}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

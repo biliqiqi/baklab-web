@@ -103,8 +103,18 @@ export const useAuthedUserStore = create<AuthedUserState>((set, get) => ({
   },
   levelCompare(targetRole) {
     const { user } = get()
+
     if (!user?.role) return 1
-    return user.role.level - targetRole.level
+
+    const { role } = user
+
+    if (role.level > targetRole.level) {
+      return 1
+    } else if (role.level == targetRole.level) {
+      return 0
+    } else {
+      return -1
+    }
   },
   permit(module, action) {
     const permissionId = `${module}.${String(action)}`

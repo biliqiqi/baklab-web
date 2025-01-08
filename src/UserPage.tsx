@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -28,7 +28,6 @@ import {
   FormMessage,
 } from './components/ui/form'
 import { Input } from './components/ui/input'
-import { RadioGroup, RadioGroupItem } from './components/ui/radio-group'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 
 import BAvatar from './components/base/BAvatar'
@@ -37,6 +36,7 @@ import BLoader from './components/base/BLoader'
 
 import { ActivityList } from './components/ActivityList'
 import ArticleControls from './components/ArticleControls'
+import BanDialog, { BanDialogRef, BanSchema } from './components/BanDialog'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 import RoleSelector from './components/RoleSelector'
@@ -44,7 +44,6 @@ import RoleSelector from './components/RoleSelector'
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 
 import { getArticleList } from './api/article'
-import { getRoles } from './api/role'
 import {
   banUser,
   getUser,
@@ -120,18 +119,6 @@ const defaultRoleEditData: RoleEditScheme = {
   remark: '',
 }
 
-const banScheme = z.object({
-  reason: z.string().min(1, '请输入封禁原因'),
-  duration: z.string().min(1, '请输入封禁时长'), // seconds
-})
-
-type BanScheme = z.infer<typeof banScheme>
-
-const defaultBanData: BanScheme = {
-  reason: '',
-  duration: '',
-}
-
 interface ArticleListProps {
   list: Article[]
   tab: UserTab
@@ -176,25 +163,6 @@ const ArticleList: React.FC<ArticleListProps> = ({
     </>
   )
 
-const banDays = [1, 2, 3, 4, 5, 6, 7, -1]
-const banReasons = ['广告营销', '不友善', '违反法律法规', 'others']
-
-interface BanCustomInputs {
-  days: number
-  hours: number
-  minutes: number
-}
-
-const defaultBanCustomInputs: BanCustomInputs = {
-  days: 0,
-  hours: 0,
-  minutes: 0,
-}
-
-interface EditableRolesMap {
-  [x: string]: Role
-}
-
 export default function UserPage() {
   const [loading, setLoading] = useState(true)
   const [loadingList, setLoadingList] = useState(true)
@@ -212,22 +180,11 @@ export default function UserPage() {
   const [alertOpen, setAlertOpen] = useState(false)
   const [banOpen, setBanOpen] = useState(false)
 
-  /* const [editableRoles, setEditableRoles] = useState<EditableRole[]>([
-   *   'common_user',
-   * ]) */
-
   const [selectedRole, setSelectedRole] = useState<Role | null>(null)
-
-  const [editableRoles, setEditableRoles] = useState<Role[]>([])
 
   const [actSubTabs, setActSubTabs] = useState<ActivityTab[]>([
     ...defaultActSubTabs,
   ])
-
-  const [banCustom, setBanCustom] = useState<BanCustomInputs>({
-    ...defaultBanCustomInputs,
-  })
-  const [otherReason, setOtherReason] = useState('')
 
   const authStore = useAuthedUserStore()
 
@@ -235,6 +192,8 @@ export default function UserPage() {
 
   const [params, setParams] = useSearchParams()
   const { username } = useParams()
+
+  const banDialogRef = useRef<BanDialogRef | null>(null)
 
   const alertDialog = useAlertDialogStore()
 
@@ -245,18 +204,10 @@ export default function UserPage() {
     },
   })
 
-  /* const formVals = form.watch() */
   const selectedPermissions = useMemo(
     () => selectedRole?.permissions || [],
     [selectedRole]
   )
-
-  const banForm = useForm<BanScheme>({
-    resolver: zodResolver(banScheme),
-    defaultValues: {
-      ...defaultBanData,
-    },
-  })
 
   const managePermitted = useMemo(() => {
     if (user) {
@@ -399,18 +350,6 @@ export default function UserPage() {
     )
   )
 
-  const fetchEditableRoles = toSync(
-    useCallback(async () => {
-      if (!authStore.isLogined()) return
-      const { code, data } = await getRoles()
-      if (!code && data.list) {
-        setEditableRoles([...data.list])
-      } else {
-        setEditableRoles([])
-      }
-    }, [authStore])
-  )
-
   const onTabChange = (tab: string) => {
     setParams((prevParams) => {
       prevParams.delete('page')
@@ -458,41 +397,25 @@ export default function UserPage() {
   }
 
   const onBanSubmit = useCallback(
-    async ({ duration, reason }: BanScheme) => {
-      const durationVal =
-        duration == 'custom'
-          ? banCustom.days * 24 * 60 + banCustom.hours * 60 + banCustom.minutes
-          : Number(duration) * 24 * 60
-
-      const reasonVal = reason == 'others' ? otherReason : reason
-
-      if (!durationVal || durationVal < -1) {
-        banForm.setError('duration', { message: '数据有误' })
-        return
-      }
-
-      if (!reasonVal.trim()) {
-        banForm.setError('reason', { message: '请输入封禁原因' })
-        return
-      }
-
-      /* console.log('durationVal', durationVal)
-       * console.log('reasonVal', reasonVal) */
-
+    async ({ duration, reason }: BanSchema) => {
+      const durationNum = Number(duration)
       try {
-        if (!username) return
+        if (!username || !durationNum) return
 
-        const resp = await banUser(username, durationVal, reasonVal)
+        const resp = await banUser(username, durationNum, reason)
+
         if (!resp.code) {
           setBanOpen(false)
-          banForm.reset({ duration: '1', reason: '' })
           fetchUserData(false)
+          if (banDialogRef.current) {
+            banDialogRef.current.form.reset({ duration: '1', reason: '' })
+          }
         }
       } catch (err) {
         console.error('ban user error: ', err)
       }
     },
-    [banForm, banCustom, otherReason, username]
+    [banDialogRef, username]
   )
 
   const onUnbanClick = useCallback(async () => {
@@ -514,29 +437,6 @@ export default function UserPage() {
     }
   }, [username])
 
-  const onBanInputFocus = useCallback(
-    () => banForm.setValue('duration', 'custom'),
-    [banForm]
-  )
-
-  const onBanInputChange = useCallback(
-    (inputType: keyof BanCustomInputs) => {
-      return (e: ChangeEvent<HTMLInputElement>) => {
-        const val = parseInt(e.target.value, 10)
-        if (!val || val < 1) {
-          banForm.setError('duration', {
-            message: '数据有误',
-          })
-          return
-        }
-        setBanCustom((state) => ({ ...state, [inputType]: val }))
-
-        banForm.setValue('duration', 'custom')
-      }
-    },
-    [banForm]
-  )
-
   useEffect(() => {
     fetchUserData(true)
   }, [username])
@@ -554,10 +454,6 @@ export default function UserPage() {
 
       if (authStore.permit('user', 'access_activity')) {
         setTabs((state) => [...state, 'activity', 'violation'])
-      }
-
-      if (authStore.permit('user', 'update_role')) {
-        fetchEditableRoles()
       }
     }
 
@@ -813,146 +709,14 @@ export default function UserPage() {
           </AlertDialogContent>
         </AlertDialog>
 
-        <AlertDialog
-          defaultOpen={false}
+        <BanDialog
           open={banOpen}
           onOpenChange={setBanOpen}
-        >
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>封禁</AlertDialogTitle>
-              <AlertDialogDescription>
-                封禁用户 {user?.name}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <Form {...banForm}>
-              <form
-                onSubmit={banForm.handleSubmit(onBanSubmit)}
-                className="py-4 space-y-8"
-              >
-                <FormField
-                  control={banForm.control}
-                  name="duration"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>封禁时长</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue="1"
-                          className="flex flex-wrap"
-                          value={banForm.getValues('duration')}
-                        >
-                          {banDays.map((item) => (
-                            <FormItem
-                              className="flex items-center space-y-0 mr-4 mb-4"
-                              key={item}
-                            >
-                              <FormControl>
-                                <RadioGroupItem
-                                  value={String(item)}
-                                  className="mr-1"
-                                />
-                              </FormControl>
-                              <FormLabel className="font-normal">
-                                {item == -1 ? '永久' : item + ' 天'}
-                              </FormLabel>
-                            </FormItem>
-                          ))}
-                          <FormItem
-                            className="flex items-center space-x-3 space-y-0"
-                            key="custom"
-                          >
-                            <FormControl>
-                              <RadioGroupItem value="custom" />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              <Input
-                                type="number"
-                                pattern="/\d+/"
-                                className="inline-block w-[80px]"
-                                value={banCustom.days}
-                                onFocus={onBanInputFocus}
-                                onChange={onBanInputChange('days')}
-                              />{' '}
-                              天
-                              <Input
-                                type="number"
-                                pattern="/\d+/"
-                                className="inline-block w-[80px]"
-                                value={banCustom.hours}
-                                onFocus={onBanInputFocus}
-                                onChange={onBanInputChange('hours')}
-                              />{' '}
-                              小时
-                              <Input
-                                type="number"
-                                pattern="/\d+/"
-                                className="inline-block w-[80px]"
-                                value={banCustom.minutes}
-                                onFocus={onBanInputFocus}
-                                onChange={onBanInputChange('minutes')}
-                              />{' '}
-                              分
-                            </FormLabel>
-                          </FormItem>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={banForm.control}
-                  name="reason"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>封禁原因</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue="广告营销"
-                          className="flex flex-wrap"
-                          value={banForm.getValues('reason')}
-                        >
-                          {banReasons.map((item) => (
-                            <FormItem
-                              className="flex items-center space-x-3 space-y-0 mr-4"
-                              key={item}
-                            >
-                              <FormControl>
-                                <RadioGroupItem value={item} />
-                              </FormControl>
-                              <FormLabel className="font-normal">
-                                {item == 'others' ? '其他' : item}
-                              </FormLabel>
-                            </FormItem>
-                          ))}
-                          {banForm.getValues('reason') == 'others' && (
-                            <Input
-                              placeholder="请填写其他原因"
-                              className="mt-4"
-                              onChange={(e) => setOtherReason(e.target.value)}
-                            />
-                          )}
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </form>
-            </Form>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={onCancelBanAlert}>
-                取消
-              </AlertDialogCancel>
-              <AlertDialogAction onClick={banForm.handleSubmit(onBanSubmit)}>
-                确认
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+          users={user ? [user] : []}
+          onSubmit={onBanSubmit}
+          onCancel={onCancelBanAlert}
+          ref={banDialogRef}
+        />
       </BContainer>
     </>
   )

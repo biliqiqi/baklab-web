@@ -1,23 +1,24 @@
 import {
   ColumnDef,
+  RowSelectionState,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { useCallback, useEffect, useState } from 'react'
+import {
+  MouseEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
 import { Checkbox } from './components/ui/checkbox'
 import { Input } from './components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './components/ui/select'
 import {
   Table,
   TableBody,
@@ -31,15 +32,16 @@ import BAvatar from './components/base/BAvatar'
 import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
 
+import BanDialog, { BanDialogRef, BanSchema } from './components/BanDialog'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 import RoleSelector from './components/RoleSelector'
 
-import role from './api/role'
-import { getUserList } from './api/user'
+import { banManyUsers, getUserList } from './api/user'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
+import { useAuthedUserStore } from './state/global'
 import { ListPageState, UserData } from './types/types'
 
 interface SearchFields {
@@ -54,9 +56,15 @@ const defaultSearchData: SearchFields = {
 
 export default function UserListPage() {
   const [loading, setLoading] = useState(false)
+  const [banOpen, setBanOpen] = useState(false)
+
   const [list, setList] = useState<UserData[]>([])
   const [params, setParams] = useSearchParams()
   const location = useLocation()
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const banDialogRef = useRef<BanDialogRef | null>(null)
+
+  const authStore = useAuthedUserStore()
 
   const [pageState, setPageState] = useState<ListPageState>({
     currPage: 1,
@@ -89,6 +97,7 @@ export default function UserListPage() {
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
           aria-label="Select row"
+          disabled={!row.getCanSelect()}
         />
       ),
     },
@@ -120,10 +129,10 @@ export default function UserListPage() {
     {
       accessorKey: 'contorles',
       header: '操作',
-      cell: () => (
+      cell: ({ row }) => (
         <>
-          <Button variant="ghost" size="sm" onClick={() => {}}>
-            详细
+          <Button variant="link" asChild size="sm">
+            <Link to={'/users/' + row.original.name}>详细</Link>
           </Button>
         </>
       ),
@@ -134,13 +143,28 @@ export default function UserListPage() {
     data: list,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    onRowSelectionChange: setRowSelection,
+    state: {
+      rowSelection,
+    },
+    getRowId: (row) => row.name,
+    enableRowSelection: (row) => authStore.levelCompare(row.original.role) < 0,
   })
 
   const selectedRows = table.getSelectedRowModel().rows
 
-  useEffect(() => {
-    /* console.log('selected: ', selectedRows) */
-  }, [selectedRows])
+  const bannableUsers = useMemo(
+    () => [
+      ...selectedRows
+        .map((item) => item.original)
+        .filter((user) => !user.banned),
+    ],
+    [selectedRows]
+  )
+
+  /* useEffect(() => {
+   *   console.log('selected: ', selectedUsers)
+   * }, [selectedUsers]) */
 
   const resetParams = useCallback(() => {
     setParams((params) => {
@@ -186,6 +210,7 @@ export default function UserListPage() {
                 totalPage: 0,
               })
             }
+            setRowSelection({})
           }
         } catch (err) {
           console.error('get user list error: ', err)
@@ -220,6 +245,56 @@ export default function UserListPage() {
       return params
     })
   }, [params, searchData])
+
+  const onCancelBanAlert = () => {
+    setBanOpen(false)
+    if (banDialogRef.current) {
+      banDialogRef.current.form.reset({ duration: '', reason: '' })
+    }
+  }
+
+  const onBanSubmit = useCallback(
+    async ({ duration, reason }: BanSchema) => {
+      const durationNum = Number(duration)
+      try {
+        const selectedRows = table.getSelectedRowModel().rows
+
+        /* console.log('selecte rows: ', rowSelection) */
+
+        const usernames = [
+          ...selectedRows
+            .filter((item) => !item.original.banned)
+            .map((item) => item.original.name),
+        ]
+
+        /* console.log('duration: ', durationNum)
+         * console.log('reason: ', reason) */
+        /* console.log('usernames: ', usernames) */
+
+        if (usernames.length == 0 || !durationNum) return
+
+        const resp = await banManyUsers(usernames, durationNum, reason)
+
+        if (!resp.code) {
+          setRowSelection({})
+          setBanOpen(false)
+          fetchUserList()
+
+          if (banDialogRef.current) {
+            banDialogRef.current.form.reset({ duration: '', reason: '' })
+          }
+        }
+      } catch (err) {
+        console.error('ban user error: ', err)
+      }
+    },
+    [table, rowSelection]
+  )
+
+  const onBanSelectedClick = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    setBanOpen(true)
+  }
 
   useEffect(() => {
     fetchUserList(true)
@@ -269,13 +344,11 @@ export default function UserListPage() {
           </Button>
         </div>
       </Card>
-
       {loading && (
         <div className="flex justify-center">
           <BLoader />
         </div>
       )}
-
       {list.length == 0 ? (
         <Empty />
       ) : (
@@ -339,14 +412,31 @@ export default function UserListPage() {
                   已选中 {selectedRows.length} 个用户
                 </div>
                 <div>
-                  <Button size="sm" variant="destructive">
-                    封禁已选用户
-                  </Button>
+                  {bannableUsers.length > 0 && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={onBanSelectedClick}
+                    >
+                      封禁 {bannableUsers.length} 个已选用户
+                    </Button>
+                  )}
                 </div>
               </div>
             </Card>
           )}
         </>
+      )}
+
+      {bannableUsers.length > 0 && (
+        <BanDialog
+          open={banOpen}
+          onOpenChange={setBanOpen}
+          users={bannableUsers}
+          onSubmit={onBanSubmit}
+          onCancel={onCancelBanAlert}
+          ref={banDialogRef}
+        />
       )}
     </BContainer>
   )

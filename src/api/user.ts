@@ -117,3 +117,16 @@ export const banUser = (username: string, duration: number, reason: string) =>
 
 export const unBanUser = (username: string) =>
   authRequest.patch<ResponseData<UserSubmitResponse>>(`users/${username}/unban`)
+
+export const banManyUsers = (
+  usernames: string[],
+  duration: number,
+  reason: string
+) =>
+  authRequest.post<ResponseData<null>>(`users/ban_many`, {
+    json: {
+      usernames,
+      duration,
+      reason,
+    },
+  })

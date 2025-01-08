@@ -1,8 +1,15 @@
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
+import { Checkbox } from './components/ui/checkbox'
 import { Input } from './components/ui/input'
 import {
   Select,
@@ -11,6 +18,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from './components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 import BAvatar from './components/base/BAvatar'
 import BContainer from './components/base/BContainer'
@@ -18,22 +33,23 @@ import BLoader from './components/base/BLoader'
 
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
+import RoleSelector from './components/RoleSelector'
 
+import role from './api/role'
 import { getUserList } from './api/user'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
-import { cn } from './lib/utils'
 import { ListPageState, UserData } from './types/types'
 
 interface SearchFields {
   keywords?: string
-  role?: string
+  roleId?: string
 }
 
 const defaultSearchData: SearchFields = {
   keywords: '',
-  role: '',
+  roleId: '',
 }
 
 export default function UserListPage() {
@@ -52,15 +68,86 @@ export default function UserListPage() {
   const [searchData, setSearchData] = useState<SearchFields>({
     ...defaultSearchData,
     keywords: params.get('keywords') || '',
-    role: params.get('role') || '',
+    roleId: params.get('role_id') || '',
   })
+
+  const columns: ColumnDef<UserData>[] = [
+    {
+      id: 'select',
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+    },
+    {
+      accessorKey: 'name',
+      header: '',
+      cell: ({ row }) => (
+        <Link to={'/users/' + row.original.name}>
+          <BAvatar username={row.original.name} size={36} showUsername />
+        </Link>
+      ),
+    },
+    {
+      accessorKey: 'roleName',
+      header: '角色',
+    },
+    {
+      accessorKey: 'roleLevel',
+      header: '权限级别',
+      cell: ({ row }) => <span>{row.original?.role?.level || '-'}</span>,
+    },
+    {
+      accessorKey: 'registeredAt',
+      header: '加入时间',
+      cell: ({ cell }) => (
+        <span>{timeFmt(cell.getValue<string>(), 'YYYY-M-D')}</span>
+      ),
+    },
+    {
+      accessorKey: 'contorles',
+      header: '操作',
+      cell: () => (
+        <>
+          <Button variant="ghost" size="sm" onClick={() => {}}>
+            详细
+          </Button>
+        </>
+      ),
+    },
+  ]
+
+  const table = useReactTable({
+    data: list,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  })
+
+  const selectedRows = table.getSelectedRowModel().rows
+
+  useEffect(() => {
+    /* console.log('selected: ', selectedRows) */
+  }, [selectedRows])
 
   const resetParams = useCallback(() => {
     setParams((params) => {
       params.delete('page')
       params.delete('pageSize')
       params.delete('keywords')
-      params.delete('role')
+      params.delete('role_id')
       return params
     })
   }, [params])
@@ -75,9 +162,11 @@ export default function UserListPage() {
           const page = Number(params.get('page')) || 1
           const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
           const keywords = params.get('keywords') || ''
-          const role = params.get('role') || ''
+          const roleId = params.get('role_id') || ''
 
-          const resp = await getUserList(page, pageSize, keywords, role)
+          setSearchData((state) => ({ ...state, keywords, roleId }))
+
+          const resp = await getUserList(page, pageSize, keywords, roleId)
           if (!resp.code) {
             const { data } = resp
             if (data.list) {
@@ -116,13 +205,16 @@ export default function UserListPage() {
   const onSearchClick = useCallback(() => {
     resetParams()
     setParams((params) => {
-      const { keywords, role } = searchData
+      const { keywords, roleId } = searchData
+
+      /* console.log('on search role id: ', roleId) */
+
       if (keywords) {
         params.set('keywords', keywords)
       }
 
-      if (role) {
-        params.set('role', role)
+      if (roleId) {
+        params.set('role_id', roleId)
       }
 
       return params
@@ -155,27 +247,18 @@ export default function UserListPage() {
               }))
             }
           />
-          <Select
-            value={searchData.role}
-            onValueChange={(role) =>
-              setSearchData((state) => ({ ...state, role }))
-            }
-          >
-            <SelectTrigger
-              className={cn(
-                'w-[140px] h-[36px] mr-3 bg-white',
-                !searchData.role && 'text-gray-500'
-              )}
-            >
-              <SelectValue placeholder="角色" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="common_user">普通用户</SelectItem>
-              <SelectItem value="banned_user">被封用户</SelectItem>
-              <SelectItem value="moderator">版主</SelectItem>
-              <SelectItem value="admin">管理员</SelectItem>
-            </SelectContent>
-          </Select>
+          <RoleSelector
+            value={searchData.roleId || ''}
+            placeholder="选择角色"
+            onChange={(role) => {
+              if (role) {
+                setSearchData((state) => ({
+                  ...state,
+                  roleId: role.id,
+                }))
+              }
+            }}
+          />
         </div>
         <div>
           <Button size="sm" onClick={onResetClick} className="mr-3">
@@ -196,49 +279,75 @@ export default function UserListPage() {
       {list.length == 0 ? (
         <Empty />
       ) : (
-        <div className="flex flex-wrap">
-          {list.map((item) => (
-            <div
-              className="w-[50%] flex-shrink-0 p-2 even:pr-0 odd:pl-0"
-              key={item.id}
-            >
-              <Card className="p-3 hover:bg-slate-50">
-                <div className="flex">
-                  <Link to={'/users/' + item.name}>
-                    <BAvatar username={item.name} className="mr-2" size={50} />
-                  </Link>
-                  <div className="space-y-1 text-sm">
-                    <div>
-                      <Link to={'/users/' + item.name}>{item.name}</Link>
-                    </div>
-                    <div className="text-gray-500">
-                      加入于 {timeFmt(item.registeredAt, 'YYYY-M-D')}
-                    </div>
-                    <div>
-                      <b>邮箱：</b>
-                      <span>{item.email}</span>
-                    </div>
-                    <div>
-                      <b>角色：</b>
-                      <span
-                        className={
-                          item.roleFrontId == 'banned_user'
-                            ? 'text-red-500'
-                            : ''
-                        }
-                      >
-                        {item.roleName}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          ))}
-        </div>
-      )}
+        <>
+          <Card className="mt-4 overflow-hidden">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </TableHead>
+                      )
+                    })}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && 'selected'}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
+                      <Empty />
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
 
-      {pageState.totalPage > 1 && <ListPagination pageState={pageState} />}
+            <ListPagination pageState={pageState} />
+          </Card>
+          {selectedRows.length > 0 && (
+            <Card className="mt-4 p-2">
+              <div className="flex justify-between items-center">
+                <div className="text-sm">
+                  已选中 {selectedRows.length} 个用户
+                </div>
+                <div>
+                  <Button size="sm" variant="destructive">
+                    封禁已选用户
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
+        </>
+      )}
     </BContainer>
   )
 }

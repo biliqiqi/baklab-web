@@ -2,6 +2,9 @@ import { authRequest } from '@/lib/request'
 
 import { ResponseData, ResponseID, Role, RoleListResponse } from '@/types/types'
 
+export const getRole = (roleID: string) =>
+  authRequest.get<ResponseData<Role>>(`roles/${roleID}`)
+
 export const getRoles = (
   page?: number,
   pageSize?: number,

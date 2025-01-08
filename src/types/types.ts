@@ -160,7 +160,7 @@ export enum AuthType {
 
 // Permission interface matching the Go struct
 export interface Permission {
-  id: number
+  id: string
   frontId: string
   name: string
   createdAt: string // ISO date string

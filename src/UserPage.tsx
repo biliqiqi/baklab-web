@@ -109,14 +109,14 @@ const activityTabMap: ActivityTabMap = {
 }
 
 const roleEditScheme = z.object({
-  roleFrontId: z.string().min(1, '请选择角色'),
+  roleId: z.string().min(1, '请选择角色'),
   remark: z.string(),
 })
 
 type RoleEditScheme = z.infer<typeof roleEditScheme>
 
 const defaultRoleEditData: RoleEditScheme = {
-  roleFrontId: 'common_user',
+  roleId: '',
   remark: '',
 }
 
@@ -237,15 +237,6 @@ export default function UserPage() {
   const { username } = useParams()
 
   const alertDialog = useAlertDialogStore()
-
-  const editableRolesMap = useMemo(
-    () =>
-      editableRoles.reduce<EditableRolesMap>((obj, item) => {
-        obj[item.frontId] = item
-        return obj
-      }, {}),
-    [editableRoles]
-  )
 
   const form = useForm<RoleEditScheme>({
     resolver: zodResolver(roleEditScheme),
@@ -441,13 +432,13 @@ export default function UserPage() {
   }
 
   const onUpdateRole = useCallback(
-    async ({ roleFrontId, remark }: RoleEditScheme) => {
+    async ({ roleId, remark }: RoleEditScheme) => {
       try {
         if (!username) return
 
-        console.log('role front id: ', roleFrontId)
+        console.log('role front id: ', roleId)
 
-        const resp = await setUserRole(username, roleFrontId, remark)
+        const resp = await setUserRole(username, roleId, remark)
         if (!resp.code) {
           /* const {data} */
           form.reset({ ...defaultRoleEditData })
@@ -760,7 +751,7 @@ export default function UserPage() {
               >
                 <FormField
                   control={form.control}
-                  name="roleFrontId"
+                  name="roleId"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
@@ -770,7 +761,7 @@ export default function UserPage() {
                         <RoleSelector
                           value={field.value}
                           onChange={(role) => {
-                            field.onChange(role?.frontId || '')
+                            field.onChange(role?.id || '')
                             setSelectedRole(role || null)
                           }}
                         />

@@ -143,7 +143,7 @@ export default function RoleManagePage() {
 
         const { code, data } = await getRoles(page, DEFAULT_PAGE_SIZE, keywords)
         if (!code && data.list) {
-          console.log('role list: ', data)
+          /* console.log('role list: ', data) */
           setRoleList([...data.list])
           setPageState({
             currPage: data.currPage,
@@ -163,7 +163,7 @@ export default function RoleManagePage() {
 
   const fetchDefaultRole = toSync(async () => {
     const { code, data } = await getDefaultRole()
-    console.log('default role: ', data)
+    /* console.log('default role: ', data) */
     if (!code) {
       setDefaultRole({ ...data })
     }
@@ -265,6 +265,7 @@ export default function RoleManagePage() {
                           <RoleSelector
                             valid={!fieldState.invalid}
                             value={field.value}
+                            placeholder="选择默认角色"
                             onChange={(role) => {
                               if (role) {
                                 defaultRoleForm.setValue('roleId', role.id)

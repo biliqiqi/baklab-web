@@ -23,7 +23,7 @@ export const getUserList = (
   page?: number,
   pageSize?: number,
   keywords?: string,
-  roleFrontId?: string
+  roleId?: string
 ) => {
   const params = new URLSearchParams()
 
@@ -31,8 +31,8 @@ export const getUserList = (
     params.set('keywords', keywords)
   }
 
-  if (roleFrontId) {
-    params.set('role', roleFrontId)
+  if (roleId) {
+    params.set('roleId', roleId)
   }
 
   if (page) {
@@ -50,14 +50,14 @@ export const getUserList = (
 
 export const setUserRole = (
   username: string,
-  roleFrontId: string,
+  roleId: string,
   remark?: string
 ) =>
   authRequest.patch<ResponseData<UserSubmitResponse>>(
     `users/${username}/set_role`,
     {
       json: {
-        roleFrontId,
+        roleId,
         remark: remark || '',
       },
     }

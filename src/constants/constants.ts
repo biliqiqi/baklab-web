@@ -14,3 +14,6 @@ export const EV_ON_REPLY_CLICK = 'on_reply_click'
 export const EV_ON_EDIT_CLICK = 'on_edit_click'
 
 export const DEFAULT_PAGE_SIZE = 20
+
+export const URL_PATTERN =
+  /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g

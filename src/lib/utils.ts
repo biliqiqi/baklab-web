@@ -1,8 +1,10 @@
 import { type ClassValue, clsx } from 'clsx'
 import EventEmitter from 'events'
 import MarkdownIt from 'markdown-it'
+import { escapeHtml, unescapeAll } from 'markdown-it/lib/common/utils.mjs'
 import { twMerge } from 'tailwind-merge'
 
+import { URL_PATTERN } from '@/constants/constants'
 import {
   PERMISSION_DATA,
   PERMISSION_MODULE_DATA,
@@ -101,9 +103,15 @@ export const extractText = (html: string) => {
   return div.textContent || div.innerText || ''
 }
 
-const md = new MarkdownIt()
+const md = new MarkdownIt({
+  linkify: true,
+})
 
-export const renderMD = (markdown: string) => md.render(markdown)
+export const renderMD = (markdown: string) => {
+  const htmlStr = md.render(markdown)
+
+  return htmlStr
+}
 
 export const md2text = (markdown: string) => {
   const htmlStr = renderMD(markdown)

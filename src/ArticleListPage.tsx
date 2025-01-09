@@ -19,7 +19,7 @@ import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 
 import { getArticleList } from './api/article'
 import { toSync } from './lib/fire-and-forget'
-import { extractDomain } from './lib/utils'
+import { extractDomain, renderMD } from './lib/utils'
 import { isLogined, useAuthedUserStore } from './state/global'
 import {
   Article,
@@ -197,7 +197,10 @@ export default function ArticleListPage() {
                     </span>
                   )}
                 </div>
-                <div className="mb-1">{item.summary}</div>
+                <div
+                  className="mb-1 break-words"
+                  dangerouslySetInnerHTML={{ __html: renderMD(item.summary) }}
+                ></div>
                 {item.picURL && (
                   <div className="w-[120px] h-[120px] rounded mr-4 bg-gray-200 shrink-0 overflow-hidden">
                     <a href="#">

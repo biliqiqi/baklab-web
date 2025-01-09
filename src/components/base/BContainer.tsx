@@ -162,14 +162,16 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const onCategoryFormClose = useCallback(async () => {
       if (categoryFormDirty) {
         const { editting } = editCategory
-        alertDialog.setState((state) => ({
-          ...state,
-          confirmBtnText: '确定舍弃',
-          cancelBtnText: editting ? '继续设置' : '继续创建',
-        }))
         const confirmed = await alertDialog.confirm(
           '确认',
-          editting ? '分类设置未完成，确认舍弃？' : '分类创建未完成，确认舍弃？'
+          editting
+            ? '分类设置未完成，确认舍弃？'
+            : '分类创建未完成，确认舍弃？',
+          'normal',
+          {
+            confirmBtnText: '确定舍弃',
+            cancelBtnText: editting ? '继续设置' : '继续创建',
+          }
         )
         if (confirmed) {
           setShowCategoryForm(false)

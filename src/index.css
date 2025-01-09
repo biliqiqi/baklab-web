@@ -154,6 +154,7 @@ a:hover {
 
 .b-article-content p {
   margin-bottom: 1em;
+  word-break: break-word;
 }
 
 .b-article-content pre {

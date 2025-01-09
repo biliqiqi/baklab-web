@@ -332,7 +332,7 @@ export interface Role {
   createdAt: string
   deleted: boolean
   isSystem: boolean
-  permissions: Permission[]
+  permissions: Permission[] | null
   formattedPermissions: PermissionListItem[]
   level: number
   relateUserCount: number

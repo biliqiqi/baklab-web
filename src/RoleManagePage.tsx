@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-table'
 import { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { z } from '@/lib/zod-custom'
 
@@ -105,6 +105,18 @@ export default function RoleManagePage() {
     {
       accessorKey: 'relateUserCount',
       header: '关联用户',
+      cell: ({ row }) =>
+        row.original.relateUserCount > 0 ? (
+          <Button variant="link" asChild>
+            <Link to={'/manage/users?role_id=' + row.original.id}>
+              {row.original.relateUserCount}
+            </Link>
+          </Button>
+        ) : (
+          <Button variant="link" disabled>
+            0
+          </Button>
+        ),
     },
     {
       accessorKey: 'contorles',
@@ -172,14 +184,14 @@ export default function RoleManagePage() {
   const onRoleFormClose = useCallback(async () => {
     if (roleFormDirty) {
       const { editting } = editRole
-      alertDialog.setState((state) => ({
-        ...state,
-        confirmBtnText: '确定舍弃',
-        cancelBtnText: editting ? '继续设置' : '继续添加',
-      }))
       const confirmed = await alertDialog.confirm(
         '确认',
-        editting ? '角色数据有改动，确认舍弃？' : '角色添加未完成，确认舍弃？'
+        editting ? '角色数据有改动，确认舍弃？' : '角色添加未完成，确认舍弃？',
+        'normal',
+        {
+          confirmBtnText: '确定舍弃',
+          cancelBtnText: editting ? '继续设置' : '继续添加',
+        }
       )
       if (confirmed) {
         setShowRoleForm(false)
@@ -390,7 +402,7 @@ export default function RoleManagePage() {
             <DialogDescription></DialogDescription>
           </DialogHeader>
           <RoleForm
-            isEdit={editRole.editting}
+            type={editRole.editting ? 'detail' : 'create'}
             role={editRole.role}
             onCancel={onRoleFormClose}
             onSuccess={() => {

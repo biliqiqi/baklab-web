@@ -4,7 +4,12 @@ import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { toSync } from '@/lib/fire-and-forget'
-import { getPermissionModuleName, getPermissionName, noop } from '@/lib/utils'
+import {
+  cn,
+  getPermissionModuleName,
+  getPermissionName,
+  noop,
+} from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { getPermissionList } from '@/api'
@@ -34,8 +39,10 @@ import {
 import { Input } from './ui/input'
 import { Switch } from './ui/switch'
 
-interface RoleFormProps {
-  isEdit?: boolean
+export type RoleFormType = 'create' | 'edit' | 'detail'
+
+export interface RoleFormProps {
+  type?: RoleFormType
   role?: Role
   onCancel?: () => void
   onSuccess?: () => void
@@ -57,12 +64,13 @@ const defaultRoleData: RoleSchema = {
 }
 
 const RoleForm: React.FC<RoleFormProps> = ({
-  isEdit = false,
+  type = 'create',
   role,
   onCancel = noop,
   onSuccess = noop,
   onChange = noop,
 }) => {
+  const [formType, setFormType] = useState<RoleFormType>(type)
   /* const [permissionOptions, setPermissionOptions] = useState<Permission[]>([]) */
   const [formattedPermissions, setFormattedPermissions] = useState<
     PermissionListItem[]
@@ -73,6 +81,13 @@ const RoleForm: React.FC<RoleFormProps> = ({
   const edittingPermissionIds = useMemo(() => {
     return role?.permissions ? role.permissions.map((item) => item.frontId) : []
   }, [role])
+
+  const isEdit = useMemo(() => formType == 'edit', [formType])
+  const isDetail = useMemo(() => formType == 'detail', [formType])
+  const currPermissionFrontIds = useMemo(
+    () => (role ? (role.permissions || []).map((item) => item.frontId) : []),
+    [role]
+  )
 
   const systemRole = useMemo(
     () => Boolean(isEdit && role && role.isSystem),
@@ -144,7 +159,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
 
       if (!isEdit || !role?.frontId) return
 
-      const { code, data } = await getUserList(1, 1, '', role.frontId)
+      const { code, data } = await getUserList(1, 1, '', role.id)
 
       if (!code) {
         if (data.total > 0) {
@@ -177,10 +192,21 @@ const RoleForm: React.FC<RoleFormProps> = ({
     onChange(form.formState.isDirty)
   }, [form, formVals])
 
-  if (isEdit && !role) return null
+  useEffect(() => {
+    if (!isDetail && role) {
+      form.setValue('name', role.name)
+      form.setValue('level', String(role.level))
+      form.setValue(
+        'permissionFrontIds',
+        (role.permissions || []).map((item) => item.frontId)
+      )
+    }
+  }, [formType, form, role])
+
+  if ((isEdit || isDetail) && !role) return null
 
   return (
-    <Form {...form}>
+    <Form {...form} key={formType}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <FormField
           control={form.control}
@@ -189,15 +215,21 @@ const RoleForm: React.FC<RoleFormProps> = ({
           render={({ field, fieldState }) => (
             <FormItem className="mb-8">
               <FormLabel>角色名称</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="请输入角色名称"
-                  autoComplete="off"
-                  state={fieldState.invalid ? 'invalid' : 'default'}
-                  disabled={systemRole}
-                  {...field}
-                />
-              </FormControl>
+              {isDetail ? (
+                <div>
+                  <span className="talbe-cell text-sm">{role?.name}</span>
+                </div>
+              ) : (
+                <FormControl>
+                  <Input
+                    placeholder="请输入角色名称"
+                    autoComplete="off"
+                    state={fieldState.invalid ? 'invalid' : 'default'}
+                    disabled={systemRole}
+                    {...field}
+                  />
+                </FormControl>
+              )}
               <FormMessage />
             </FormItem>
           )}
@@ -208,17 +240,25 @@ const RoleForm: React.FC<RoleFormProps> = ({
           key="level"
           render={({ field, fieldState }) => (
             <FormItem className="mb-8">
-              <FormLabel>权限级别</FormLabel>
-              <FormDescription>数值越大，级别越低</FormDescription>
+              <FormLabel>
+                权限级别{' '}
+                <FormDescription className="inline font-normal">
+                  (数值越大，级别越低)
+                </FormDescription>
+              </FormLabel>
               <FormControl>
-                <Input
-                  placeholder="请输入权限级别"
-                  autoComplete="off"
-                  pattern="^\d+$"
-                  state={fieldState.invalid ? 'invalid' : 'default'}
-                  disabled={systemRole}
-                  {...field}
-                />
+                {isDetail ? (
+                  <div>{role?.level}</div>
+                ) : (
+                  <Input
+                    placeholder="请输入权限级别"
+                    autoComplete="off"
+                    pattern="^\d+$"
+                    state={fieldState.invalid ? 'invalid' : 'default'}
+                    disabled={systemRole}
+                    {...field}
+                  />
+                )}
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -235,44 +275,75 @@ const RoleForm: React.FC<RoleFormProps> = ({
                 className="overflow-y-auto mt-2 pb-4"
                 style={{ maxHeight: 'calc(100vh - 600px)', minHeight: '200px' }}
               >
-                {formattedPermissions.map((fItem) => (
-                  <div key={fItem.module}>
-                    <div className="mt-4 text-sm text-gray-500 mb-1">
-                      {getPermissionModuleName(
-                        fItem.module as PermissionModule
-                      )}
-                    </div>
-                    <div className="flex flex-wrap">
-                      {fItem.list.map((item) => (
-                        <div
-                          className="flex justify-between p-4 m-1 bg-white border-b-1 rounded-sm"
-                          key={item.frontId}
-                        >
-                          <Badge
-                            variant="outline"
-                            className="mr-2 outline-none border-none"
-                          >
-                            {getPermissionName(item.frontId)}
-                          </Badge>
-                          <Switch
-                            checked={
-                              field.value?.includes(item.frontId) || false
-                            }
-                            disabled={systemRole}
-                            onCheckedChange={(checked) => {
-                              const newVal = checked
-                                ? [...(field.value || []), item.frontId]
-                                : (field.value || []).filter(
-                                    (fId) => fId != item.frontId
-                                  )
-                              field.onChange(newVal)
-                            }}
-                          />
+                {isDetail &&
+                (!role?.permissions || role.permissions.length == 0) ? (
+                  <span className="text-sm text-gray-500">没有权限</span>
+                ) : (
+                  formattedPermissions
+                    .filter((item) => {
+                      if (isDetail) {
+                        return item.list.some((item) =>
+                          currPermissionFrontIds.includes(item.frontId)
+                        )
+                      }
+                      return true
+                    })
+                    .map((fItem) => (
+                      <div key={fItem.module}>
+                        <div className="mt-4 text-sm text-gray-500 mb-1">
+                          {getPermissionModuleName(
+                            fItem.module as PermissionModule
+                          )}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                        <div
+                          className={cn(
+                            'flex flex-wrap',
+                            isDetail && 'p-2 rounded-sm bg-white pb-0'
+                          )}
+                        >
+                          {fItem.list.map((item) =>
+                            isDetail ? (
+                              currPermissionFrontIds.includes(item.frontId) && (
+                                <Badge
+                                  variant="outline"
+                                  key={item.frontId}
+                                  className="mr-2 mb-2"
+                                >
+                                  {getPermissionName(item.frontId)}
+                                </Badge>
+                              )
+                            ) : (
+                              <div
+                                className="flex justify-between p-4 m-1 bg-white border-b-1 rounded-sm"
+                                key={item.frontId}
+                              >
+                                <Badge
+                                  variant="outline"
+                                  className="mr-2 outline-none border-none"
+                                >
+                                  {getPermissionName(item.frontId)}
+                                </Badge>
+                                <Switch
+                                  checked={
+                                    field.value?.includes(item.frontId) || false
+                                  }
+                                  disabled={systemRole}
+                                  onCheckedChange={(checked) => {
+                                    const newVal = checked
+                                      ? [...(field.value || []), item.frontId]
+                                      : (field.value || []).filter(
+                                          (fId) => fId != item.frontId
+                                        )
+                                    field.onChange(newVal)
+                                  }}
+                                />
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    ))
+                )}
               </div>
             </>
           )}
@@ -291,6 +362,17 @@ const RoleForm: React.FC<RoleFormProps> = ({
                 删除
               </Button>
             )}
+            {isDetail && (
+              <Button
+                variant="outline"
+                onClick={(e) => {
+                  e.preventDefault()
+                  setFormType('edit')
+                }}
+              >
+                设置
+              </Button>
+            )}
           </div>
           <div>
             {systemRole ? (
@@ -299,6 +381,17 @@ const RoleForm: React.FC<RoleFormProps> = ({
                   <CircleAlertIcon size={16} className="inline-block" />{' '}
                   系统角色无法修改
                 </span>
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    onCancel()
+                  }}
+                >
+                  确定
+                </Button>
+              </>
+            ) : isDetail ? (
+              <>
                 <Button
                   onClick={(e) => {
                     e.preventDefault()

@@ -23,7 +23,8 @@ export const getUserList = (
   page?: number,
   pageSize?: number,
   keywords?: string,
-  roleId?: string
+  roleId?: string,
+  roleFrontId?: string
 ) => {
   const params = new URLSearchParams()
 
@@ -33,6 +34,10 @@ export const getUserList = (
 
   if (roleId) {
     params.set('roleId', roleId)
+  }
+
+  if (roleFrontId) {
+    params.set('roleFrontId', roleFrontId)
   }
 
   if (page) {
@@ -128,5 +133,12 @@ export const banManyUsers = (
       usernames,
       duration,
       reason,
+    },
+  })
+
+export const unbanManyUsers = (usernames: string[]) =>
+  authRequest.post<ResponseData<null>>(`users/unban_many`, {
+    json: {
+      usernames,
     },
   })

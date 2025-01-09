@@ -33,16 +33,16 @@ import BAvatar from './components/base/BAvatar'
 import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
 
-import BanDialog, { BanDialogRef, BanSchema } from './components/BanDialog'
+import { BanDialogRef, BanSchema } from './components/BanDialog'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
-import RoleSelector from './components/RoleSelector'
 
-import { banManyUsers, getUserList } from './api/user'
+import { banManyUsers, getUserList, unbanManyUsers } from './api/user'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
-import { useAuthedUserStore } from './state/global'
+import { formatMinutes } from './lib/utils'
+import { useAlertDialogStore, useAuthedUserStore } from './state/global'
 import { ListPageState, UserData } from './types/types'
 
 interface SearchFields {
@@ -55,17 +55,16 @@ const defaultSearchData: SearchFields = {
   roleId: '',
 }
 
-export default function UserListPage() {
+export default function BannedUserListPage() {
   const [loading, setLoading] = useState(false)
-  const [banOpen, setBanOpen] = useState(false)
 
   const [list, setList] = useState<UserData[]>([])
   const [params, setParams] = useSearchParams()
   const location = useLocation()
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
-  const banDialogRef = useRef<BanDialogRef | null>(null)
 
   const authStore = useAuthedUserStore()
+  const alertDialog = useAlertDialogStore()
 
   const [pageState, setPageState] = useState<ListPageState>({
     currPage: 1,
@@ -77,7 +76,6 @@ export default function UserListPage() {
   const [searchData, setSearchData] = useState<SearchFields>({
     ...defaultSearchData,
     keywords: params.get('keywords') || '',
-    roleId: params.get('role_id') || '',
   })
 
   const columns: ColumnDef<UserData>[] = [
@@ -111,20 +109,38 @@ export default function UserListPage() {
         </Link>
       ),
     },
-    {
-      accessorKey: 'roleName',
-      header: '角色',
-    },
-    {
-      accessorKey: 'roleLevel',
-      header: '权限级别',
-      cell: ({ row }) => <span>{row.original?.role?.level || '-'}</span>,
-    },
+    /* {
+     *   accessorKey: 'roleName',
+     *   header: '角色',
+     * }, */
+    /* {
+     *   accessorKey: 'roleLevel',
+     *   header: '权限级别',
+     *   cell: ({ row }) => <span>{row.original?.role?.level || '-'}</span>,
+     * }, */
     {
       accessorKey: 'registeredAt',
       header: '加入时间',
-      cell: ({ cell }) => (
-        <span>{timeFmt(cell.getValue<string>(), 'YYYY-M-D')}</span>
+      cell: ({ row }) => (
+        <span title={new Date(row.original.registeredAt).toLocaleString()}>
+          {timeFmt(row.original.registeredAt, 'YYYY-M-D')}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'bannedStartAt',
+      header: '封禁时间',
+      cell: ({ row }) => (
+        <span title={new Date(row.original.bannedStartAt).toLocaleString()}>
+          {timeFmt(row.original.bannedStartAt, 'YYYY-M-D h:m:s')}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'bannedMinutes',
+      header: '封禁时长',
+      cell: ({ row }) => (
+        <span>{formatMinutes(row.original.bannedMinutes)}</span>
       ),
     },
     {
@@ -154,25 +170,17 @@ export default function UserListPage() {
 
   const selectedRows = table.getSelectedRowModel().rows
 
-  const bannableUsers = useMemo(
-    () => [
-      ...selectedRows
-        .map((item) => item.original)
-        .filter((user) => !user.banned),
-    ],
+  const unbannableUsers = useMemo(
+    () => [...selectedRows.map((item) => item.original)],
     [selectedRows]
   )
-
-  /* useEffect(() => {
-   *   console.log('selected: ', selectedUsers)
-   * }, [selectedUsers]) */
 
   const resetParams = useCallback(() => {
     setParams((params) => {
       params.delete('page')
       params.delete('pageSize')
       params.delete('keywords')
-      params.delete('role_id')
+      /* params.delete('role_id') */
       return params
     })
   }, [params])
@@ -187,11 +195,18 @@ export default function UserListPage() {
           const page = Number(params.get('page')) || 1
           const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
           const keywords = params.get('keywords') || ''
-          const roleId = params.get('role_id') || ''
+          /* const roleId = params.get('role_id') || '' */
 
-          setSearchData((state) => ({ ...state, keywords, roleId }))
+          setSearchData((state) => ({ ...state, keywords }))
 
-          const resp = await getUserList(page, pageSize, keywords, roleId)
+          const resp = await getUserList(
+            page,
+            pageSize,
+            keywords,
+            '',
+            'banned_user'
+          )
+
           if (!resp.code) {
             const { data } = resp
             if (data.list) {
@@ -247,55 +262,29 @@ export default function UserListPage() {
     })
   }, [params, searchData])
 
-  const onCancelBanAlert = () => {
-    setBanOpen(false)
-    if (banDialogRef.current) {
-      banDialogRef.current.form.reset({ duration: '', reason: '' })
-    }
-  }
+  const onUnbanSelectedClick = useCallback(
+    async (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault()
+      /* setBanOpen(true) */
+      const selectedRows = table.getSelectedRowModel().rows
+      const usernames = selectedRows.map((item) => item.original.name)
 
-  const onBanSubmit = useCallback(
-    async ({ duration, reason }: BanSchema) => {
-      const durationNum = Number(duration)
-      try {
-        const selectedRows = table.getSelectedRowModel().rows
+      if (usernames.length == 0) return
 
-        /* console.log('selecte rows: ', rowSelection) */
-
-        const usernames = [
-          ...selectedRows
-            .filter((item) => !item.original.banned)
-            .map((item) => item.original.name),
-        ]
-
-        /* console.log('duration: ', durationNum)
-         * console.log('reason: ', reason) */
-        /* console.log('usernames: ', usernames) */
-
-        if (usernames.length == 0 || !durationNum) return
-
-        const resp = await banManyUsers(usernames, durationNum, reason)
-
-        if (!resp.code) {
+      const confirmed = await alertDialog.confirm(
+        '确认',
+        `确认解封已选中的 ${usernames.length} 个用户？`
+      )
+      if (confirmed) {
+        const { code } = await unbanManyUsers(usernames)
+        if (!code) {
           setRowSelection({})
-          setBanOpen(false)
           fetchUserList()
-
-          if (banDialogRef.current) {
-            banDialogRef.current.form.reset({ duration: '', reason: '' })
-          }
         }
-      } catch (err) {
-        console.error('ban user error: ', err)
       }
     },
-    [table, rowSelection]
+    [alertDialog, table]
   )
-
-  const onBanSelectedClick = (e: MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault()
-    setBanOpen(true)
-  }
 
   useEffect(() => {
     fetchUserList(true)
@@ -305,9 +294,9 @@ export default function UserListPage() {
     <BContainer
       category={{
         isFront: true,
-        frontId: 'users',
-        name: '用户列表',
-        describe: '全部用户',
+        frontId: 'banned_users',
+        name: '已封锁',
+        describe: '已封锁用户',
       }}
     >
       <Card className="flex flex-wrap justify-between p-2">
@@ -322,18 +311,6 @@ export default function UserListPage() {
                 keywords: e.target.value,
               }))
             }
-          />
-          <RoleSelector
-            value={searchData.roleId || ''}
-            placeholder="选择角色"
-            onChange={(role) => {
-              if (role) {
-                setSearchData((state) => ({
-                  ...state,
-                  roleId: role.id,
-                }))
-              }
-            }}
           />
         </div>
         <div>
@@ -416,13 +393,13 @@ export default function UserListPage() {
                   已选中 {selectedRows.length} 个用户
                 </div>
                 <div>
-                  {bannableUsers.length > 0 && (
+                  {unbannableUsers.length > 0 && (
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={onBanSelectedClick}
+                      onClick={onUnbanSelectedClick}
                     >
-                      封禁 {bannableUsers.length} 个已选用户
+                      解封 {unbannableUsers.length} 个已选用户
                     </Button>
                   )}
                 </div>
@@ -430,17 +407,6 @@ export default function UserListPage() {
             </Card>
           )}
         </>
-      )}
-
-      {bannableUsers.length > 0 && (
-        <BanDialog
-          open={banOpen}
-          onOpenChange={setBanOpen}
-          users={bannableUsers}
-          onSubmit={onBanSubmit}
-          onCancel={onCancelBanAlert}
-          ref={banDialogRef}
-        />
       )}
     </BContainer>
   )

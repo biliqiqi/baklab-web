@@ -5,6 +5,7 @@ import {
   PlusIcon,
   TrashIcon,
   UserIcon,
+  UserRoundXIcon,
   UsersRoundIcon,
 } from 'lucide-react'
 import React, { MouseEvent, useCallback, useEffect, useState } from 'react'
@@ -341,6 +342,18 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                                   <UsersRoundIcon size={18} />
                                 </BIconCircle>
                                 用户列表
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        )}
+                        {authPermit('user', 'manage') && (
+                          <SidebarMenuItem key="banned_users">
+                            <SidebarMenuButton asChild>
+                              <Link to="/manage/banned_users">
+                                <BIconCircle id="banned_users" size={32}>
+                                  <UserRoundXIcon size={18} />
+                                </BIconCircle>
+                                已封锁
                               </Link>
                             </SidebarMenuButton>
                           </SidebarMenuItem>

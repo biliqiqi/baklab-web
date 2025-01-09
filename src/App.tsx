@@ -15,6 +15,7 @@ import BLoader from './components/base/BLoader.tsx'
 import ActivityPage from './ActivityPage.tsx'
 import ArticleListPage from './ArticleListPage.tsx'
 import ArticlePage from './ArticlePage.tsx'
+import BannedUserListPage from './BannedUserListPage.tsx'
 import EditPage from './EditPage.tsx'
 import MessagePage from './MessagePage.tsx'
 import NotFoundPage from './NotFoundPage.tsx'
@@ -143,6 +144,11 @@ const routes: RouteObject[] = [
       {
         path: 'users',
         Component: UserListPage,
+        loader: needPermission('user', 'manage'),
+      },
+      {
+        path: 'banned_users',
+        Component: BannedUserListPage,
         loader: needPermission('user', 'manage'),
       },
       {

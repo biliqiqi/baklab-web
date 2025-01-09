@@ -319,7 +319,7 @@ export default function RoleManagePage() {
       )}
       <div className="flex justify-between items-center">
         <div>
-          <Badge variant="secondary">{pageState.total} 个用户角色</Badge>
+          <Badge variant="secondary">{pageState.total} 个角色</Badge>
         </div>
         <div>
           <Button

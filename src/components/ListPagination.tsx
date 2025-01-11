@@ -8,7 +8,9 @@ import { Input } from './ui/input'
 import {
   Pagination,
   PaginationContent,
+  PaginationFirst,
   PaginationItem,
+  PaginationLast,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
@@ -61,11 +63,16 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
           <Pagination className="py-1">
             <PaginationContent>
               {pageState.currPage > 1 && (
-                <PaginationItem>
-                  <PaginationPrevious
-                    to={'?' + genParamStr(pageState.currPage - 1)}
-                  />
-                </PaginationItem>
+                <>
+                  <PaginationItem>
+                    <PaginationFirst to={'?' + genParamStr(1)} />
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      to={'?' + genParamStr(pageState.currPage - 1)}
+                    />
+                  </PaginationItem>
+                </>
               )}
               <PaginationItem>
                 <Input
@@ -79,11 +86,18 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
                 <span className="text-gray-500">/ {pageState.totalPage}</span>
               </PaginationItem>
               {pageState.currPage < pageState.totalPage && (
-                <PaginationItem>
-                  <PaginationNext
-                    to={'?' + genParamStr(pageState.currPage + 1)}
-                  />
-                </PaginationItem>
+                <>
+                  <PaginationItem>
+                    <PaginationNext
+                      to={'?' + genParamStr(pageState.currPage + 1)}
+                    />
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationLast
+                      to={'?' + genParamStr(pageState.totalPage)}
+                    />
+                  </PaginationItem>
+                </>
               )}
             </PaginationContent>
           </Pagination>

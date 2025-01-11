@@ -1,9 +1,16 @@
-import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react'
+import {
+  ChevronFirst,
+  ChevronLast,
+  ChevronLeft,
+  ChevronRight,
+  MoreHorizontal,
+} from 'lucide-react'
 import * as React from 'react'
+import { Link, LinkProps } from 'react-router-dom'
+
+import { cn } from '@/lib/utils'
 
 import { ButtonProps, buttonVariants } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { Link, LinkProps } from 'react-router-dom'
 
 const Pagination = ({ className, ...props }: React.ComponentProps<'nav'>) => (
   <nav
@@ -108,6 +115,36 @@ const PaginationEllipsis = ({
 )
 PaginationEllipsis.displayName = 'PaginationEllipsis'
 
+const PaginationFirst = ({
+  className,
+  ...props
+}: React.ComponentProps<typeof PaginationLink>) => (
+  <PaginationLink
+    aria-label="第一页"
+    size="default"
+    className={cn('gap-1 pl-2.5', className)}
+    {...props}
+  >
+    <ChevronFirst className="h-4 w-4" />
+  </PaginationLink>
+)
+PaginationFirst.displayName = 'PaginationFirst'
+
+const PaginationLast = ({
+  className,
+  ...props
+}: React.ComponentProps<typeof PaginationLink>) => (
+  <PaginationLink
+    aria-label="最后一页"
+    size="default"
+    className={cn('gap-1 pl-2.5', className)}
+    {...props}
+  >
+    <ChevronLast className="h-4 w-4" />
+  </PaginationLink>
+)
+PaginationLast.displayName = 'PaginationLast'
+
 export {
   Pagination,
   PaginationContent,
@@ -116,4 +153,6 @@ export {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
+  PaginationFirst,
+  PaginationLast,
 }

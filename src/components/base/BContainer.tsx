@@ -150,6 +150,12 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     }, [alertDialog])
 
     const onToggleTopDrawer = useCallback(() => {
+      if (!showTopDrawer) {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth',
+        })
+      }
       setShowTopDrawer(!showTopDrawer)
     }, [showTopDrawer, setShowTopDrawer])
 

@@ -32,6 +32,8 @@ import {
 
 export default function ArticleListPage() {
   const [loading, setLoading] = useState(false)
+  const [showSummary, setShowSummary] = useState(false)
+
   const [list, updateList] = useState<Article[]>([])
   const [pageState, setPageState] = useState<ArticleListState>({
     currPage: 1,
@@ -173,7 +175,7 @@ export default function ArticleListPage() {
           list.map((item) => (
             <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
               <div className="mb-3">
-                <div className="mb-1 font-bold">
+                <div className="mb-1 ">
                   <Link className="mr-2" to={'/articles/' + item.id}>
                     {item.title}
                   </Link>
@@ -197,10 +199,12 @@ export default function ArticleListPage() {
                     </span>
                   )}
                 </div>
-                <div
-                  className="mb-1 break-words"
-                  dangerouslySetInnerHTML={{ __html: renderMD(item.summary) }}
-                ></div>
+                {showSummary && (
+                  <div
+                    className="mb-1 break-words"
+                    dangerouslySetInnerHTML={{ __html: renderMD(item.summary) }}
+                  ></div>
+                )}
                 {item.picURL && (
                   <div className="w-[120px] h-[120px] rounded mr-4 bg-gray-200 shrink-0 overflow-hidden">
                     <a href="#">

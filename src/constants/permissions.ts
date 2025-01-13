@@ -153,6 +153,11 @@ export const PERMISSION_DATA = {
       adapt_id: 'role.edit',
       enabled: false,
     },
+    manage_others: {
+      name: '管理他人角色',
+      adapt_id: 'role.manage_others',
+      enabled: false,
+    },
   },
   activity: {
     access: {
@@ -177,6 +182,38 @@ export const PERMISSION_DATA = {
       adapt_id: 'category.delete',
       enable: false,
     },
+    manage_others: {
+      name: '管理他人分类',
+      adapt_id: 'category.manage_others',
+      enable: false,
+    },
+  },
+  site: {
+    create: {
+      name: '创建站点',
+      adapt_id: 'site.create',
+      enable: false,
+    },
+    edit: {
+      name: '编辑站点',
+      adapt_id: 'site.edit',
+      enable: false,
+    },
+    delete: {
+      name: '删除站点',
+      adapt_id: 'site.delete',
+      enable: false,
+    },
+    manage: {
+      name: '管理站点',
+      adapt_id: 'site.manage',
+      enable: false,
+    },
+    audit: {
+      name: '审核站点',
+      adapt_id: 'site.audit',
+      enable: false,
+    },
   },
 }
 
@@ -188,4 +225,5 @@ export const PERMISSION_MODULE_DATA = {
   role: '角色',
   activity: '活动记录',
   category: '分类',
+  site: '站点',
 }

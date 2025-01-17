@@ -26,8 +26,6 @@ import SubmitPage from './SubmitPage.tsx'
 import TrashPage from './TrashPage.tsx'
 import UserListPage from './UserListPage.tsx'
 import UserPage from './UserPage.tsx'
-import { getCategoryList } from './api/category.ts'
-import { getNotificationUnreadCount } from './api/message.ts'
 import { API_HOST, API_PATH_PREFIX } from './constants/constants.ts'
 import { PermissionAction, PermissionModule } from './constants/types.ts'
 import { useAuth } from './hooks/use-auth.ts'
@@ -37,7 +35,6 @@ import { noop } from './lib/utils.ts'
 import {
   isLogined,
   useAuthedUserStore,
-  useCategoryStore,
   useNotificationStore,
   useToastStore,
 } from './state/global.ts'
@@ -97,8 +94,58 @@ const routes: RouteObject[] = [
     Component: EditPage,
   },
   {
+    // TODO 分类列表
+    path: '/categories',
+  },
+  {
     path: '/categories/:category',
     Component: ArticleListPage,
+  },
+  {
+    // TODO 站点列表
+    path: '/sites',
+  },
+  {
+    path: '/:siteFrontId/:categoryFrontId',
+    Component: ArticleListPage,
+  },
+  {
+    path: '/:siteFrontId',
+    Component: ArticleListPage,
+    children: [
+      {
+        path: 'manage',
+        loader: needPermission('manage', 'access'),
+        children: [
+          {
+            path: '',
+            loader: () => redirect('/manage/activities'),
+          },
+          {
+            path: 'activities',
+            Component: ActivityPage,
+            loader: needPermission('activity', 'access'),
+          },
+          {
+            path: 'trash',
+            Component: TrashPage,
+          },
+          {
+            path: 'users',
+            Component: UserListPage,
+            loader: needPermission('user', 'manage'),
+          },
+          {
+            path: 'blocklist',
+          },
+          {
+            path: 'roles',
+            Component: RoleManagePage,
+            loader: needPermission('role', 'access'),
+          },
+        ],
+      },
+    ],
   },
   {
     path: '/signup',
@@ -117,6 +164,10 @@ const routes: RouteObject[] = [
   },
   {
     path: '/users/:username',
+    Component: UserPage,
+  },
+  {
+    path: '/u/:username',
     Component: UserPage,
   },
   {
@@ -231,18 +282,7 @@ const App = () => {
   const updateToastState = useToastStore((state) => state.update)
   const authStore = useAuthedUserStore()
   const authed = useAuth()
-  const { updateCategories: setCateList } = useCategoryStore()
-
-  /* console.log('render app!') */
-
-  const fetchCateList = toSync(
-    useCallback(async () => {
-      const data = await getCategoryList()
-      if (!data.code) {
-        setCateList([...data.data])
-      }
-    }, [])
-  )
+  /* const siteStore = useSiteStore() */
 
   const refreshTokenSync = toSync(useCallback(refreshAuthState, [authStore]))
 
@@ -275,10 +315,7 @@ const App = () => {
   }, [authStore.username])
 
   useEffect(() => {
-    fetchCateList()
-
     window.onfocus = () => {
-      fetchCateList()
       refreshTokenSync(true)
       fetchNotiCount()
     }

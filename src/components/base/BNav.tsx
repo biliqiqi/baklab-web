@@ -89,7 +89,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
         const data = await logoutToken()
         if (!data.code) {
           authState.logout()
-          /* navigate(0) */
+          navigate(0)
         }
       } catch (e) {
         console.error('logout error: ', e)
@@ -253,19 +253,17 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
               </DropdownMenu>
             </>
           ) : (
-            !isOneOfPath(location, ['/signin']) && (
-              <Button
-                variant="default"
-                size="sm"
-                asChild
-                onClick={(e) => {
-                  e.preventDefault()
-                  updateSignin(true)
-                }}
-              >
-                <Link to="/signin">登录</Link>
-              </Button>
-            )
+            <Button
+              variant="default"
+              size="sm"
+              asChild
+              onClick={(e) => {
+                e.preventDefault()
+                updateSignin(true)
+              }}
+            >
+              <Link to="/signin">登录</Link>
+            </Button>
           )}
         </div>
 

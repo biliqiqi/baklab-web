@@ -15,7 +15,6 @@ import { z } from '@/lib/zod-custom'
 import { getPermissionList } from '@/api'
 import { deleteRole, submitRole, updateRole } from '@/api/role'
 import { getUserList } from '@/api/user'
-import { MIN_ROLE_LEVEL } from '@/constants/roles'
 import { PermissionModule } from '@/constants/types'
 import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
 import {
@@ -84,6 +83,12 @@ const RoleForm: React.FC<RoleFormProps> = ({
 
   const isEdit = useMemo(() => formType == 'edit', [formType])
   const isDetail = useMemo(() => formType == 'detail', [formType])
+  const currRole = useMemo(() => authStore.user?.role, [authStore])
+  const minLevel = useMemo(
+    () => (currRole ? currRole.level + 1 : 99),
+    [currRole]
+  )
+
   const currPermissionFrontIds = useMemo(
     () => (role ? (role.permissions || []).map((item) => item.frontId) : []),
     [role]
@@ -99,10 +104,10 @@ const RoleForm: React.FC<RoleFormProps> = ({
     defaultValues: isEdit
       ? ({
           name: role?.name || '',
-          level: role ? String(role.level) : String(MIN_ROLE_LEVEL),
+          level: role ? String(role.level) : String(minLevel),
           permissionFrontIds: edittingPermissionIds,
         } as RoleSchema)
-      : { ...defaultRoleData },
+      : { ...defaultRoleData, level: String(minLevel) },
   })
 
   const formVals = form.watch()
@@ -127,9 +132,9 @@ const RoleForm: React.FC<RoleFormProps> = ({
       let resp: ResponseData<ResponseID> | undefined
 
       const level = parseInt(vals.level, 10) || 0
-      if (level < MIN_ROLE_LEVEL) {
+      if (level < minLevel) {
         form.setError('level', {
-          message: `权限级别不能小于 ${MIN_ROLE_LEVEL}`,
+          message: `权限级别不能小于 ${minLevel}`,
         })
         return
       }
@@ -150,7 +155,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
         onSuccess()
       }
     },
-    [form, isEdit, role, systemRole]
+    [form, isEdit, role, systemRole, minLevel]
   )
 
   const onDeleteClick = useCallback(

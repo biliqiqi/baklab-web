@@ -20,7 +20,7 @@ import ArticleControls from './components/ArticleControls'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 
-import { getArticleList, recoverArticle } from './api/article'
+import { getArticleTrash, recoverArticle } from './api/article'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
@@ -104,15 +104,14 @@ export default function TrashPage() {
             setLoadingList(true)
           }
 
-          const resp = await getArticleList(
+          const resp = await getArticleTrash(
             page,
             pageSize,
             sort,
             category,
             '',
             tab,
-            keywords,
-            true
+            keywords
           )
 
           if (!resp.code) {

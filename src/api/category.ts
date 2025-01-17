@@ -7,19 +7,23 @@ import {
   ResponseID,
 } from '@/types/types'
 
-export const getCategoryList = async () =>
-  authRequest.get<ResponseData<Category[]>>(`categories`)
+export const getCategoryList = async (siteId: number) =>
+  authRequest.get<ResponseData<Category[]>>(`categories`, {
+    searchParams: { siteId },
+  })
 
 export const submitCategory = async (
   frontID: string,
   name: string,
-  description: string
+  description: string,
+  siteId: number
 ) =>
   authRequest.post<ResponseData<ResponseID>>(`categories`, {
     json: {
       frontID,
       name,
       description,
+      siteId,
     },
   })
 

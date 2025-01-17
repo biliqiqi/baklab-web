@@ -26,6 +26,8 @@ export interface Category {
   approved: boolean
   approvalComment: string
   totalArticleCount: number
+  siteId: number
+  siteFrontId: string
 }
 
 export interface CategoryExists {
@@ -136,6 +138,7 @@ export interface ArticleItemResponse {
   defaultSortType: ArticleListSort
   sortTabList: ArticleListSort[]
   sortTabNames: ArticleSortTabMap
+  category: Category
 }
 
 export interface ArticleResponse {
@@ -211,6 +214,7 @@ export interface CustomRequestOptions {
 
 export type FrontCategory = Pick<Category, 'frontId' | 'name' | 'describe'> & {
   isFront: boolean // 是否由前端定义
+  siteFrontId?: string
 }
 
 export interface ListPageState {
@@ -340,4 +344,34 @@ export interface Role {
 
 export interface RoleListResponse extends ListPageState {
   list: Role[] | null
+}
+
+export enum SiteStatus {
+  ReadOnly = 0,
+  Normal,
+  Pending,
+  Reject,
+  Banned,
+}
+
+export interface Site {
+  id: number
+  name: string
+  frontId: string
+  visible: boolean
+  creatorId: number
+  creatorName: string
+  logoUrl: string
+  description: string
+  keywords: string
+  rulesArticleId: number
+  boardCategoryId: number
+  createdAt: string
+  updatedAt: string
+  status: SiteStatus
+  categoryFrontIds: string[]
+}
+
+export interface SiteListResponse extends ListPageState {
+  list: Site[] | null
 }

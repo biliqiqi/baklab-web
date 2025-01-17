@@ -20,7 +20,12 @@ import { getArticle } from './api/article'
 import { toSync } from './lib/fire-and-forget'
 import { bus } from './lib/utils'
 import { useNotFoundStore } from './state/global'
-import { Article, ArticleListSort, ArticleListState } from './types/types'
+import {
+  Article,
+  ArticleListSort,
+  ArticleListState,
+  Category,
+} from './types/types'
 
 type ReplyBoxState = Pick<
   ReplyBoxProps,
@@ -31,6 +36,7 @@ export default function ArticlePage() {
   const [loading, setLoading] = useState(false)
   const [initialized, setInitialized] = useState(false)
   const [article, setArticle] = useState<Article | null>(null)
+  const [articleCategory, setArticleCategory] = useState<Category | null>(null)
 
   const [pageState, setPageState] = useState<ArticleListState>({
     currPage: 1,
@@ -78,11 +84,12 @@ export default function ArticlePage() {
           /* console.log('article resp: ', resp.data) */
           if (!resp.code) {
             /* setReplyToID(resp.data.article.id) */
-            const { article } = resp.data
+            const { article, category } = resp.data
 
             article.asMainArticle = true
 
             setArticle(article)
+            setArticleCategory(category)
 
             setInitialized(true)
 
@@ -194,11 +201,12 @@ export default function ArticlePage() {
     <>
       <BContainer
         category={
-          article
+          article && articleCategory
             ? {
-                frontId: article.category.frontId,
-                name: article.category.name,
-                describe: article.category.describe,
+                frontId: articleCategory.frontId,
+                name: articleCategory.name,
+                describe: articleCategory.describe,
+                siteFrontId: articleCategory.siteFrontId,
                 isFront: false,
               }
             : undefined

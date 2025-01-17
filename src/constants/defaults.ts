@@ -12,6 +12,8 @@ export const defaultCategory: Category = {
   approved: false,
   approvalComment: '',
   totalArticleCount: 0,
+  siteId: 0,
+  siteFrontId: '',
 }
 
 export const defaultCurrState: CurrUserState = {

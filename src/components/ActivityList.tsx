@@ -2,6 +2,7 @@ import { Activity, ActivityActionType, ListPageState } from '@/types/types'
 
 import { Empty } from './Empty'
 import { ListPagination } from './ListPagination'
+import { Badge } from './ui/badge'
 import { Card } from './ui/card'
 
 export interface ActivityListProps {
@@ -27,6 +28,12 @@ export const ActivityList: React.FC<ActivityListProps> = ({
     <Empty />
   ) : (
     <>
+      <div className="flex justify-between items-center my-4">
+        <div>
+          <Badge variant="secondary">{pageState.total} 条记录</Badge>
+        </div>
+        <div></div>
+      </div>
       {list.map((item) => (
         <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
           <div

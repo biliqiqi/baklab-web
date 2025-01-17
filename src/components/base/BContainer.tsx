@@ -9,12 +9,14 @@ import {
   UsersRoundIcon,
 } from 'lucide-react'
 import React, { MouseEvent, useCallback, useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 
+import { toSync } from '@/lib/fire-and-forget'
 import { cn, getCookie } from '@/lib/utils'
 
 import { getCategoryList } from '@/api/category'
-import { NAV_HEIGHT, SITE_NAME } from '@/constants/constants'
+import { getSiteWithFrontId } from '@/api/site'
+import { DOCK_HEIGHT, NAV_HEIGHT, SITE_NAME } from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
   useAlertDialogStore,
@@ -23,6 +25,7 @@ import {
   useDialogStore,
   useNotFoundStore,
   useSidebarStore,
+  useSiteStore,
   useTopDrawerStore,
 } from '@/state/global'
 import { Category, FrontCategory } from '@/types/types'
@@ -100,9 +103,12 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       data: undefined,
     })
 
+    const { siteFrontId, cateogryFrontId } = useParams()
+
     const authPermit = useAuthedUserStore((state) => state.permit)
 
     const alertDialog = useAlertDialogStore()
+    const siteStore = useSiteStore()
 
     const {
       type: alertType,
@@ -119,6 +125,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     /* const [sidebarOpen, setSidebarOpen] = useState(!isMobile) */
 
     const location = useLocation()
+    const pathParams = useParams()
 
     if (location.pathname == '/') {
       category = {
@@ -128,6 +135,51 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         isFront: true,
       }
     }
+
+    const fetchSiteData = useCallback(
+      toSync(async () => {
+        let frontId = ''
+
+        if (siteFrontId) {
+          frontId = siteFrontId
+        } else if (category && !category.isFront) {
+          if (
+            siteStore.site &&
+            siteStore.site.categoryFrontIds.includes(category.frontId)
+          )
+            return
+
+          frontId = category?.siteFrontId || ''
+        } else {
+          //...
+        }
+
+        if (!frontId) return
+
+        const { code, data } = await getSiteWithFrontId(frontId)
+        if (!code) {
+          siteStore.update({ ...data })
+        } else {
+          siteStore.update(null)
+        }
+      }),
+      [siteFrontId, siteStore, category]
+    )
+
+    const { updateCategories: setCateList } = useCategoryStore()
+
+    /* console.log('render app!') */
+
+    const fetchCateList = toSync(
+      useCallback(async () => {
+        if (!siteStore.site) return
+
+        const data = await getCategoryList(siteStore.site.id)
+        if (!data.code) {
+          setCateList([...data.data])
+        }
+      }, [siteStore])
+    )
 
     const onAlertDialogCancel = useCallback(() => {
       if (alertType == 'confirm') {
@@ -157,6 +209,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         })
       }
       setShowTopDrawer(!showTopDrawer)
+      document.cookie = `top_drawer:state=${String(!showTopDrawer)};path=/`
     }, [showTopDrawer, setShowTopDrawer])
 
     /* const onSidebarChange = useCallback(
@@ -190,11 +243,13 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     const onCategoryCreated = useCallback(async () => {
       setShowCategoryForm(false)
-      const resp = await getCategoryList()
+      if (!siteStore.site) return
+
+      const resp = await getCategoryList(siteStore.site.id)
       if (!resp.code) {
         updateCategories([...resp.data])
       }
-    }, [])
+    }, [siteStore])
 
     const onCreateCategoryClick = (ev: MouseEvent<HTMLButtonElement>) => {
       ev.preventDefault()
@@ -238,6 +293,20 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       }
     }, [location, isMobile])
 
+    useEffect(() => {
+      /* console.log('category: ', category) */
+      fetchSiteData()
+    }, [siteFrontId, category, pathParams])
+
+    useEffect(() => {
+      fetchCateList()
+    }, [siteStore])
+
+    useEffect(() => {
+      const showDock = getCookie('top_drawer:state') == 'true'
+      setShowTopDrawer(showDock)
+    }, [])
+
     return (
       <>
         <div
@@ -246,21 +315,35 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             showTopDrawer
               ? {
                   opacity: 1,
-                  height: '54px',
+                  height: `${DOCK_HEIGHT}px`,
                 }
               : {}
           }
         >
-          <div className="flex items-center w-[1000px] mx-auto h-[54px]">
-            {Array(10)
-              .fill(1)
-              .map((_, idx) => (
-                <Button
-                  variant="ghost"
-                  className="mr-2 rounded-full border-2 border-red-500 w-[40px] h-[40px]"
-                  key={idx}
-                ></Button>
-              ))}
+          <div
+            className="flex justify-between items-center w-[1000px] mx-auto"
+            style={{ height: `${DOCK_HEIGHT}px` }}
+          >
+            <div>
+              {Array(10)
+                .fill(1)
+                .map((_, idx) => (
+                  <Button
+                    variant="ghost"
+                    className="mr-2 rounded-full border-2 border-red-500 w-[40px] h-[40px]"
+                    key={idx}
+                  ></Button>
+                ))}
+            </div>
+            <div>
+              <Button
+                variant="ghost"
+                className="mr-2 rounded-full border-2 border-red-500 w-[40px] h-[40px]"
+                key="new-site"
+              >
+                +
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -311,12 +394,13 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     </SidebarMenu>
                   </SidebarGroupContent>
                 </SidebarGroup>
-                {authPermit('manage', 'access') && (
+
+                {authPermit('platform_manage', 'access') && (
                   <SidebarGroup>
-                    <SidebarGroupLabel>管理</SidebarGroupLabel>
+                    <SidebarGroupLabel>平台管理</SidebarGroupLabel>
                     <SidebarGroupContent>
                       <SidebarMenu>
-                        {authPermit('activity', 'access') && (
+                        {authPermit('activity', 'manage_platform') && (
                           <SidebarMenuItem key="activities">
                             <SidebarMenuButton asChild>
                               <Link to="/manage/activities">
@@ -328,7 +412,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                             </SidebarMenuButton>
                           </SidebarMenuItem>
                         )}
-                        {authPermit('article', 'delete_others') && (
+                        {authPermit('article', 'manage_platform') && (
                           <SidebarMenuItem key="trash">
                             <SidebarMenuButton asChild>
                               <Link to="/manage/trash">
@@ -340,7 +424,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                             </SidebarMenuButton>
                           </SidebarMenuItem>
                         )}
-                        {authPermit('user', 'manage') && (
+                        {authPermit('user', 'manage_platform') && (
                           <SidebarMenuItem key="users">
                             <SidebarMenuButton asChild>
                               <Link to="/manage/users">
@@ -352,7 +436,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                             </SidebarMenuButton>
                           </SidebarMenuItem>
                         )}
-                        {authPermit('user', 'manage') && (
+                        {authPermit('user', 'manage_platform') && (
                           <SidebarMenuItem key="banned_users">
                             <SidebarMenuButton asChild>
                               <Link to="/manage/banned_users">
@@ -364,7 +448,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                             </SidebarMenuButton>
                           </SidebarMenuItem>
                         )}
-                        {authPermit('role', 'access') && (
+                        {authPermit('role', 'manage_platform') && (
                           <SidebarMenuItem key="user_roles">
                             <SidebarMenuButton asChild>
                               <Link to="/manage/roles">
@@ -380,61 +464,65 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     </SidebarGroupContent>
                   </SidebarGroup>
                 )}
-                <SidebarGroup>
-                  <SidebarGroupLabel className="flex justify-between">
-                    <span>分类</span>
-                    {authPermit('category', 'create') && (
-                      <Button
-                        variant="ghost"
-                        className="p-0 w-[24px] h-[24px] rounded-full"
-                        onClick={onCreateCategoryClick}
-                      >
-                        <PlusIcon size={18} className="text-gray-500" />
-                      </Button>
-                    )}
-                  </SidebarGroupLabel>
-                  <SidebarGroupContent>
-                    <SidebarMenu>
-                      {cateList.map((item) => (
-                        <SidebarMenuItem key={item.frontId}>
-                          <SidebarMenuButton
-                            asChild
-                            isActive={
-                              location.pathname ==
-                                '/categories/' + item.frontId ||
-                              category?.frontId == item.frontId
-                            }
-                          >
-                            <Link to={'/categories/' + item.frontId}>
-                              <BIconColorChar
-                                iconId={item.frontId}
-                                char={item.name}
-                                size={32}
-                              />
-                              {item.name}
-                            </Link>
-                          </SidebarMenuButton>
-                          {authPermit('category', 'edit') && (
-                            <SidebarMenuAction
-                              style={{
-                                top: '10px',
-                                width: '28px',
-                                height: '28px',
-                              }}
-                              className="rounded-full"
-                              onClick={(e) => onEditCategoryClick(e, item)}
+
+                {siteStore.site && (
+                  <SidebarGroup>
+                    <SidebarGroupLabel className="flex justify-between">
+                      <span>分类</span>
+
+                      {authPermit('category', 'create') && (
+                        <Button
+                          variant="ghost"
+                          className="p-0 w-[24px] h-[24px] rounded-full"
+                          onClick={onCreateCategoryClick}
+                        >
+                          <PlusIcon size={18} className="text-gray-500" />
+                        </Button>
+                      )}
+                    </SidebarGroupLabel>
+                    <SidebarGroupContent>
+                      <SidebarMenu>
+                        {cateList.map((item) => (
+                          <SidebarMenuItem key={item.frontId}>
+                            <SidebarMenuButton
+                              asChild
+                              isActive={
+                                location.pathname ==
+                                  '/categories/' + item.frontId ||
+                                category?.frontId == item.frontId
+                              }
                             >
-                              <PencilIcon
-                                size={14}
-                                className="inline-block mr-1 text-gray-500"
-                              />
-                            </SidebarMenuAction>
-                          )}
-                        </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </SidebarGroup>
+                              <Link to={'/categories/' + item.frontId}>
+                                <BIconColorChar
+                                  iconId={item.frontId}
+                                  char={item.name}
+                                  size={32}
+                                />
+                                {item.name}
+                              </Link>
+                            </SidebarMenuButton>
+                            {authPermit('category', 'edit') && (
+                              <SidebarMenuAction
+                                style={{
+                                  top: '10px',
+                                  width: '28px',
+                                  height: '28px',
+                                }}
+                                className="rounded-full"
+                                onClick={(e) => onEditCategoryClick(e, item)}
+                              >
+                                <PencilIcon
+                                  size={14}
+                                  className="inline-block mr-1 text-gray-500"
+                                />
+                              </SidebarMenuAction>
+                            )}
+                          </SidebarMenuItem>
+                        ))}
+                      </SidebarMenu>
+                    </SidebarGroupContent>
+                  </SidebarGroup>
+                )}
               </SidebarContent>
             </Sidebar>
           </div>

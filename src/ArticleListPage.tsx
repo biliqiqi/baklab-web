@@ -20,7 +20,7 @@ import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 import { getArticleList } from './api/article'
 import { toSync } from './lib/fire-and-forget'
 import { extractDomain, renderMD } from './lib/utils'
-import { isLogined, useAuthedUserStore } from './state/global'
+import { isLogined, useAuthedUserStore, useSiteStore } from './state/global'
 import {
   Article,
   ArticleListSort,
@@ -51,6 +51,7 @@ export default function ArticleListPage() {
   const [params, setParams] = useSearchParams()
   const pathParams = useParams()
   const navigate = useNavigate()
+  const siteStore = useSiteStore()
 
   const sort = (params.get('sort') as ArticleListSort | null) || 'best'
   const category = pathParams['category'] || ''
@@ -77,8 +78,8 @@ export default function ArticleListPage() {
           const { data } = resp
           let category: FrontCategory | undefined
           if (data.category) {
-            const { frontId, name, describe } = data.category
-            category = { frontId, name, describe } as FrontCategory
+            const { frontId, name, describe, siteFrontId } = data.category
+            category = { frontId, name, describe, siteFrontId } as FrontCategory
           }
 
           if (data.articles) {
@@ -159,9 +160,11 @@ export default function ArticleListPage() {
           )}
         </div>
         <div>
-          <Button variant="outline" size="sm" asChild onClick={onSubmitClick}>
-            <Link to={submitPath}>+ 提交</Link>
-          </Button>
+          {siteStore.site && (
+            <Button variant="outline" size="sm" asChild onClick={onSubmitClick}>
+              <Link to={submitPath}>+ 提交</Link>
+            </Button>
+          )}
         </div>
       </div>
       <div className="py-4" key={pathParams.category}>

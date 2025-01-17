@@ -1,6 +1,6 @@
 import { Options } from 'ky'
 
-import request, { authRequest } from '@/lib/request'
+import { authRequest } from '@/lib/request'
 
 import {
   ArticleDeleteResponse,
@@ -76,8 +76,7 @@ export const getArticleList = (
   categoryFrontID?: string,
   username?: string,
   listType?: ArticleListType,
-  keywords?: string,
-  deleted?: boolean
+  keywords?: string
 ): Promise<ResponseData<ArticleListResponse>> => {
   const params = new URLSearchParams()
 
@@ -109,11 +108,51 @@ export const getArticleList = (
     params.set('keywords', keywords)
   }
 
-  if (deleted) {
-    params.set('deleted', '1')
+  return authRequest.get(`articles`, {
+    searchParams: params,
+  })
+}
+
+export const getArticleTrash = (
+  page: number,
+  pageSize: number,
+  sort?: ArticleListSort | null,
+  categoryFrontID?: string,
+  username?: string,
+  listType?: ArticleListType,
+  keywords?: string
+): Promise<ResponseData<ArticleListResponse>> => {
+  const params = new URLSearchParams()
+
+  if (page > 0) {
+    params.set('page', String(page))
   }
 
-  return authRequest.get(`articles`, {
+  if (pageSize > 0) {
+    params.set('pageSize', String(pageSize))
+  }
+
+  if (sort) {
+    params.set('sort', String(sort))
+  }
+
+  if (categoryFrontID) {
+    params.set('category', categoryFrontID)
+  }
+
+  if (username) {
+    params.set('username', username)
+  }
+
+  if (listType) {
+    params.set('type', listType)
+  }
+
+  if (keywords) {
+    params.set('keywords', keywords)
+  }
+
+  return authRequest.get(`articles/trash`, {
     searchParams: params,
   })
 }

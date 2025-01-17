@@ -56,19 +56,29 @@ export const PERMISSION_DATA = {
       enabled: false,
     },
     subscribe: {
-      name: '订阅',
+      name: '订阅文章',
       adapt_id: 'article.subscribe',
       enabled: false,
     },
     pin: {
-      name: '置顶',
+      name: '置顶文章',
       adapt_id: 'article.pin',
       enabled: false,
     },
     lock: {
-      name: '锁定',
+      name: '锁定文章',
       adapt_id: 'article.lock',
       enabled: false,
+    },
+    manage: {
+      name: '管理文章',
+      adapt_id: 'article.manage',
+      enable: false,
+    },
+    manage_platform: {
+      name: '管理全平台文章',
+      adapt_id: 'article.manage_platform',
+      enable: false,
     },
   },
   user: {
@@ -122,11 +132,23 @@ export const PERMISSION_DATA = {
       adapt_id: 'user.access_manage_activity',
       enabled: false,
     },
+    manage_platform: {
+      name: '管理全平台用户',
+      adapt_id: 'user.manage_platform',
+      enable: false,
+    },
   },
   manage: {
     access: {
       name: '访问管理',
       adapt_id: 'manage.access',
+      enabled: false,
+    },
+  },
+  platform_manage: {
+    access: {
+      name: '访问平台管理',
+      adapt_id: 'platform_manage.access',
       enabled: false,
     },
   },
@@ -153,16 +175,21 @@ export const PERMISSION_DATA = {
       adapt_id: 'role.edit',
       enabled: false,
     },
-    manage_others: {
-      name: '管理他人角色',
-      adapt_id: 'role.manage_others',
+    manage_platform: {
+      name: '管理全平台角色',
+      adapt_id: 'role.manage_platform',
       enabled: false,
     },
   },
   activity: {
     access: {
-      name: '访问活动',
+      name: '访问活动记录',
       adapt_id: 'activity.access',
+      enabled: false,
+    },
+    manage_platform: {
+      name: '管理全平台活动记录',
+      adapt_id: 'activity.manage_platform',
       enabled: false,
     },
   },
@@ -182,9 +209,9 @@ export const PERMISSION_DATA = {
       adapt_id: 'category.delete',
       enable: false,
     },
-    manage_others: {
-      name: '管理他人分类',
-      adapt_id: 'category.manage_others',
+    manage_platform: {
+      name: '管理全平台分类',
+      adapt_id: 'category.manage_platform',
       enable: false,
     },
   },
@@ -209,6 +236,11 @@ export const PERMISSION_DATA = {
       adapt_id: 'site.manage',
       enable: false,
     },
+    manage_platform: {
+      name: '管理全平台站点',
+      adapt_id: 'site.manage_platform',
+      enable: false,
+    },
     audit: {
       name: '审核站点',
       adapt_id: 'site.audit',
@@ -221,6 +253,7 @@ export const PERMISSION_MODULE_DATA = {
   article: '文章',
   user: '用户',
   manage: '管理',
+  platform_manage: '平台管理',
   permission: '权限',
   role: '角色',
   activity: '活动记录',

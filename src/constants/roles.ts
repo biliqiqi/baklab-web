@@ -94,5 +94,3 @@
 //     ],
 //   },
 // }
-
-export const MIN_ROLE_LEVEL = 2

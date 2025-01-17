@@ -2,7 +2,7 @@ import { create } from 'zustand'
 
 import { getNotificationUnreadCount } from '@/api/message'
 import { PermitFn } from '@/constants/types'
-import { Category, Role, UserData } from '@/types/types'
+import { Category, Role, Site, UserData } from '@/types/types'
 
 export interface ToastState {
   silence: boolean
@@ -350,5 +350,17 @@ export const useNotificationStore = create<NotificationState>((set) => ({
     }
     set(() => ({ unreadCount: 0 }))
     return 0
+  },
+}))
+
+export interface SiteState {
+  site: Site | null
+  update: (s: Site | null) => void
+}
+
+export const useSiteStore = create<SiteState>((set) => ({
+  site: null,
+  update(s) {
+    set(() => ({ site: s }))
   },
 }))

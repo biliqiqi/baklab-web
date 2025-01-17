@@ -12,7 +12,12 @@ import {
   submitCategory,
   updateCategory,
 } from '@/api/category'
-import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
+import { defaultCategory } from '@/constants/defaults'
+import {
+  useAlertDialogStore,
+  useAuthedUserStore,
+  useSiteStore,
+} from '@/state/global'
 import { Category, ResponseData, ResponseID } from '@/types/types'
 
 import BIconColorChar from './base/BIconColorChar'
@@ -70,18 +75,6 @@ const defaultCategoryData: CategoryScheme = {
   description: '',
 }
 
-const defaultCategory: Category = {
-  id: '0',
-  frontId: '',
-  name: '',
-  describe: '',
-  authorId: '',
-  createdAt: '',
-  approved: false,
-  approvalComment: '',
-  totalArticleCount: 0,
-}
-
 const CategoryForm: React.FC<CategoryFormProps> = ({
   isEdit = false,
   category = defaultCategory,
@@ -92,6 +85,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
 
   const alertDialog = useAlertDialogStore()
   const authStore = useAuthedUserStore()
+  const siteStore = useSiteStore()
 
   const form = useForm<CategoryScheme>({
     resolver: zodResolver(
@@ -121,6 +115,8 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
         if (isEdit) {
           resp = await updateCategory(category.frontId, name, description)
         } else {
+          if (!siteStore.site) return
+
           const exists = await checkCategoryExists(frontID)
           /* console.log('frontID exists: ', exists) */
           if (exists) {
@@ -134,7 +130,12 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
             form.clearErrors('frontID')
           }
 
-          resp = await submitCategory(frontID, name, description)
+          resp = await submitCategory(
+            frontID,
+            name,
+            description,
+            siteStore.site.id
+          )
         }
         if (!resp?.code) {
           onSuccess()
@@ -143,7 +144,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
         console.error('validate front id error: ', err)
       }
     },
-    [form, isEdit, onSuccess, category]
+    [form, isEdit, onSuccess, category, siteStore]
   )
 
   const onDeleteClick = useCallback(

@@ -4,7 +4,6 @@ import {
   ActivityActionType,
   ActivityListResponse,
   AuthedDataResponse,
-  Category,
   PermissionListResponse,
   ResponseData,
   TokenResponse,

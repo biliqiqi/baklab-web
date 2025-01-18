@@ -94,6 +94,8 @@ export interface Article {
   showScore: boolean
   categoryFrontId: string
   category: Category
+  siteFrontId: string
+  site: Site
   locked: boolean
   pinned: boolean
   pinnedExpireAt: string
@@ -102,6 +104,7 @@ export interface Article {
   replyRootAuthorId: string
   replyRootArticleId: string
   replyRootArticleTitle: string
+  replyRootArticleSiteFrontId: string
   delLog: Activity | null
 }
 
@@ -210,6 +213,7 @@ export interface UserData {
 export interface CustomRequestOptions {
   showNotFound?: boolean
   showAuthToast?: boolean
+  siteFrontId?: string
 }
 
 export type FrontCategory = Pick<Category, 'frontId' | 'name' | 'describe'> & {
@@ -256,6 +260,7 @@ export interface Activity {
   userName: string
   type: ActivityActionType
   action: string
+  actionText: string
   targetId: string
   targetModel: string
   createdAt: string

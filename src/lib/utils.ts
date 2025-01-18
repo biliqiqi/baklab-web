@@ -12,6 +12,7 @@ import {
   PermissionItem,
   PermissionModule,
 } from '@/constants/types'
+import { Article } from '@/types/types'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -118,3 +119,6 @@ export const md2text = (markdown: string) => {
 
   return tmpEl.textContent || ''
 }
+
+export const genArticlePath = ({ siteFrontId, id }: Article) =>
+  `/${siteFrontId}/articles/${id}`

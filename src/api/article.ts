@@ -20,54 +20,74 @@ export const submitArticle = (
   title: string,
   categoryFrontID: string,
   link?: string,
-  content?: string
+  content?: string,
+  custom?: CustomRequestOptions
 ): Promise<ResponseData<ArticleSubmitResponse>> =>
-  authRequest.post(`articles/submit`, {
-    json: {
-      title,
-      category: categoryFrontID,
-      link,
-      content,
+  authRequest.post(
+    `articles/submit`,
+    {
+      json: {
+        title,
+        category: categoryFrontID,
+        link,
+        content,
+      },
     },
-  })
+    custom
+  )
 
 export const updateArticle = (
   id: string,
   title?: string,
   categoryFrontID?: string,
   link?: string,
-  content?: string
+  content?: string,
+  custom?: CustomRequestOptions
 ): Promise<ResponseData<ArticleSubmitResponse>> =>
-  authRequest.patch(`articles/${id}`, {
-    json: {
-      title,
-      category: categoryFrontID,
-      link,
-      content,
+  authRequest.patch(
+    `articles/${id}`,
+    {
+      json: {
+        title,
+        category: categoryFrontID,
+        link,
+        content,
+      },
     },
-  })
+    custom
+  )
 
 export const updateReply = (
   id: string,
   content: string,
-  replyToId: string
+  replyToId: string,
+  custom?: CustomRequestOptions
 ): Promise<ResponseData<ArticleSubmitResponse>> =>
-  authRequest.patch(`articles/${id}`, {
-    json: {
-      content,
-      replyToId,
+  authRequest.patch(
+    `articles/${id}`,
+    {
+      json: {
+        content,
+        replyToId,
+      },
     },
-  })
+    custom
+  )
 
 export const submitReply = (
   replyToID: string,
-  content: string
+  content: string,
+  custom?: CustomRequestOptions
 ): Promise<ResponseData<ArticleSubmitResponse>> =>
-  authRequest.post(`articles/${replyToID}/reply`, {
-    json: {
-      content,
+  authRequest.post(
+    `articles/${replyToID}/reply`,
+    {
+      json: {
+        content,
+      },
     },
-  })
+    custom
+  )
 
 export const getArticleList = (
   page: number,
@@ -76,7 +96,8 @@ export const getArticleList = (
   categoryFrontID?: string,
   username?: string,
   listType?: ArticleListType,
-  keywords?: string
+  keywords?: string,
+  custom?: CustomRequestOptions
 ): Promise<ResponseData<ArticleListResponse>> => {
   const params = new URLSearchParams()
 
@@ -108,9 +129,13 @@ export const getArticleList = (
     params.set('keywords', keywords)
   }
 
-  return authRequest.get(`articles`, {
-    searchParams: params,
-  })
+  return authRequest.get(
+    `articles`,
+    {
+      searchParams: params,
+    },
+    custom
+  )
 }
 
 export const getArticleTrash = (
@@ -120,7 +145,8 @@ export const getArticleTrash = (
   categoryFrontID?: string,
   username?: string,
   listType?: ArticleListType,
-  keywords?: string
+  keywords?: string,
+  custom?: CustomRequestOptions
 ): Promise<ResponseData<ArticleListResponse>> => {
   const params = new URLSearchParams()
 
@@ -152,9 +178,13 @@ export const getArticleTrash = (
     params.set('keywords', keywords)
   }
 
-  return authRequest.get(`articles/trash`, {
-    searchParams: params,
-  })
+  return authRequest.get(
+    `articles/trash`,
+    {
+      searchParams: params,
+    },
+    custom
+  )
 }
 
 export const getArticle = (
@@ -196,7 +226,8 @@ export const getArticle = (
 export const deleteArticle = (
   id: string,
   deletedBy: string, // 删除者用户名
-  reason?: string
+  reason?: string,
+  custom?: CustomRequestOptions
 ) => {
   const params = new URLSearchParams()
   params.set('deleted_by', deletedBy)
@@ -206,32 +237,51 @@ export const deleteArticle = (
 
   return authRequest.delete<ResponseData<ArticleDeleteResponse>>(
     `articles/${id}`,
-    { searchParams: params }
+    { searchParams: params },
+    custom
   )
 }
 
-export const toggleSaveArticle = (id: string) =>
-  authRequest.post<ResponseData<ArticleResponse>>(`articles/${id}/toggle_save`)
+export const toggleSaveArticle = (id: string, custom?: CustomRequestOptions) =>
+  authRequest.post<ResponseData<ArticleResponse>>(
+    `articles/${id}/toggle_save`,
+    {},
+    custom
+  )
 
-export const toggleVoteArticle = (id: string, voteType: VoteType) =>
+export const toggleVoteArticle = (
+  id: string,
+  voteType: VoteType,
+  custom?: CustomRequestOptions
+) =>
   authRequest.post<ResponseData<ArticleResponse>>(
     `articles/${id}/toggle_vote`,
     {
       json: {
         voteType: voteType,
       },
-    }
+    },
+    custom
   )
 
-export const toggleSubscribeArticle = (id: string, action?: SubscribeAction) =>
+export const toggleSubscribeArticle = (
+  id: string,
+  action?: SubscribeAction,
+  custom?: CustomRequestOptions
+) =>
   authRequest.post<ResponseData<ArticleResponse>>(
     `articles/${id}/toggle_subscribe`,
     {
       json: {
         action: action || SubscribeAction.Toggle,
       },
-    }
+    },
+    custom
   )
 
-export const recoverArticle = (id: string) =>
-  authRequest.patch<ResponseData<ArticleResponse>>(`articles/${id}/recover`)
+export const recoverArticle = (id: string, custom?: CustomRequestOptions) =>
+  authRequest.patch<ResponseData<ArticleResponse>>(
+    `articles/${id}/recover`,
+    {},
+    custom
+  )

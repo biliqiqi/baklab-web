@@ -68,4 +68,8 @@ export const getSiteList = (keywords: string) => {
 }
 
 export const getSiteWithFrontId = (frontId: string) =>
-  authRequest.get<ResponseData<Site>>(`sites/${frontId}`)
+  authRequest.get<ResponseData<Site>>(
+    `sites/${frontId}`,
+    {},
+    { showNotFound: true }
+  )

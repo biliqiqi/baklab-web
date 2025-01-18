@@ -12,17 +12,16 @@ import {
   useCallback,
   useMemo,
 } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
-import { cn, noop } from '@/lib/utils'
+import { cn, genArticlePath, noop } from '@/lib/utils'
 
 import {
   toggleSaveArticle,
   toggleSubscribeArticle,
   toggleVoteArticle,
 } from '@/api/article'
-import { useAuthedUserStore } from '@/state/global'
 import {
   Article,
   ArticleAction,
@@ -73,6 +72,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   onSuccess = noop,
   ...props
 }) => {
+  const { siteFrontId } = useParams()
   const userState = useMemo(() => article.currUserState, [article])
 
   const isRootArticle = useMemo(() => article.replyToId == '0', [article])
@@ -171,7 +171,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             className="mr-1"
           >
             {ctype == 'list' ? (
-              <Link to={'/articles/' + article.id}>
+              <Link to={genArticlePath(article)}>
                 <MessageSquare size={20} className="inline-block mr-1" />
                 {article.totalReplyCount > 0 && article.totalReplyCount}
               </Link>
@@ -245,16 +245,31 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
               </span>
             )}
             <span className="whitespace-nowrap">
-              <Link to={'/categories/' + article.category.frontId}>
-                <BIconColorChar
-                  iconId={article.categoryFrontId}
-                  char={article.category.name}
-                  size={20}
-                  fontSize={12}
-                  className="align-[-5px] mx-1"
-                />
-                {article.category.name}
-              </Link>
+              {siteFrontId ? (
+                <Link
+                  to={`/${article.siteFrontId}/categories/${article.category.frontId}`}
+                >
+                  <BIconColorChar
+                    iconId={article.categoryFrontId}
+                    char={article.category.name}
+                    size={20}
+                    fontSize={12}
+                    className="align-[-5px] mx-1"
+                  />
+                  {article.category.name}
+                </Link>
+              ) : (
+                <Link to={`/${article.siteFrontId}`}>
+                  <BIconColorChar
+                    iconId={article.siteFrontId}
+                    char={article.site.name}
+                    size={20}
+                    fontSize={12}
+                    className="align-[-5px] mx-1"
+                  />
+                  {article.site.name}
+                </Link>
+              )}
               &nbsp;·&nbsp;
               <span
                 title={timeFmt(article.createdAt, 'YYYY年M月D日 H时m分s秒')}

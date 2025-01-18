@@ -19,6 +19,12 @@ const isRefreshRequest: (x: Request) => boolean = (req) =>
   req.method.toLowerCase() == 'get' &&
   req.url == `${API_HOST}${API_PATH_PREFIX}refresh_token`
 
+// let siteFrontId = ''
+
+// export const setRequestSite = (frontId: string) => {
+//   siteFrontId = frontId
+// }
+
 const defaultOptions: Options = {
   prefixUrl: `${API_HOST}${API_PATH_PREFIX}`,
   headers: {
@@ -40,6 +46,10 @@ const defaultOptions: Options = {
         // console.log('base request after response hooks: ', resp)
         const status = resp.status
         const respDup = resp.clone()
+
+        // if (siteFrontId) {
+        //   siteFrontId = ''
+        // }
 
         if (!resp.ok) {
           // eslint-disable-next-line
@@ -178,6 +188,12 @@ const request = <T = any>(
     if (kyOptions) {
       kyOpts = kyOptions
     }
+  }
+
+  if (custom?.siteFrontId) {
+    kyOpts.prefixUrl = `${API_HOST}${API_PATH_PREFIX}sites/${custom.siteFrontId}`
+  } else {
+    kyOpts.prefixUrl = `${API_HOST}${API_PATH_PREFIX}`
   }
 
   const authRequestConfigs = makeAuthRequestConfigs(custom)

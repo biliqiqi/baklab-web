@@ -24,7 +24,7 @@ import { getArticleTrash, recoverArticle } from './api/article'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
-import { cn } from './lib/utils'
+import { cn, genArticlePath } from './lib/utils'
 import { useAlertDialogStore, useCategoryStore } from './state/global'
 import { Article, ArticleListSort, ListPageState } from './types/types'
 
@@ -285,7 +285,7 @@ export default function TrashPage() {
           <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
             <div className="mb-3">
               <div className="mb-1">
-                <Link className="mr-2" to={'/articles/' + item.id}>
+                <Link className="mr-2" to={genArticlePath(item)}>
                   {item.displayTitle}
                 </Link>
               </div>

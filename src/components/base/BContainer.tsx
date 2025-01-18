@@ -9,11 +9,12 @@ import {
   UsersRoundIcon,
 } from 'lucide-react'
 import React, { MouseEvent, useCallback, useEffect, useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
 import { cn, getCookie } from '@/lib/utils'
 
+import api from '@/api'
 import { getCategoryList } from '@/api/category'
 import { getSiteWithFrontId } from '@/api/site'
 import { DOCK_HEIGHT, NAV_HEIGHT, SITE_NAME } from '@/constants/constants'
@@ -89,6 +90,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const { categories: cateList, updateCategories } = useCategoryStore()
 
     const [showCategoryForm, setShowCategoryForm] = useState(false)
+    const navigate = useNavigate()
 
     const { open: showTopDrawer, update: setShowTopDrawer } =
       useTopDrawerStore()
@@ -103,7 +105,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       data: undefined,
     })
 
-    const { siteFrontId, cateogryFrontId } = useParams()
+    const { siteFrontId, categoryFrontId, articleId } = useParams()
 
     const authPermit = useAuthedUserStore((state) => state.permit)
 
@@ -125,7 +127,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     /* const [sidebarOpen, setSidebarOpen] = useState(!isMobile) */
 
     const location = useLocation()
-    const pathParams = useParams()
 
     if (location.pathname == '/') {
       category = {
@@ -136,34 +137,22 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       }
     }
 
-    const fetchSiteData = useCallback(
-      toSync(async () => {
-        let frontId = ''
+    const fetchSiteData = toSync(
+      useCallback(async () => {
+        if (!siteFrontId) return
 
-        if (siteFrontId) {
-          frontId = siteFrontId
-        } else if (category && !category.isFront) {
-          if (
-            siteStore.site &&
-            siteStore.site.categoryFrontIds.includes(category.frontId)
-          )
-            return
-
-          frontId = category?.siteFrontId || ''
-        } else {
-          //...
+        try {
+          const { code, data } = await getSiteWithFrontId(siteFrontId)
+          if (!code) {
+            siteStore.update({ ...data })
+          } else {
+            siteStore.update(null)
+          }
+        } catch (err) {
+          console.error('fetch site data error: ', err)
+          navigate('/')
         }
-
-        if (!frontId) return
-
-        const { code, data } = await getSiteWithFrontId(frontId)
-        if (!code) {
-          siteStore.update({ ...data })
-        } else {
-          siteStore.update(null)
-        }
-      }),
-      [siteFrontId, siteStore, category]
+      }, [siteFrontId, category, navigate])
     )
 
     const { updateCategories: setCateList } = useCategoryStore()
@@ -172,13 +161,12 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     const fetchCateList = toSync(
       useCallback(async () => {
-        if (!siteStore.site) return
-
-        const data = await getCategoryList(siteStore.site.id)
-        if (!data.code) {
+        if (!siteFrontId) return
+        const data = await api.getCategoryList({ siteFrontId: siteFrontId })
+        if (!data.code && data.data) {
           setCateList([...data.data])
         }
-      }, [siteStore])
+      }, [siteFrontId])
     )
 
     const onAlertDialogCancel = useCallback(() => {
@@ -243,13 +231,11 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     const onCategoryCreated = useCallback(async () => {
       setShowCategoryForm(false)
-      if (!siteStore.site) return
-
-      const resp = await getCategoryList(siteStore.site.id)
-      if (!resp.code) {
+      const resp = await getCategoryList()
+      if (!resp.code && resp.data) {
         updateCategories([...resp.data])
       }
-    }, [siteStore])
+    }, [])
 
     const onCreateCategoryClick = (ev: MouseEvent<HTMLButtonElement>) => {
       ev.preventDefault()
@@ -296,16 +282,20 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     useEffect(() => {
       /* console.log('category: ', category) */
       fetchSiteData()
-    }, [siteFrontId, category, pathParams])
+    }, [siteFrontId, category])
 
     useEffect(() => {
       fetchCateList()
-    }, [siteStore])
+    }, [siteFrontId])
 
     useEffect(() => {
       const showDock = getCookie('top_drawer:state') == 'true'
       setShowTopDrawer(showDock)
     }, [])
+
+    /* console.log('siteFrontId', siteFrontId)
+     * console.log('categoryFrontId', categoryFrontId)
+     * console.log('articleId', articleId) */
 
     return (
       <>
@@ -321,7 +311,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           }
         >
           <div
-            className="flex justify-between items-center w-[1000px] mx-auto"
+            className="flex justify-between items-center max-w-[1000px] mx-auto"
             style={{ height: `${DOCK_HEIGHT}px` }}
           >
             <div>
@@ -368,11 +358,16 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 <div
                   className="flex items-center border-b-2 px-2"
                   style={{
-                    height: `${NAV_HEIGHT}px`,
+                    minHeight: `${NAV_HEIGHT}px`,
                   }}
                 >
-                  <Link className="font-bold text-2xl text-pink-900" to="/">
-                    {SITE_NAME}
+                  <Link
+                    className="font-bold text-2xl text-pink-900"
+                    to={siteFrontId ? `/${siteFrontId}` : `/`}
+                  >
+                    {siteFrontId && siteStore.site
+                      ? siteStore.site.name
+                      : '全平台'}
                   </Link>
                 </div>
                 <SidebarGroup>
@@ -383,7 +378,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                           asChild
                           isActive={location.pathname == '/'}
                         >
-                          <Link to="/">
+                          <Link to={siteFrontId ? `/${siteFrontId}` : `/`}>
                             <BIconCircle id="feed" size={32}>
                               <PackageIcon size={18} />
                             </BIconCircle>
@@ -395,7 +390,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                   </SidebarGroupContent>
                 </SidebarGroup>
 
-                {authPermit('platform_manage', 'access') && (
+                {!siteFrontId && authPermit('platform_manage', 'access') && (
                   <SidebarGroup>
                     <SidebarGroupLabel>平台管理</SidebarGroupLabel>
                     <SidebarGroupContent>
@@ -465,7 +460,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                   </SidebarGroup>
                 )}
 
-                {siteStore.site && (
+                {siteFrontId && (
                   <SidebarGroup>
                     <SidebarGroupLabel className="flex justify-between">
                       <span>分类</span>
@@ -488,11 +483,13 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                               asChild
                               isActive={
                                 location.pathname ==
-                                  '/categories/' + item.frontId ||
+                                  `/${siteFrontId}/categories/${item.frontId}` ||
                                 category?.frontId == item.frontId
                               }
                             >
-                              <Link to={'/categories/' + item.frontId}>
+                              <Link
+                                to={`/${siteFrontId}/categories/${item.frontId}`}
+                              >
                                 <BIconColorChar
                                   iconId={item.frontId}
                                   char={item.name}

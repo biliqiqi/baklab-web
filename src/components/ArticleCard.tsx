@@ -8,7 +8,7 @@ import {
   useState,
 } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
 import { bus, cn, extractDomain, md2text, noop, renderMD } from '@/lib/utils'
@@ -87,6 +87,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 }) => {
   const [alertOpen, setAlertOpen] = useState(false)
   const parent = article.replyToArticle
+  const { siteFrontId } = useParams()
+
   const authStore = useAuthedUserStore()
   const permit = useAuthedUserStore((state) => state.permit)
 
@@ -134,7 +136,9 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
         /* console.log('confirmed: ', confirmed) */
         if (confirmed) {
-          const resp = await deleteArticle(article.id, authStore.username)
+          const resp = await deleteArticle(article.id, authStore.username, '', {
+            siteFrontId,
+          })
           if (!resp.code) {
             /* navigate(-1) */
             onSuccess('delete')
@@ -144,7 +148,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         console.error('delete article failed: ', err)
       }
     },
-    [article, navigate]
+    [article, navigate, siteFrontId]
   )
 
   const onDelConfirmCancel = useCallback(() => {
@@ -155,7 +159,12 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   const onDelConfirmClick = useCallback(
     async ({ reason }: DelReasonScheme) => {
       try {
-        const resp = await deleteArticle(article.id, authStore.username, reason)
+        const resp = await deleteArticle(
+          article.id,
+          authStore.username,
+          reason,
+          { siteFrontId }
+        )
         if (!resp.code) {
           /* navigate(-1) */
           form.reset({ reason: '' })
@@ -166,7 +175,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         console.error('confirm delete error: ', err)
       }
     },
-    [article, navigate, form]
+    [article, navigate, form, siteFrontId]
   )
 
   /* console.log('isMyself', isMyself)
@@ -190,7 +199,9 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               {article.replyToId == '0' ? (
                 article.displayTitle
               ) : (
-                <Link to={'/articles/' + article.replyRootArticleId}>
+                <Link
+                  to={`/${article.replyRootArticleSiteFrontId}/articles/${article.replyRootArticleId}`}
+                >
                   {article.displayTitle}
                 </Link>
               )}
@@ -238,7 +249,9 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                 onClick={onEditClick}
                 title="编辑"
               >
-                <Link to={`/articles/${article.id}/edit`}>
+                <Link
+                  to={`/${article.siteFrontId}/articles/${article.id}/edit`}
+                >
                   <PencilIcon size={14} className="inline-block mr-1" />
                 </Link>
               </Button>

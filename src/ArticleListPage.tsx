@@ -19,8 +19,8 @@ import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 
 import { getArticleList } from './api/article'
 import { toSync } from './lib/fire-and-forget'
-import { extractDomain, renderMD } from './lib/utils'
-import { isLogined, useAuthedUserStore, useSiteStore } from './state/global'
+import { extractDomain, genArticlePath, renderMD } from './lib/utils'
+import { isLogined, useAuthedUserStore } from './state/global'
 import {
   Article,
   ArticleListSort,
@@ -49,16 +49,19 @@ export default function ArticleListPage() {
    * ) */
 
   const [params, setParams] = useSearchParams()
-  const pathParams = useParams()
+  const { siteFrontId, categoryFrontId } = useParams()
+
   const navigate = useNavigate()
-  const siteStore = useSiteStore()
+  /* const siteStore = useSiteStore() */
 
   const sort = (params.get('sort') as ArticleListSort | null) || 'best'
-  const category = pathParams['category'] || ''
 
   const submitPath = useMemo(
-    () => (category ? '/submit?category=' + category : '/submit'),
-    [category]
+    () =>
+      categoryFrontId
+        ? `/${siteFrontId}/submit?category=` + categoryFrontId
+        : `/${siteFrontId}/submit`,
+    [categoryFrontId, siteFrontId]
   )
 
   const fetchArticles = toSync(
@@ -72,7 +75,18 @@ export default function ArticleListPage() {
           setLoading(true)
         }
 
-        const resp = await getArticleList(page, pageSize, sort, category)
+        /* if (!siteFrontId) return */
+
+        const resp = await getArticleList(
+          page,
+          pageSize,
+          sort,
+          categoryFrontId,
+          '',
+          undefined,
+          '',
+          { siteFrontId }
+        )
         if (!resp.code) {
           /* console.log('article list: ', resp.data) */
           const { data } = resp
@@ -107,7 +121,7 @@ export default function ArticleListPage() {
       } finally {
         setLoading(false)
       }
-    }, [params, pathParams, list])
+    }, [params, list, siteFrontId, categoryFrontId])
   )
 
   const onSwitchTab = (tab: string) => {
@@ -141,9 +155,11 @@ export default function ArticleListPage() {
     [authStore, submitPath, navigate]
   )
 
+  /* console.log('siteFrontId: ', siteFrontId) */
+
   useEffect(() => {
     fetchArticles()
-  }, [params, pathParams])
+  }, [params, siteFrontId, categoryFrontId])
 
   return (
     <BContainer category={pageState.category} loading={loading}>
@@ -160,14 +176,14 @@ export default function ArticleListPage() {
           )}
         </div>
         <div>
-          {siteStore.site && (
+          {siteFrontId && (
             <Button variant="outline" size="sm" asChild onClick={onSubmitClick}>
               <Link to={submitPath}>+ 提交</Link>
             </Button>
           )}
         </div>
       </div>
-      <div className="py-4" key={pathParams.category}>
+      <div className="py-4" key={categoryFrontId}>
         {loading ? (
           <div className="flex justify-center">
             <BLoader />
@@ -179,7 +195,7 @@ export default function ArticleListPage() {
             <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
               <div className="mb-3">
                 <div className="mb-1 ">
-                  <Link className="mr-2" to={'/articles/' + item.id}>
+                  <Link className="mr-2" to={genArticlePath(item)}>
                     {item.title}
                   </Link>
                   {item.link && (

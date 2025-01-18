@@ -10,7 +10,7 @@ import {
   useState,
 } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { timeAgo } from '@/lib/dayjs-custom'
 import { cn, renderMD } from '@/lib/utils'
@@ -104,6 +104,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
     INIT_CONTENT_BOX_HEIGHT
   )
 
+  const { siteFrontId } = useParams()
   /* const [cateList, setCateList] = useState<CategoryOption[]>([]) */
   const { categories: cateList } = useCategoryStore()
 
@@ -168,6 +169,8 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
        * console.log('isEdit:', isEdit)
        * console.log('isReply:', isReply) */
 
+      if (!siteFrontId) return
+
       try {
         setLoading(true)
 
@@ -179,18 +182,23 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
           }
 
           if (isReply) {
-            data = await updateReply(article.id, content, article.replyToId)
+            data = await updateReply(article.id, content, article.replyToId, {
+              siteFrontId,
+            })
           } else {
             data = await updateArticle(
               article.id,
               title,
               category,
               link,
-              content
+              content,
+              { siteFrontId }
             )
           }
         } else {
-          data = await submitArticle(title, category, link, content)
+          data = await submitArticle(title, category, link, content, {
+            siteFrontId,
+          })
         }
 
         if (!data.code) {
@@ -202,7 +210,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
         setLoading(false)
       }
     },
-    [article, isEdit, isReply, navigate, notFound]
+    [article, isEdit, isReply, navigate, notFound, siteFrontId]
   )
 
   const onMarkdownModeClick = useCallback(
@@ -282,7 +290,9 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
         >
           {isReply && article ? (
             <h1 className="bg-gray-100 rounded-sm py-1 px-2 text-gray-500 text-sm cursor-pointer">
-              <Link to={'/articles/' + article.replyRootArticleId}>
+              <Link
+                to={`/${article.replyRootArticleSiteFrontId}/articles/${article.replyRootArticleId}`}
+              >
                 {article.displayTitle}
               </Link>
             </h1>

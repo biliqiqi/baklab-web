@@ -37,7 +37,6 @@ const articleScheme = z.object({
 type ArticleScheme = z.infer<typeof articleScheme>
 
 export interface ReplyBoxProps {
-  /* articleID: string */
   replyToArticle: Article | null
   isEditting?: boolean
   edittingArticle?: Article | null

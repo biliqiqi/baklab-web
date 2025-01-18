@@ -1,3 +1,7 @@
+import { Link } from 'react-router-dom'
+
+import { timeAgo } from '@/lib/dayjs-custom'
+
 import { Activity, ActivityActionType, ListPageState } from '@/types/types'
 
 import { Empty } from './Empty'
@@ -36,10 +40,22 @@ export const ActivityList: React.FC<ActivityListProps> = ({
       </div>
       {list.map((item) => (
         <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
-          <div
-            className="mb-2 text-base activity-title"
-            dangerouslySetInnerHTML={{ __html: item.formattedText }}
-          ></div>
+          <div className="mb-2 text-base activity-title">
+            <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
+            {item.actionText}{' '}
+            {item.targetModel == 'article' && item.details ? (
+              <Link
+                to={`/${item.details.siteFrontId}/articles/${item.targetId}`}
+              >{`/${item.details.siteFrontId}/articles/${item.targetId}`}</Link>
+            ) : item.targetModel == 'user' ? (
+              <Link
+                to={`/users/${item.targetId}`}
+              >{`/users/${item.targetId}`}</Link>
+            ) : (
+              ''
+            )}{' '}
+            于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+          </div>
           <div className="text-sm bg-gray-100 p-2">
             <div className="flex">
               <div className="flex-shrink-0 w-[80px]">

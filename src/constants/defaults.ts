@@ -1,6 +1,31 @@
-import { Article, Category, CurrUserState, ListPageState } from '@/types/types'
+import {
+  Article,
+  Category,
+  CurrUserState,
+  ListPageState,
+  Site,
+  SiteStatus,
+} from '@/types/types'
 
 import { DEFAULT_PAGE_SIZE } from './constants'
+
+export const defaultSite: Site = {
+  id: 0,
+  name: '',
+  frontId: '',
+  visible: true,
+  creatorId: 0,
+  creatorName: '',
+  logoUrl: '',
+  description: '',
+  keywords: '',
+  rulesArticleId: 0,
+  boardCategoryId: 0,
+  createdAt: '',
+  updatedAt: '',
+  status: SiteStatus.Pending,
+  categoryFrontIds: [],
+}
 
 export const defaultCategory: Category = {
   id: '',
@@ -64,7 +89,10 @@ export const defaultArticle: Article = {
   fadeOut: false,
   replyRootArticleId: '',
   replyRootArticleTitle: '',
+  replyRootArticleSiteFrontId: '',
   delLog: null,
+  siteFrontId: '',
+  site: { ...defaultSite },
 }
 
 export const defaultPageState: ListPageState = {

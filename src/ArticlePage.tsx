@@ -59,7 +59,7 @@ export default function ArticlePage() {
 
   const sort = (params.get('sort') as ArticleListSort | null) || 'oldest'
 
-  const { articleID } = useParams()
+  const { articleId } = useParams()
 
   const fetchArticle = useCallback(
     async (showLoading = true) => {
@@ -71,9 +71,9 @@ export default function ArticlePage() {
         const page = Number(params.get('page')) || 1
         const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
 
-        if (articleID) {
+        if (articleId) {
           const resp = await getArticle(
-            articleID,
+            articleId,
             sort,
             {},
             { showNotFound: true },
@@ -126,7 +126,7 @@ export default function ArticlePage() {
         setLoading(false)
       }
     },
-    [articleID, params]
+    [articleId, params]
   )
 
   const fetchArticleSync = toSync(fetchArticle)
@@ -189,7 +189,7 @@ export default function ArticlePage() {
         bus.off(EV_ON_EDIT_CLICK, editHandlerRef.current)
       }
     }
-  }, [articleID])
+  }, [articleId])
 
   useEffect(() => {
     if (initialized) {

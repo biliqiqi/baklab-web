@@ -86,30 +86,6 @@ const routes: RouteObject[] = [
     Component: ArticleListPage,
   },
   {
-    path: '/articles/:articleID',
-    Component: ArticlePage,
-  },
-  {
-    path: '/articles/:articleID/edit',
-    Component: EditPage,
-  },
-  {
-    // TODO 分类列表
-    path: '/categories',
-  },
-  {
-    path: '/categories/:category',
-    Component: ArticleListPage,
-  },
-  {
-    // TODO 站点列表
-    path: '/sites',
-  },
-  {
-    path: '/:siteFrontId/:categoryFrontId',
-    Component: ArticleListPage,
-  },
-  {
     path: '/:siteFrontId',
     Component: ArticleListPage,
     children: [
@@ -145,7 +121,28 @@ const routes: RouteObject[] = [
           },
         ],
       },
+      {
+        // TODO 分类列表
+        path: 'categories',
+      },
     ],
+  },
+  {
+    path: '/:siteFrontId/submit',
+    Component: SubmitPage,
+    loader: mustAuthed,
+  },
+  {
+    path: '/:siteFrontId/categories/:categoryFrontId',
+    Component: ArticleListPage,
+  },
+  {
+    path: '/:siteFrontId/articles/:articleId',
+    Component: ArticlePage,
+  },
+  {
+    path: '/:siteFrontId/articles/:articleId/edit',
+    Component: EditPage,
   },
   {
     path: '/signup',
@@ -156,11 +153,6 @@ const routes: RouteObject[] = [
     path: '/signin',
     Component: SigninPage,
     loader: notAtAuthed,
-  },
-  {
-    path: '/submit',
-    Component: SubmitPage,
-    loader: mustAuthed,
   },
   {
     path: '/users/:username',
@@ -179,6 +171,14 @@ const routes: RouteObject[] = [
     path: '/manage',
     loader: needPermission('manage', 'access'),
     children: [
+      {
+        // TODO 站点列表
+        path: 'sites',
+      },
+      {
+        // TODO 分类列表
+        path: 'categories',
+      },
       {
         path: '',
         loader: () => redirect('/manage/activities'),

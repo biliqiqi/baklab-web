@@ -14,12 +14,12 @@ import { Article } from './types/types'
 export default function EditPage() {
   const [loading, setLoading] = useState(false)
   const [article, setArticle] = useState<Article | null>(null)
-  const { articleID } = useParams()
+  const { articleId } = useParams()
   const { updateNotFound } = useNotFoundStore()
   const authState = useAuthedUserStore()
   const navigate = useNavigate()
 
-  /* console.log('article id: ', articleID) */
+  /* console.log('article id: ', articleId) */
 
   const fetchArticle = useCallback(
     async (showLoading = true) => {
@@ -28,9 +28,9 @@ export default function EditPage() {
           setLoading(true)
         }
 
-        if (articleID) {
+        if (articleId) {
           const resp = await getArticle(
-            articleID,
+            articleId,
             'latest',
             {},
             { showNotFound: true },
@@ -67,14 +67,14 @@ export default function EditPage() {
         setLoading(false)
       }
     },
-    [articleID, navigate]
+    [articleId, navigate]
   )
 
   const fetchArticleSync = toSync(fetchArticle)
 
   useEffect(() => {
     fetchArticleSync()
-  }, [articleID, navigate])
+  }, [articleId, navigate])
 
   return (
     <BContainer

@@ -10,6 +10,7 @@ import {
   useState,
 } from 'react'
 import { useForm } from 'react-hook-form'
+import { useParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
 import { bus, md2text, renderMD, summryText } from '@/lib/utils'
@@ -80,6 +81,8 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   const [markdownMode, setMarkdownMode] = useState(false)
   const [updateRef, setUpdateRef] = useState(false)
 
+  const { siteFrontId } = useParams()
+
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const tiptapRef = useRef<TipTapRef | null>(null)
 
@@ -137,13 +140,14 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
           resp = await updateReply(
             edittingArticle.id,
             content,
-            edittingArticle.replyToId
+            edittingArticle.replyToId,
+            { siteFrontId: edittingArticle.siteFrontId }
           )
         } else {
           if (!replyToArticle || !replyToArticle.id)
             throw new Error('reply to aritcle id is required')
 
-          resp = await submitReply(replyToArticle.id, content)
+          resp = await submitReply(replyToArticle.id, content, { siteFrontId })
         }
 
         /* const data = await submitReply(replyToArticle.id, content) */
@@ -162,7 +166,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
         setLoading(false)
       }
     },
-    [replyToArticle, isEditting, edittingArticle, form, onSuccess]
+    [replyToArticle, isEditting, edittingArticle, form, onSuccess, siteFrontId]
   )
 
   const onMouseMove = useCallback((e: globalThis.MouseEvent) => {

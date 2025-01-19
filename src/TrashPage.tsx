@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
@@ -62,6 +62,8 @@ export default function TrashPage() {
     totalPage: 0,
   })
 
+  const { siteFrontId } = useParams()
+
   const location = useLocation()
   const [params, setParams] = useSearchParams()
   const [searchData, setSearchData] = useState<SearchFields>({
@@ -111,7 +113,8 @@ export default function TrashPage() {
             category,
             '',
             tab,
-            keywords
+            keywords,
+            { siteFrontId }
           )
 
           if (!resp.code) {
@@ -140,7 +143,7 @@ export default function TrashPage() {
           setLoadingList(false)
         }
       },
-      [params]
+      [params, siteFrontId]
     )
   )
 
@@ -165,23 +168,28 @@ export default function TrashPage() {
     })
   }, [params, searchData])
 
-  const onRecoverClick = async (id: string, title: string) => {
-    try {
-      const confirmed = await alertDialog.confirm(
-        '确认',
-        `确认恢复《${title}》？`,
-        'normal'
-      )
-      if (!confirmed) return
+  const onRecoverClick = useCallback(
+    async (id: string, title: string, siteFrontId: string) => {
+      try {
+        const confirmed = await alertDialog.confirm(
+          '确认',
+          `确认恢复《${title}》？`,
+          'normal'
+        )
+        if (!confirmed) return
 
-      const resp = await recoverArticle(id)
-      if (!resp.code) {
-        fetchList(false)
+        const resp = await recoverArticle(id, {
+          siteFrontId,
+        })
+        if (!resp.code) {
+          fetchList(false)
+        }
+      } catch (err) {
+        console.error('recover article error: ', err)
       }
-    } catch (err) {
-      console.error('recover article error: ', err)
-    }
-  }
+    },
+    []
+  )
 
   const onTabChange = (tab: string) => {
     setParams((prevParams) => {
@@ -327,7 +335,9 @@ export default function TrashPage() {
               <div>
                 <Button
                   variant="outline"
-                  onClick={() => onRecoverClick(item.id, item.displayTitle)}
+                  onClick={() =>
+                    onRecoverClick(item.id, item.displayTitle, item.siteFrontId)
+                  }
                   size="sm"
                 >
                   恢复

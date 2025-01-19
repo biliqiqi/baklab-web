@@ -26,6 +26,7 @@ import {
   Article,
   ArticleAction,
   ArticleCardType,
+  SubscribeAction,
   VoteType,
 } from '@/types/types'
 
@@ -81,7 +82,9 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
     async (e: MouseEvent<HTMLButtonElement>) => {
       try {
         e.preventDefault()
-        const resp = await toggleSaveArticle(article.id)
+        const resp = await toggleSaveArticle(article.id, {
+          siteFrontId: article.siteFrontId,
+        })
         if (!resp.code) {
           onSuccess('save')
         }
@@ -96,7 +99,11 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
     async (e: MouseEvent<HTMLButtonElement>) => {
       try {
         e.preventDefault()
-        const resp = await toggleSubscribeArticle(article.id)
+        const resp = await toggleSubscribeArticle(
+          article.id,
+          SubscribeAction.Toggle,
+          { siteFrontId: article.siteFrontId }
+        )
         if (!resp.code) {
           onSuccess('subscribe')
         }
@@ -111,7 +118,9 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
     async (e: MouseEvent<HTMLButtonElement>, voteType: VoteType) => {
       try {
         e.preventDefault()
-        const resp = await toggleVoteArticle(article.id, voteType)
+        const resp = await toggleVoteArticle(article.id, voteType, {
+          siteFrontId: article.siteFrontId,
+        })
         if (!resp.code) {
           onSuccess(voteType)
         }

@@ -59,7 +59,7 @@ export default function ArticlePage() {
 
   const sort = (params.get('sort') as ArticleListSort | null) || 'oldest'
 
-  const { articleId } = useParams()
+  const { siteFrontId, articleId } = useParams()
 
   const fetchArticle = useCallback(
     async (showLoading = true) => {
@@ -76,7 +76,7 @@ export default function ArticlePage() {
             articleId,
             sort,
             {},
-            { showNotFound: true },
+            { showNotFound: true, siteFrontId },
             false,
             page,
             pageSize
@@ -126,7 +126,7 @@ export default function ArticlePage() {
         setLoading(false)
       }
     },
-    [articleId, params]
+    [articleId, params, siteFrontId]
   )
 
   const fetchArticleSync = toSync(fetchArticle)

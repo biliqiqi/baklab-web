@@ -137,7 +137,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         /* console.log('confirmed: ', confirmed) */
         if (confirmed) {
           const resp = await deleteArticle(article.id, authStore.username, '', {
-            siteFrontId,
+            siteFrontId: article.siteFrontId,
           })
           if (!resp.code) {
             /* navigate(-1) */
@@ -148,7 +148,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         console.error('delete article failed: ', err)
       }
     },
-    [article, navigate, siteFrontId]
+    [article, navigate]
   )
 
   const onDelConfirmCancel = useCallback(() => {
@@ -163,7 +163,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           article.id,
           authStore.username,
           reason,
-          { siteFrontId }
+          { siteFrontId: article.siteFrontId }
         )
         if (!resp.code) {
           /* navigate(-1) */
@@ -175,7 +175,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         console.error('confirm delete error: ', err)
       }
     },
-    [article, navigate, form, siteFrontId]
+    [article, navigate, form, authStore]
   )
 
   /* console.log('isMyself', isMyself)

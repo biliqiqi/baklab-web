@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { MouseEvent, useCallback, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
+import { useParams } from 'react-router-dom'
 
 import { noop, summryText } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
@@ -86,6 +87,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
   const alertDialog = useAlertDialogStore()
   const authStore = useAuthedUserStore()
   const siteStore = useSiteStore()
+  const { siteFrontId } = useParams()
 
   const form = useForm<CategoryScheme>({
     resolver: zodResolver(
@@ -152,7 +154,16 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
       e.preventDefault()
       if (!isEdit || !category.frontId) return
 
-      const resp = await getArticleList(1, 1, 'latest', category.frontId)
+      const resp = await getArticleList(
+        1,
+        1,
+        'latest',
+        category.frontId,
+        '',
+        'article',
+        '',
+        { siteFrontId }
+      )
       if (!resp.code) {
         if (resp.data.articleTotal > 0) {
           alertDialog.alert('无法删除', '该分类下存在内容，无法删除')
@@ -173,7 +184,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
         onSuccess()
       }
     },
-    [isEdit, category]
+    [isEdit, category, siteFrontId]
   )
 
   useEffect(() => {

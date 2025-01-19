@@ -9,7 +9,7 @@ import {
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
-import { cn } from '@/lib/utils'
+import { cn, genArticlePath } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -197,7 +197,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
         ) : (
           notiList.map((item) => (
             <Link
-              to={'/articles/' + item.contentArticle.id}
+              to={genArticlePath(item.targetData)}
               className="hover:no-underline"
               key={item.id}
             >

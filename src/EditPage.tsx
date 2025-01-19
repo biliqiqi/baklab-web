@@ -14,7 +14,7 @@ import { Article } from './types/types'
 export default function EditPage() {
   const [loading, setLoading] = useState(false)
   const [article, setArticle] = useState<Article | null>(null)
-  const { articleId } = useParams()
+  const { siteFrontId, articleId } = useParams()
   const { updateNotFound } = useNotFoundStore()
   const authState = useAuthedUserStore()
   const navigate = useNavigate()
@@ -33,10 +33,10 @@ export default function EditPage() {
             articleId,
             'latest',
             {},
-            { showNotFound: true },
+            { showNotFound: true, siteFrontId },
             true
           )
-          console.log('article resp: ', resp.data)
+          /* console.log('article resp: ', resp.data) */
           if (!resp.code) {
             /* setReplyToID(resp.data.article.id) */
             const { article } = resp.data
@@ -67,7 +67,7 @@ export default function EditPage() {
         setLoading(false)
       }
     },
-    [articleId, navigate]
+    [articleId, navigate, siteFrontId]
   )
 
   const fetchArticleSync = toSync(fetchArticle)

@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { subscribeWithSelector } from 'zustand/middleware'
 
 import { getNotificationUnreadCount } from '@/api/message'
 import { PermitFn } from '@/constants/types'
@@ -20,7 +21,7 @@ export const useToastStore = create<ToastState>((set) => ({
 
 export type AuthedUserData = Pick<
   AuthedUserState,
-  'authToken' | 'username' | 'userID' | 'user'
+  'authToken' | 'username' | 'userID' | 'user' | 'currRole'
 >
 
 export const AUTHED_USER_LOCAL_STORE_NAME = 'auth_info'
@@ -30,6 +31,7 @@ export const emptyAuthedUserData: AuthedUserData = {
   username: '',
   userID: '',
   user: null,
+  currRole: null,
 }
 
 export interface AuthedUserState {
@@ -37,6 +39,7 @@ export interface AuthedUserState {
   username: string
   userID: string
   user: UserData | null
+  currRole: Role | null
   update: (
     token: string,
     username: string,
@@ -57,73 +60,104 @@ export interface AuthedUserState {
   permit: PermitFn
 }
 
-export const useAuthedUserStore = create<AuthedUserState>((set, get) => ({
-  ...emptyAuthedUserData,
-  update: (token, username, userID, user) => {
-    const newState = {
-      authToken: token,
-      username,
-      userID,
-      user,
-    }
-    set((state) => ({ ...state, ...newState }))
-    // localStorage.setItem(AUTHED_USER_LOCAL_STORE_NAME, JSON.stringify(newState))
-  },
-  updateObj: set,
-  loginWithDialog: () =>
-    new Promise((resolve, reject) => {
-      useDialogStore.getState().updateSignin(true)
+export const updateCurrRole = () => {
+  const siteState = useSiteStore.getState()
 
-      useAuthedUserStore.subscribe((state) => {
-        if (isLogined(state)) {
-          resolve(state)
-        } else {
-          reject(new Error('login with dialog failed'))
-        }
-      })
-
-      useDialogStore.subscribe((state) => {
-        if (!state.signin) {
-          reject(new Error('login dialog closed'))
-        }
-      })
-    }),
-  logout() {
-    set((state) => ({
+  if (siteState.site) {
+    useAuthedUserStore.setState((state) => ({
       ...state,
-      ...emptyAuthedUserData,
+      currRole: siteState.site?.currUserRole || null,
     }))
-  },
-  isLogined() {
-    return isLogined(get())
-  },
-  isMySelf(targetUserId: string) {
-    const state = get()
-    return isLogined(state) && state.userID == targetUserId
-  },
-  levelCompare(targetRole) {
-    const { user } = get()
+  } else {
+    useAuthedUserStore.setState((state) => ({
+      ...state,
+      currRole: state.user?.role || null,
+    }))
+  }
 
-    if (!user?.role) return 1
+  console.log('currRole: ', useAuthedUserStore.getState().currRole)
+}
 
-    const { role } = user
+export const useAuthedUserStore = create(
+  subscribeWithSelector<AuthedUserState>((set, get) => ({
+    ...emptyAuthedUserData,
+    update: (token, username, userID, user) => {
+      const newState = {
+        authToken: token,
+        username,
+        userID,
+        user,
+      }
+      set((state) => ({ ...state, ...newState }))
+      // localStorage.setItem(AUTHED_USER_LOCAL_STORE_NAME, JSON.stringify(newState))
+    },
+    updateObj: set,
+    loginWithDialog: () =>
+      new Promise((resolve, reject) => {
+        useDialogStore.getState().updateSignin(true)
 
-    if (role.level > targetRole.level) {
-      return 1
-    } else if (role.level == targetRole.level) {
-      return 0
-    } else {
-      return -1
-    }
-  },
-  permit(module, action) {
-    const permissionId = `${module}.${String(action)}`
-    const user = get().user
-    if (!user?.permissions) return false
+        useAuthedUserStore.subscribe((state) => {
+          if (isLogined(state)) {
+            resolve(state)
+          } else {
+            reject(new Error('login with dialog failed'))
+          }
+        })
 
-    return user.permissions.some((item) => item.frontId == permissionId)
-  },
-}))
+        useDialogStore.subscribe((state) => {
+          if (!state.signin) {
+            reject(new Error('login dialog closed'))
+          }
+        })
+      }),
+    logout() {
+      set((state) => ({
+        ...state,
+        ...emptyAuthedUserData,
+      }))
+    },
+    isLogined() {
+      return isLogined(get())
+    },
+    isMySelf(targetUserId: string) {
+      const state = get()
+      return isLogined(state) && state.userID == targetUserId
+    },
+    levelCompare(targetRole) {
+      const { currRole, user } = get()
+
+      if (user?.super) return -1
+
+      if (!currRole) return 1
+
+      if (currRole.level > targetRole.level) {
+        return 1
+      } else if (currRole.level == targetRole.level) {
+        return 0
+      } else {
+        return -1
+      }
+    },
+    permit(module, action) {
+      const permissionId = `${module}.${String(action)}`
+      const { currRole, user } = get()
+
+      if (user?.super) return true
+
+      if (!currRole?.permissions) return false
+
+      return currRole.permissions.some((item) => item.frontId == permissionId)
+    },
+  }))
+)
+
+useAuthedUserStore.subscribe(
+  (state) => state.user,
+  () => {
+    // console.log('user changed')
+    updateCurrRole()
+  }
+)
 
 type IsLogined = (x: AuthedUserState | AuthedUserData) => boolean
 
@@ -358,9 +392,19 @@ export interface SiteState {
   update: (s: Site | null) => void
 }
 
-export const useSiteStore = create<SiteState>((set) => ({
-  site: null,
-  update(s) {
-    set(() => ({ site: s }))
-  },
-}))
+export const useSiteStore = create(
+  subscribeWithSelector<SiteState>((set) => ({
+    site: null,
+    update(s) {
+      set(() => ({ site: s }))
+    },
+  }))
+)
+
+useSiteStore.subscribe(
+  (state) => state.site,
+  () => {
+    console.log('site data changed')
+    updateCurrRole()
+  }
+)

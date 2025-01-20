@@ -25,6 +25,7 @@ export const defaultSite: Site = {
   updatedAt: '',
   status: SiteStatus.Pending,
   categoryFrontIds: [],
+  currUserRole: null,
 }
 
 export const defaultCategory: Category = {

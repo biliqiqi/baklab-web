@@ -282,7 +282,6 @@ const App = () => {
   const updateToastState = useToastStore((state) => state.update)
   const authStore = useAuthedUserStore()
   const authed = useAuth()
-  /* const siteStore = useSiteStore() */
 
   const refreshTokenSync = toSync(useCallback(refreshAuthState, [authStore]))
 

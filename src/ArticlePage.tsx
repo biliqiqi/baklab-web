@@ -19,7 +19,7 @@ import {
 import { getArticle } from './api/article'
 import { toSync } from './lib/fire-and-forget'
 import { bus } from './lib/utils'
-import { useNotFoundStore } from './state/global'
+import { useAuthedUserStore, useNotFoundStore } from './state/global'
 import {
   Article,
   ArticleListSort,
@@ -56,6 +56,8 @@ export default function ArticlePage() {
 
   const [params, setParams] = useSearchParams()
   const { updateNotFound } = useNotFoundStore()
+
+  const authStore = useAuthedUserStore()
 
   const sort = (params.get('sort') as ArticleListSort | null) || 'oldest'
 
@@ -261,30 +263,32 @@ export default function ArticlePage() {
 
         {pageState.totalPage > 1 && <ListPagination pageState={pageState} />}
 
-        {article && !article.deleted && (
-          <ReplyBox
-            {...replyBoxState}
-            onSuccess={(_resp, actionType) =>
-              fetchArticle(false).then(() => {
-                if (actionType == 'reply') {
-                  setTimeout(() => {
-                    window.scrollTo({
-                      top: document.body.scrollHeight,
-                      behavior: 'smooth',
-                    })
-                  }, 0)
-                }
-              })
-            }
-            onRemoveReply={() => {
-              setReplyBoxState({
-                isEditting: false,
-                edittingArticle: null,
-                replyToArticle: article,
-              })
-            }}
-          />
-        )}
+        {authStore.permit('article', 'reply') &&
+          article &&
+          !article.deleted && (
+            <ReplyBox
+              {...replyBoxState}
+              onSuccess={(_resp, actionType) =>
+                fetchArticle(false).then(() => {
+                  if (actionType == 'reply') {
+                    setTimeout(() => {
+                      window.scrollTo({
+                        top: document.body.scrollHeight,
+                        behavior: 'smooth',
+                      })
+                    }, 0)
+                  }
+                })
+              }
+              onRemoveReply={() => {
+                setReplyBoxState({
+                  isEditting: false,
+                  edittingArticle: null,
+                  replyToArticle: article,
+                })
+              }}
+            />
+          )}
       </BContainer>
     </>
   )

@@ -383,6 +383,7 @@ export interface Site {
   updatedAt: string
   status: SiteStatus
   categoryFrontIds: string[]
+  currUserRole: Role | null
 }
 
 export interface SiteListResponse extends ListPageState {

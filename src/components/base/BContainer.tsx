@@ -280,12 +280,12 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     }, [location, isMobile])
 
     useEffect(() => {
-      /* console.log('category: ', category) */
-      fetchSiteData()
-    }, [siteFrontId, category])
-
-    useEffect(() => {
-      fetchCateList()
+      if (siteFrontId) {
+        fetchSiteData()
+        fetchCateList()
+      } else {
+        siteStore.update(null)
+      }
     }, [siteFrontId])
 
     useEffect(() => {

@@ -1,14 +1,21 @@
 import { authRequest } from '@/lib/request'
 
-import { ResponseData, ResponseID, Role, RoleListResponse } from '@/types/types'
+import {
+  CustomRequestOptions,
+  ResponseData,
+  ResponseID,
+  Role,
+  RoleListResponse,
+} from '@/types/types'
 
-export const getRole = (roleID: string) =>
-  authRequest.get<ResponseData<Role>>(`roles/${roleID}`)
+export const getRole = (roleID: string, custom?: CustomRequestOptions) =>
+  authRequest.get<ResponseData<Role>>(`roles/${roleID}`, {}, custom)
 
 export const getRoles = (
   page?: number,
   pageSize?: number,
-  keywords?: string
+  keywords?: string,
+  custom?: CustomRequestOptions
 ) => {
   const params = new URLSearchParams()
   if (page) {
@@ -23,41 +30,55 @@ export const getRoles = (
     params.set('keywords', String(keywords))
   }
 
-  return authRequest.get<ResponseData<RoleListResponse>>(`roles`, {
-    searchParams: params,
-  })
+  return authRequest.get<ResponseData<RoleListResponse>>(
+    `roles`,
+    {
+      searchParams: params,
+    },
+    custom
+  )
 }
 
 export const submitRole = (
   name: string,
   level: number,
-  permissionFrontIDs: string[]
+  permissionFrontIDs: string[],
+  custom?: CustomRequestOptions
 ) => {
-  return authRequest.post<ResponseData<ResponseID>>(`roles`, {
-    json: { name, level, permissionFrontIDs },
-  })
+  return authRequest.post<ResponseData<ResponseID>>(
+    `roles`,
+    {
+      json: { name, level, permissionFrontIDs },
+    },
+    custom
+  )
 }
 
 export const updateRole = (
   roleId: string,
   name: string,
   level: number,
-  permissionFrontIDs: string[]
+  permissionFrontIDs: string[],
+  custom?: CustomRequestOptions
 ) => {
-  return authRequest.patch<ResponseData<ResponseID>>(`roles/${roleId}`, {
-    json: { name, level, permissionFrontIDs },
-  })
+  return authRequest.patch<ResponseData<ResponseID>>(
+    `roles/${roleId}`,
+    {
+      json: { name, level, permissionFrontIDs },
+    },
+    custom
+  )
 }
 
-export const deleteRole = (roleId: string) => {
-  return authRequest.delete<ResponseData<null>>(`roles/${roleId}`)
+export const deleteRole = (roleId: string, custom?: CustomRequestOptions) => {
+  return authRequest.delete<ResponseData<null>>(`roles/${roleId}`, {}, custom)
 }
 
-export const getDefaultRole = () =>
-  authRequest.get<ResponseData<Role>>(`roles/default`)
+export const getDefaultRole = (custom?: CustomRequestOptions) =>
+  authRequest.get<ResponseData<Role>>(`roles/default`, {}, custom)
 
-export const setDefaultRole = (id: string) =>
-  authRequest.patch<ResponseData<null>>(`roles/${id}/set_default`)
+export const setDefaultRole = (id: string, custom?: CustomRequestOptions) =>
+  authRequest.patch<ResponseData<null>>(`roles/${id}/set_default`, {}, custom)
 
 export default {
   setDefaultRole,

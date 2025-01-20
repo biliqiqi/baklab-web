@@ -115,11 +115,13 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
         let resp: ResponseData<ResponseID> | undefined
 
         if (isEdit) {
-          resp = await updateCategory(category.frontId, name, description)
+          resp = await updateCategory(category.frontId, name, description, {
+            siteFrontId: category.siteFrontId,
+          })
         } else {
           if (!siteStore.site) return
 
-          const exists = await checkCategoryExists(frontID)
+          const exists = await checkCategoryExists(frontID, { siteFrontId })
           /* console.log('frontID exists: ', exists) */
           if (exists) {
             form.setError(
@@ -146,7 +148,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
         console.error('validate front id error: ', err)
       }
     },
-    [form, isEdit, onSuccess, category, siteStore]
+    [form, isEdit, onSuccess, category, siteStore, siteFrontId]
   )
 
   const onDeleteClick = useCallback(
@@ -179,7 +181,9 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
 
       if (!confirmed) return
 
-      const respD = await deleteCategory(category.frontId)
+      const respD = await deleteCategory(category.frontId, {
+        siteFrontId: category.siteFrontId,
+      })
       if (!respD.code) {
         onSuccess()
       }

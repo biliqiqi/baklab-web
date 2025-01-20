@@ -231,11 +231,11 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     const onCategoryCreated = useCallback(async () => {
       setShowCategoryForm(false)
-      const resp = await getCategoryList()
+      const resp = await getCategoryList({ siteFrontId })
       if (!resp.code && resp.data) {
         updateCategories([...resp.data])
       }
-    }, [])
+    }, [siteFrontId])
 
     const onCreateCategoryClick = (ev: MouseEvent<HTMLButtonElement>) => {
       ev.preventDefault()

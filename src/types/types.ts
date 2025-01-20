@@ -213,7 +213,7 @@ export interface UserData {
 export interface CustomRequestOptions {
   showNotFound?: boolean
   showAuthToast?: boolean
-  siteFrontId?: string
+  siteFrontId?: string // 接口所在站点
 }
 
 export type FrontCategory = Pick<Category, 'frontId' | 'name' | 'describe'> & {
@@ -247,6 +247,14 @@ export type ArticleAction = 'delete' | 'save' | 'subscribe' | VoteType
 
 export type ActivityActionType = 'user' | 'manage' | 'anonymous' | 'dev'
 
+export type ActivityTargetModel =
+  | 'user'
+  | 'article'
+  | 'category'
+  | 'role'
+  | 'site'
+  | 'empty'
+
 export interface JSONMap {
   // eslint-disable-next-line
   [x: string]: any
@@ -262,7 +270,7 @@ export interface Activity {
   action: string
   actionText: string
   targetId: string
-  targetModel: string
+  targetModel: ActivityTargetModel
   createdAt: string
   ipAddr: string
   deviceInfo: string

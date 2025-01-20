@@ -7,6 +7,7 @@ import { API_HOST, API_PATH_PREFIX } from '@/constants/constants'
 import {
   useAuthedUserStore,
   useNotFoundStore,
+  useSiteStore,
   useToastStore,
 } from '@/state/global'
 import {
@@ -194,6 +195,20 @@ const request = <T = any>(
     kyOpts.prefixUrl = `${API_HOST}${API_PATH_PREFIX}sites/${custom.siteFrontId}`
   } else {
     kyOpts.prefixUrl = `${API_HOST}${API_PATH_PREFIX}`
+  }
+
+  const siteState = useSiteStore.getState()
+  const method = kyOpts.method || 'get'
+
+  if (siteState.site) {
+    if (['post', 'put', 'patch'].includes(method.toLowerCase())) {
+      kyOpts.json = { ...(kyOpts.json || {}), fromSite: siteState.site.frontId }
+    } else if (method.toLowerCase() == 'delete') {
+      // @ts-expect-error url search params no error
+      const params = new URLSearchParams(kyOpts.searchParams || '')
+      params.set('fromSite', siteState.site.frontId)
+      kyOpts.searchParams = params
+    }
   }
 
   const authRequestConfigs = makeAuthRequestConfigs(custom)

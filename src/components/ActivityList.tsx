@@ -1,8 +1,14 @@
+import { ReactElement } from 'react'
 import { Link } from 'react-router-dom'
 
 import { timeAgo } from '@/lib/dayjs-custom'
 
-import { Activity, ActivityActionType, ListPageState } from '@/types/types'
+import {
+  Activity,
+  ActivityActionType,
+  ActivityTargetModel,
+  ListPageState,
+} from '@/types/types'
 
 import { Empty } from './Empty'
 import { ListPagination } from './ListPagination'
@@ -24,6 +30,43 @@ const acTypeMap: AcTypeMap = {
   dev: '开发',
 }
 
+interface ActivityActionTextProps {
+  activity: Activity
+}
+
+const ActivityTargetLink = ({ activity: item }: ActivityActionTextProps) => {
+  switch (item.targetModel) {
+    case 'article':
+      return (
+        <Link
+          to={`/${item.details.siteFrontId}/articles/${item.targetId}`}
+        >{`/${item.details.siteFrontId}/articles/${item.targetId}`}</Link>
+      )
+    case 'user':
+      return (
+        <Link to={`/users/${item.targetId}`}>{`/users/${item.targetId}`}</Link>
+      )
+    case 'category':
+      return (
+        <Link
+          to={`/${item.details.siteFrontId}/categories/${item.targetId}`}
+        >{`/${item.details.siteFrontId}/categories/${item.targetId}`}</Link>
+      )
+    default:
+      return null
+  }
+}
+
+const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
+  return (
+    <>
+      <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
+      {item.actionText} {item.details && <ActivityTargetLink activity={item} />}
+      于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+    </>
+  )
+}
+
 export const ActivityList: React.FC<ActivityListProps> = ({
   list,
   pageState,
@@ -41,20 +84,7 @@ export const ActivityList: React.FC<ActivityListProps> = ({
       {list.map((item) => (
         <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
           <div className="mb-2 text-base activity-title">
-            <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
-            {item.actionText}{' '}
-            {item.targetModel == 'article' && item.details ? (
-              <Link
-                to={`/${item.details.siteFrontId}/articles/${item.targetId}`}
-              >{`/${item.details.siteFrontId}/articles/${item.targetId}`}</Link>
-            ) : item.targetModel == 'user' ? (
-              <Link
-                to={`/users/${item.targetId}`}
-              >{`/users/${item.targetId}`}</Link>
-            ) : (
-              ''
-            )}{' '}
-            于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+            <ActivityActionText activity={item} />
           </div>
           <div className="text-sm bg-gray-100 p-2">
             <div className="flex">
@@ -77,10 +107,10 @@ export const ActivityList: React.FC<ActivityListProps> = ({
             </div>
             <div className="flex">
               <div className="flex-shrink-0 w-[80px]">
-                <b>提交数据：</b>
+                <b>其他数据：</b>
               </div>
               <pre className="flex-grow align-top py-1 whitespace-break-spaces">
-                {JSON.stringify(item.details)}
+                {JSON.stringify(item.details, null, '  ')}
               </pre>
             </div>
           </div>

@@ -134,12 +134,9 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
             form.clearErrors('frontID')
           }
 
-          resp = await submitCategory(
-            frontID,
-            name,
-            description,
-            siteStore.site.id
-          )
+          resp = await submitCategory(frontID, name, description, {
+            siteFrontId,
+          })
         }
         if (!resp?.code) {
           onSuccess()
@@ -181,7 +178,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
 
       if (!confirmed) return
 
-      const respD = await deleteCategory(category.frontId, {
+      const respD = await deleteCategory(category.frontId, authStore.username, {
         siteFrontId: category.siteFrontId,
       })
       if (!respD.code) {

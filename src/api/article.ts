@@ -230,7 +230,7 @@ export const deleteArticle = (
   custom?: CustomRequestOptions
 ) => {
   const params = new URLSearchParams()
-  params.set('deleted_by', deletedBy)
+  params.set('deletedBy', deletedBy)
   if (reason) {
     params.set('reason', reason)
   }

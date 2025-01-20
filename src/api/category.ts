@@ -15,7 +15,6 @@ export const submitCategory = async (
   frontID: string,
   name: string,
   description: string,
-  siteId: number,
   custom?: CustomRequestOptions
 ) =>
   authRequest.post<ResponseData<ResponseID>>(
@@ -25,7 +24,6 @@ export const submitCategory = async (
         frontID,
         name,
         description,
-        siteId,
       },
     },
     custom
@@ -50,8 +48,17 @@ export const updateCategory = async (
 
 export const deleteCategory = async (
   frontID: string,
+  deletedBy: string,
   custom?: CustomRequestOptions
-) => authRequest.delete<ResponseData<null>>(`categories/${frontID}`, {}, custom)
+) => {
+  const params = new URLSearchParams()
+  params.set('deletedBy', deletedBy)
+  return authRequest.delete<ResponseData<null>>(
+    `categories/${frontID}`,
+    { searchParams: params },
+    custom
+  )
+}
 
 export const checkCategoryExists = async (
   frontID: string,

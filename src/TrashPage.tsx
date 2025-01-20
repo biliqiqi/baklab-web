@@ -22,7 +22,7 @@ import { ListPagination } from './components/ListPagination'
 
 import { getArticleTrash, recoverArticle } from './api/article'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
-import { timeFmt } from './lib/dayjs-custom'
+import { timeAgo, timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { cn, genArticlePath } from './lib/utils'
 import { useAlertDialogStore, useCategoryStore } from './state/global'
@@ -318,12 +318,12 @@ export default function TrashPage() {
                   <>
                     由&nbsp;
                     <Link
-                      to={'/users/' + item.delLog.details['deleted_by']}
+                      to={'/users/' + item.delLog.details['deletedBy']}
                       className="text-primary"
                     >
-                      {item.delLog.details['deleted_by']}
+                      {item.delLog.details['deletedBy']}
                     </Link>{' '}
-                    删除于 {timeFmt(item.delLog.createdAt, 'YYYY-M-D h:m:s')}
+                    删除于 {timeAgo(item.delLog.createdAt)}
                     {item.delLog.type == 'manage' && (
                       <div className="mt-2">
                         原因：{item.delLog.details['reason']}

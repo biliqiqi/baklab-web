@@ -26,6 +26,7 @@ import {
   Article,
   ArticleAction,
   ArticleCardType,
+  SUBSCRIBE_ACTION,
   SubscribeAction,
   VoteType,
 } from '@/types/types'
@@ -101,7 +102,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
         e.preventDefault()
         const resp = await toggleSubscribeArticle(
           article.id,
-          SubscribeAction.Toggle,
+          SUBSCRIBE_ACTION.Toggle,
           { siteFrontId: article.siteFrontId }
         )
         if (!resp.code) {

@@ -3,8 +3,8 @@ import {
   Category,
   CurrUserState,
   ListPageState,
+  SITE_STATUS,
   Site,
-  SiteStatus,
 } from '@/types/types'
 
 import { DEFAULT_PAGE_SIZE } from './constants'
@@ -23,7 +23,7 @@ export const defaultSite: Site = {
   boardCategoryId: 0,
   createdAt: '',
   updatedAt: '',
-  status: SiteStatus.Pending,
+  status: SITE_STATUS.Pending,
   categoryFrontIds: [],
   currUserRole: null,
 }

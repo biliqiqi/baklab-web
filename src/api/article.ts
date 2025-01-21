@@ -12,6 +12,7 @@ import {
   ArticleSubmitResponse,
   CustomRequestOptions,
   ResponseData,
+  SUBSCRIBE_ACTION,
   SubscribeAction,
   VoteType,
 } from '@/types/types'
@@ -273,7 +274,7 @@ export const toggleSubscribeArticle = (
     `articles/${id}/toggle_subscribe`,
     {
       json: {
-        action: action || SubscribeAction.Toggle,
+        action: action || SUBSCRIBE_ACTION.Toggle,
       },
     },
     custom

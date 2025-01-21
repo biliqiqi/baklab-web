@@ -157,12 +157,14 @@ export interface ArticleDeleteResponse {
 
 export type ArticleCardType = 'list' | 'item'
 
-export enum AuthType {
-  SELF = 'self',
-  GOOGLE = 'google',
-  GITHUB = 'github',
-  MICROSOFT = 'microsoft',
-}
+export const AUTH_TYPE = Object.freeze({
+  SELF: 'self',
+  GOOGLE: 'google',
+  GITHUB: 'github',
+  MICROSOFT: 'microsoft',
+} as const)
+
+export type AuthType = ValuesToUnion<typeof AUTH_TYPE>
 
 // Permission interface matching the Go struct
 export interface Permission {
@@ -336,11 +338,13 @@ export interface NotificationListResponse<T = Article> {
   unreadTotal: number
 }
 
-export enum SubscribeAction {
-  Toggle = 0,
-  Subscribe,
-  Unsubscribe,
-}
+export const SUBSCRIBE_ACTION = Object.freeze({
+  Toggle: 0,
+  Subscribe: 1,
+  Unsubscribe: 2,
+} as const)
+
+export type SubscribeAction = ValuesToUnion<typeof SUBSCRIBE_ACTION>
 
 export interface Role {
   id: string
@@ -359,13 +363,17 @@ export interface RoleListResponse extends ListPageState {
   list: Role[] | null
 }
 
-export enum SiteStatus {
-  ReadOnly = 0,
-  Normal,
-  Pending,
-  Reject,
-  Banned,
-}
+export type ValuesToUnion<T> = T[keyof T]
+
+export const SITE_STATUS = Object.freeze({
+  ReadOnly: 0,
+  Normal: 1,
+  Pending: 2,
+  Reject: 3,
+  Banned: 4,
+} as const)
+
+export type SiteStatus = ValuesToUnion<typeof SITE_STATUS>
 
 export interface Site {
   id: number

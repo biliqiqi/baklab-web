@@ -36,7 +36,12 @@ import {
   useAuthedUserStore,
   useNotificationStore,
 } from '@/state/global'
-import { ListPageState, Message, SubscribeAction } from '@/types/types'
+import {
+  ListPageState,
+  Message,
+  SUBSCRIBE_ACTION,
+  SubscribeAction,
+} from '@/types/types'
 
 import { ListPagination } from './ListPagination'
 import { Badge } from './ui/badge'
@@ -137,7 +142,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
       if (respR.code) return
       const resp = await toggleSubscribeArticle(
         targetArticleId,
-        SubscribeAction.Unsubscribe
+        SUBSCRIBE_ACTION.Unsubscribe
       )
       if (resp.code) return
       await Promise.all([fetchNotifications(), notiStore.fetchUnread()])

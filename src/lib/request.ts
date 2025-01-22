@@ -90,7 +90,7 @@ const defaultOptions: Options = {
               if (data?.message) {
                 toast.error(data.message)
               } else {
-                toast.error('禁止访问')
+                toast.error('缺少权限')
               }
               break
             case status >= 500 && status <= 599:

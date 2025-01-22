@@ -139,14 +139,45 @@ export const useAuthedUserStore = create(
       }
     },
     permit(module, action) {
+      const { user } = get()
+      const { site } = useSiteStore.getState()
+
       const permissionId = `${module}.${String(action)}`
-      const { currRole, user } = get()
 
-      if (user?.super) return true
+      if (!user || user.id == '0' || !module || !action) return false
 
-      if (!currRole?.permissions) return false
+      if (user.super) return true
 
-      return currRole.permissions.some((item) => item.frontId == permissionId)
+      if (user.banned) return false
+
+      const platformPermitted = user.permissions.some(
+        (item) => item.frontId == permissionId
+      )
+
+      // console.log('site: ', site)
+      // console.log('user role front id: ', user.roleFrontId)
+      // console.log('permission id: ', permissionId)
+
+      if (site) {
+        if (user.roleFrontId == 'platform_admin') return true
+
+        let sitePermitted = false
+        if (site.currUserRole?.permissions && site.currUserRole.id != '0') {
+          sitePermitted = site.currUserRole.permissions.some(
+            (item) => item.frontId == permissionId
+          )
+        }
+
+        if (sitePermitted) return true
+
+        if (site.allowNonMemberInteract) {
+          return platformPermitted
+        }
+      } else {
+        return platformPermitted
+      }
+
+      return false
     },
   }))
 )

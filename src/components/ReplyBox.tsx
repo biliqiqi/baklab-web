@@ -23,6 +23,7 @@ import {
   EV_ON_REPLY_CLICK,
   NAV_HEIGHT,
 } from '@/constants/constants'
+import { useAuthedUserStore } from '@/state/global'
 import { Article, ArticleSubmitResponse, ResponseData } from '@/types/types'
 
 import TipTap, { TipTapRef } from './TipTap'
@@ -41,6 +42,7 @@ export interface ReplyBoxProps {
   replyToArticle: Article | null
   isEditting?: boolean
   edittingArticle?: Article | null
+  disabled?: boolean
   onSuccess?: (
     data: ResponseData<ArticleSubmitResponse>,
     type?: 'edit' | 'reply'
@@ -73,6 +75,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   edittingArticle,
   onSuccess,
   onRemoveReply,
+  disabled = false,
 }) => {
   const [loading, setLoading] = useState(false)
   const [replyBoxHeight, setReplyBoxHeight] = useState(REPLY_BOX_INITIAL_HEIGHT)
@@ -82,6 +85,8 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   const [updateRef, setUpdateRef] = useState(false)
 
   const { siteFrontId } = useParams()
+
+  const authStore = useAuthedUserStore()
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const tiptapRef = useRef<TipTapRef | null>(null)
@@ -122,6 +127,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
     defaultValues: {
       content: '',
     },
+    disabled,
   })
 
   /* const isReplyToRoot = () => replyToArticle && replyToArticle.replyToId == '0' */
@@ -361,6 +367,14 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
     setUpdateRef(true)
   }, [])
 
+  if (disabled) {
+    return (
+      <div className="max-w-[800px] -mx-2 mt-[10px] sticky bottom-0 bg-white p-3 rounded-lg border-[1px] text-gray-500 text-sm">
+        目前缺少此功能权限
+      </div>
+    )
+  }
+
   return (
     <Form {...form}>
       <form
@@ -507,7 +521,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
               </Button>
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={loading || disabled}
                 className="mt-2 ml-2"
                 size="sm"
               >

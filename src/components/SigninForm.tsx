@@ -1,15 +1,21 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ChangeEvent, memo, useState } from 'react'
+import { ChangeEvent, memo, useCallback, useState } from 'react'
 import { Control, Controller, Path, useForm } from 'react-hook-form'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 
+import { toSync } from '@/lib/fire-and-forget'
 import { noop } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { postSignin } from '@/api'
+import { getSiteWithFrontId } from '@/api/site'
 import { emailRule, passwordRule } from '@/constants/rules'
 import useDocumentTitle from '@/hooks/use-page-title'
-import { useAuthedUserStore, useDialogStore } from '@/state/global'
+import {
+  useAuthedUserStore,
+  useDialogStore,
+  useSiteStore,
+} from '@/state/global'
 
 import BLoader from './base/BLoader'
 import { Button } from './ui/button'
@@ -75,9 +81,12 @@ const SigninForm: React.FC<SigninFromProps> = ({
   const [loading, setLoading] = useState(false)
   const updateAuthState = useAuthedUserStore((state) => state.update)
 
+  const { siteFrontId } = useParams()
   const [searchParams, _setSearchParams] = useSearchParams()
   const { updateSignin, updateSignup } = useDialogStore()
   const account = searchParams.get('account') || email
+
+  const siteStore = useSiteStore()
 
   /* const navigate = useNavigate() */
 
@@ -101,6 +110,23 @@ const SigninForm: React.FC<SigninFromProps> = ({
     },
   })
 
+  const fetchSiteData = toSync(
+    useCallback(async () => {
+      if (!siteFrontId) return
+
+      try {
+        const { code, data } = await getSiteWithFrontId(siteFrontId)
+        if (!code) {
+          siteStore.update({ ...data })
+        } else {
+          siteStore.update(null)
+        }
+      } catch (err) {
+        console.error('fetch site data error: ', err)
+      }
+    }, [siteFrontId])
+  )
+
   const onSigninSubmit = async (values: SigninScheme) => {
     try {
       /* console.log('values: ', values) */
@@ -115,6 +141,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
       if (!data.code) {
         const { token, userID, username, user } = data.data
         updateAuthState(token, username, userID, user)
+        fetchSiteData()
         /* console.log('is inner url: ', isInnerURL(returnURL)) */
 
         if (onSuccess && typeof onSuccess == 'function') {

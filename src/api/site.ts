@@ -14,6 +14,7 @@ export const submitSite = (
   description: string,
   keywords: string,
   visible: boolean,
+  nonMemberInteract: boolean,
   logoUrl: string
 ) =>
   authRequest.post<ResponseData<ResponseID>>(`sites`, {
@@ -23,6 +24,7 @@ export const submitSite = (
       description,
       keywords,
       visible,
+      nonMemberInteract,
       logoUrl,
     },
   })
@@ -33,6 +35,7 @@ export const updateSite = (
   description: string,
   keywords: string,
   visible: boolean,
+  nonMemberInteract: boolean,
   logoUrl: string
 ) =>
   authRequest.patch<ResponseData<ResponseID>>(`sites/${frontId}`, {
@@ -41,6 +44,7 @@ export const updateSite = (
       description,
       keywords,
       visible,
+      nonMemberInteract,
       logoUrl,
     },
   })

@@ -263,32 +263,31 @@ export default function ArticlePage() {
 
         {pageState.totalPage > 1 && <ListPagination pageState={pageState} />}
 
-        {authStore.permit('article', 'reply') &&
-          article &&
-          !article.deleted && (
-            <ReplyBox
-              {...replyBoxState}
-              onSuccess={(_resp, actionType) =>
-                fetchArticle(false).then(() => {
-                  if (actionType == 'reply') {
-                    setTimeout(() => {
-                      window.scrollTo({
-                        top: document.body.scrollHeight,
-                        behavior: 'smooth',
-                      })
-                    }, 0)
-                  }
-                })
-              }
-              onRemoveReply={() => {
-                setReplyBoxState({
-                  isEditting: false,
-                  edittingArticle: null,
-                  replyToArticle: article,
-                })
-              }}
-            />
-          )}
+        {article && !article.deleted && (
+          <ReplyBox
+            disabled={!authStore.permit('article', 'reply')}
+            {...replyBoxState}
+            onSuccess={(_resp, actionType) =>
+              fetchArticle(false).then(() => {
+                if (actionType == 'reply') {
+                  setTimeout(() => {
+                    window.scrollTo({
+                      top: document.body.scrollHeight,
+                      behavior: 'smooth',
+                    })
+                  }, 0)
+                }
+              })
+            }
+            onRemoveReply={() => {
+              setReplyBoxState({
+                isEditting: false,
+                edittingArticle: null,
+                replyToArticle: article,
+              })
+            }}
+          />
+        )}
       </BContainer>
     </>
   )

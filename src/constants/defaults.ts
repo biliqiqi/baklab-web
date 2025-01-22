@@ -26,6 +26,10 @@ export const defaultSite: Site = {
   status: SITE_STATUS.Pending,
   categoryFrontIds: [],
   currUserRole: null,
+  currUserState: {
+    isMember: false,
+  },
+  allowNonMemberInteract: false,
 }
 
 export const defaultCategory: Category = {

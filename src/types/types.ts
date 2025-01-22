@@ -375,6 +375,10 @@ export const SITE_STATUS = Object.freeze({
 
 export type SiteStatus = ValuesToUnion<typeof SITE_STATUS>
 
+export interface SiteUserState {
+  isMember: boolean
+}
+
 export interface Site {
   id: number
   name: string
@@ -392,6 +396,8 @@ export interface Site {
   status: SiteStatus
   categoryFrontIds: string[]
   currUserRole: Role | null
+  currUserState: SiteUserState
+  allowNonMemberInteract: boolean
 }
 
 export interface SiteListResponse extends ListPageState {

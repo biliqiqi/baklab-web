@@ -75,7 +75,7 @@ export const updateCurrRole = () => {
     }))
   }
 
-  console.log('currRole: ', useAuthedUserStore.getState().currRole)
+  // console.log('currRole: ', useAuthedUserStore.getState().currRole)
 }
 
 export const useAuthedUserStore = create(
@@ -153,10 +153,6 @@ export const useAuthedUserStore = create(
       const platformPermitted = user.permissions.some(
         (item) => item.frontId == permissionId
       )
-
-      // console.log('site: ', site)
-      // console.log('user role front id: ', user.roleFrontId)
-      // console.log('permission id: ', permissionId)
 
       if (site) {
         if (user.roleFrontId == 'platform_admin') return true
@@ -419,8 +415,10 @@ export const useNotificationStore = create<NotificationState>((set) => ({
 }))
 
 export interface SiteState {
-  site: Site | null
+  site?: Site | null
+  siteList?: Site[] | null
   update: (s: Site | null) => void
+  updateState: (s: Pick<SiteState, 'site' | 'siteList'>) => void
 }
 
 export const useSiteStore = create(
@@ -429,13 +427,16 @@ export const useSiteStore = create(
     update(s) {
       set(() => ({ site: s }))
     },
+    updateState(newState) {
+      set((state) => ({ ...state, ...newState }))
+    },
   }))
 )
 
 useSiteStore.subscribe(
   (state) => state.site,
   () => {
-    console.log('site data changed')
+    // console.log('site data changed')
     updateCurrRole()
   }
 )

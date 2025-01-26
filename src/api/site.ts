@@ -1,6 +1,7 @@
 import { authRequest } from '@/lib/request'
 
 import {
+  ItemExists,
   ResponseData,
   ResponseID,
   Site,
@@ -60,10 +61,22 @@ export const setSiteStatus = (frontId: string, status: SiteStatus) =>
     json: { status },
   })
 
-export const getSiteList = (keywords: string) => {
+export const getSiteList = (
+  creatorId?: string,
+  visible?: boolean,
+  keywords?: string
+) => {
   const params = new URLSearchParams()
   if (keywords) {
     params.set('keywords', keywords)
+  }
+
+  if (creatorId) {
+    params.set('creatorId', creatorId)
+  }
+
+  if (visible) {
+    params.set('visible', String(visible))
   }
 
   return authRequest.get<ResponseData<SiteListResponse>>(`sites`, {
@@ -77,3 +90,13 @@ export const getSiteWithFrontId = (frontId: string) =>
     {},
     { showNotFound: true }
   )
+
+export const checkSiteExists = async (frontID: string) => {
+  const resp = await authRequest.get<ResponseData<ItemExists>>(
+    `sites/${frontID}/check_exists`
+  )
+  if (!resp.code) {
+    return resp.data.exists
+  }
+  return false
+}

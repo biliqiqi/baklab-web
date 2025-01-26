@@ -172,7 +172,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
 
       const confirmed = await alertDialog.confirm(
         '确认',
-        '删除之后无法撤回，确认删除？',
+        '确认删除？',
         'danger'
       )
 
@@ -213,7 +213,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
           />
           <div className="pl-4 flex-grow max-w-[calc(100%-82px)] overflow-hidden">
             <div className="text-sm text-gray-500 h-5">
-              {'/categories/' +
+              {`/${siteFrontId}/categories/` +
                 (isEdit ? category.frontId : formVals.frontID.toLowerCase())}
             </div>
             <div className="h-6">{formVals.name}</div>

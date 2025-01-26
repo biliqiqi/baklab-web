@@ -16,6 +16,10 @@ export interface AuthedDataResponse {
   user: UserData
 }
 
+export interface ItemExists {
+  exists: boolean
+}
+
 export interface Category {
   id: string
   frontId: string
@@ -30,9 +34,7 @@ export interface Category {
   siteFrontId: string
 }
 
-export interface CategoryExists {
-  exists: boolean
-}
+export type CategoryExists = ItemExists
 
 export type ArticleListSort =
   | 'best'
@@ -402,4 +404,9 @@ export interface Site {
 
 export interface SiteListResponse extends ListPageState {
   list: Site[] | null
+}
+
+export interface UploadResponse {
+  data: string
+  success: boolean
 }

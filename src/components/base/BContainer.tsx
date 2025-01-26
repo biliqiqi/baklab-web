@@ -8,7 +8,13 @@ import {
   UserRoundXIcon,
   UsersRoundIcon,
 } from 'lucide-react'
-import React, { MouseEvent, useCallback, useEffect, useState } from 'react'
+import React, {
+  MouseEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
@@ -16,7 +22,7 @@ import { cn, getCookie } from '@/lib/utils'
 
 import api from '@/api'
 import { getCategoryList } from '@/api/category'
-import { getSiteWithFrontId } from '@/api/site'
+import { getSiteList, getSiteWithFrontId } from '@/api/site'
 import { DOCK_HEIGHT, NAV_HEIGHT, SITE_NAME } from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
@@ -29,12 +35,13 @@ import {
   useSiteStore,
   useTopDrawerStore,
 } from '@/state/global'
-import { Category, FrontCategory } from '@/types/types'
+import { Category, FrontCategory, Site } from '@/types/types'
 
 import CategoryForm from '../CategoryForm'
 import NotFound from '../NotFound'
 import SigninForm from '../SigninForm'
 import SignupForm from '../SignupForm'
+import SiteForm from '../SiteForm'
 import BIconCircle from '../icon/Circle'
 import {
   AlertDialog,
@@ -70,6 +77,7 @@ import {
 import BIconColorChar from './BIconColorChar'
 import { BLoaderBlock } from './BLoader'
 import BNav from './BNav'
+import BSiteIcon from './BSiteIcon'
 
 export interface BContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string
@@ -83,6 +91,11 @@ interface EditCategoryData {
   data: Category | undefined
 }
 
+interface EditSiteData {
+  editting: boolean
+  data: Site | undefined
+}
+
 const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
   ({ children, category, goBack = false, loading = false, ...props }, ref) => {
     const [regEmail, setRegEmail] = useState('')
@@ -90,6 +103,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const { categories: cateList, updateCategories } = useCategoryStore()
 
     const [showCategoryForm, setShowCategoryForm] = useState(false)
+    const [showSiteForm, setShowSiteForm] = useState(false)
     const navigate = useNavigate()
 
     const { open: showTopDrawer, update: setShowTopDrawer } =
@@ -100,7 +114,15 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const { open: sidebarOpen, setOpen: setSidebarOpen } = useSidebarStore()
     const [sidebarOpenMobile, setSidebarOpenMobile] = useState(false)
     const [categoryFormDirty, setCategoryFormDirty] = useState(false)
+
+    const [siteFormDirty, setSiteFormDirty] = useState(false)
+
     const [editCategory, setEditCategory] = useState<EditCategoryData>({
+      editting: false,
+      data: undefined,
+    })
+
+    const [editSite, setEditSite] = useState<EditSiteData>({
       editting: false,
       data: undefined,
     })
@@ -111,6 +133,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     const alertDialog = useAlertDialogStore()
     const siteStore = useSiteStore()
+    const authStore = useAuthedUserStore()
 
     const {
       type: alertType,
@@ -127,8 +150,12 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     /* const [sidebarOpen, setSidebarOpen] = useState(!isMobile) */
 
     const location = useLocation()
+    const isFeedPage = useMemo(
+      () => ['/', `/${siteFrontId}`].includes(location.pathname),
+      [location, siteFrontId]
+    )
 
-    if (location.pathname == '/') {
+    if (isFeedPage) {
       category = {
         frontId: 'feed',
         name: '信息流',
@@ -155,8 +182,24 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       }, [siteFrontId, category, navigate])
     )
 
-    const { updateCategories: setCateList } = useCategoryStore()
+    const fetchSiteList = toSync(
+      useCallback(async () => {
+        if (!authStore.isLogined()) return
 
+        try {
+          const { code, data } = await getSiteList(authStore.userID)
+          if (!code && data.list) {
+            /* siteStore.update({ ...data }) */
+            siteStore.updateState({ siteList: [...data.list] })
+          }
+        } catch (err) {
+          console.error('fetch site data error: ', err)
+          navigate('/')
+        }
+      }, [authStore])
+    )
+
+    const { updateCategories: setCateList } = useCategoryStore()
     /* console.log('render app!') */
 
     const fetchCateList = toSync(
@@ -165,6 +208,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         const data = await api.getCategoryList({ siteFrontId: siteFrontId })
         if (!data.code && data.data) {
           setCateList([...data.data])
+        } else {
+          setCateList([])
         }
       }, [siteFrontId])
     )
@@ -229,6 +274,28 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       }
     }, [categoryFormDirty, editCategory])
 
+    const onSiteFormClose = useCallback(async () => {
+      if (categoryFormDirty) {
+        const { editting } = editSite
+        const confirmed = await alertDialog.confirm(
+          '确认',
+          editting
+            ? '站点设置未完成，确认舍弃？'
+            : '站点创建未完成，确认舍弃？',
+          'normal',
+          {
+            confirmBtnText: '确定舍弃',
+            cancelBtnText: editting ? '继续设置' : '继续创建',
+          }
+        )
+        if (confirmed) {
+          setShowSiteForm(false)
+        }
+      } else {
+        setShowSiteForm(false)
+      }
+    }, [siteFormDirty, editSite])
+
     const onCategoryCreated = useCallback(async () => {
       setShowCategoryForm(false)
       const resp = await getCategoryList({ siteFrontId })
@@ -236,6 +303,16 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         updateCategories([...resp.data])
       }
     }, [siteFrontId])
+
+    const onSiteCreated = useCallback(async () => {
+      setShowSiteForm(false)
+      const { code, data } = await getSiteList(authStore.userID)
+      if (!code && data.list) {
+        siteStore.updateState({
+          siteList: data.list,
+        })
+      }
+    }, [authStore, siteStore])
 
     const onCreateCategoryClick = (ev: MouseEvent<HTMLButtonElement>) => {
       ev.preventDefault()
@@ -289,6 +366,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     }, [siteFrontId])
 
     useEffect(() => {
+      fetchSiteList()
       const showDock = getCookie('top_drawer:state') == 'true'
       setShowTopDrawer(showDock)
     }, [])
@@ -311,25 +389,36 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           }
         >
           <div
-            className="flex justify-between items-center max-w-[1000px] mx-auto"
+            className="flex justify-center items-center max-w-[1000px] mx-auto"
             style={{ height: `${DOCK_HEIGHT}px` }}
           >
-            <div>
-              {Array(10)
-                .fill(1)
-                .map((_, idx) => (
-                  <Button
-                    variant="ghost"
-                    className="mr-2 rounded-full border-2 border-red-500 w-[40px] h-[40px]"
-                    key={idx}
-                  ></Button>
+            <div className="inline-flex items-center">
+              {siteStore.siteList &&
+                siteStore.siteList.map((site) => (
+                  <Link
+                    to={`/${site.frontId}`}
+                    key={site.frontId}
+                    className={cn(
+                      'h-full mr-2 leading-3 rounded-full',
+                      siteFrontId == site.frontId && 'border-2 border-primary'
+                    )}
+                  >
+                    <BSiteIcon
+                      logoUrl={site.logoUrl}
+                      name={site.name}
+                      size={40}
+                    />
+                  </Link>
                 ))}
             </div>
-            <div>
+            <div className="border-l-[2px] border-gray-400 pl-2">
               <Button
-                variant="ghost"
-                className="mr-2 rounded-full border-2 border-red-500 w-[40px] h-[40px]"
+                variant="secondary"
+                className="mr-2 rounded-full w-[40px] h-[40px] text-[24px] text-center text-gray-500"
                 key="new-site"
+                onClick={() => {
+                  setShowSiteForm(true)
+                }}
               >
                 +
               </Button>
@@ -356,28 +445,33 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             <Sidebar className="relative max-h-full" gap={false}>
               <SidebarContent>
                 <div
-                  className="flex items-center border-b-2 px-2"
+                  className="flex items-center border-b-2 px-2 py-1"
                   style={{
                     minHeight: `${NAV_HEIGHT}px`,
                   }}
                 >
                   <Link
-                    className="font-bold text-2xl text-pink-900"
+                    className="font-bold text-2xl text-pink-900 leading-3"
                     to={siteFrontId ? `/${siteFrontId}` : `/`}
                   >
-                    {siteFrontId && siteStore.site
-                      ? siteStore.site.name
-                      : '全平台'}
+                    {siteFrontId && siteStore.site ? (
+                      <BSiteIcon
+                        className="mr-2"
+                        logoUrl={siteStore.site.logoUrl}
+                        name={siteStore.site.name}
+                        size={42}
+                        showSiteName
+                      />
+                    ) : (
+                      '全平台'
+                    )}
                   </Link>
                 </div>
                 <SidebarGroup>
                   <SidebarGroupContent>
                     <SidebarMenu>
                       <SidebarMenuItem key="feed">
-                        <SidebarMenuButton
-                          asChild
-                          isActive={location.pathname == '/'}
-                        >
+                        <SidebarMenuButton asChild isActive={isFeedPage}>
                           <Link to={siteFrontId ? `/${siteFrontId}` : `/`}>
                             <BIconCircle id="feed" size={32}>
                               <PackageIcon size={18} />
@@ -596,6 +690,24 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               category={editCategory.data}
               onChange={setCategoryFormDirty}
               onSuccess={onCategoryCreated}
+            />
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showSiteForm} onOpenChange={onSiteFormClose}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {editSite.editting ? '设置站点' : '创建站点'}
+              </DialogTitle>
+              <DialogDescription></DialogDescription>
+            </DialogHeader>
+
+            <SiteForm
+              isEdit={editSite.editting}
+              site={editSite.data}
+              onChange={setSiteFormDirty}
+              onSuccess={onSiteCreated}
             />
           </DialogContent>
         </Dialog>

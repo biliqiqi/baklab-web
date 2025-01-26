@@ -7,7 +7,7 @@ import {
   MenuIcon,
 } from 'lucide-react'
 import React, { useCallback, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { cn, summryText } from '@/lib/utils'
@@ -49,6 +49,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
   ({ className, category, goBack = false, onGripClick, ...props }, ref) => {
     const [loading, setLoading] = useState(false)
     const [showCategoryDetail, setShowCategoryDetail] = useState(false)
+    const { siteFrontId } = useParams()
 
     const authState = useAuthedUserStore()
     const navigate = useNavigate()
@@ -135,7 +136,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                 <span className="whitespace-nowrap">{category.name}</span>
               ) : (
                 <Link
-                  to={'/categories/' + category.frontId}
+                  to={`/${siteFrontId}/categories/${category.frontId}`}
                   className="whitespace-nowrap"
                 >
                   {category.name}

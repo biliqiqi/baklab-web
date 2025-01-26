@@ -127,7 +127,6 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
     defaultValues: {
       content: '',
     },
-    disabled,
   })
 
   /* const isReplyToRoot = () => replyToArticle && replyToArticle.replyToId == '0' */
@@ -450,6 +449,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
                       display: isPreview || !markdownMode ? 'none' : '',
                     }}
                     onFocus={onTextareaFocus}
+                    disabled={disabled}
                   />
 
                   <TipTap
@@ -465,6 +465,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
                     onChange={field.onChange}
                     value={escapeHtml(field.value)}
                     hideBubble={markdownMode}
+                    disabled={disabled}
                   />
                 </>
               </FormControl>

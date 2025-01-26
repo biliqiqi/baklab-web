@@ -32,6 +32,7 @@ import {
 } from '@/types/types'
 
 import BIconColorChar from './base/BIconColorChar'
+import BSiteIcon from './base/BSiteIcon'
 import { BIconTriangleDown } from './icon/TriangleDown'
 import { BIconTriangleUp } from './icon/TriangleUp'
 import { Button } from './ui/button'
@@ -269,15 +270,14 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                   {article.category.name}
                 </Link>
               ) : (
-                <Link to={`/${article.siteFrontId}`}>
-                  <BIconColorChar
-                    iconId={article.siteFrontId}
-                    char={article.site.name}
+                <Link to={`/${article.siteFrontId}`} className="leading-3 mx-1">
+                  <BSiteIcon
+                    logoUrl={article.site.logoUrl}
+                    name={article.site.name}
                     size={20}
                     fontSize={12}
-                    className="align-[-5px] mx-1"
+                    showSiteName
                   />
-                  {article.site.name}
                 </Link>
               )}
               &nbsp;·&nbsp;

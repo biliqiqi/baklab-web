@@ -19,7 +19,11 @@ import {
 import { getArticle } from './api/article'
 import { toSync } from './lib/fire-and-forget'
 import { bus } from './lib/utils'
-import { useAuthedUserStore, useNotFoundStore } from './state/global'
+import {
+  useAuthedUserStore,
+  useForceUpdate,
+  useNotFoundStore,
+} from './state/global'
 import {
   Article,
   ArticleListSort,
@@ -58,6 +62,7 @@ export default function ArticlePage() {
   const { updateNotFound } = useNotFoundStore()
 
   const authStore = useAuthedUserStore()
+  const { forceState } = useForceUpdate()
 
   const sort = (params.get('sort') as ArticleListSort | null) || 'oldest'
 
@@ -197,7 +202,7 @@ export default function ArticlePage() {
     if (initialized) {
       fetchArticleSync(false)
     }
-  }, [params, initialized])
+  }, [params, initialized, forceState])
 
   return (
     <>

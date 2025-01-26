@@ -30,6 +30,7 @@ import {
   useAuthedUserStore,
   useCategoryStore,
   useDialogStore,
+  useForceUpdate,
   useNotFoundStore,
   useSidebarStore,
   useSiteStore,
@@ -101,6 +102,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const [regEmail, setRegEmail] = useState('')
     /* const [loading, setLoading] = useState(false) */
     const { categories: cateList, updateCategories } = useCategoryStore()
+    const { forceState, forceUpdate } = useForceUpdate()
 
     const [showCategoryForm, setShowCategoryForm] = useState(false)
     const [showSiteForm, setShowSiteForm] = useState(false)
@@ -301,6 +303,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       const resp = await getCategoryList({ siteFrontId })
       if (!resp.code && resp.data) {
         updateCategories([...resp.data])
+        forceUpdate()
       }
     }, [siteFrontId])
 
@@ -376,7 +379,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
      * console.log('articleId', articleId) */
 
     return (
-      <>
+      <div key={`container_${forceState}`}>
         <div
           className="bg-gray-300 border-b-[1px] border-gray-300 shadow-inner transition-all opacity-0 h-0 overflow-hidden"
           style={
@@ -743,7 +746,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </>
+      </div>
     )
   }
 )

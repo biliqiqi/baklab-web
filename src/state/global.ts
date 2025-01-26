@@ -440,3 +440,15 @@ useSiteStore.subscribe(
     updateCurrRole()
   }
 )
+
+export interface ForceUpdateState {
+  forceState: number
+  forceUpdate: () => void
+}
+
+export const useForceUpdate = create<ForceUpdateState>((set) => ({
+  forceState: 0,
+  forceUpdate() {
+    set((state) => ({ ...state, forceState: state.forceState + 1 }))
+  },
+}))

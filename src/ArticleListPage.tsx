@@ -20,7 +20,7 @@ import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 import { getArticleList } from './api/article'
 import { toSync } from './lib/fire-and-forget'
 import { extractDomain, genArticlePath, renderMD } from './lib/utils'
-import { isLogined, useAuthedUserStore } from './state/global'
+import { isLogined, useAuthedUserStore, useForceUpdate } from './state/global'
 import {
   Article,
   ArticleListSort,
@@ -41,6 +41,8 @@ export default function ArticleListPage() {
     total: 0,
     totalPage: 0,
   })
+
+  const { forceState } = useForceUpdate()
 
   const authStore = useAuthedUserStore()
   /* const isMyself = useCallback(
@@ -155,11 +157,11 @@ export default function ArticleListPage() {
     [authStore, submitPath, navigate]
   )
 
-  /* console.log('siteFrontId: ', siteFrontId) */
+  /* console.log('article list siteFrontId: ', siteFrontId) */
 
   useEffect(() => {
     fetchArticles()
-  }, [params, siteFrontId, categoryFrontId])
+  }, [params, siteFrontId, categoryFrontId, forceState])
 
   return (
     <BContainer category={pageState.category} loading={loading}>

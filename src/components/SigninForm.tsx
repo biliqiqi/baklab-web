@@ -142,6 +142,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
         const { token, userID, username, user } = data.data
         updateAuthState(token, username, userID, user)
         fetchSiteData()
+        toSync(siteStore.fetchSiteList)()
         /* console.log('is inner url: ', isInnerURL(returnURL)) */
 
         if (onSuccess && typeof onSuccess == 'function') {

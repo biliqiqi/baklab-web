@@ -171,14 +171,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         if (!siteFrontId) return
 
         try {
-          const { code, data } = await getSiteWithFrontId(siteFrontId)
-          if (!code) {
-            siteStore.update({ ...data })
-          } else {
-            siteStore.update(null)
-          }
-        } catch (err) {
-          console.error('fetch site data error: ', err)
+          await siteStore.fetchSiteData(siteFrontId)
+        } catch (_err) {
           navigate('/')
         }
       }, [siteFrontId, category, navigate])
@@ -187,17 +181,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const fetchSiteList = toSync(
       useCallback(async () => {
         if (!authStore.isLogined()) return
-
-        try {
-          const { code, data } = await getSiteList(authStore.userID)
-          if (!code && data.list) {
-            /* siteStore.update({ ...data }) */
-            siteStore.updateState({ siteList: [...data.list] })
-          }
-        } catch (err) {
-          console.error('fetch site data error: ', err)
-          navigate('/')
-        }
+        await siteStore.fetchSiteList()
       }, [authStore])
     )
 

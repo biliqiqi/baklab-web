@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 
 import { getNotificationUnreadCount } from '@/api/message'
+import { getSiteList, getSiteWithFrontId } from '@/api/site'
 import { PermitFn } from '@/constants/types'
 import { Category, Role, Site, UserData } from '@/types/types'
 
@@ -419,16 +420,43 @@ export interface SiteState {
   siteList?: Site[] | null
   update: (s: Site | null) => void
   updateState: (s: Pick<SiteState, 'site' | 'siteList'>) => void
+  fetchSiteData: (siteFrontId: string) => Promise<void>
+  fetchSiteList: () => Promise<void>
 }
 
 export const useSiteStore = create(
-  subscribeWithSelector<SiteState>((set) => ({
+  subscribeWithSelector<SiteState>((set, get) => ({
     site: null,
     update(s) {
       set(() => ({ site: s }))
     },
     updateState(newState) {
       set((state) => ({ ...state, ...newState }))
+    },
+    fetchSiteData: async (frontId) => {
+      try {
+        const siteStore = get()
+        const { code, data } = await getSiteWithFrontId(frontId)
+        if (!code) {
+          siteStore.update({ ...data })
+        } else {
+          siteStore.update(null)
+        }
+      } catch (err) {
+        console.error('fetch site data error: ', err)
+      }
+    },
+    fetchSiteList: async () => {
+      try {
+        const siteStore = get()
+        const authStore = useAuthedUserStore.getState()
+        const { code, data } = await getSiteList(authStore.userID)
+        if (!code && data.list) {
+          siteStore.updateState({ siteList: [...data.list] })
+        }
+      } catch (err) {
+        console.error('fetch site data error: ', err)
+      }
     },
   }))
 )

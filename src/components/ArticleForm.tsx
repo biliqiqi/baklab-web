@@ -114,7 +114,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
 
   const cateMap: CategoryMap = useMemo(() => {
     return cateList.reduce((obj: CategoryMap, item) => {
-      obj[item.frontId] = item.name
+      obj[item.id] = item.name
       return obj
     }, {})
   }, [cateList])
@@ -144,15 +144,17 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
         : {
             title: article.title,
             link: article.link,
-            category: article.categoryFrontId,
+            category: article.categoryId,
             content: article.content,
           }
       : {
           title: '',
           link: '',
-          category: searchParams.get('category') || '',
+          category: searchParams.get('category_id') || '',
           content: '',
         }
+
+  /* console.log('default form data: ', defaultArticleData) */
 
   const form = useForm<ArticleScheme>({
     resolver: isReply ? zodResolver(contentScheme) : zodResolver(articleScheme),
@@ -344,7 +346,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                               {categoryVal()
                                 ? '发布到【' +
                                   cateList.find(
-                                    (cate) => cate.frontId === categoryVal()
+                                    (cate) => cate.id === categoryVal()
                                   )?.name +
                                   '】'
                                 : '发布到...'}
@@ -363,8 +365,8 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                                 <CommandGroup>
                                   {cateList.map((cate) => (
                                     <CommandItem
-                                      key={cate.frontId}
-                                      value={cate.frontId}
+                                      key={cate.id}
+                                      value={cate.id}
                                       onSelect={(currentValue) => {
                                         form.setValue(
                                           'category',

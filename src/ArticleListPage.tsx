@@ -18,6 +18,7 @@ import { ListPagination } from './components/ListPagination'
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 
 import { getArticleList } from './api/article'
+import { getCategoryList, getCategoryWithFrontId } from './api/category'
 import { toSync } from './lib/fire-and-forget'
 import { extractDomain, genArticlePath, renderMD } from './lib/utils'
 import { isLogined, useAuthedUserStore, useForceUpdate } from './state/global'
@@ -25,6 +26,7 @@ import {
   Article,
   ArticleListSort,
   ArticleListState,
+  Category,
   FrontCategory,
 } from './types/types'
 
@@ -33,6 +35,7 @@ import {
 export default function ArticleListPage() {
   const [loading, setLoading] = useState(false)
   const [showSummary, setShowSummary] = useState(false)
+  const [currCate, setCurrCate] = useState<Category | null>(null)
 
   const [list, updateList] = useState<Article[]>([])
   const [pageState, setPageState] = useState<ArticleListState>({
@@ -60,10 +63,10 @@ export default function ArticleListPage() {
 
   const submitPath = useMemo(
     () =>
-      categoryFrontId
-        ? `/${siteFrontId}/submit?category=` + categoryFrontId
+      currCate
+        ? `/${siteFrontId}/submit?category_id=` + currCate.id
         : `/${siteFrontId}/submit`,
-    [categoryFrontId, siteFrontId]
+    [currCate, siteFrontId]
   )
 
   const fetchArticles = toSync(
@@ -157,9 +160,29 @@ export default function ArticleListPage() {
     [authStore, submitPath, navigate]
   )
 
+  const fetchCategory = toSync(
+    useCallback(async () => {
+      if (!categoryFrontId) return
+
+      const { code, data } = await getCategoryWithFrontId(categoryFrontId, {
+        siteFrontId,
+      })
+
+      if (!code) {
+        setCurrCate({ ...data })
+      } else {
+        setCurrCate(null)
+      }
+    }, [categoryFrontId])
+  )
+
   /* console.log('article list siteFrontId: ', siteFrontId) */
 
   useEffect(() => {
+    if (categoryFrontId) {
+      fetchCategory()
+    }
+
     fetchArticles()
   }, [params, siteFrontId, categoryFrontId, forceState])
 
@@ -178,7 +201,7 @@ export default function ArticleListPage() {
           )}
         </div>
         <div>
-          {siteFrontId && (
+          {siteFrontId && authStore.permit('article', 'create') && (
             <Button variant="outline" size="sm" asChild onClick={onSubmitClick}>
               <Link to={submitPath}>+ 提交</Link>
             </Button>

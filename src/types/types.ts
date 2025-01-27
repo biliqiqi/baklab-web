@@ -94,6 +94,7 @@ export interface Article {
   participateCount: number
   currUserState: CurrUserState
   showScore: boolean
+  categoryId: string
   categoryFrontId: string
   category: Category
   siteFrontId: string

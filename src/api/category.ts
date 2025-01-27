@@ -11,6 +11,12 @@ import {
 export const getCategoryList = async (custom?: CustomRequestOptions) =>
   authRequest.get<ResponseData<Category[] | null>>(`categories`, {}, custom)
 
+export const getCategoryWithFrontId = async (
+  frontId: string,
+  custom?: CustomRequestOptions
+) =>
+  authRequest.get<ResponseData<Category>>(`categories/${frontId}`, {}, custom)
+
 export const submitCategory = async (
   frontID: string,
   name: string,

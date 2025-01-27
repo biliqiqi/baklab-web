@@ -85,6 +85,7 @@ export const defaultArticle: Article = {
   participateCount: 0,
   currUserState: { ...defaultCurrState },
   showScore: false,
+  categoryId: '0',
   categoryFrontId: '',
   category: { ...defaultCategory },
   locked: false,

@@ -191,10 +191,12 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const fetchCateList = toSync(
       useCallback(async () => {
         if (!siteFrontId) return
-        const data = await api.getCategoryList({ siteFrontId: siteFrontId })
-        if (!data.code && data.data) {
-          setCateList([...data.data])
-        } else {
+        try {
+          const data = await api.getCategoryList({ siteFrontId: siteFrontId })
+          if (!data.code && data.data) {
+            setCateList([...data.data])
+          }
+        } catch (_err) {
           setCateList([])
         }
       }, [siteFrontId])
@@ -398,7 +400,14 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                   </Link>
                 ))}
             </div>
-            <div>
+            <div className="inline-flex items-center">
+              <Link to={`/`} className="h-full mr-2 leading-3 rounded-full">
+                <BSiteIcon
+                  logoUrl={`https://static.biliqiqi.net/FESP9bIgGLe8NJPCw4uO1soNI9GfSL66`}
+                  name={SITE_NAME}
+                  size={40}
+                />
+              </Link>
               <Button
                 variant="secondary"
                 className="mr-2 rounded-full w-[40px] h-[40px] text-[24px] text-center text-gray-500"
@@ -439,7 +448,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 >
                   <Link
                     className="font-bold text-2xl text-pink-900 leading-3"
-                    to={siteFrontId ? `/${siteFrontId}` : `/`}
+                    to={siteFrontId && siteStore.site ? `/${siteFrontId}` : `/`}
                   >
                     {siteFrontId && siteStore.site ? (
                       <BSiteIcon
@@ -450,7 +459,13 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                         showSiteName
                       />
                     ) : (
-                      '全平台'
+                      <BSiteIcon
+                        className="mr-2"
+                        logoUrl={`https://static.biliqiqi.net/FESP9bIgGLe8NJPCw4uO1soNI9GfSL66`}
+                        name={SITE_NAME}
+                        size={42}
+                        showSiteName
+                      />
                     )}
                   </Link>
                 </div>

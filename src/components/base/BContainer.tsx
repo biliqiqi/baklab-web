@@ -398,7 +398,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                   </Link>
                 ))}
             </div>
-            <div className="border-l-[2px] border-gray-400 pl-2">
+            <div>
               <Button
                 variant="secondary"
                 className="mr-2 rounded-full w-[40px] h-[40px] text-[24px] text-center text-gray-500"

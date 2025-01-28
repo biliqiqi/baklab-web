@@ -56,7 +56,7 @@ const BCropper = ({
   }
 
   const onCropComplete = (area: Area, areaPixels: Area) => {
-    console.log(area, areaPixels)
+    /* console.log(area, areaPixels) */
     setCropperArea(() => ({ ...area }))
     setCropperAreaPixels(() => ({ ...areaPixels }))
   }

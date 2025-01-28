@@ -63,10 +63,10 @@ export default function ArticleListPage() {
 
   const submitPath = useMemo(
     () =>
-      currCate
+      categoryFrontId && currCate
         ? `/${siteFrontId}/submit?category_id=` + currCate.id
         : `/${siteFrontId}/submit`,
-    [currCate, siteFrontId]
+    [currCate, siteFrontId, categoryFrontId]
   )
 
   const fetchArticles = toSync(

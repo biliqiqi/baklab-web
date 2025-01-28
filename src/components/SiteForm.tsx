@@ -111,6 +111,9 @@ const SiteForm: React.FC<SiteFormProps> = ({
     defaultValues: {
       ...(isEdit
         ? {
+            logoUrl: site.logoUrl,
+            visible: site.visible,
+            nonMemberInteract: site.allowNonMemberInteract,
             name: site.name,
             keywords: site.keywords,
             description: site.description,

@@ -35,12 +35,14 @@ const BSiteIcon: React.FC<BSiteIconProps> = ({
   }, [logoUrl])
 
   return (
-    <span className="inline-flex items-center align-middle" title={name}>
+    <span
+      className={cn('inline-flex items-center align-middle', className)}
+      title={name}
+    >
       <span
         className={cn(
-          `inline-flex flex-grow-0 items-center justify-center rounded-full overflow-hidden bg-slate-300 text-center text-base leading-3`,
-          border && `border-primary border-2`,
-          className
+          `inline-flex flex-shrink-0 flex-grow-0 items-center justify-center rounded-full overflow-hidden bg-slate-300 text-center text-base leading-3`,
+          border && `border-primary border-2`
         )}
         style={{
           width: `${size}px`,
@@ -56,8 +58,8 @@ const BSiteIcon: React.FC<BSiteIconProps> = ({
       </span>
       {showSiteName && (
         <span
-          className="inline-block ml-1 flex-shrink-0"
-          style={{ fontSize: `${fontSize}px` }}
+          className="inline-block ml-1 whitespace-nowrap overflow-hidden text-ellipsis"
+          style={{ fontSize: `${fontSize}px`, lineHeight: 1.2 }}
         >
           {name}
         </span>

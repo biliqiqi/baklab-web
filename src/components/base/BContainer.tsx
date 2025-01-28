@@ -1,5 +1,8 @@
+import { DropdownMenu } from '@radix-ui/react-dropdown-menu'
 import {
   ActivityIcon,
+  EllipsisVerticalIcon,
+  LockIcon,
   PackageIcon,
   PencilIcon,
   PlusIcon,
@@ -63,6 +66,11 @@ import {
   DialogTitle,
 } from '../ui/dialog'
 import {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu'
+import {
   SIDEBAR_COOKIE_NAME,
   Sidebar,
   SidebarContent,
@@ -106,6 +114,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     const [showCategoryForm, setShowCategoryForm] = useState(false)
     const [showSiteForm, setShowSiteForm] = useState(false)
+    const [showSiteDetail, setShowSiteDetail] = useState(false)
+
     const navigate = useNavigate()
 
     const { open: showTopDrawer, update: setShowTopDrawer } =
@@ -136,6 +146,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const alertDialog = useAlertDialogStore()
     const siteStore = useSiteStore()
     const authStore = useAuthedUserStore()
+
+    const currSite = useMemo(() => siteStore.site, [siteStore])
 
     const {
       type: alertType,
@@ -301,7 +313,16 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           siteList: data.list,
         })
       }
-    }, [authStore, siteStore])
+
+      await Promise.all([
+        siteStore.fetchSiteList(),
+        (async () => {
+          if (!siteFrontId) return
+          await siteStore.fetchSiteData(siteFrontId)
+        })(),
+      ])
+      forceUpdate()
+    }, [authStore, siteStore, siteFrontId])
 
     const onCreateCategoryClick = (ev: MouseEvent<HTMLButtonElement>) => {
       ev.preventDefault()
@@ -323,6 +344,19 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       })
       setShowCategoryForm(true)
     }
+
+    const onEditSiteClick = useCallback(
+      (ev: MouseEvent<HTMLDivElement>) => {
+        ev.preventDefault()
+        if (!currSite) return
+        setEditSite({
+          editting: true,
+          data: currSite,
+        })
+        setShowSiteForm(true)
+      },
+      [siteStore]
+    )
 
     useEffect(() => {
       if (isMobile) {
@@ -441,33 +475,78 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             <Sidebar className="relative max-h-full" gap={false}>
               <SidebarContent>
                 <div
-                  className="flex items-center border-b-2 px-2 py-1"
+                  className="flex justify-between items-center border-b-2 px-2 py-1"
                   style={{
                     minHeight: `${NAV_HEIGHT}px`,
                   }}
                 >
-                  <Link
-                    className="font-bold text-2xl text-pink-900 leading-3"
-                    to={siteFrontId && siteStore.site ? `/${siteFrontId}` : `/`}
-                  >
-                    {siteFrontId && siteStore.site ? (
-                      <BSiteIcon
-                        className="mr-2"
-                        logoUrl={siteStore.site.logoUrl}
-                        name={siteStore.site.name}
-                        size={42}
-                        showSiteName
-                      />
-                    ) : (
-                      <BSiteIcon
-                        className="mr-2"
-                        logoUrl={`https://static.biliqiqi.net/FESP9bIgGLe8NJPCw4uO1soNI9GfSL66`}
-                        name={SITE_NAME}
-                        size={42}
-                        showSiteName
-                      />
+                  <div className="flex-shrink-0">
+                    <Link
+                      className="font-bold text-2xl text-pink-900 leading-3"
+                      to={
+                        siteFrontId && siteStore.site ? `/${siteFrontId}` : `/`
+                      }
+                    >
+                      {siteFrontId && siteStore.site ? (
+                        <BSiteIcon
+                          className="max-w-[180px]"
+                          logoUrl={siteStore.site.logoUrl}
+                          name={siteStore.site.name}
+                          size={42}
+                          showSiteName
+                        />
+                      ) : (
+                        <BSiteIcon
+                          className="max-w-[180px]"
+                          logoUrl={`https://static.biliqiqi.net/FESP9bIgGLe8NJPCw4uO1soNI9GfSL66`}
+                          name={SITE_NAME}
+                          size={42}
+                          showSiteName
+                        />
+                      )}
+                    </Link>
+                    {currSite && !currSite.visible && (
+                      <span
+                        className="inline-block text-gray-500 ml-1"
+                        title={'私有站点'}
+                      >
+                        <LockIcon size={14} />
+                      </span>
                     )}
-                  </Link>
+                  </div>
+                  {currSite && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-[36px] w-[36px] p-0 text-gray-500"
+                        >
+                          <EllipsisVerticalIcon size={20} />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        className="px-0"
+                        align="end"
+                        sideOffset={6}
+                      >
+                        {authStore.permit('site', 'manage') && (
+                          <DropdownMenuItem
+                            className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                            onClick={onEditSiteClick}
+                          >
+                            站点设置
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem
+                          className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                          onClick={() => setShowSiteDetail(true)}
+                        >
+                          关于
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
                 <SidebarGroup>
                   <SidebarGroupContent>
@@ -745,6 +824,27 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <Dialog open={showSiteDetail} onOpenChange={setShowSiteDetail}>
+          <DialogContent>
+            {currSite && (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="font-bold">
+                    关于{currSite.name}{' '}
+                  </DialogTitle>
+                  <DialogDescription></DialogDescription>
+                </DialogHeader>
+                <div>{currSite.description}</div>
+                <div className="mt-2 font-bold">规则</div>
+                <div>
+                  <div>1. 规则一</div>
+                  <div>2. 规则二</div>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     )
   }

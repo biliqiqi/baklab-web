@@ -479,6 +479,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 onClick={() => {
                   setShowSiteForm(true)
                 }}
+                title="创建站点"
               >
                 +
               </Button>

@@ -273,7 +273,9 @@ export default function ArticleListPage() {
         )}
       </div>
 
-      {pageState.totalPage > 1 && <ListPagination pageState={pageState} />}
+      {pageState.totalPage > 1 && (
+        <ListPagination pageState={pageState} autoScrollTop />
+      )}
     </BContainer>
   )
 }

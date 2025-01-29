@@ -1,10 +1,4 @@
-import {
-  BellIcon,
-  BookmarkCheckIcon,
-  BookmarkIcon,
-  MessageSquare,
-  QrCode,
-} from 'lucide-react'
+import { BellIcon, BookmarkIcon, MessageSquare, QrCode } from 'lucide-react'
 import {
   HTMLAttributes,
   MouseEvent,
@@ -27,7 +21,6 @@ import {
   ArticleAction,
   ArticleCardType,
   SUBSCRIBE_ACTION,
-  SubscribeAction,
   VoteType,
 } from '@/types/types'
 

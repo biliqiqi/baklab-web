@@ -13,7 +13,7 @@ import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { timeAgo } from '@/lib/dayjs-custom'
-import { cn, renderMD } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { submitArticle, updateArticle, updateReply } from '@/api/article'

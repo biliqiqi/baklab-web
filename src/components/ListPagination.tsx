@@ -18,10 +18,12 @@ import {
 
 export interface ListPaginationProps {
   pageState: ListPageState
+  autoScrollTop?: boolean
 }
 
 export const ListPagination: React.FC<ListPaginationProps> = ({
   pageState,
+  autoScrollTop = false,
 }) => {
   const [params, setParams] = useSearchParams()
 
@@ -49,11 +51,13 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
   )
 
   useEffect(() => {
-    setTimeout(() => {
-      window.scrollTo({
-        top: 0,
-      })
-    }, 200)
+    if (autoScrollTop) {
+      setTimeout(() => {
+        window.scrollTo({
+          top: 0,
+        })
+      }, 200)
+    }
   }, [params])
 
   return (

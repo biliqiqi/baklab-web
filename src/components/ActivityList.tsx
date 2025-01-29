@@ -1,14 +1,8 @@
-import { ReactElement } from 'react'
 import { Link } from 'react-router-dom'
 
 import { timeAgo } from '@/lib/dayjs-custom'
 
-import {
-  Activity,
-  ActivityActionType,
-  ActivityTargetModel,
-  ListPageState,
-} from '@/types/types'
+import { Activity, ActivityActionType, ListPageState } from '@/types/types'
 
 import { Empty } from './Empty'
 import { ListPagination } from './ListPagination'
@@ -52,6 +46,8 @@ const ActivityTargetLink = ({ activity: item }: ActivityActionTextProps) => {
           to={`/${item.details.siteFrontId}/categories/${item.targetId}`}
         >{`/${item.details.siteFrontId}/categories/${item.targetId}`}</Link>
       )
+    case 'site':
+      return <Link to={`/${item.targetId}`}>{`/${item.targetId}`}</Link>
     default:
       return null
   }
@@ -62,7 +58,7 @@ const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
     <>
       <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
       {item.actionText} {item.details && <ActivityTargetLink activity={item} />}
-      于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+      &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
     </>
   )
 }

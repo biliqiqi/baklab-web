@@ -254,7 +254,10 @@ const SiteForm: React.FC<SiteFormProps> = ({
           />
           <div className="pl-4 flex-grow max-w-[calc(100%-82px)] overflow-hidden">
             <div className="text-sm text-gray-500 h-5">
-              {'/' + (isEdit ? site.frontId : formVals.frontID.toLowerCase())}
+              {'/' +
+                (isEdit
+                  ? site.frontId
+                  : (formVals.frontID || '').toLowerCase())}
             </div>
             <div className="h-6">{formVals.name}</div>
             <div className="text-sm text-gray-500 h-6 overflow-hidden text-ellipsis">

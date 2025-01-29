@@ -26,7 +26,12 @@ import { cn, getCookie } from '@/lib/utils'
 import api from '@/api'
 import { getCategoryList } from '@/api/category'
 import { getSiteList, getSiteWithFrontId } from '@/api/site'
-import { DOCK_HEIGHT, NAV_HEIGHT, SITE_NAME } from '@/constants/constants'
+import {
+  DOCK_HEIGHT,
+  NAV_HEIGHT,
+  SITE_LOGO_IMAGE,
+  SITE_NAME,
+} from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
   useAlertDialogStore,
@@ -207,6 +212,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           const data = await api.getCategoryList({ siteFrontId: siteFrontId })
           if (!data.code && data.data) {
             setCateList([...data.data])
+          } else {
+            setCateList([])
           }
         } catch (_err) {
           setCateList([])
@@ -272,10 +279,17 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       } else {
         setShowCategoryForm(false)
       }
+
+      setTimeout(() => {
+        setEditCategory(() => ({
+          editting: false,
+          data: undefined,
+        }))
+      }, 500)
     }, [categoryFormDirty, editCategory])
 
     const onSiteFormClose = useCallback(async () => {
-      if (categoryFormDirty) {
+      if (siteFormDirty) {
         const { editting } = editSite
         const confirmed = await alertDialog.confirm(
           '确认',
@@ -294,6 +308,13 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       } else {
         setShowSiteForm(false)
       }
+
+      setTimeout(() => {
+        setEditSite(() => ({
+          editting: false,
+          data: undefined,
+        }))
+      }, 500)
     }, [siteFormDirty, editSite])
 
     const onCategoryCreated = useCallback(async () => {
@@ -326,10 +347,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     const onCreateCategoryClick = (ev: MouseEvent<HTMLButtonElement>) => {
       ev.preventDefault()
-      setEditCategory({
-        editting: false,
-        data: undefined,
-      })
       setShowCategoryForm(true)
     }
 
@@ -435,9 +452,15 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 ))}
             </div>
             <div className="inline-flex items-center">
-              <Link to={`/`} className="h-full mr-2 leading-3 rounded-full">
+              <Link
+                to={`/`}
+                className={cn(
+                  'h-full mr-2 leading-3 rounded-full',
+                  !siteFrontId && 'border-2 border-primary'
+                )}
+              >
                 <BSiteIcon
-                  logoUrl={`https://static.biliqiqi.net/FESP9bIgGLe8NJPCw4uO1soNI9GfSL66`}
+                  logoUrl={SITE_LOGO_IMAGE}
                   name={SITE_NAME}
                   size={40}
                 />
@@ -498,7 +521,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                       ) : (
                         <BSiteIcon
                           className="max-w-[180px]"
-                          logoUrl={`https://static.biliqiqi.net/FESP9bIgGLe8NJPCw4uO1soNI9GfSL66`}
+                          logoUrl={SITE_LOGO_IMAGE}
                           name={SITE_NAME}
                           size={42}
                           showSiteName

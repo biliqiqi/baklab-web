@@ -434,8 +434,8 @@ export const useSiteStore = create(
       set((state) => ({ ...state, ...newState }))
     },
     fetchSiteData: async (frontId) => {
+      const siteStore = get()
       try {
-        const siteStore = get()
         const { code, data } = await getSiteWithFrontId(frontId)
         if (!code) {
           siteStore.update({ ...data })
@@ -443,6 +443,7 @@ export const useSiteStore = create(
           siteStore.update(null)
         }
       } catch (err) {
+        siteStore.update(null)
         console.error('fetch site data error: ', err)
       }
     },

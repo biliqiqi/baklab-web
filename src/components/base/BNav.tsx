@@ -13,13 +13,14 @@ import { toast } from 'sonner'
 import { cn, summryText } from '@/lib/utils'
 
 import { logoutToken } from '@/api'
-import { NAV_HEIGHT } from '@/constants/constants'
+import { NAV_HEIGHT, SITE_LOGO_IMAGE, SITE_NAME } from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
   isLogined,
   useAuthedUserStore,
   useDialogStore,
   useNotificationStore,
+  useSiteStore,
 } from '@/state/global'
 import { FrontCategory } from '@/types/types'
 
@@ -35,6 +36,7 @@ import {
 } from '../ui/dropdown-menu'
 import { useSidebar } from '../ui/sidebar'
 import BAvatar from './BAvatar'
+import BSiteIcon from './BSiteIcon'
 
 export interface NavProps extends React.HTMLAttributes<HTMLDivElement> {
   category?: FrontCategory
@@ -59,6 +61,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
 
     const { updateSignin } = useDialogStore()
     const notiStore = useNotificationStore()
+    const siteStore = useSiteStore()
 
     const onDropdownChange = (open: boolean) => {
       if (!open) {
@@ -121,13 +124,47 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
           }}
         >
           {goBack && history.length > 2 ? (
-            <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-              <ChevronLeftIcon size={28} />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(-1)}
+              className="w-[36px] h-[36px] p-0 rounded-full mr-2"
+            >
+              <ChevronLeftIcon size={20} />
             </Button>
           ) : (
-            <Button variant="ghost" size="sm" onClick={onMenuClick}>
-              <MenuIcon size={28} />
-            </Button>
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onMenuClick}
+                className="w-[36px] h-[36px] p-0 rounded-full mr-2"
+              >
+                <MenuIcon size={20} />
+              </Button>
+              {sidebar.state == 'collapsed' && (
+                <Link
+                  className="font-bold text-2xl text-pink-900 leading-3 mr-2"
+                  to={siteFrontId && siteStore.site ? `/${siteFrontId}` : `/`}
+                >
+                  {siteFrontId && siteStore.site ? (
+                    <BSiteIcon
+                      className="max-w-[180px]"
+                      logoUrl={siteStore.site.logoUrl}
+                      name={siteStore.site.name}
+                      size={42}
+                    />
+                  ) : (
+                    <BSiteIcon
+                      className="max-w-[180px]"
+                      logoUrl={SITE_LOGO_IMAGE}
+                      name={SITE_NAME}
+                      size={42}
+                    />
+                  )}
+                </Link>
+              )}
+            </>
           )}
 
           {!!category && (

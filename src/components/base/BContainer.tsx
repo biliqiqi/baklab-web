@@ -439,14 +439,18 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     to={`/${site.frontId}`}
                     key={site.frontId}
                     className={cn(
-                      'h-full mr-2 leading-3 rounded-full',
-                      siteFrontId == site.frontId && 'border-2 border-primary'
+                      'flex justify-center h-full w-[60px] overflow-hidden flex-shrink-0 flex-grow-0 mr-2 leading-3'
                     )}
                   >
                     <BSiteIcon
                       logoUrl={site.logoUrl}
                       name={site.name}
                       size={40}
+                      fontSize={14}
+                      showSiteName
+                      active={siteFrontId == site.frontId}
+                      vertical
+                      className="w-full"
                     />
                   </Link>
                 ))}
@@ -455,14 +459,17 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               <Link
                 to={`/`}
                 className={cn(
-                  'h-full mr-2 leading-3 rounded-full',
-                  !siteFrontId && 'border-2 border-primary'
+                  'flex justify-center h-full w-[60px] overflow-hidden flex-shrink-0 flex-grow-0 mr-2 leading-3'
                 )}
               >
                 <BSiteIcon
                   logoUrl={SITE_LOGO_IMAGE}
                   name={SITE_NAME}
                   size={40}
+                  showSiteName
+                  active={!siteFrontId}
+                  className="w-full"
+                  vertical
                 />
               </Link>
               <Button

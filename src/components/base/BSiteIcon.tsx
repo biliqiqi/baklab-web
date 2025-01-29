@@ -9,6 +9,8 @@ export interface BSiteIconProps extends React.HTMLAttributes<HTMLSpanElement> {
   fontSize?: number
   showSiteName?: boolean
   border?: boolean
+  vertical?: boolean
+  active?: boolean
 }
 
 const BSiteIcon: React.FC<BSiteIconProps> = ({
@@ -19,6 +21,8 @@ const BSiteIcon: React.FC<BSiteIconProps> = ({
   className,
   showSiteName = false,
   border = false,
+  vertical = false,
+  active = false,
   ...props
 }) => {
   const [imgComplete, setImgComplete] = useState(false)
@@ -36,13 +40,18 @@ const BSiteIcon: React.FC<BSiteIconProps> = ({
 
   return (
     <span
-      className={cn('inline-flex items-center align-middle', className)}
+      className={cn(
+        'inline-flex items-center align-middle',
+        className,
+        vertical && `flex-col`
+      )}
       title={name}
     >
       <span
         className={cn(
           `inline-flex flex-shrink-0 flex-grow-0 items-center justify-center rounded-full overflow-hidden bg-slate-300 text-center text-base leading-3`,
-          border && `border-primary border-2`
+          (border || active) && `border-primary border-2`,
+          vertical && `mb-1`
         )}
         style={{
           width: `${size}px`,
@@ -58,7 +67,11 @@ const BSiteIcon: React.FC<BSiteIconProps> = ({
       </span>
       {showSiteName && (
         <span
-          className="inline-block ml-1 whitespace-nowrap overflow-hidden text-ellipsis"
+          className={cn(
+            'inline-block whitespace-nowrap overflow-hidden text-ellipsis',
+            vertical ? 'w-full text-center' : 'ml-1',
+            active && 'border-b-2 border-primary'
+          )}
           style={{ fontSize: `${fontSize}px`, lineHeight: 1.2 }}
         >
           {name}

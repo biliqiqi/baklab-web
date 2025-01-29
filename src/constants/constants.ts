@@ -20,4 +20,4 @@ export const DEFAULT_PAGE_SIZE = 20
 export const URL_PATTERN =
   /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g
 
-export const DOCK_HEIGHT = 60
+export const DOCK_HEIGHT = 80

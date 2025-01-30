@@ -116,6 +116,7 @@ const activityTabMap: ActivityTabMap = {
 const roleEditScheme = z.object({
   roleId: z.string().min(1, '请选择角色'),
   remark: z.string(),
+  roleName: z.string(),
 })
 
 type RoleEditScheme = z.infer<typeof roleEditScheme>
@@ -123,6 +124,7 @@ type RoleEditScheme = z.infer<typeof roleEditScheme>
 const defaultRoleEditData: RoleEditScheme = {
   roleId: '',
   remark: '',
+  roleName: '',
 }
 
 interface ArticleListProps {
@@ -244,6 +246,9 @@ export default function UserPage() {
           if (!resp.code) {
             /* console.log('user data: ', resp.data) */
             setUser(resp.data)
+            form.setValue('roleId', resp.data.role.id)
+            form.setValue('roleName', resp.data.role.name)
+            setSelectedRole(resp.data.role)
           }
         } catch (err) {
           console.error('fetch user data error:', err)
@@ -251,7 +256,7 @@ export default function UserPage() {
           setLoading(false)
         }
       },
-      [username]
+      [username, form]
     )
   )
 
@@ -377,13 +382,11 @@ export default function UserPage() {
   }
 
   const onUpdateRole = useCallback(
-    async ({ roleId, remark }: RoleEditScheme) => {
+    async ({ roleId, remark, roleName }: RoleEditScheme) => {
       try {
         if (!username) return
 
-        console.log('role front id: ', roleId)
-
-        const resp = await setUserRole(username, roleId, remark)
+        const resp = await setUserRole(username, roleId, remark, roleName)
         if (!resp.code) {
           /* const {data} */
           form.reset({ ...defaultRoleEditData })
@@ -664,6 +667,7 @@ export default function UserPage() {
                           value={field.value}
                           onChange={(role) => {
                             field.onChange(role?.id || '')
+                            form.setValue('roleName', role?.name || '')
                             setSelectedRole(role || null)
                           }}
                         />

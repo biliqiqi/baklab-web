@@ -56,7 +56,8 @@ export const getUserList = (
 export const setUserRole = (
   username: string,
   roleId: string,
-  remark?: string
+  remark?: string,
+  roleName?: string
 ) =>
   authRequest.patch<ResponseData<UserSubmitResponse>>(
     `users/${username}/set_role`,
@@ -64,6 +65,7 @@ export const setUserRole = (
       json: {
         roleId,
         remark: remark || '',
+        roleName,
       },
     }
   )

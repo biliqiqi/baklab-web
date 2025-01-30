@@ -54,13 +54,30 @@ const ActivityTargetLink = ({ activity: item }: ActivityActionTextProps) => {
 }
 
 const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
-  return (
-    <>
-      <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
-      {item.actionText} {item.details && <ActivityTargetLink activity={item} />}
-      &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
-    </>
-  )
+  switch (item.action) {
+    case 'set_role':
+      return (
+        <>
+          <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
+          设置用户&nbsp;
+          {item.details && <ActivityTargetLink activity={item} />}
+          &nbsp;角色为&nbsp;
+          <span className="inline-block border-[1px] border-gray-500 rounded-sm px-1">
+            {item.details.roleName}
+          </span>
+          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+        </>
+      )
+    default:
+      return (
+        <>
+          <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
+          {item.actionText}{' '}
+          {item.details && <ActivityTargetLink activity={item} />}
+          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+        </>
+      )
+  }
 }
 
 export const ActivityList: React.FC<ActivityListProps> = ({
@@ -105,9 +122,12 @@ export const ActivityList: React.FC<ActivityListProps> = ({
               <div className="flex-shrink-0 w-[80px]">
                 <b>其他数据：</b>
               </div>
-              <pre className="flex-grow align-top py-1 whitespace-break-spaces">
-                {JSON.stringify(item.details, null, '  ')}
-              </pre>
+              <details>
+                <summary>查看</summary>
+                <pre className="flex-grow align-top py-1 whitespace-break-spaces">
+                  {JSON.stringify(item.details, null, '  ')}
+                </pre>
+              </details>
             </div>
           </div>
         </Card>

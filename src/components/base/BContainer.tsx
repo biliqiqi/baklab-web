@@ -1,6 +1,7 @@
 import { DropdownMenu } from '@radix-ui/react-dropdown-menu'
 import {
   ActivityIcon,
+  ChartBarStackedIcon,
   EllipsisVerticalIcon,
   LockIcon,
   PackageIcon,
@@ -18,7 +19,13 @@ import React, {
   useMemo,
   useState,
 } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import {
+  Link,
+  useLocation,
+  useMatch,
+  useNavigate,
+  useParams,
+} from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
 import { cn, getCookie } from '@/lib/utils'
@@ -173,6 +180,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       () => ['/', `/${siteFrontId}`].includes(location.pathname),
       [location, siteFrontId]
     )
+
+    const categoryListMatch = useMatch(`/${siteFrontId}/categories`)
 
     if (isFeedPage) {
       category = {
@@ -411,10 +420,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       setShowTopDrawer(showDock)
     }, [])
 
-    /* console.log('siteFrontId', siteFrontId)
-     * console.log('categoryFrontId', categoryFrontId)
-     * console.log('articleId', articleId) */
-
     return (
       <div key={`container_${forceState}`}>
         <div
@@ -466,23 +471,29 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                   logoUrl={SITE_LOGO_IMAGE}
                   name={SITE_NAME}
                   size={40}
+                  fontSize={14}
                   showSiteName
                   active={!siteFrontId}
                   className="w-full"
                   vertical
                 />
               </Link>
-              <Button
-                variant="secondary"
-                className="mr-2 rounded-full w-[40px] h-[40px] text-[24px] text-center text-gray-500"
-                key="new-site"
-                onClick={() => {
-                  setShowSiteForm(true)
-                }}
-                title="创建站点"
-              >
-                +
-              </Button>
+              {authStore.isLogined() && authStore.permit('site', 'create') && (
+                <span className="inline-flex flex-col items-center align-middle">
+                  <Button
+                    variant="secondary"
+                    className="rounded-full w-[40px] h-[40px] text-[24px] text-center text-gray-500 mb-1"
+                    key="new-site"
+                    onClick={() => {
+                      setShowSiteForm(true)
+                    }}
+                    title="创建站点"
+                  >
+                    +
+                  </Button>
+                  <span className="text-[14px] leading-[1.2]">创建站点</span>
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -592,6 +603,21 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
+                      {siteFrontId && siteStore.site && (
+                        <SidebarMenuItem key="categories">
+                          <SidebarMenuButton
+                            asChild
+                            isActive={categoryListMatch != null}
+                          >
+                            <Link to={`/${siteFrontId}/categories`}>
+                              <BIconCircle id="categories" size={32}>
+                                <ChartBarStackedIcon size={18} />
+                              </BIconCircle>
+                              分类
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      )}
                     </SidebarMenu>
                   </SidebarGroupContent>
                 </SidebarGroup>

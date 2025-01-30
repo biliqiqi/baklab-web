@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
 import { noop, summryText } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
@@ -217,6 +218,10 @@ const SiteForm: React.FC<SiteFormProps> = ({
   const onCropSuccess = useCallback(
     async (imgData: string) => {
       try {
+        if (!authStore.isLogined()) {
+          toast.error('请认证或登录后再试')
+          return
+        }
         setUploading(true)
         const resp = await uploadFileBase64(imgData)
         if (!resp) return

@@ -16,6 +16,7 @@ import ActivityPage from './ActivityPage.tsx'
 import ArticleListPage from './ArticleListPage.tsx'
 import ArticlePage from './ArticlePage.tsx'
 import BannedUserListPage from './BannedUserListPage.tsx'
+import CategoryListPage from './CategoryListPage.tsx'
 import EditPage from './EditPage.tsx'
 import MessagePage from './MessagePage.tsx'
 import NotFoundPage from './NotFoundPage.tsx'
@@ -89,43 +90,43 @@ const routes: RouteObject[] = [
     path: '/:siteFrontId',
     Component: ArticleListPage,
     children: [
-      {
-        path: 'manage',
-        loader: needPermission('manage', 'access'),
-        children: [
-          {
-            path: '',
-            loader: () => redirect('/manage/activities'),
-          },
-          {
-            path: 'activities',
-            Component: ActivityPage,
-            loader: needPermission('activity', 'access'),
-          },
-          {
-            path: 'trash',
-            Component: TrashPage,
-          },
-          {
-            path: 'users',
-            Component: UserListPage,
-            loader: needPermission('user', 'manage'),
-          },
-          {
-            path: 'blocklist',
-          },
-          {
-            path: 'roles',
-            Component: RoleManagePage,
-            loader: needPermission('role', 'access'),
-          },
-        ],
-      },
-      {
-        // TODO 分类列表
-        path: 'categories',
-      },
+      /* {
+       *   path: 'manage',
+       *   loader: needPermission('manage', 'access'),
+       *   children: [
+       *     {
+       *       path: '',
+       *       loader: () => redirect('/manage/activities'),
+       *     },
+       *     {
+       *       path: 'activities',
+       *       Component: ActivityPage,
+       *       loader: needPermission('activity', 'access'),
+       *     },
+       *     {
+       *       path: 'trash',
+       *       Component: TrashPage,
+       *     },
+       *     {
+       *       path: 'users',
+       *       Component: UserListPage,
+       *       loader: needPermission('user', 'manage'),
+       *     },
+       *     {
+       *       path: 'blocklist',
+       *     },
+       *     {
+       *       path: 'roles',
+       *       Component: RoleManagePage,
+       *       loader: needPermission('role', 'access'),
+       *     },
+       *   ],
+       * }, */
     ],
+  },
+  {
+    path: '/:siteFrontId/categories',
+    Component: CategoryListPage,
   },
   {
     path: '/:siteFrontId/submit',

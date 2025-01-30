@@ -21,6 +21,7 @@ import React, {
 } from 'react'
 import {
   Link,
+  redirect,
   useLocation,
   useMatch,
   useNavigate,
@@ -51,6 +52,7 @@ import {
   useSiteStore,
   useTopDrawerStore,
 } from '@/state/global'
+import { useRoutesStore } from '@/state/routes'
 import { Category, FrontCategory, Site } from '@/types/types'
 
 import CategoryForm from '../CategoryForm'
@@ -121,14 +123,12 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
   ({ children, category, goBack = false, loading = false, ...props }, ref) => {
     const [regEmail, setRegEmail] = useState('')
     /* const [loading, setLoading] = useState(false) */
-    const { categories: cateList, updateCategories } = useCategoryStore()
+    const { categories: cateList, fetchCategoryList } = useCategoryStore()
     const { forceState, forceUpdate } = useForceUpdate()
 
     const [showCategoryForm, setShowCategoryForm] = useState(false)
     const [showSiteForm, setShowSiteForm] = useState(false)
     const [showSiteDetail, setShowSiteDetail] = useState(false)
-
-    const navigate = useNavigate()
 
     const { open: showTopDrawer, update: setShowTopDrawer } =
       useTopDrawerStore()
@@ -157,6 +157,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     const alertDialog = useAlertDialogStore()
     const siteStore = useSiteStore()
+    const cateStore = useCategoryStore()
     const authStore = useAuthedUserStore()
 
     const currSite = useMemo(() => siteStore.site, [siteStore])
@@ -177,7 +178,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     const location = useLocation()
     const isFeedPage = useMemo(
-      () => ['/', `/${siteFrontId}`].includes(location.pathname),
+      () => ['/', `/${siteFrontId}/feed`].includes(location.pathname),
       [location, siteFrontId]
     )
 
@@ -192,42 +193,11 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       }
     }
 
-    const fetchSiteData = toSync(
-      useCallback(async () => {
-        if (!siteFrontId) return
-
-        try {
-          await siteStore.fetchSiteData(siteFrontId)
-        } catch (_err) {
-          navigate('/')
-        }
-      }, [siteFrontId, category, navigate])
-    )
-
     const fetchSiteList = toSync(
       useCallback(async () => {
         if (!authStore.isLogined()) return
         await siteStore.fetchSiteList()
       }, [authStore])
-    )
-
-    const { updateCategories: setCateList } = useCategoryStore()
-    /* console.log('render app!') */
-
-    const fetchCateList = toSync(
-      useCallback(async () => {
-        if (!siteFrontId) return
-        try {
-          const data = await api.getCategoryList({ siteFrontId: siteFrontId })
-          if (!data.code && data.data) {
-            setCateList([...data.data])
-          } else {
-            setCateList([])
-          }
-        } catch (_err) {
-          setCateList([])
-        }
-      }, [siteFrontId])
     )
 
     const onAlertDialogCancel = useCallback(() => {
@@ -260,13 +230,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       setShowTopDrawer(!showTopDrawer)
       document.cookie = `top_drawer:state=${String(!showTopDrawer)};path=/`
     }, [showTopDrawer, setShowTopDrawer])
-
-    /* const onSidebarChange = useCallback(
-     *   (open: boolean) => {
-     *     sidebarStore.setOpen(open)
-     *   },
-     *   [sidebarStore]
-     * ) */
 
     const onCategoryFormClose = useCallback(async () => {
       if (categoryFormDirty) {
@@ -328,11 +291,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     const onCategoryCreated = useCallback(async () => {
       setShowCategoryForm(false)
-      const resp = await getCategoryList({ siteFrontId })
-      if (!resp.code && resp.data) {
-        updateCategories([...resp.data])
-        forceUpdate()
-      }
+      if (!siteFrontId) return
+      await fetchCategoryList(siteFrontId)
     }, [siteFrontId])
 
     const onSiteCreated = useCallback(async () => {
@@ -340,6 +300,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       const { code, data } = await getSiteList(authStore.userID)
       if (!code && data.list) {
         siteStore.updateState({
+          ...siteStore,
           siteList: data.list,
         })
       }
@@ -407,10 +368,15 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     useEffect(() => {
       if (siteFrontId) {
-        fetchSiteData()
-        fetchCateList()
+        toSync(async () => {
+          return Promise.all([
+            siteStore.fetchSiteData(siteFrontId),
+            cateStore.fetchCategoryList(siteFrontId),
+          ])
+        })()
       } else {
         siteStore.update(null)
+        cateStore.updateCategories([])
       }
     }, [siteFrontId])
 
@@ -595,7 +561,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     <SidebarMenu>
                       <SidebarMenuItem key="feed">
                         <SidebarMenuButton asChild isActive={isFeedPage}>
-                          <Link to={siteFrontId ? `/${siteFrontId}` : `/`}>
+                          <Link to={siteFrontId ? `/${siteFrontId}/feed` : `/`}>
                             <BIconCircle id="feed" size={32}>
                               <PackageIcon size={18} />
                             </BIconCircle>

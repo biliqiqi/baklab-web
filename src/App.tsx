@@ -1,220 +1,23 @@
 import { Router } from '@remix-run/router'
 import { useCallback, useEffect, useState } from 'react'
-import {
-  RouteObject,
-  RouterProvider,
-  createBrowserRouter,
-  redirect,
-  replace,
-} from 'react-router-dom'
+import { RouterProvider, createBrowserRouter } from 'react-router-dom'
+import { useShallow } from 'zustand/react/shallow'
 
 import { Toaster } from './components/ui/sonner.tsx'
 
 import BLoader from './components/base/BLoader.tsx'
 
-import ActivityPage from './ActivityPage.tsx'
-import ArticleListPage from './ArticleListPage.tsx'
-import ArticlePage from './ArticlePage.tsx'
-import BannedUserListPage from './BannedUserListPage.tsx'
-import CategoryListPage from './CategoryListPage.tsx'
-import EditPage from './EditPage.tsx'
-import MessagePage from './MessagePage.tsx'
-import NotFoundPage from './NotFoundPage.tsx'
-import RoleManagePage from './RoleManagePage.tsx'
-import SigninPage from './SigninPage.tsx'
-import SignupPage from './SignupPage.tsx'
-import SubmitPage from './SubmitPage.tsx'
-import TrashPage from './TrashPage.tsx'
-import UserListPage from './UserListPage.tsx'
-import UserPage from './UserPage.tsx'
 import { API_HOST, API_PATH_PREFIX } from './constants/constants.ts'
-import { PermissionAction, PermissionModule } from './constants/types.ts'
 import { useAuth } from './hooks/use-auth.ts'
 import { toSync } from './lib/fire-and-forget.ts'
 import { refreshAuthState } from './lib/request.ts'
 import { noop } from './lib/utils.ts'
 import {
-  isLogined,
   useAuthedUserStore,
   useNotificationStore,
   useToastStore,
 } from './state/global.ts'
-
-const notAtAuthed = () => {
-  const data = useAuthedUserStore.getState()
-  const authed = !!data && isLogined(data)
-  if (authed) return redirect('/')
-  return null
-}
-
-const redirectToSignin = (returnUrl?: string) => {
-  if (location.pathname == '/signin' || !returnUrl) {
-    return replace(location.href.replace(location.origin, ''))
-  } else {
-    return redirect(`/signin?return=${encodeURIComponent(returnUrl)}`)
-  }
-}
-
-const mustAuthed = ({ request }: { request: Request }) => {
-  const data = useAuthedUserStore.getState()
-  const authed = !!data && isLogined(data)
-
-  if (!authed) {
-    return redirectToSignin(request.url)
-  }
-  return null
-}
-
-const needPermission =
-  <T extends PermissionModule>(module: T, action: PermissionAction<T>) =>
-  ({ request }: { request: Request }) => {
-    const authState = useAuthedUserStore.getState()
-
-    if (!authState.isLogined()) {
-      return redirectToSignin(request.url)
-    }
-
-    if (!authState.permit(module, action)) {
-      return redirect('/')
-    }
-
-    return null
-  }
-
-const routes: RouteObject[] = [
-  {
-    path: '/',
-    Component: ArticleListPage,
-  },
-  {
-    path: '/:siteFrontId',
-    Component: ArticleListPage,
-    children: [
-      /* {
-       *   path: 'manage',
-       *   loader: needPermission('manage', 'access'),
-       *   children: [
-       *     {
-       *       path: '',
-       *       loader: () => redirect('/manage/activities'),
-       *     },
-       *     {
-       *       path: 'activities',
-       *       Component: ActivityPage,
-       *       loader: needPermission('activity', 'access'),
-       *     },
-       *     {
-       *       path: 'trash',
-       *       Component: TrashPage,
-       *     },
-       *     {
-       *       path: 'users',
-       *       Component: UserListPage,
-       *       loader: needPermission('user', 'manage'),
-       *     },
-       *     {
-       *       path: 'blocklist',
-       *     },
-       *     {
-       *       path: 'roles',
-       *       Component: RoleManagePage,
-       *       loader: needPermission('role', 'access'),
-       *     },
-       *   ],
-       * }, */
-    ],
-  },
-  {
-    path: '/:siteFrontId/categories',
-    Component: CategoryListPage,
-  },
-  {
-    path: '/:siteFrontId/submit',
-    Component: SubmitPage,
-    loader: mustAuthed,
-  },
-  {
-    path: '/:siteFrontId/categories/:categoryFrontId',
-    Component: ArticleListPage,
-  },
-  {
-    path: '/:siteFrontId/articles/:articleId',
-    Component: ArticlePage,
-  },
-  {
-    path: '/:siteFrontId/articles/:articleId/edit',
-    Component: EditPage,
-  },
-  {
-    path: '/signup',
-    Component: SignupPage,
-    loader: notAtAuthed,
-  },
-  {
-    path: '/signin',
-    Component: SigninPage,
-    loader: notAtAuthed,
-  },
-  {
-    path: '/users/:username',
-    Component: UserPage,
-  },
-  {
-    path: '/u/:username',
-    Component: UserPage,
-  },
-  {
-    path: '/messages',
-    Component: MessagePage,
-    loader: mustAuthed,
-  },
-  {
-    path: '/manage',
-    loader: needPermission('manage', 'access'),
-    children: [
-      {
-        // TODO 站点列表
-        path: 'sites',
-      },
-      {
-        // TODO 分类列表
-        path: 'categories',
-      },
-      {
-        path: '',
-        loader: () => redirect('/manage/activities'),
-      },
-      {
-        path: 'activities',
-        Component: ActivityPage,
-        loader: needPermission('activity', 'access'),
-      },
-      {
-        path: 'trash',
-        Component: TrashPage,
-      },
-      {
-        path: 'users',
-        Component: UserListPage,
-        loader: needPermission('user', 'manage'),
-      },
-      {
-        path: 'banned_users',
-        Component: BannedUserListPage,
-        loader: needPermission('user', 'manage'),
-      },
-      {
-        path: 'roles',
-        Component: RoleManagePage,
-        loader: needPermission('role', 'access'),
-      },
-    ],
-  },
-  {
-    path: '*',
-    Component: NotFoundPage,
-  },
-]
+import { useRoutesStore } from './state/routes.ts'
 
 const fetchNotiCount = toSync(async () => {
   const notiState = useNotificationStore.getState()
@@ -285,26 +88,7 @@ const App = () => {
   const authed = useAuth()
 
   const refreshTokenSync = toSync(useCallback(refreshAuthState, [authStore]))
-
-  /* const refreshCurrUser = toSync(
-   *   useCallback(async () => {
-   *     try {
-   *       console.log('authStore: ', authStore)
-   *       if (authStore.isLogined() && authStore.username != '') {
-   *         const resp = await getUser(authStore.username)
-   *         if (!resp.code) {
-   *           const { data } = resp
-   *           authStore.updateObj((state) => ({
-   *             ...state,
-   *             role: data.roleFrontId as Role,
-   *           }))
-   *         }
-   *       }
-   *     } catch (err) {
-   *       console.error('refresh curent user error: ', err)
-   *     }
-   *   }, [authStore])
-   * ) */
+  const routes = useRoutesStore(useShallow((state) => state.routes))
 
   useEffect(() => {
     const eventSource = connectEvents()
@@ -325,8 +109,8 @@ const App = () => {
     if (!authed) {
       updateToastState(true)
       toSync(refreshAuthState, noop, () => {
-        setInitialized(true)
         setRouter(createBrowserRouter(routes))
+        setInitialized(true)
         setTimeout(() => {
           updateToastState(false)
         }, 0)
@@ -336,6 +120,13 @@ const App = () => {
       fetchNotiCount()
     }
   }, [authed])
+
+  useEffect(() => {
+    /* console.log('routes: ', routes) */
+    if (authed) {
+      setRouter(createBrowserRouter(routes))
+    }
+  }, [authed, routes])
 
   {/* prettier-ignore */}
   return (

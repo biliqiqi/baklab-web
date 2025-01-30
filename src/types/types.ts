@@ -434,6 +434,7 @@ export interface Site {
   currUserRole: Role | null
   currUserState: SiteUserState
   allowNonMemberInteract: boolean
+  homePage: string
 }
 
 export interface SiteListResponse extends ListPageState {

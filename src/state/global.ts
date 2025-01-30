@@ -1,10 +1,14 @@
+import { redirect, replace } from 'react-router-dom'
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 
+import { getCategoryList } from '@/api/category'
 import { getNotificationUnreadCount } from '@/api/message'
 import { getSiteList, getSiteWithFrontId } from '@/api/site'
 import { PermitFn } from '@/constants/types'
 import { Category, Role, Site, UserData } from '@/types/types'
+
+import { useRoutesStore } from './routes'
 
 export interface ToastState {
   silence: boolean
@@ -383,12 +387,28 @@ export const useSidebarStore = create<SidebarState>((set) => ({
 export interface CategoryState {
   categories: Category[]
   updateCategories: (x: Category[]) => void
+  fetchCategoryList: (siteFrontId: string) => Promise<Category[]>
 }
 
 export const useCategoryStore = create<CategoryState>((set) => ({
   categories: [],
   updateCategories(x) {
     set(() => ({ categories: [...x] }))
+  },
+  fetchCategoryList: async (siteFrontId) => {
+    try {
+      const { code, data } = await getCategoryList({ siteFrontId: siteFrontId })
+      if (!code && data) {
+        set(() => ({ categories: [...data] }))
+        return data
+      } else {
+        set(() => ({ categories: [] }))
+        return []
+      }
+    } catch (_err) {
+      set(() => ({ categories: [] }))
+      return []
+    }
   },
 }))
 
@@ -418,15 +438,18 @@ export const useNotificationStore = create<NotificationState>((set) => ({
 export interface SiteState {
   site?: Site | null
   siteList?: Site[] | null
+  homePage: string
   update: (s: Site | null) => void
-  updateState: (s: Pick<SiteState, 'site' | 'siteList'>) => void
-  fetchSiteData: (siteFrontId: string) => Promise<void>
+  updateState: (s: Pick<SiteState, 'site' | 'siteList' | 'homePage'>) => void
+  fetchSiteData: (siteFrontId: string) => Promise<Site | null>
   fetchSiteList: () => Promise<void>
 }
 
 export const useSiteStore = create(
   subscribeWithSelector<SiteState>((set, get) => ({
     site: null,
+    siteList: null,
+    homePage: '/',
     update(s) {
       set(() => ({ site: s }))
     },
@@ -438,14 +461,24 @@ export const useSiteStore = create(
       try {
         const { code, data } = await getSiteWithFrontId(frontId)
         if (!code) {
-          siteStore.update({ ...data })
+          siteStore.update({
+            ...data,
+          })
+          siteStore.updateState({
+            homePage: `/${data.frontId}${data.homePage}`,
+          })
+          return data
         } else {
           siteStore.update(null)
+          siteStore.updateState({ homePage: `/` })
+          return null
         }
       } catch (err) {
         siteStore.update(null)
+        siteStore.updateState({ homePage: `/` })
         console.error('fetch site data error: ', err)
       }
+      return null
     },
     fetchSiteList: async () => {
       try {
@@ -453,7 +486,7 @@ export const useSiteStore = create(
         const authStore = useAuthedUserStore.getState()
         const { code, data } = await getSiteList(authStore.userID)
         if (!code && data.list) {
-          siteStore.updateState({ siteList: [...data.list] })
+          siteStore.updateState({ ...siteStore, siteList: [...data.list] })
         }
       } catch (err) {
         console.error('fetch site data error: ', err)
@@ -464,8 +497,7 @@ export const useSiteStore = create(
 
 useSiteStore.subscribe(
   (state) => state.site,
-  () => {
-    // console.log('site data changed')
+  (_site) => {
     updateCurrRole()
   }
 )

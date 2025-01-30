@@ -170,11 +170,13 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
           {!!category && (
             <>
               {category.isFront ? (
-                <span className="whitespace-nowrap">{category.name}</span>
+                <span className="flex-shrink-1 text-ellipsis overflow-hidden whitespace-nowrap">
+                  {category.name}
+                </span>
               ) : (
                 <Link
                   to={`/${siteFrontId}/categories/${category.frontId}`}
-                  className="whitespace-nowrap"
+                  className="flex-shrink-1 text-ellipsis overflow-hidden whitespace-nowrap"
                 >
                   {category.name}
                 </Link>

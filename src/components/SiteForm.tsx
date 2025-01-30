@@ -60,6 +60,7 @@ const siteScheme = z.object({
   logoUrl: z.string().min(1, '请设置 LOGO'),
   nonMemberInteract: z.boolean(),
   visible: z.boolean(),
+  homePage: z.string(),
 })
 
 const siteEditScheme = z.object({
@@ -69,6 +70,7 @@ const siteEditScheme = z.object({
   logoUrl: z.string().min(1, '请设置 LOGO'),
   nonMemberInteract: z.boolean(),
   visible: z.boolean(),
+  homePage: z.string(),
 })
 
 type SiteScheme = z.infer<typeof siteScheme>
@@ -88,6 +90,7 @@ const defaultSiteData: SiteScheme = {
   logoUrl: '',
   visible: true,
   nonMemberInteract: true,
+  homePage: '/',
 }
 
 const SiteForm: React.FC<SiteFormProps> = ({
@@ -118,6 +121,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
             name: site.name,
             keywords: site.keywords,
             description: site.description,
+            homePage: site.homePage,
           }
         : defaultSiteData),
     },
@@ -135,6 +139,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
       logoUrl,
       visible,
       nonMemberInteract,
+      homePage,
     }: SiteScheme) => {
       /* console.log('site vals: ', frontID) */
       try {
@@ -148,7 +153,8 @@ const SiteForm: React.FC<SiteFormProps> = ({
             keywords,
             visible,
             nonMemberInteract,
-            logoUrl
+            logoUrl,
+            homePage
           )
         } else {
           const exists = await checkSiteExists(frontID)
@@ -244,6 +250,8 @@ const SiteForm: React.FC<SiteFormProps> = ({
   useEffect(() => {
     onChange(form.formState.isDirty)
   }, [form, formVals])
+
+  /* console.log('curr site: ', site) */
 
   return (
     <Form {...form}>
@@ -372,6 +380,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
             key="frontID"
             render={({ field, fieldState }) => (
               <FormItem className="mb-8">
+                <FormLabel>标识</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="请输入站点标识"
@@ -391,6 +400,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
           key="name"
           render={({ field, fieldState }) => (
             <FormItem className="mb-8">
+              <FormLabel>名称</FormLabel>
               <FormControl>
                 <Input
                   placeholder="请输入站点名称"
@@ -403,12 +413,68 @@ const SiteForm: React.FC<SiteFormProps> = ({
             </FormItem>
           )}
         />
+        {isEdit && (
+          <FormField
+            control={form.control}
+            name="homePage"
+            key="homePage"
+            render={({ field }) => (
+              <FormItem className="mb-8">
+                <FormLabel>首页</FormLabel>
+                <FormDescription>从以下页面中选择一个作为首页</FormDescription>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={(val) => {
+                      form.setValue('homePage', val)
+                    }}
+                    defaultValue="/feed"
+                    className="flex flex-wrap"
+                    value={field.value == '/' ? '/feed' : field.value}
+                  >
+                    <FormItem
+                      className="flex items-center space-y-0 mr-4 mb-4"
+                      key="feed"
+                    >
+                      <FormControl>
+                        <RadioGroupItem value="/feed" className="mr-1" />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        信息流 (&nbsp;
+                        <span className="text-sm text-gray-500">
+                          {`/${site.frontId}/feed`}
+                        </span>
+                        &nbsp;)
+                      </FormLabel>
+                    </FormItem>
+                    <FormItem
+                      className="flex items-center space-y-0 mr-4 mb-4"
+                      key="categories"
+                    >
+                      <FormControl>
+                        <RadioGroupItem value="/categories" className="mr-1" />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        分类 (&nbsp;
+                        <span className="text-sm text-gray-500">
+                          {`/${site.frontId}/categories`}
+                        </span>
+                        &nbsp;)
+                      </FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <FormField
           control={form.control}
           name="keywords"
           key="keywords"
           render={({ field, fieldState }) => (
             <FormItem className="mb-8">
+              <FormLabel>关键词</FormLabel>
               <FormControl>
                 <Input
                   placeholder="请输入站点关键字词，用逗号 ( , ) 隔开"
@@ -429,6 +495,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
             <FormItem className="mb-8">
               <FormControl>
                 <FormItem className="mb-8">
+                  <FormLabel>描述</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="请输入站点描述"

@@ -37,7 +37,8 @@ export const updateSite = (
   keywords: string,
   visible: boolean,
   nonMemberInteract: boolean,
-  logoUrl: string
+  logoUrl: string,
+  homePage: string
 ) =>
   authRequest.patch<ResponseData<ResponseID>>(`sites/${frontId}`, {
     json: {
@@ -47,6 +48,7 @@ export const updateSite = (
       visible,
       nonMemberInteract,
       logoUrl,
+      homePage,
     },
   })
 

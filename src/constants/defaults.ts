@@ -30,6 +30,7 @@ export const defaultSite: Site = {
     isMember: false,
   },
   allowNonMemberInteract: false,
+  homePage: '/',
 }
 
 export const defaultCategory: Category = {

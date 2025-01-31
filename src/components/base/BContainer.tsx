@@ -3,6 +3,7 @@ import {
   ActivityIcon,
   ChartBarStackedIcon,
   EllipsisVerticalIcon,
+  GlobeIcon,
   LockIcon,
   PackageIcon,
   PencilIcon,
@@ -19,22 +20,14 @@ import React, {
   useMemo,
   useState,
 } from 'react'
-import {
-  Link,
-  redirect,
-  useLocation,
-  useMatch,
-  useNavigate,
-  useParams,
-} from 'react-router-dom'
+import { Link, useLocation, useMatch, useParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
-import { cn, getCookie } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 
-import api from '@/api'
-import { getCategoryList } from '@/api/category'
-import { getSiteList, getSiteWithFrontId } from '@/api/site'
+import { getSiteList } from '@/api/site'
 import {
+  DEFAULT_PAGE_SIZE,
   DOCK_HEIGHT,
   NAV_HEIGHT,
   SITE_LOGO_IMAGE,
@@ -52,8 +45,7 @@ import {
   useSiteStore,
   useTopDrawerStore,
 } from '@/state/global'
-import { useRoutesStore } from '@/state/routes'
-import { Category, FrontCategory, Site } from '@/types/types'
+import { Category, FrontCategory, SITE_VISIBLE, Site } from '@/types/types'
 
 import CategoryForm from '../CategoryForm'
 import NotFound from '../NotFound'
@@ -85,7 +77,6 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 import {
-  SIDEBAR_COOKIE_NAME,
   Sidebar,
   SidebarContent,
   SidebarGroup,
@@ -291,7 +282,14 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     const onSiteCreated = useCallback(async () => {
       setShowSiteForm(false)
-      const { code, data } = await getSiteList(authStore.userID)
+      const { code, data } = await getSiteList(
+        1,
+        DEFAULT_PAGE_SIZE,
+        '',
+        authStore.userID,
+        '',
+        SITE_VISIBLE.All
+      )
       if (!code && data.list) {
         siteStore.updateState({
           ...siteStore,
@@ -575,6 +573,18 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     <SidebarGroupLabel>平台管理</SidebarGroupLabel>
                     <SidebarGroupContent>
                       <SidebarMenu>
+                        {authPermit('site', 'manage_platform') && (
+                          <SidebarMenuItem key="sites">
+                            <SidebarMenuButton asChild>
+                              <Link to="/manage/sites">
+                                <BIconCircle id="sites" size={32}>
+                                  <GlobeIcon size={18} />
+                                </BIconCircle>
+                                站点
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        )}
                         {authPermit('activity', 'manage_platform') && (
                           <SidebarMenuItem key="activities">
                             <SidebarMenuButton asChild>

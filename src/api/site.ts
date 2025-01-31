@@ -7,6 +7,7 @@ import {
   Site,
   SiteListResponse,
   SiteStatus,
+  SiteVisible,
 } from '@/types/types'
 
 export const submitSite = (
@@ -64,11 +65,23 @@ export const setSiteStatus = (frontId: string, status: SiteStatus) =>
   })
 
 export const getSiteList = (
+  page?: number,
+  pageSize?: number,
+  keywords?: string,
   creatorId?: string,
-  visible?: boolean,
-  keywords?: string
+  creatorName?: string,
+  visible?: SiteVisible,
+  deleted?: boolean
 ) => {
   const params = new URLSearchParams()
+  if (page) {
+    params.set('page', String(page))
+  }
+
+  if (pageSize) {
+    params.set('pageSize', String(pageSize))
+  }
+
   if (keywords) {
     params.set('keywords', keywords)
   }
@@ -77,8 +90,16 @@ export const getSiteList = (
     params.set('creatorId', creatorId)
   }
 
+  if (creatorName) {
+    params.set('creatorName', creatorName)
+  }
+
   if (visible) {
     params.set('visible', String(visible))
+  }
+
+  if (deleted != undefined) {
+    params.set('deleted', deleted ? '1' : '0')
   }
 
   return authRequest.get<ResponseData<SiteListResponse>>(`sites`, {

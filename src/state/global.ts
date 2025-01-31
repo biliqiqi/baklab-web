@@ -4,8 +4,9 @@ import { subscribeWithSelector } from 'zustand/middleware'
 import { getCategoryList } from '@/api/category'
 import { getNotificationUnreadCount } from '@/api/message'
 import { getSiteList, getSiteWithFrontId } from '@/api/site'
+import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 import { PermitFn } from '@/constants/types'
-import { Category, Role, Site, UserData } from '@/types/types'
+import { Category, Role, SITE_VISIBLE, Site, UserData } from '@/types/types'
 
 export interface ToastState {
   silence: boolean
@@ -481,7 +482,14 @@ export const useSiteStore = create(
       try {
         const siteStore = get()
         const authStore = useAuthedUserStore.getState()
-        const { code, data } = await getSiteList(authStore.userID)
+        const { code, data } = await getSiteList(
+          1,
+          DEFAULT_PAGE_SIZE,
+          '',
+          authStore.userID,
+          '',
+          SITE_VISIBLE.All
+        )
         if (!code && data.list) {
           siteStore.updateState({ ...siteStore, siteList: [...data.list] })
         }

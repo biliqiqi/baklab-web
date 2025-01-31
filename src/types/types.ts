@@ -411,6 +411,14 @@ export const SITE_STATUS = Object.freeze({
 
 export type SiteStatus = ValuesToUnion<typeof SITE_STATUS>
 
+export const SITE_VISIBLE = Object.freeze({
+  False: 0,
+  True: 1,
+  All: 2,
+} as const)
+
+export type SiteVisible = ValuesToUnion<typeof SITE_STATUS>
+
 export interface SiteUserState {
   isMember: boolean
 }

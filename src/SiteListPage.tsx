@@ -5,14 +5,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import {
-  MouseEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
 import { Badge } from './components/ui/badge'
@@ -29,43 +22,40 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-import BAvatar from './components/base/BAvatar'
 import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
+import BSiteIcon from './components/base/BSiteIcon'
 
-import BanDialog, { BanDialogRef, BanSchema } from './components/BanDialog'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
-import RoleSelector from './components/RoleSelector'
 
-import { banManyUsers, getUserList } from './api/user'
+import { getSiteList } from './api/site'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
-import { useAuthedUserStore } from './state/global'
-import { ListPageState, UserData } from './types/types'
+import { ListPageState, SITE_VISIBLE, Site } from './types/types'
 
 interface SearchFields {
   keywords?: string
-  roleId?: string
+  creatorName?: string
 }
 
 const defaultSearchData: SearchFields = {
   keywords: '',
-  roleId: '',
+  creatorName: '',
 }
 
-export default function UserListPage() {
+export default function SiteListPage() {
   const [loading, setLoading] = useState(false)
-  const [banOpen, setBanOpen] = useState(false)
-
-  const [list, setList] = useState<UserData[]>([])
+  const [list, setList] = useState<Site[]>([])
   const [params, setParams] = useSearchParams()
-  const location = useLocation()
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
-  const banDialogRef = useRef<BanDialogRef | null>(null)
+  const [searchData, setSearchData] = useState<SearchFields>({
+    ...defaultSearchData,
+    keywords: params.get('keywords') || '',
+    creatorName: params.get('creator_name') || '',
+  })
 
-  const authStore = useAuthedUserStore()
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
   const [pageState, setPageState] = useState<ListPageState>({
     currPage: 1,
@@ -74,13 +64,41 @@ export default function UserListPage() {
     totalPage: 0,
   })
 
-  const [searchData, setSearchData] = useState<SearchFields>({
-    ...defaultSearchData,
-    keywords: params.get('keywords') || '',
-    roleId: params.get('role_id') || '',
-  })
+  const location = useLocation()
 
-  const columns: ColumnDef<UserData>[] = [
+  const resetParams = useCallback(() => {
+    setParams((params) => {
+      params.delete('page')
+      params.delete('page_size')
+      params.delete('keywords')
+      params.delete('creator_name')
+      return params
+    })
+  }, [params])
+
+  const onResetClick = useCallback(() => {
+    setSearchData({ ...defaultSearchData })
+    resetParams()
+  }, [params])
+
+  const onSearchClick = useCallback(() => {
+    resetParams()
+    setParams((params) => {
+      const { keywords, creatorName } = searchData
+
+      if (keywords) {
+        params.set('keywords', keywords)
+      }
+
+      if (creatorName) {
+        params.set('creator_name', creatorName)
+      }
+
+      return params
+    })
+  }, [params, searchData])
+
+  const columns: ColumnDef<Site>[] = [
     {
       id: 'select',
       header: ({ table }) => (
@@ -104,25 +122,30 @@ export default function UserListPage() {
     },
     {
       accessorKey: 'name',
-      header: '',
+      header: '站点名称',
       cell: ({ row }) => (
-        <Link to={'/users/' + row.original.name}>
-          <BAvatar username={row.original.name} size={36} showUsername />
+        <Link to={'/' + row.original.frontId}>
+          <BSiteIcon
+            logoUrl={row.original.logoUrl}
+            name={row.original.name}
+            size={36}
+            showSiteName
+          />
         </Link>
       ),
     },
     {
-      accessorKey: 'roleName',
-      header: '角色',
+      accessorKey: 'creatorName',
+      header: '创建人',
+      cell: ({ row }) => (
+        <Link to={'/users/' + row.original.creatorName}>
+          {row.original.creatorName}
+        </Link>
+      ),
     },
     {
-      accessorKey: 'roleLevel',
-      header: '权限级别',
-      cell: ({ row }) => <span>{row.original?.role?.level || '-'}</span>,
-    },
-    {
-      accessorKey: 'registeredAt',
-      header: '加入时间',
+      accessorKey: 'createdAt',
+      header: '创建时间',
       cell: ({ cell }) => (
         <span>{timeFmt(cell.getValue<string>(), 'YYYY-M-D')}</span>
       ),
@@ -130,10 +153,10 @@ export default function UserListPage() {
     {
       accessorKey: 'contorles',
       header: '操作',
-      cell: ({ row }) => (
+      cell: () => (
         <>
           <Button variant="link" asChild size="sm">
-            <Link to={'/users/' + row.original.name}>详细</Link>
+            {/* <Link to={'/users/' + row.original.name}>详细</Link> */}
           </Button>
         </>
       ),
@@ -149,35 +172,11 @@ export default function UserListPage() {
       rowSelection,
     },
     getRowId: (row) => row.name,
-    enableRowSelection: (row) => authStore.levelCompare(row.original.role) < 0,
   })
 
   const selectedRows = table.getSelectedRowModel().rows
 
-  const bannableUsers = useMemo(
-    () => [
-      ...selectedRows
-        .map((item) => item.original)
-        .filter((user) => !user.banned),
-    ],
-    [selectedRows]
-  )
-
-  /* useEffect(() => {
-   *   console.log('selected: ', selectedUsers)
-   * }, [selectedUsers]) */
-
-  const resetParams = useCallback(() => {
-    setParams((params) => {
-      params.delete('page')
-      params.delete('page_size')
-      params.delete('keywords')
-      params.delete('role_id')
-      return params
-    })
-  }, [params])
-
-  const fetchUserList = toSync(
+  const fetchSiteList = toSync(
     useCallback(
       async (showLoading = false) => {
         try {
@@ -187,17 +186,24 @@ export default function UserListPage() {
           const page = Number(params.get('page')) || 1
           const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
           const keywords = params.get('keywords') || ''
-          const roleId = params.get('role_id') || ''
+          const creatorName = params.get('creator_name') || ''
 
-          setSearchData((state) => ({ ...state, keywords, roleId }))
+          setSearchData((state) => ({ ...state, keywords, creatorName }))
 
-          const resp = await getUserList(page, pageSize, keywords, roleId)
+          const resp = await getSiteList(
+            page,
+            pageSize,
+            keywords,
+            '0',
+            creatorName,
+            SITE_VISIBLE.All
+          )
           if (!resp.code) {
             const { data } = resp
             if (data.list) {
               setList([...data.list])
               setPageState({
-                currPage: data.page,
+                currPage: data.currPage,
                 pageSize: data.pageSize,
                 total: data.total,
                 totalPage: data.totalPage,
@@ -223,97 +229,23 @@ export default function UserListPage() {
     )
   )
 
-  const onResetClick = useCallback(() => {
-    setSearchData({ ...defaultSearchData })
-    resetParams()
-  }, [params])
-
-  const onSearchClick = useCallback(() => {
-    resetParams()
-    setParams((params) => {
-      const { keywords, roleId } = searchData
-
-      /* console.log('on search role id: ', roleId) */
-
-      if (keywords) {
-        params.set('keywords', keywords)
-      }
-
-      if (roleId) {
-        params.set('role_id', roleId)
-      }
-
-      return params
-    })
-  }, [params, searchData])
-
-  const onCancelBanAlert = () => {
-    setBanOpen(false)
-    if (banDialogRef.current) {
-      banDialogRef.current.form.reset({ duration: '', reason: '' })
-    }
-  }
-
-  const onBanSubmit = useCallback(
-    async ({ duration, reason }: BanSchema) => {
-      const durationNum = Number(duration)
-      try {
-        const selectedRows = table.getSelectedRowModel().rows
-
-        /* console.log('selecte rows: ', rowSelection) */
-
-        const usernames = [
-          ...selectedRows
-            .filter((item) => !item.original.banned)
-            .map((item) => item.original.name),
-        ]
-
-        /* console.log('duration: ', durationNum)
-         * console.log('reason: ', reason) */
-        /* console.log('usernames: ', usernames) */
-
-        if (usernames.length == 0 || !durationNum) return
-
-        const resp = await banManyUsers(usernames, durationNum, reason)
-
-        if (!resp.code) {
-          setRowSelection({})
-          setBanOpen(false)
-          fetchUserList()
-
-          if (banDialogRef.current) {
-            banDialogRef.current.form.reset({ duration: '', reason: '' })
-          }
-        }
-      } catch (err) {
-        console.error('ban user error: ', err)
-      }
-    },
-    [table, rowSelection]
-  )
-
-  const onBanSelectedClick = (e: MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault()
-    setBanOpen(true)
-  }
-
   useEffect(() => {
-    fetchUserList(true)
+    fetchSiteList(true)
   }, [location])
 
   return (
     <BContainer
       category={{
         isFront: true,
-        frontId: 'users',
-        name: '用户列表',
-        describe: '全部用户',
+        frontId: 'site_list',
+        name: '站点管理',
+        describe: '全部站点',
       }}
     >
       <Card className="flex flex-wrap justify-between p-2">
         <div className="flex flex-wrap">
           <Input
-            placeholder="用户名"
+            placeholder="站点名称"
             className="w-[140px] h-[36px] mr-3"
             value={searchData.keywords}
             onChange={(e) =>
@@ -323,17 +255,16 @@ export default function UserListPage() {
               }))
             }
           />
-          <RoleSelector
-            value={searchData.roleId || ''}
-            placeholder="选择角色"
-            onChange={(role) => {
-              if (role) {
-                setSearchData((state) => ({
-                  ...state,
-                  roleId: role.id,
-                }))
-              }
-            }}
+          <Input
+            placeholder="创建人"
+            className="w-[140px] h-[36px] mr-3"
+            value={searchData.creatorName}
+            onChange={(e) =>
+              setSearchData((state) => ({
+                ...state,
+                creatorName: e.target.value,
+              }))
+            }
           />
         </div>
         <div>
@@ -346,13 +277,14 @@ export default function UserListPage() {
         </div>
       </Card>
       <div className="my-4">
-        <Badge variant="secondary">{pageState.total} 个用户</Badge>
+        <Badge variant="secondary">{pageState.total} 个站点</Badge>
       </div>
       {loading && (
         <div className="flex justify-center">
           <BLoader />
         </div>
       )}
+
       {list.length == 0 ? (
         <Empty />
       ) : (
@@ -413,34 +345,13 @@ export default function UserListPage() {
             <Card className="mt-4 p-2">
               <div className="flex justify-between items-center">
                 <div className="text-sm">
-                  已选中 {selectedRows.length} 个用户
+                  已选中 {selectedRows.length} 个站点
                 </div>
-                <div>
-                  {bannableUsers.length > 0 && (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={onBanSelectedClick}
-                    >
-                      封禁 {bannableUsers.length} 个已选用户
-                    </Button>
-                  )}
-                </div>
+                <div>操作...</div>
               </div>
             </Card>
           )}
         </>
-      )}
-
-      {bannableUsers.length > 0 && (
-        <BanDialog
-          open={banOpen}
-          onOpenChange={setBanOpen}
-          users={bannableUsers}
-          onSubmit={onBanSubmit}
-          onCancel={onCancelBanAlert}
-          ref={banDialogRef}
-        />
       )}
     </BContainer>
   )

@@ -11,6 +11,7 @@ import NotFoundPage from './NotFoundPage.tsx'
 import RoleManagePage from './RoleManagePage.tsx'
 import SigninPage from './SigninPage.tsx'
 import SignupPage from './SignupPage.tsx'
+import SiteListPage from './SiteListPage.tsx'
 import SubmitPage from './SubmitPage.tsx'
 import TrashPage from './TrashPage.tsx'
 import UserListPage from './UserListPage.tsx'
@@ -170,11 +171,12 @@ export const routes: RouteObject[] = [
   },
   {
     path: '/manage',
-    loader: needPermission('manage', 'access'),
+    loader: needPermission('platform_manage', 'access'),
     children: [
       {
-        // TODO 站点列表
         path: 'sites',
+        Component: SiteListPage,
+        loader: needPermission('site', 'manage_platform'),
       },
       {
         // TODO 分类列表
@@ -187,26 +189,27 @@ export const routes: RouteObject[] = [
       {
         path: 'activities',
         Component: ActivityPage,
-        loader: needPermission('activity', 'access'),
+        loader: needPermission('activity', 'manage_platform'),
       },
       {
         path: 'trash',
         Component: TrashPage,
+        loader: needPermission('platform_manage', 'access'),
       },
       {
         path: 'users',
         Component: UserListPage,
-        loader: needPermission('user', 'manage'),
+        loader: needPermission('user', 'manage_platform'),
       },
       {
         path: 'banned_users',
         Component: BannedUserListPage,
-        loader: needPermission('user', 'manage'),
+        loader: needPermission('user', 'manage_platform'),
       },
       {
         path: 'roles',
         Component: RoleManagePage,
-        loader: needPermission('role', 'access'),
+        loader: needPermission('role', 'manage_platform'),
       },
     ],
   },

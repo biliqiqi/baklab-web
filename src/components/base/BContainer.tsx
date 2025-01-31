@@ -151,7 +151,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       data: undefined,
     })
 
-    const { siteFrontId, categoryFrontId, articleId } = useParams()
+    const { siteFrontId } = useParams()
 
     const authPermit = useAuthedUserStore((state) => state.permit)
 
@@ -161,6 +161,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const authStore = useAuthedUserStore()
 
     const currSite = useMemo(() => siteStore.site, [siteStore])
+    const globalSiteFrontId = useMemo(() => currSite?.frontId || '', [currSite])
 
     const {
       type: alertType,
@@ -192,13 +193,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         isFront: true,
       }
     }
-
-    const fetchSiteList = toSync(
-      useCallback(async () => {
-        if (!authStore.isLogined()) return
-        await siteStore.fetchSiteList()
-      }, [authStore])
-    )
 
     const onAlertDialogCancel = useCallback(() => {
       if (alertType == 'confirm') {
@@ -346,14 +340,22 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     )
 
     useEffect(() => {
-      if (isMobile) {
-        setSidebarOpen(false)
-        /* document.cookie = `${SIDEBAR_COOKIE_NAME}=false; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}` */
-      } else {
-        const state = getCookie(SIDEBAR_COOKIE_NAME)
-        setSidebarOpen(state == 'true')
+      /* console.log('globalSiteFrontId: ', globalSiteFrontId) */
+      if (siteFrontId && siteFrontId != globalSiteFrontId) {
+        /* console.log('fetch site data!') */
+        toSync(async () =>
+          Promise.all([
+            siteStore.fetchSiteData(siteFrontId),
+            cateStore.fetchCategoryList(siteFrontId),
+          ])
+        )()
       }
-    }, [isMobile])
+
+      if (!siteFrontId) {
+        siteStore.update(null)
+        cateStore.updateCategories([])
+      }
+    }, [siteFrontId])
 
     useEffect(() => {
       /* console.log('location change, not found: ', showNotFound) */
@@ -365,26 +367,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         }
       }
     }, [location, isMobile])
-
-    useEffect(() => {
-      if (siteFrontId) {
-        toSync(async () => {
-          return Promise.all([
-            siteStore.fetchSiteData(siteFrontId),
-            cateStore.fetchCategoryList(siteFrontId),
-          ])
-        })()
-      } else {
-        siteStore.update(null)
-        cateStore.updateCategories([])
-      }
-    }, [siteFrontId])
-
-    useEffect(() => {
-      fetchSiteList()
-      const showDock = getCookie('top_drawer:state') == 'true'
-      setShowTopDrawer(showDock)
-    }, [])
 
     return (
       <div key={`container_${forceState}`}>

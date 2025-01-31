@@ -3,19 +3,25 @@ import { useCallback, useEffect, useState } from 'react'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
+import { SIDEBAR_COOKIE_NAME } from './components/ui/sidebar.tsx'
 import { Toaster } from './components/ui/sonner.tsx'
 
 import BLoader from './components/base/BLoader.tsx'
 
 import { API_HOST, API_PATH_PREFIX } from './constants/constants.ts'
 import { useAuth } from './hooks/use-auth.ts'
+import { useIsMobile } from './hooks/use-mobile.tsx'
 import { toSync } from './lib/fire-and-forget.ts'
 import { refreshAuthState } from './lib/request.ts'
-import { noop } from './lib/utils.ts'
+import { getCookie, noop } from './lib/utils.ts'
 import {
   useAuthedUserStore,
+  useNotFoundStore,
   useNotificationStore,
+  useSidebarStore,
+  useSiteStore,
   useToastStore,
+  useTopDrawerStore,
 } from './state/global.ts'
 import { useRoutesStore } from './state/routes.ts'
 
@@ -86,6 +92,11 @@ const App = () => {
   const updateToastState = useToastStore((state) => state.update)
   const authStore = useAuthedUserStore()
   const authed = useAuth()
+  const siteStore = useSiteStore()
+
+  const { setOpen: setSidebarOpen } = useSidebarStore()
+  const { update: setShowTopDrawer } = useTopDrawerStore()
+  const isMobile = useIsMobile()
 
   const refreshTokenSync = toSync(useCallback(refreshAuthState, [authStore]))
   const routes = useRoutesStore(useShallow((state) => state.routes))
@@ -118,6 +129,8 @@ const App = () => {
     } else {
       refreshTokenSync(true)
       fetchNotiCount()
+      /* console.log('fetch site list!') */
+      toSync(siteStore.fetchSiteList)()
     }
   }, [authed])
 
@@ -127,6 +140,21 @@ const App = () => {
       setRouter(createBrowserRouter(routes))
     }
   }, [authed, routes])
+
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false)
+      /* document.cookie = `${SIDEBAR_COOKIE_NAME}=false; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}` */
+    } else {
+      const state = getCookie(SIDEBAR_COOKIE_NAME)
+      setSidebarOpen(state == 'true')
+    }
+  }, [isMobile])
+
+  useEffect(() => {
+    const showDock = getCookie('top_drawer:state') == 'true'
+    setShowTopDrawer(showDock)
+  }, [])
 
   {/* prettier-ignore */}
   return (

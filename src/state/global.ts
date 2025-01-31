@@ -1,4 +1,3 @@
-import { redirect, replace } from 'react-router-dom'
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 
@@ -7,8 +6,6 @@ import { getNotificationUnreadCount } from '@/api/message'
 import { getSiteList, getSiteWithFrontId } from '@/api/site'
 import { PermitFn } from '@/constants/types'
 import { Category, Role, Site, UserData } from '@/types/types'
-
-import { useRoutesStore } from './routes'
 
 export interface ToastState {
   silence: boolean
@@ -511,5 +508,17 @@ export const useForceUpdate = create<ForceUpdateState>((set) => ({
   forceState: 0,
   forceUpdate() {
     set((state) => ({ ...state, forceState: state.forceState + 1 }))
+  },
+}))
+
+export interface AppState {
+  initialized: boolean
+  setInitialized: (initialized: boolean) => void
+}
+
+export const useAppState = create<AppState>((set) => ({
+  initialized: false,
+  setInitialized(state) {
+    set(() => ({ initialized: state }))
   },
 }))

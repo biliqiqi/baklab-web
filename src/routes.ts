@@ -71,6 +71,7 @@ export const routes: RouteObject[] = [
       if (!params.siteFrontId) {
         return redirect('/')
       }
+
       const { code, data: site } = await getSiteWithFrontId(params.siteFrontId)
 
       if (code || !site) {

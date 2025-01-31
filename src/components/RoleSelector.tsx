@@ -90,7 +90,7 @@ const RoleSelector = ({
 
   useEffect(() => {
     onChange(selectedRole)
-  }, [selectedRoleId])
+  }, [selectedRoleId, selectedRole])
 
   useEffect(() => {
     /* console.log('value change: ', value) */

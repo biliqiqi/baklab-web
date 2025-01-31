@@ -15,13 +15,9 @@ import SubmitPage from './SubmitPage.tsx'
 import TrashPage from './TrashPage.tsx'
 import UserListPage from './UserListPage.tsx'
 import UserPage from './UserPage.tsx'
+import { getSiteWithFrontId } from './api/site.ts'
 import { PermissionAction, PermissionModule } from './constants/types.ts'
-import {
-  isLogined,
-  useAuthedUserStore,
-  useCategoryStore,
-  useSiteStore,
-} from './state/global.ts'
+import { isLogined, useAuthedUserStore } from './state/global.ts'
 
 const notAtAuthed = () => {
   const data = useAuthedUserStore.getState()
@@ -75,15 +71,9 @@ export const routes: RouteObject[] = [
       if (!params.siteFrontId) {
         return redirect('/')
       }
+      const { code, data: site } = await getSiteWithFrontId(params.siteFrontId)
 
-      const siteStore = useSiteStore.getState()
-      const cateStore = useCategoryStore.getState()
-      const [site, _cateList] = await Promise.all([
-        siteStore.fetchSiteData(params.siteFrontId),
-        cateStore.fetchCategoryList(params.siteFrontId),
-      ])
-
-      if (!site) {
+      if (code || !site) {
         return redirect('/')
       }
 

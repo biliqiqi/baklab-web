@@ -59,9 +59,14 @@ export const deleteSite = (frontId: string) =>
 export const joinSite = (frontId: string) =>
   authRequest.post<ResponseData<null>>(`sites/${frontId}/join`)
 
-export const setSiteStatus = (frontId: string, status: SiteStatus) =>
-  authRequest.post(`sites/${frontId}/set_status`, {
-    json: { status },
+export const setSiteStatus = (
+  frontId: string,
+  status: SiteStatus,
+  reason?: string,
+  prevStatus?: SiteStatus
+) =>
+  authRequest.post<ResponseData<ResponseID>>(`sites/${frontId}/set_status`, {
+    json: { status, reason, prevStatus },
   })
 
 export const getSiteList = (
@@ -71,7 +76,8 @@ export const getSiteList = (
   creatorId?: string,
   creatorName?: string,
   visible?: SiteVisible,
-  deleted?: boolean
+  deleted?: boolean,
+  status?: SiteStatus
 ) => {
   const params = new URLSearchParams()
   if (page) {
@@ -94,12 +100,16 @@ export const getSiteList = (
     params.set('creatorName', creatorName)
   }
 
-  if (visible) {
+  if (visible != undefined) {
     params.set('visible', String(visible))
   }
 
   if (deleted != undefined) {
     params.set('deleted', deleted ? '1' : '0')
+  }
+
+  if (status != undefined) {
+    params.set('status', String(status))
   }
 
   return authRequest.get<ResponseData<SiteListResponse>>(`sites`, {

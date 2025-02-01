@@ -1,3 +1,4 @@
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
   ColumnDef,
   RowSelectionState,
@@ -5,14 +6,36 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
+
+import { z } from '@/lib/zod-custom'
 
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
 import { Checkbox } from './components/ui/checkbox'
 import { Input } from './components/ui/input'
+import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import {
   Table,
   TableBody,
@@ -29,11 +52,19 @@ import BSiteIcon from './components/base/BSiteIcon'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 
-import { getSiteList } from './api/site'
-import { DEFAULT_PAGE_SIZE } from './constants/constants'
+import { getSiteList, setSiteStatus } from './api/site'
+import { DEFAULT_PAGE_SIZE, SITE_STATUS_NAME_MAP } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
-import { ListPageState, SITE_VISIBLE, Site } from './types/types'
+import { getSiteStatusColor, getSiteStatusName } from './lib/utils'
+import { useAlertDialogStore } from './state/global'
+import {
+  ListPageState,
+  SITE_STATUS,
+  SITE_VISIBLE,
+  Site,
+  SiteStatus,
+} from './types/types'
 
 interface SearchFields {
   keywords?: string
@@ -45,8 +76,32 @@ const defaultSearchData: SearchFields = {
   creatorName: '',
 }
 
+const tabs: SiteStatus[] = [
+  SITE_STATUS.Normal,
+  SITE_STATUS.All,
+  SITE_STATUS.Reject,
+  SITE_STATUS.Banned,
+  SITE_STATUS.ReadOnly,
+]
+
+interface EditSiteData {
+  rejectting: boolean
+  site: Site | null
+}
+
+const rejecttingSchema = z.object({
+  reason: z.string().min(1, '请输入驳回原因'),
+})
+
+type RejecttingSchema = z.infer<typeof rejecttingSchema>
+
 export default function SiteListPage() {
   const [loading, setLoading] = useState(false)
+  const [editSite, setEditSite] = useState<EditSiteData>({
+    rejectting: false,
+    site: null,
+  })
+
   const [list, setList] = useState<Site[]>([])
   const [params, setParams] = useSearchParams()
   const [searchData, setSearchData] = useState<SearchFields>({
@@ -54,6 +109,8 @@ export default function SiteListPage() {
     keywords: params.get('keywords') || '',
     creatorName: params.get('creator_name') || '',
   })
+
+  const currSite = useMemo(() => editSite.site, [editSite])
 
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
@@ -65,6 +122,17 @@ export default function SiteListPage() {
   })
 
   const location = useLocation()
+
+  const alertDialog = useAlertDialogStore()
+
+  const tab = params.get('status') || String(SITE_STATUS.Normal)
+
+  const rejecttingForm = useForm<RejecttingSchema>({
+    resolver: zodResolver(rejecttingSchema),
+    defaultValues: {
+      reason: '',
+    },
+  })
 
   const resetParams = useCallback(() => {
     setParams((params) => {
@@ -98,6 +166,79 @@ export default function SiteListPage() {
     })
   }, [params, searchData])
 
+  const onPassSiteClick = async (site: Site) => {
+    const confirmed = await alertDialog.confirm(
+      '确认',
+      `确定审核通过站点 "${site.name}" ？`
+    )
+    if (confirmed) {
+      const { code } = await setSiteStatus(
+        site.frontId,
+        SITE_STATUS.Normal,
+        '',
+        site.status
+      )
+      if (!code) {
+        fetchSiteList(false)
+      }
+    }
+  }
+
+  const onBanSiteClick = async (site: Site) => {
+    const confirmed = await alertDialog.confirm(
+      '确认',
+      `确定封禁站点 "${site.name}" ？`,
+      'danger'
+    )
+    if (confirmed) {
+      const { code } = await setSiteStatus(
+        site.frontId,
+        SITE_STATUS.Banned,
+        '',
+        site.status
+      )
+      if (!code) {
+        fetchSiteList(false)
+      }
+    }
+  }
+
+  const onSetSiteReadonlyClick = async (site: Site) => {
+    const confirmed = await alertDialog.confirm(
+      '确认',
+      `确定设置站点 "${site.name}" 为只读？`
+    )
+    if (confirmed) {
+      const { code } = await setSiteStatus(
+        site.frontId,
+        SITE_STATUS.ReadOnly,
+        '',
+        site.status
+      )
+      if (!code) {
+        fetchSiteList(false)
+      }
+    }
+  }
+
+  const onRecoverSiteClick = async (site: Site) => {
+    const confirmed = await alertDialog.confirm(
+      '确认',
+      `确定恢复/解封站点 "${site.name}" ？`
+    )
+    if (confirmed) {
+      const { code } = await setSiteStatus(
+        site.frontId,
+        SITE_STATUS.Normal,
+        '',
+        site.status
+      )
+      if (!code) {
+        fetchSiteList(false)
+      }
+    }
+  }
+
   const columns: ColumnDef<Site>[] = [
     {
       id: 'select',
@@ -130,9 +271,15 @@ export default function SiteListPage() {
             name={row.original.name}
             size={36}
             showSiteName
+            className="w-[100px]"
           />
         </Link>
       ),
+    },
+    {
+      accessorKey: 'visible',
+      header: '可见性',
+      cell: ({ row }) => <span>{row.original.visible ? '公开' : '私有'}</span>,
     },
     {
       accessorKey: 'creatorName',
@@ -151,13 +298,87 @@ export default function SiteListPage() {
       ),
     },
     {
+      accessorKey: 'status',
+      header: '状态',
+      cell: ({ row }) => (
+        <>
+          <span className={getSiteStatusColor(row.original.status)}>
+            {SITE_STATUS_NAME_MAP[row.original.status] || '-'}
+          </span>
+          {row.original.deleted && (
+            <span className="text-gray-500">&nbsp;(已删除)</span>
+          )}
+        </>
+      ),
+    },
+    {
       accessorKey: 'contorles',
       header: '操作',
-      cell: () => (
+      cell: ({ row: { original } }) => (
         <>
-          <Button variant="link" asChild size="sm">
-            {/* <Link to={'/users/' + row.original.name}>详细</Link> */}
-          </Button>
+          {original.status == SITE_STATUS.Pending && (
+            <>
+              <Button
+                variant="secondary"
+                className="mr-1"
+                size="sm"
+                onClick={() => onPassSiteClick(original)}
+              >
+                通过
+              </Button>
+              <Button
+                variant="secondary"
+                className="mr-1"
+                size="sm"
+                onClick={() =>
+                  setEditSite({ rejectting: true, site: original })
+                }
+              >
+                驳回
+              </Button>
+            </>
+          )}
+          {original.status == SITE_STATUS.Normal && (
+            <>
+              <Button
+                variant="secondary"
+                className="mr-1"
+                size="sm"
+                onClick={() => onBanSiteClick(original)}
+              >
+                封禁
+              </Button>
+              <Button
+                variant="secondary"
+                className="mr-1"
+                size="sm"
+                onClick={() => onSetSiteReadonlyClick(original)}
+              >
+                设置为只读
+              </Button>
+            </>
+          )}
+          {original.status == SITE_STATUS.Banned && (
+            <Button
+              variant="secondary"
+              className="mr-1"
+              size="sm"
+              onClick={() => onRecoverSiteClick(original)}
+            >
+              解封
+            </Button>
+          )}
+          {(original.status == SITE_STATUS.ReadOnly ||
+            original.status == SITE_STATUS.Reject) && (
+            <Button
+              variant="secondary"
+              className="mr-1"
+              size="sm"
+              onClick={() => onRecoverSiteClick(original)}
+            >
+              恢复
+            </Button>
+          )}
         </>
       ),
     },
@@ -187,6 +408,19 @@ export default function SiteListPage() {
           const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
           const keywords = params.get('keywords') || ''
           const creatorName = params.get('creator_name') || ''
+          const statusStr = params.get('status') || String(SITE_STATUS.Normal)
+          const deletedStr = params.get('deleted')
+
+          let status: SiteStatus | undefined = Number(statusStr) as SiteStatus
+          if (!Object.values(SITE_STATUS).includes(status)) {
+            status = SITE_STATUS.Normal
+          }
+
+          let deleted: boolean | undefined = undefined
+          if (deletedStr == '1') {
+            deleted = true
+            status = undefined
+          }
 
           setSearchData((state) => ({ ...state, keywords, creatorName }))
 
@@ -196,7 +430,9 @@ export default function SiteListPage() {
             keywords,
             '0',
             creatorName,
-            SITE_VISIBLE.All
+            SITE_VISIBLE.All,
+            deleted,
+            status
           )
           if (!resp.code) {
             const { data } = resp
@@ -227,6 +463,37 @@ export default function SiteListPage() {
       },
       [params]
     )
+  )
+
+  const onTabChange = (tab: string) => {
+    setParams((prevParams) => {
+      prevParams.delete('page')
+      prevParams.set('status', tab)
+      if (tab == 'deleted') {
+        prevParams.set('deleted', '1')
+      } else {
+        prevParams.delete('deleted')
+      }
+      return prevParams
+    })
+  }
+
+  const handleSubmit = useCallback(
+    async (vals: RejecttingSchema) => {
+      /* console.log('submit vals: ', vals) */
+      if (!currSite) return
+      const { code } = await setSiteStatus(
+        currSite.frontId,
+        SITE_STATUS.Reject,
+        vals.reason,
+        currSite.status
+      )
+      if (!code) {
+        fetchSiteList()
+        setEditSite({ rejectting: false, site: null })
+      }
+    },
+    [currSite]
   )
 
   useEffect(() => {
@@ -276,6 +543,23 @@ export default function SiteListPage() {
           </Button>
         </div>
       </Card>
+      <Tabs
+        defaultValue={String(SITE_STATUS.Normal)}
+        value={tab}
+        onValueChange={onTabChange}
+        className="mt-4"
+      >
+        <TabsList className="overflow-x-auto overflow-y-hidden max-w-full">
+          {tabs.map((item) => (
+            <TabsTrigger value={String(item)} key={item}>
+              {getSiteStatusName(item)}
+            </TabsTrigger>
+          ))}
+          <TabsTrigger value={`deleted`} key={`deleted`}>
+            已删除
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
       <div className="my-4">
         <Badge variant="secondary">{pageState.total} 个站点</Badge>
       </div>
@@ -347,12 +631,68 @@ export default function SiteListPage() {
                 <div className="text-sm">
                   已选中 {selectedRows.length} 个站点
                 </div>
-                <div>操作...</div>
+                <div></div>
               </div>
             </Card>
           )}
         </>
       )}
+
+      <AlertDialog
+        defaultOpen={false}
+        open={editSite.rejectting}
+        onOpenChange={(val) => setEditSite({ rejectting: val, site: null })}
+      >
+        <AlertDialogContent>
+          {currSite && (
+            <>
+              <AlertDialogHeader>
+                <AlertDialogTitle>驳回</AlertDialogTitle>
+                <AlertDialogDescription>
+                  驳回站点 "{currSite.name}"
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <Form {...rejecttingForm}>
+                <form
+                  onSubmit={rejecttingForm.handleSubmit(handleSubmit)}
+                  className="py-4 space-y-8"
+                >
+                  <FormField
+                    control={rejecttingForm.control}
+                    name="reason"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>驳回原因</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="请填写驳回原因"
+                            className="mt-4"
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </form>
+              </Form>
+              <AlertDialogFooter>
+                <AlertDialogCancel
+                  onClick={() => setEditSite({ rejectting: false, site: null })}
+                >
+                  取消
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={rejecttingForm.handleSubmit(handleSubmit)}
+                >
+                  确认
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </>
+          )}
+        </AlertDialogContent>
+      </AlertDialog>
     </BContainer>
   )
 }

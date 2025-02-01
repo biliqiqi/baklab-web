@@ -4,6 +4,10 @@ import MarkdownIt from 'markdown-it'
 import { twMerge } from 'tailwind-merge'
 
 import {
+  SITE_STATUS_COLOR_MAP,
+  SITE_STATUS_NAME_MAP,
+} from '@/constants/constants'
+import {
   PERMISSION_DATA,
   PERMISSION_MODULE_DATA,
 } from '@/constants/permissions'
@@ -12,7 +16,7 @@ import {
   PermissionItem,
   PermissionModule,
 } from '@/constants/types'
-import { Article } from '@/types/types'
+import { Article, SiteStatus } from '@/types/types'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -122,3 +126,9 @@ export const md2text = (markdown: string) => {
 
 export const genArticlePath = ({ siteFrontId, id }: Article) =>
   `/${siteFrontId}/articles/${id}`
+
+export const getSiteStatusName = (status: SiteStatus) =>
+  SITE_STATUS_NAME_MAP[status] || ''
+
+export const getSiteStatusColor = (status: SiteStatus) =>
+  SITE_STATUS_COLOR_MAP[status] || ''

@@ -5,8 +5,15 @@ import { getCategoryList } from '@/api/category'
 import { getNotificationUnreadCount } from '@/api/message'
 import { getSiteList, getSiteWithFrontId } from '@/api/site'
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
-import { PermitFn } from '@/constants/types'
-import { Category, Role, SITE_VISIBLE, Site, UserData } from '@/types/types'
+import { PermissionModule, PermitFn } from '@/constants/types'
+import {
+  Category,
+  Role,
+  SITE_STATUS,
+  SITE_VISIBLE,
+  Site,
+  UserData,
+} from '@/types/types'
 
 export interface ToastState {
   silence: boolean
@@ -80,6 +87,8 @@ export const updateCurrRole = () => {
 
   // console.log('currRole: ', useAuthedUserStore.getState().currRole)
 }
+
+const globalModules: PermissionModule[] = ['site', 'platform_manage']
 
 export const useAuthedUserStore = create(
   subscribeWithSelector<AuthedUserState>((set, get) => ({
@@ -157,8 +166,12 @@ export const useAuthedUserStore = create(
         (item) => item.frontId == permissionId
       )
 
-      if (site) {
+      if (site && !globalModules.includes(module)) {
         if (user.roleFrontId == 'platform_admin') return true
+
+        if (site.status != SITE_STATUS.Normal) {
+          return false
+        }
 
         let sitePermitted = false
         if (site.currUserRole?.permissions && site.currUserRole.id != '0') {

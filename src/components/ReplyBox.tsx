@@ -199,11 +199,14 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
     replyBoxRef.current.handleMouseMove = onMouseMove
 
   const onMouseUp = useCallback((e: globalThis.MouseEvent) => {
+    /* console.log('mouseup: ', e) */
+
     const currData = replyBoxRef.current
-    e.preventDefault()
+    if (e.button < 3) {
+      e.preventDefault()
+    }
     currData.isAdjusting = false
 
-    /* console.log('mouseup: ', e) */
     currData.startY = 0
 
     setTimeout(() => {

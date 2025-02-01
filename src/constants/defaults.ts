@@ -31,6 +31,7 @@ export const defaultSite: Site = {
   },
   allowNonMemberInteract: false,
   homePage: '/',
+  deleted: false,
 }
 
 export const defaultCategory: Category = {

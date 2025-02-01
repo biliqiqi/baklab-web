@@ -284,6 +284,7 @@ export type ActivityAction =
   | 'create_site' // Create site
   | 'edit_site' // Edit site
   | 'delete_site' // Delete site
+  | 'set_site_status' // Set site status
 
 export type ActivityTargetModel =
   | 'user'
@@ -407,9 +408,16 @@ export const SITE_STATUS = Object.freeze({
   Pending: 2,
   Reject: 3,
   Banned: 4,
+  All: 5,
 } as const)
 
 export type SiteStatus = ValuesToUnion<typeof SITE_STATUS>
+
+export type SiteStatusNameMap = {
+  [x in SiteStatus]: string
+}
+
+export type SiteStatusColorMap = SiteStatusNameMap
 
 export const SITE_VISIBLE = Object.freeze({
   False: 0,
@@ -443,6 +451,7 @@ export interface Site {
   currUserState: SiteUserState
   allowNonMemberInteract: boolean
   homePage: string
+  deleted: boolean
 }
 
 export interface SiteListResponse extends ListPageState {

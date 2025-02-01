@@ -353,6 +353,15 @@ export default function UserPage() {
           }
         } catch (e) {
           console.error('get list error: ', e)
+          updateList([])
+          updateActList([])
+          setPageState({
+            currPage: 1,
+            pageSize: DEFAULT_PAGE_SIZE,
+            total: 0,
+            totalPage: 0,
+            category: undefined,
+          })
         } finally {
           setLoadingList(false)
         }

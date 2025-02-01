@@ -73,17 +73,23 @@ export const routes: RouteObject[] = [
         return redirect('/')
       }
 
-      const { code, data: site } = await getSiteWithFrontId(params.siteFrontId)
+      try {
+        const { code, data: site } = await getSiteWithFrontId(
+          params.siteFrontId
+        )
 
-      if (code || !site) {
-        return redirect('/')
+        if (code || !site) {
+          return null
+        }
+
+        if (site.homePage == '/') {
+          return redirect(`/${params.siteFrontId}/feed`)
+        }
+        return redirect(`/${params.siteFrontId}${site.homePage}`)
+      } catch (err) {
+        console.error('error in /:siteFrontId route: ', err)
+        return null
       }
-
-      if (site.homePage == '/') {
-        return redirect(`/${params.siteFrontId}/feed`)
-      }
-
-      return redirect(`/${params.siteFrontId}${site.homePage}`)
     },
     Component: ArticleListPage,
     children: [

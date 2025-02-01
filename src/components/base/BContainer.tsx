@@ -23,7 +23,7 @@ import React, {
 import { Link, useLocation, useMatch, useParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
-import { cn } from '@/lib/utils'
+import { cn, getSiteStatusColor, getSiteStatusName } from '@/lib/utils'
 
 import { getSiteList } from '@/api/site'
 import {
@@ -45,7 +45,13 @@ import {
   useSiteStore,
   useTopDrawerStore,
 } from '@/state/global'
-import { Category, FrontCategory, SITE_VISIBLE, Site } from '@/types/types'
+import {
+  Category,
+  FrontCategory,
+  SITE_STATUS,
+  SITE_VISIBLE,
+  Site,
+} from '@/types/types'
 
 import CategoryForm from '../CategoryForm'
 import NotFound from '../NotFound'
@@ -536,6 +542,19 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     </DropdownMenu>
                   )}
                 </div>
+                {currSite && currSite.status != SITE_STATUS.Normal && (
+                  <div className="bg-yellow-300 p-2 m-2 text-sm rounded-sm leading-6">
+                    站点状态：
+                    <span>{getSiteStatusName(currSite.status)}</span>
+                    <br />
+                    {String(currSite.creatorId) == authStore.userID &&
+                      currSite.status != SITE_STATUS.ReadOnly && (
+                        <span className="text-sm text-gray-500">
+                          在当前状态下，站点内容仅自己可见
+                        </span>
+                      )}
+                  </div>
+                )}
                 <SidebarGroup>
                   <SidebarGroupContent>
                     <SidebarMenu>

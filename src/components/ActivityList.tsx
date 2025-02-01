@@ -2,7 +2,13 @@ import { Link } from 'react-router-dom'
 
 import { timeAgo } from '@/lib/dayjs-custom'
 
-import { Activity, ActivityActionType, ListPageState } from '@/types/types'
+import {
+  Activity,
+  ActivityActionType,
+  ListPageState,
+  SITE_STATUS,
+  SiteStatus,
+} from '@/types/types'
 
 import { Empty } from './Empty'
 import { ListPagination } from './ListPagination'
@@ -26,6 +32,52 @@ const acTypeMap: AcTypeMap = {
 
 interface ActivityActionTextProps {
   activity: Activity
+}
+
+const SiteAction = ({ activity: item }: ActivityActionTextProps) => {
+  if (
+    !item.details ||
+    item.details['status'] === undefined ||
+    item.details['prevStatus'] === undefined
+  ) {
+    return (
+      <>
+        {'更新了站点'} <ActivityTargetLink activity={item} /> {'的状态'}
+      </>
+    )
+  }
+  const status = item.details['status'] as SiteStatus
+  const prevStatus = item.details['prevStatus'] as SiteStatus
+
+  let actionText = '更新了站点状态'
+  switch (status) {
+    case SITE_STATUS.Normal:
+      if (prevStatus == SITE_STATUS.Pending) {
+        actionText = '审核通过了站点'
+      } else {
+        actionText = '恢复了站点'
+      }
+      break
+    case SITE_STATUS.Reject:
+      actionText = '审核驳回了站点'
+      break
+    case SITE_STATUS.Banned:
+      actionText = '封禁了站点'
+      break
+    case SITE_STATUS.ReadOnly:
+      return (
+        <>
+          {'设置了站点状态'} <ActivityTargetLink activity={item} /> {'为只读'}
+        </>
+      )
+    default:
+  }
+
+  return (
+    <>
+      {actionText} <ActivityTargetLink activity={item} />{' '}
+    </>
+  )
 }
 
 const ActivityTargetLink = ({ activity: item }: ActivityActionTextProps) => {
@@ -65,6 +117,14 @@ const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
           <span className="inline-block border-[1px] border-gray-500 rounded-sm px-1">
             {item.details.roleName}
           </span>
+          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+        </>
+      )
+    case 'set_site_status':
+      return (
+        <>
+          <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
+          <SiteAction activity={item} />
           &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
         </>
       )

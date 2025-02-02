@@ -421,7 +421,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               >
                 <BSiteIcon
                   logoUrl={SITE_LOGO_IMAGE}
-                  name={SITE_NAME}
+                  name={`首页`}
                   size={40}
                   fontSize={14}
                   showSiteName
@@ -545,7 +545,9 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 {currSite && currSite.status != SITE_STATUS.Normal && (
                   <div className="bg-yellow-300 p-2 m-2 text-sm rounded-sm leading-6">
                     站点状态：
-                    <span>{getSiteStatusName(currSite.status)}</span>
+                    <span className={getSiteStatusColor(currSite.status)}>
+                      {getSiteStatusName(currSite.status)}
+                    </span>
                     <br />
                     {String(currSite.creatorId) == authStore.userID &&
                       currSite.status != SITE_STATUS.ReadOnly && (

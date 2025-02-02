@@ -52,6 +52,7 @@ const roleSchema = z.object({
   name: z.string().min(1, '请填写角色名称'),
   level: z.string().min(1, '请填写权限级别'),
   permissionFrontIds: z.string().array().optional(),
+  siteNumLimit: z.string().min(1, '请填写可创建站点数量上限'),
 })
 
 type RoleSchema = z.infer<typeof roleSchema>
@@ -60,6 +61,7 @@ const defaultRoleData: RoleSchema = {
   name: '',
   level: '3',
   permissionFrontIds: [],
+  siteNumLimit: '0',
 }
 
 const RoleForm: React.FC<RoleFormProps> = ({
@@ -106,6 +108,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
           name: role?.name || '',
           level: role ? String(role.level) : String(minLevel),
           permissionFrontIds: edittingPermissionIds,
+          siteNumLimit: role ? String(role.siteNumLimit) : '0',
         } as RoleSchema)
       : { ...defaultRoleData, level: String(minLevel) },
   })
@@ -139,16 +142,24 @@ const RoleForm: React.FC<RoleFormProps> = ({
         return
       }
 
+      const siteNumLimit = parseInt(vals.siteNumLimit, 10) || 0
+
       if (isEdit) {
         if (!role) return
         resp = await updateRole(
           role.id,
           vals.name,
           level,
-          vals.permissionFrontIds || []
+          vals.permissionFrontIds || [],
+          siteNumLimit
         )
       } else {
-        resp = await submitRole(vals.name, level, vals.permissionFrontIds || [])
+        resp = await submitRole(
+          vals.name,
+          level,
+          vals.permissionFrontIds || [],
+          siteNumLimit
+        )
       }
 
       if (!resp.code) {
@@ -201,6 +212,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
     if (!isDetail && role) {
       form.setValue('name', role.name)
       form.setValue('level', String(role.level))
+      form.setValue('siteNumLimit', String(role.siteNumLimit))
       form.setValue(
         'permissionFrontIds',
         (role.permissions || []).map((item) => item.frontId)
@@ -257,6 +269,31 @@ const RoleForm: React.FC<RoleFormProps> = ({
                 ) : (
                   <Input
                     placeholder="请输入权限级别"
+                    autoComplete="off"
+                    pattern="^\d+$"
+                    state={fieldState.invalid ? 'invalid' : 'default'}
+                    disabled={systemRole}
+                    {...field}
+                  />
+                )}
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="siteNumLimit"
+          key="siteNumLimit"
+          render={({ field, fieldState }) => (
+            <FormItem className="mb-8">
+              <FormLabel>站点数量上限</FormLabel>
+              <FormControl>
+                {isDetail ? (
+                  <div>{role?.siteNumLimit}</div>
+                ) : (
+                  <Input
+                    placeholder="请输入站点数量上限"
                     autoComplete="off"
                     pattern="^\d+$"
                     state={fieldState.invalid ? 'invalid' : 'default'}

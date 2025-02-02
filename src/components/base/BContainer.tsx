@@ -282,6 +282,12 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     const onCategoryCreated = useCallback(async () => {
       setShowCategoryForm(false)
+      setTimeout(() => {
+        setEditCategory(() => ({
+          editting: false,
+          data: undefined,
+        }))
+      }, 500)
       if (!siteFrontId) return
       await fetchCategoryList(siteFrontId)
     }, [siteFrontId])
@@ -302,6 +308,13 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           siteList: data.list,
         })
       }
+
+      setTimeout(() => {
+        setEditSite(() => ({
+          editting: false,
+          data: undefined,
+        }))
+      }, 500)
 
       await Promise.all([
         siteStore.fetchSiteList(),

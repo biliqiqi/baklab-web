@@ -103,6 +103,10 @@ export default function RoleManagePage() {
       header: '权限级别',
     },
     {
+      accessorKey: 'siteNumLimit',
+      header: '站点数上线',
+    },
+    {
       accessorKey: 'relateUserCount',
       header: '关联用户',
       cell: ({ row }) =>

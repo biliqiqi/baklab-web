@@ -394,6 +394,7 @@ export interface Role {
   formattedPermissions: PermissionListItem[]
   level: number
   relateUserCount: number
+  siteNumLimit: number
 }
 
 export interface RoleListResponse extends ListPageState {

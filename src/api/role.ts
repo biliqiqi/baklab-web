@@ -43,12 +43,13 @@ export const submitRole = (
   name: string,
   level: number,
   permissionFrontIDs: string[],
+  siteNumLimit: number,
   custom?: CustomRequestOptions
 ) => {
   return authRequest.post<ResponseData<ResponseID>>(
     `roles`,
     {
-      json: { name, level, permissionFrontIDs },
+      json: { name, level, permissionFrontIDs, siteNumLimit },
     },
     custom
   )
@@ -59,12 +60,13 @@ export const updateRole = (
   name: string,
   level: number,
   permissionFrontIDs: string[],
+  siteNumLimit: number,
   custom?: CustomRequestOptions
 ) => {
   return authRequest.patch<ResponseData<ResponseID>>(
     `roles/${roleId}`,
     {
-      json: { name, level, permissionFrontIDs },
+      json: { name, level, permissionFrontIDs, siteNumLimit },
     },
     custom
   )

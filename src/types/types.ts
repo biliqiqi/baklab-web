@@ -463,3 +463,7 @@ export interface UploadResponse {
   data: string
   success: boolean
 }
+
+export interface SiteInviteResponse {
+  code: string
+}

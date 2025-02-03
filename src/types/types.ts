@@ -13,7 +13,7 @@ export interface AuthedDataResponse {
   username: string
   userID: string
   role: string
-  user: UserData
+  user: UserData | null
 }
 
 export interface ItemExists {
@@ -205,7 +205,7 @@ export interface UserData {
   roleName: string
   roleFrontId: string
   role: Role
-  permissions: Permission[]
+  permissions: Permission[] | null
   super: boolean
   authFrom: AuthType
   reputation: number

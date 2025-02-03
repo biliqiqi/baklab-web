@@ -160,7 +160,7 @@ export const useAuthedUserStore = create(
 
       if (user.super) return true
 
-      if (user.banned) return false
+      if (user.banned || !user.permissions) return false
 
       const platformPermitted = user.permissions.some(
         (item) => item.frontId == permissionId

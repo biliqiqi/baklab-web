@@ -489,7 +489,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 >
                   <div className="flex-shrink-0">
                     <Link
-                      className="font-bold text-2xl text-pink-900 leading-3"
+                      className="font-bold text-2xl leading-3"
                       to={
                         siteFrontId && siteStore.site ? `/${siteFrontId}` : `/`
                       }

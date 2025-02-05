@@ -6,9 +6,15 @@ import {
 
 export const SITE_NAME = 'BiliQiqi'
 export const SITE_NAME_CN = '必利淇淇'
+
+// blue
 export const SITE_LOGO_IMAGE =
   'https://static.biliqiqi.net/FESP9bIgGLe8NJPCw4uO1soNI9GfSL66'
-// export const API_HOST = 'http://localhost:3001'
+
+// deep pink
+// export const SITE_LOGO_IMAGE =
+//   'https://static.biliqiqi.net/WHqTOjf6jVraf1VPGpLwxkf-pNTNW3Nz'
+
 export const API_HOST = 'http://192.168.31.51:3001'
 export const API_PATH_PREFIX = '/api/'
 

@@ -231,6 +231,11 @@ export const PERMISSION_DATA = {
       adapt_id: 'site.delete',
       enable: false,
     },
+    invite: {
+      name: '邀请加入站点',
+      adapt_id: 'site.invite',
+      enable: false,
+    },
     manage: {
       name: '管理站点',
       adapt_id: 'site.manage',

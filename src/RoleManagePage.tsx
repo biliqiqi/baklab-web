@@ -39,12 +39,12 @@ import { ListPagination } from './components/ListPagination'
 import RoleForm from './components/RoleForm'
 import RoleSelector from './components/RoleSelector'
 
-import roleAPI, { getDefaultRole, getRoles } from './api/role'
+import roleAPI, { getDefaultRoles, getRoles } from './api/role'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { defaultPageState } from './constants/defaults'
 import { toSync } from './lib/fire-and-forget'
 import { useAlertDialogStore } from './state/global'
-import { ListPageState, Role } from './types/types'
+import { DefaultRoles, ListPageState, Role } from './types/types'
 
 const defaultRoleSchema = z.object({
   roleId: z.string().min(1, '请选择角色'),
@@ -67,8 +67,9 @@ export default function RoleManagePage() {
   const [showRoleForm, setShowRoleForm] = useState(false)
   const [roleFormDirty, setRoleFormDirty] = useState(false)
   const [editDefaultRole, setEditDefaultRole] = useState(false)
+  const [editSiteDefaultRole, setEditSiteDefaultRole] = useState(false)
 
-  const [defaultRole, setDefaultRole] = useState<Role | null>(null)
+  const [defaultRoles, setDefaultRoles] = useState<DefaultRoles | null>(null)
 
   /* const roleMap: JSONMap = useMemo(() => {
    *   return roleList.reduce((obj: JSONMap, item) => {
@@ -87,6 +88,13 @@ export default function RoleManagePage() {
   const alertDialog = useAlertDialogStore()
 
   const defaultRoleForm = useForm<DefaultRoleSchema>({
+    resolver: zodResolver(defaultRoleSchema),
+    defaultValues: {
+      roleId: '',
+    },
+  })
+
+  const siteDefaultRoleForm = useForm<DefaultRoleSchema>({
     resolver: zodResolver(defaultRoleSchema),
     defaultValues: {
       roleId: '',
@@ -177,11 +185,11 @@ export default function RoleManagePage() {
     )
   )
 
-  const fetchDefaultRole = toSync(async () => {
-    const { code, data } = await getDefaultRole()
+  const fetchDefaultRoles = toSync(async () => {
+    const { code, data } = await getDefaultRoles()
     /* console.log('default role: ', data) */
     if (!code) {
-      setDefaultRole({ ...data })
+      setDefaultRoles({ ...data })
     }
   })
 
@@ -210,14 +218,29 @@ export default function RoleManagePage() {
       /* console.log('roleId: ', roleId) */
       if (!roleId) return
 
-      const { code } = await roleAPI.setDefaultRole(roleId)
+      const { code } = await roleAPI.setDefaultRole(roleId, false)
       if (!code) {
-        fetchDefaultRole()
+        fetchDefaultRoles()
         setEditDefaultRole(false)
         defaultRoleForm.reset({ roleId: '' })
       }
     },
     [defaultRoleForm]
+  )
+
+  const onSiteDefaultRoleSubmit = useCallback(
+    async ({ roleId }: DefaultRoleSchema) => {
+      /* console.log('roleId: ', roleId) */
+      if (!roleId) return
+
+      const { code } = await roleAPI.setDefaultRole(roleId, true)
+      if (!code) {
+        fetchDefaultRoles()
+        setEditSiteDefaultRole(false)
+        siteDefaultRoleForm.reset({ roleId: '' })
+      }
+    },
+    [siteDefaultRoleForm]
   )
 
   const onCancelEditDefaultRole = useCallback(
@@ -234,7 +257,7 @@ export default function RoleManagePage() {
   }, [params])
 
   useEffect(() => {
-    fetchDefaultRole()
+    fetchDefaultRoles()
   }, [])
 
   return (
@@ -246,78 +269,158 @@ export default function RoleManagePage() {
         describe: '',
       }}
     >
-      {defaultRole && (
-        <Card className="flex justify-between items-center p-4 text-sm mb-4">
-          <div>
-            <b>用户默认角色</b>：{' '}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setEditRole({
-                  editting: true,
-                  role: defaultRole,
-                })
-                setShowRoleForm(true)
-              }}
-            >
-              {defaultRole.name}
-            </Button>
-          </div>
-          <div>
-            {editDefaultRole && (
-              <Form {...defaultRoleForm}>
-                <form
-                  onSubmit={defaultRoleForm.handleSubmit(onDefaultRoleSubmit)}
-                  className="inline-block"
-                >
-                  <FormField
-                    control={defaultRoleForm.control}
-                    name="roleId"
-                    key="roleId"
-                    render={({ field, fieldState }) => (
-                      <FormItem className="inline-block mr-2">
-                        <FormControl>
-                          <RoleSelector
-                            valid={!fieldState.invalid}
-                            value={field.value}
-                            placeholder="选择默认角色"
-                            onChange={(role) => {
-                              if (role) {
-                                defaultRoleForm.setValue('roleId', role.id)
-                              } else {
-                                defaultRoleForm.setValue('roleId', '')
-                              }
-                            }}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="mr-2"
-                    onClick={onCancelEditDefaultRole}
-                  >
-                    取消
-                  </Button>
-                  <Button type="submit" size="sm">
-                    确认
-                  </Button>
-                </form>
-              </Form>
-            )}
-
-            {!editDefaultRole && (
+      {defaultRoles && (
+        <Card className="p-4 text-sm mb-4">
+          <div className="flex justify-between items-center mb-2">
+            <div>
+              <b>平台用户默认角色</b>：{' '}
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                onClick={() => setEditDefaultRole(true)}
+                onClick={() => {
+                  setEditRole({
+                    editting: true,
+                    role: defaultRoles.platform,
+                  })
+                  setShowRoleForm(true)
+                }}
               >
-                设置
+                {defaultRoles.platform.name}
               </Button>
-            )}
+            </div>
+            <div>
+              {editDefaultRole && (
+                <Form {...defaultRoleForm}>
+                  <form
+                    onSubmit={defaultRoleForm.handleSubmit(onDefaultRoleSubmit)}
+                    className="inline-block"
+                  >
+                    <FormField
+                      control={defaultRoleForm.control}
+                      name="roleId"
+                      key="roleId"
+                      render={({ field, fieldState }) => (
+                        <FormItem className="inline-block mr-2">
+                          <FormControl>
+                            <RoleSelector
+                              valid={!fieldState.invalid}
+                              value={field.value}
+                              placeholder="选择默认角色"
+                              onChange={(role) => {
+                                if (role) {
+                                  defaultRoleForm.setValue('roleId', role.id)
+                                } else {
+                                  defaultRoleForm.setValue('roleId', '')
+                                }
+                              }}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="mr-2"
+                      onClick={onCancelEditDefaultRole}
+                    >
+                      取消
+                    </Button>
+                    <Button type="submit" size="sm">
+                      确认
+                    </Button>
+                  </form>
+                </Form>
+              )}
+
+              {!editDefaultRole && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditDefaultRole(true)}
+                >
+                  设置
+                </Button>
+              )}
+            </div>
+          </div>
+          <div className="flex justify-between items-center">
+            <div>
+              <b>站点用户默认角色</b>：{' '}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setEditRole({
+                    editting: true,
+                    role: defaultRoles.site,
+                  })
+                  setShowRoleForm(true)
+                }}
+              >
+                {defaultRoles.site.name}
+              </Button>
+            </div>
+            <div>
+              {editSiteDefaultRole && (
+                <Form {...siteDefaultRoleForm}>
+                  <form
+                    onSubmit={siteDefaultRoleForm.handleSubmit(
+                      onSiteDefaultRoleSubmit
+                    )}
+                    className="inline-block"
+                  >
+                    <FormField
+                      control={siteDefaultRoleForm.control}
+                      name="roleId"
+                      key="roleId"
+                      render={({ field, fieldState }) => (
+                        <FormItem className="inline-block mr-2">
+                          <FormControl>
+                            <RoleSelector
+                              valid={!fieldState.invalid}
+                              value={field.value}
+                              placeholder="选择默认角色"
+                              onChange={(role) => {
+                                if (role) {
+                                  siteDefaultRoleForm.setValue(
+                                    'roleId',
+                                    role.id
+                                  )
+                                } else {
+                                  siteDefaultRoleForm.setValue('roleId', '')
+                                }
+                              }}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="mr-2"
+                      onClick={onCancelEditDefaultRole}
+                    >
+                      取消
+                    </Button>
+                    <Button type="submit" size="sm">
+                      确认
+                    </Button>
+                  </form>
+                </Form>
+              )}
+
+              {!editSiteDefaultRole && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditSiteDefaultRole(true)}
+                >
+                  设置
+                </Button>
+              )}
+            </div>
           </div>
         </Card>
       )}

@@ -401,6 +401,11 @@ export interface RoleListResponse extends ListPageState {
   list: Role[] | null
 }
 
+export interface DefaultRoles {
+  platform: Role
+  site: Role
+}
+
 export type ValuesToUnion<T> = T[keyof T]
 
 export const SITE_STATUS = Object.freeze({

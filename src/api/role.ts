@@ -2,6 +2,7 @@ import { authRequest } from '@/lib/request'
 
 import {
   CustomRequestOptions,
+  DefaultRoles,
   ResponseData,
   ResponseID,
   Role,
@@ -79,8 +80,21 @@ export const deleteRole = (roleId: string, custom?: CustomRequestOptions) => {
 export const getDefaultRole = (custom?: CustomRequestOptions) =>
   authRequest.get<ResponseData<Role>>(`roles/default`, {}, custom)
 
-export const setDefaultRole = (id: string, custom?: CustomRequestOptions) =>
-  authRequest.patch<ResponseData<null>>(`roles/${id}/set_default`, {}, custom)
+export const getDefaultRoles = (custom?: CustomRequestOptions) =>
+  authRequest.get<ResponseData<DefaultRoles>>(`roles/defaults`, {}, custom)
+
+export const setDefaultRole = (
+  id: string,
+  underSite: boolean,
+  custom?: CustomRequestOptions
+) =>
+  authRequest.patch<ResponseData<null>>(
+    `roles/${id}/set_default`,
+    {
+      json: { underSite },
+    },
+    custom
+  )
 
 export default {
   setDefaultRole,

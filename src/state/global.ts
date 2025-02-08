@@ -166,7 +166,7 @@ export const useAuthedUserStore = create(
         (item) => item.frontId == permissionId
       )
 
-      if (site && !globalModules.includes(module)) {
+      if (site) {
         if (user.roleFrontId == 'platform_admin') return true
 
         if (site.status != SITE_STATUS.Normal) {

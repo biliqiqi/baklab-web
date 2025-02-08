@@ -25,7 +25,7 @@ import { Link, useLocation, useMatch, useParams } from 'react-router-dom'
 import { toSync } from '@/lib/fire-and-forget'
 import { cn, getSiteStatusColor, getSiteStatusName } from '@/lib/utils'
 
-import { getSiteList } from '@/api/site'
+import { getSiteList, joinSite } from '@/api/site'
 import {
   DEFAULT_PAGE_SIZE,
   DOCK_HEIGHT,
@@ -70,6 +70,7 @@ import {
   AlertDialogTitle,
 } from '../ui/alert-dialog'
 import { Button } from '../ui/button'
+import { Card } from '../ui/card'
 import {
   Dialog,
   DialogContent,
@@ -94,6 +95,7 @@ import {
   SidebarMenuItem,
   SidebarProvider,
 } from '../ui/sidebar'
+import BAvatar from './BAvatar'
 import BIconColorChar from './BIconColorChar'
 import { BLoaderBlock } from './BLoader'
 import BNav from './BNav'
@@ -354,6 +356,21 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         setShowSiteForm(true)
       },
       [siteStore]
+    )
+
+    const onJoinSiteClick = useCallback(
+      async (ev: MouseEvent<HTMLButtonElement>) => {
+        ev.preventDefault()
+        if (!siteFrontId) return
+        const { code } = await joinSite(siteFrontId)
+        if (!code) {
+          await Promise.all([
+            siteStore.fetchSiteData(siteFrontId),
+            cateStore.fetchCategoryList(siteFrontId),
+          ])
+        }
+      },
+      []
     )
 
     useEffect(() => {
@@ -765,7 +782,39 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               ) : loading ? (
                 <BLoaderBlock />
               ) : (
-                children
+                <>
+                  {children}
+                  {authStore.isLogined() ? (
+                    siteStore.site &&
+                    !siteStore.site.currUserState.isMember && (
+                      <Card className="p-2 text-sm mt-4">
+                        你还不是当前站点成员，加入后可参与互动。
+                        <Button
+                          size={'sm'}
+                          className="ml-2"
+                          onClick={onJoinSiteClick}
+                        >
+                          加入
+                        </Button>
+                      </Card>
+                    )
+                  ) : (
+                    <Card className="p-2 text-sm mt-4">
+                      登录可后参与互动。
+                      <Button
+                        variant="default"
+                        size="sm"
+                        asChild
+                        onClick={(e) => {
+                          e.preventDefault()
+                          updateSignin(true)
+                        }}
+                      >
+                        <Link to="/signin">登录</Link>
+                      </Button>
+                    </Card>
+                  )}
+                </>
               )}
             </div>
           </main>
@@ -885,10 +934,11 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                   <DialogDescription></DialogDescription>
                 </DialogHeader>
                 <div>{currSite.description}</div>
-                <div className="mt-2 font-bold">规则</div>
-                <div>
-                  <div>1. 规则一</div>
-                  <div>2. 规则二</div>
+                <div className="text-sm">
+                  <span className="font-bold">创建者</span>：
+                  <Link to={`/users/${currSite.creatorName}`}>
+                    <BAvatar username={currSite.creatorName} showUsername />
+                  </Link>
                 </div>
               </>
             )}

@@ -208,7 +208,7 @@ export default function ArticleListPage() {
           )}
         </div>
       </div>
-      <div className="py-4" key={categoryFrontId}>
+      <div className="mt-4" key={categoryFrontId}>
         {loading ? (
           <div className="flex justify-center">
             <BLoader />

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 
+import { Button } from './components/ui/button'
+import { Card } from './components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 
 import BContainer from './components/base/BContainer'
@@ -23,6 +25,7 @@ import {
   useAuthedUserStore,
   useForceUpdate,
   useNotFoundStore,
+  useSiteStore,
 } from './state/global'
 import {
   Article,
@@ -63,6 +66,7 @@ export default function ArticlePage() {
 
   const authStore = useAuthedUserStore()
   const { forceState } = useForceUpdate()
+  const siteStore = useSiteStore()
 
   const sort = (params.get('sort') as ArticleListSort | null) || 'oldest'
 
@@ -268,31 +272,35 @@ export default function ArticlePage() {
 
         {pageState.totalPage > 1 && <ListPagination pageState={pageState} />}
 
-        {article && !article.deleted && (
-          <ReplyBox
-            disabled={!authStore.permit('article', 'reply')}
-            {...replyBoxState}
-            onSuccess={(_resp, actionType) =>
-              fetchArticle(false).then(() => {
-                if (actionType == 'reply') {
-                  setTimeout(() => {
-                    window.scrollTo({
-                      top: document.body.scrollHeight,
-                      behavior: 'smooth',
-                    })
-                  }, 0)
-                }
-              })
-            }
-            onRemoveReply={() => {
-              setReplyBoxState({
-                isEditting: false,
-                edittingArticle: null,
-                replyToArticle: article,
-              })
-            }}
-          />
-        )}
+        {article &&
+          !article.deleted &&
+          authStore.isLogined() &&
+          (siteStore.site?.currUserState.isMember ||
+            authStore.permit('site', 'manage')) && (
+            <ReplyBox
+              disabled={!authStore.permit('article', 'reply')}
+              {...replyBoxState}
+              onSuccess={(_resp, actionType) =>
+                fetchArticle(false).then(() => {
+                  if (actionType == 'reply') {
+                    setTimeout(() => {
+                      window.scrollTo({
+                        top: document.body.scrollHeight,
+                        behavior: 'smooth',
+                      })
+                    }, 0)
+                  }
+                })
+              }
+              onRemoveReply={() => {
+                setReplyBoxState({
+                  isEditting: false,
+                  edittingArticle: null,
+                  replyToArticle: article,
+                })
+              }}
+            />
+          )}
       </BContainer>
     </>
   )

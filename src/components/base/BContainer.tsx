@@ -1,7 +1,9 @@
 import { DropdownMenu } from '@radix-ui/react-dropdown-menu'
+import ClipboardJS from 'clipboard'
 import {
   ActivityIcon,
   ChartBarStackedIcon,
+  CheckIcon,
   EllipsisVerticalIcon,
   GlobeIcon,
   LockIcon,
@@ -18,6 +20,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 import { Link, useLocation, useMatch, useParams } from 'react-router-dom'
@@ -25,10 +28,11 @@ import { Link, useLocation, useMatch, useParams } from 'react-router-dom'
 import { toSync } from '@/lib/fire-and-forget'
 import { cn, getSiteStatusColor, getSiteStatusName } from '@/lib/utils'
 
-import { getSiteList, joinSite, quitSite } from '@/api/site'
+import { getSiteList, inviteToSite, joinSite, quitSite } from '@/api/site'
 import {
   DEFAULT_PAGE_SIZE,
   DOCK_HEIGHT,
+  FRONT_END_HOST,
   NAV_HEIGHT,
   SITE_LOGO_IMAGE,
   SITE_NAME,
@@ -75,6 +79,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '../ui/dialog'
@@ -83,6 +88,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
+import { Input } from '../ui/input'
 import {
   Sidebar,
   SidebarContent,
@@ -128,6 +134,10 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const [showCategoryForm, setShowCategoryForm] = useState(false)
     const [showSiteForm, setShowSiteForm] = useState(false)
     const [showSiteDetail, setShowSiteDetail] = useState(false)
+    const [showInviteDialog, setShowInviteDialog] = useState(false)
+    const [inviteCode, setInviteCode] = useState('')
+    const [inviteCodeGeneratting, setInviteCodeGeneratting] = useState(false)
+    const [copyInviteSuccess, setCopyInviteSuccess] = useState(false)
 
     const { open: showTopDrawer, update: setShowTopDrawer } =
       useTopDrawerStore()
@@ -140,6 +150,10 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const [openSiteMenu, setOpenSiteMenu] = useState(false)
 
     const [siteFormDirty, setSiteFormDirty] = useState(false)
+
+    const copyInviteBtnRef = useRef<HTMLButtonElement | null>(null)
+    const inviteCodeDialogRef = useRef<HTMLDivElement | null>(null)
+    const clipboardRef = useRef<ClipboardJS | null>(null)
 
     const [editCategory, setEditCategory] = useState<EditCategoryData>({
       editting: false,
@@ -396,6 +410,27 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       []
     )
 
+    const onInviteClick = useCallback(
+      async (ev: MouseEvent<HTMLDivElement>) => {
+        ev.preventDefault()
+        if (!siteFrontId) return
+
+        try {
+          setInviteCodeGeneratting(true)
+          setShowInviteDialog(true)
+          const { code, data } = await inviteToSite(siteFrontId, 3000, false)
+          if (!code) {
+            setInviteCode(data.code)
+          }
+        } catch (err) {
+          console.error('generate invite code error: ', err)
+        } finally {
+          setInviteCodeGeneratting(false)
+        }
+      },
+      [siteFrontId]
+    )
+
     useEffect(() => {
       /* console.log('globalSiteFrontId: ', globalSiteFrontId) */
       if (siteFrontId && siteFrontId != globalSiteFrontId) {
@@ -424,6 +459,46 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         }
       }
     }, [location, isMobile])
+
+    useEffect(() => {
+      let timer: number | undefined
+
+      if (showInviteDialog) {
+        timer = setTimeout(() => {
+          if (
+            copyInviteBtnRef.current &&
+            !clipboardRef.current &&
+            inviteCodeDialogRef.current
+          ) {
+            clipboardRef.current = new ClipboardJS(copyInviteBtnRef.current, {
+              container: inviteCodeDialogRef.current,
+            })
+
+            clipboardRef.current.on('success', (e) => {
+              setCopyInviteSuccess(true)
+              e.clearSelection()
+            })
+          }
+        }, 500) as unknown as number
+      }
+
+      return () => {
+        if (timer) {
+          clearTimeout(timer)
+        }
+
+        if (showInviteDialog && clipboardRef.current) {
+          clipboardRef.current.destroy()
+          clipboardRef.current = null
+        }
+      }
+    }, [siteFrontId, showInviteDialog])
+
+    useEffect(() => {
+      if (!showInviteDialog) {
+        setCopyInviteSuccess(false)
+      }
+    }, [showInviteDialog])
 
     return (
       <div key={`container_${forceState}`}>
@@ -589,6 +664,15 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                             站点设置
                           </DropdownMenuItem>
                         )}
+                        {!currSite.visible &&
+                          authStore.permit('site', 'invite') && (
+                            <DropdownMenuItem
+                              className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                              onClick={onInviteClick}
+                            >
+                              邀请加入
+                            </DropdownMenuItem>
+                          )}
                         {!isMySite && currSite.currUserState.isMember && (
                           <DropdownMenuItem
                             className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
@@ -974,6 +1058,49 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                   <Link to={`/users/${currSite.creatorName}`}>
                     <BAvatar username={currSite.creatorName} showUsername />
                   </Link>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+          <DialogContent ref={inviteCodeDialogRef}>
+            {currSite && (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="font-bold">邀请加入站点</DialogTitle>
+                  <DialogDescription>请复制并分享邀请链接</DialogDescription>
+                </DialogHeader>
+                <div className="relative">
+                  <Input
+                    readOnly
+                    value={
+                      inviteCodeGeneratting
+                        ? `正在生成邀请链接...`
+                        : `${FRONT_END_HOST}/invite/${inviteCode}`
+                    }
+                    className={cn(
+                      'pr-[54px]',
+                      inviteCodeGeneratting && 'text-gray-500'
+                    )}
+                  />
+                  <Button
+                    size={'sm'}
+                    className="absolute top-0 right-0 h-[40px] rounded-sm rounded-l-none"
+                    data-clipboard-text={`${FRONT_END_HOST}/invite/${inviteCode}`}
+                    ref={copyInviteBtnRef}
+                  >
+                    复制
+                  </Button>
+                </div>
+                <div className="flex justify-center py-4">
+                  {copyInviteSuccess && (
+                    <span className="inline-block h-[26px]">
+                      <CheckIcon className="inline-block mr-2 text-primary" />
+                      <span>复制成功！</span>
+                    </span>
+                  )}
                 </div>
               </>
             )}

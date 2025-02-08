@@ -14,7 +14,7 @@ export const defaultSite: Site = {
   name: '',
   frontId: '',
   visible: true,
-  creatorId: 0,
+  creatorId: '0',
   creatorName: '',
   logoUrl: '',
   description: '',

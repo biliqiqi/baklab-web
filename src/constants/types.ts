@@ -31,7 +31,15 @@ export interface PermissionItem {
   enable: boolean
 }
 
+/**
+   对当前用户进行权限判断
+
+   @param module {PermissionModule} 权限模块
+   @param action {PermissionAction} 权限行为
+   @param globalScope 是否全局权限
+ */
 export type PermitFn = <T extends PermissionModule>(
-  m: T,
-  a: PermissionAction<T>
+  module: T,
+  action: PermissionAction<T>,
+  globalScope?: boolean
 ) => boolean

@@ -442,7 +442,7 @@ export interface Site {
   name: string
   frontId: string
   visible: boolean
-  creatorId: number
+  creatorId: string
   creatorName: string
   logoUrl: string
   description: string

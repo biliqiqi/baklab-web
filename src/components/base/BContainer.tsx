@@ -25,7 +25,7 @@ import { Link, useLocation, useMatch, useParams } from 'react-router-dom'
 import { toSync } from '@/lib/fire-and-forget'
 import { cn, getSiteStatusColor, getSiteStatusName } from '@/lib/utils'
 
-import { getSiteList, joinSite } from '@/api/site'
+import { getSiteList, joinSite, quitSite } from '@/api/site'
 import {
   DEFAULT_PAGE_SIZE,
   DOCK_HEIGHT,
@@ -137,6 +137,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const { open: sidebarOpen, setOpen: setSidebarOpen } = useSidebarStore()
     const [sidebarOpenMobile, setSidebarOpenMobile] = useState(false)
     const [categoryFormDirty, setCategoryFormDirty] = useState(false)
+    const [openSiteMenu, setOpenSiteMenu] = useState(false)
 
     const [siteFormDirty, setSiteFormDirty] = useState(false)
 
@@ -172,6 +173,10 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       cancelBtnText: alertCancelBtnText,
     } = alertDialog
 
+    const isMySite = useMemo(
+      () => (currSite ? currSite.creatorId == authStore.userID : false),
+      [currSite, authStore]
+    )
     const isMobile = useIsMobile()
 
     /* const [sidebarOpen, setSidebarOpen] = useState(!isMobile) */
@@ -366,6 +371,24 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         if (!code) {
           await Promise.all([
             siteStore.fetchSiteData(siteFrontId),
+            siteStore.fetchSiteList(),
+            cateStore.fetchCategoryList(siteFrontId),
+          ])
+        }
+      },
+      []
+    )
+
+    const onQuitSiteClick = useCallback(
+      async (ev: MouseEvent<HTMLDivElement>) => {
+        ev.preventDefault()
+        if (!siteFrontId) return
+        const { code } = await quitSite(siteFrontId)
+        if (!code) {
+          setOpenSiteMenu(false)
+          await Promise.all([
+            siteStore.fetchSiteData(siteFrontId),
+            siteStore.fetchSiteList(),
             cateStore.fetchCategoryList(siteFrontId),
           ])
         }
@@ -460,22 +483,23 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                   vertical
                 />
               </Link>
-              {authStore.isLogined() && authStore.permit('site', 'create') && (
-                <span className="inline-flex flex-col items-center align-middle">
-                  <Button
-                    variant="secondary"
-                    className="rounded-full w-[40px] h-[40px] text-[24px] text-center text-gray-500 mb-1"
-                    key="new-site"
-                    onClick={() => {
-                      setShowSiteForm(true)
-                    }}
-                    title="创建站点"
-                  >
-                    +
-                  </Button>
-                  <span className="text-[14px] leading-[1.2]">创建站点</span>
-                </span>
-              )}
+              {authStore.isLogined() &&
+                authStore.permit('site', 'create', true) && (
+                  <span className="inline-flex flex-col items-center align-middle">
+                    <Button
+                      variant="secondary"
+                      className="rounded-full w-[40px] h-[40px] text-[24px] text-center text-gray-500 mb-1"
+                      key="new-site"
+                      onClick={() => {
+                        setShowSiteForm(true)
+                      }}
+                      title="创建站点"
+                    >
+                      +
+                    </Button>
+                    <span className="text-[14px] leading-[1.2]">创建站点</span>
+                  </span>
+                )}
             </div>
           </div>
         </div>
@@ -539,7 +563,10 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     )}
                   </div>
                   {currSite && (
-                    <DropdownMenu>
+                    <DropdownMenu
+                      open={openSiteMenu}
+                      onOpenChange={setOpenSiteMenu}
+                    >
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
@@ -560,6 +587,14 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                             onClick={onEditSiteClick}
                           >
                             站点设置
+                          </DropdownMenuItem>
+                        )}
+                        {!isMySite && currSite.currUserState.isMember && (
+                          <DropdownMenuItem
+                            className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                            onClick={onQuitSiteClick}
+                          >
+                            退出站点
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem
@@ -788,7 +823,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     siteStore.site &&
                     !siteStore.site.currUserState.isMember && (
                       <Card className="p-2 text-sm mt-4">
-                        你还不是当前站点成员，加入后可参与互动。
+                        你还不是当前站点成员，加入后可订阅新内容或参与互动。
                         <Button
                           size={'sm'}
                           className="ml-2"

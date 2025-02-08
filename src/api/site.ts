@@ -60,6 +60,9 @@ export const deleteSite = (frontId: string) =>
 export const joinSite = (frontId: string) =>
   authRequest.post<ResponseData<null>>(`sites/${frontId}/join`)
 
+export const quitSite = (frontId: string) =>
+  authRequest.post<ResponseData<null>>(`sites/${frontId}/quit`)
+
 export const setSiteStatus = (
   frontId: string,
   status: SiteStatus,
@@ -117,6 +120,9 @@ export const getSiteList = (
     searchParams: params,
   })
 }
+
+export const getJoinedSiteList = () =>
+  authRequest.get<ResponseData<SiteListResponse>>(`sites/joins`)
 
 export const getSiteWithFrontId = (frontId: string) =>
   authRequest.get<ResponseData<Site>>(

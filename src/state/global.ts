@@ -3,17 +3,9 @@ import { subscribeWithSelector } from 'zustand/middleware'
 
 import { getCategoryList } from '@/api/category'
 import { getNotificationUnreadCount } from '@/api/message'
-import { getSiteList, getSiteWithFrontId } from '@/api/site'
-import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
-import { PermissionModule, PermitFn } from '@/constants/types'
-import {
-  Category,
-  Role,
-  SITE_STATUS,
-  SITE_VISIBLE,
-  Site,
-  UserData,
-} from '@/types/types'
+import { getJoinedSiteList, getSiteWithFrontId } from '@/api/site'
+import { PermitFn } from '@/constants/types'
+import { Category, Role, SITE_STATUS, Site, UserData } from '@/types/types'
 
 export interface ToastState {
   silence: boolean
@@ -88,7 +80,7 @@ export const updateCurrRole = () => {
   // console.log('currRole: ', useAuthedUserStore.getState().currRole)
 }
 
-const globalModules: PermissionModule[] = ['site', 'platform_manage']
+// const globalModules: PermissionModule[] = ['site', 'platform_manage']
 
 export const useAuthedUserStore = create(
   subscribeWithSelector<AuthedUserState>((set, get) => ({
@@ -150,7 +142,7 @@ export const useAuthedUserStore = create(
         return -1
       }
     },
-    permit(module, action) {
+    permit(module, action, globalScope) {
       const { user } = get()
       const { site } = useSiteStore.getState()
 
@@ -166,7 +158,7 @@ export const useAuthedUserStore = create(
         (item) => item.frontId == permissionId
       )
 
-      if (site) {
+      if (site && !globalScope) {
         if (user.roleFrontId == 'platform_admin') return true
 
         if (site.status != SITE_STATUS.Normal) {
@@ -494,17 +486,13 @@ export const useSiteStore = create(
     fetchSiteList: async () => {
       try {
         const siteStore = get()
-        const authStore = useAuthedUserStore.getState()
-        const { code, data } = await getSiteList(
-          1,
-          DEFAULT_PAGE_SIZE,
-          '',
-          authStore.userID,
-          '',
-          SITE_VISIBLE.All
-        )
+        // const authStore = useAuthedUserStore.getState()
+        const { code, data } = await getJoinedSiteList()
+
         if (!code && data.list) {
           siteStore.updateState({ ...siteStore, siteList: [...data.list] })
+        } else {
+          siteStore.updateState({ ...siteStore, siteList: [] })
         }
       } catch (err) {
         console.error('fetch site data error: ', err)

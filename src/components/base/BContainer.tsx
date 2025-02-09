@@ -25,6 +25,7 @@ import React, {
 } from 'react'
 import { Link, useLocation, useMatch, useParams } from 'react-router-dom'
 
+import { timeAgo } from '@/lib/dayjs-custom'
 import { toSync } from '@/lib/fire-and-forget'
 import { cn, getSiteStatusColor, getSiteStatusName } from '@/lib/utils'
 
@@ -52,6 +53,7 @@ import {
 import {
   Category,
   FrontCategory,
+  InviteCode,
   SITE_STATUS,
   SITE_VISIBLE,
   Site,
@@ -135,7 +137,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const [showSiteForm, setShowSiteForm] = useState(false)
     const [showSiteDetail, setShowSiteDetail] = useState(false)
     const [showInviteDialog, setShowInviteDialog] = useState(false)
-    const [inviteCode, setInviteCode] = useState('')
+    const [inviteCode, setInviteCode] = useState<InviteCode | null>(null)
     const [inviteCodeGeneratting, setInviteCodeGeneratting] = useState(false)
     const [copyInviteSuccess, setCopyInviteSuccess] = useState(false)
 
@@ -418,7 +420,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         try {
           setInviteCodeGeneratting(true)
           setShowInviteDialog(true)
-          const { code, data } = await inviteToSite(siteFrontId, 3000, false)
+          const { code, data } = await inviteToSite(siteFrontId)
           if (!code) {
             setInviteCode(data.code)
           }
@@ -468,7 +470,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           if (
             copyInviteBtnRef.current &&
             !clipboardRef.current &&
-            inviteCodeDialogRef.current
+            inviteCodeDialogRef.current &&
+            inviteCode
           ) {
             clipboardRef.current = new ClipboardJS(copyInviteBtnRef.current, {
               container: inviteCodeDialogRef.current,
@@ -492,7 +495,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           clipboardRef.current = null
         }
       }
-    }, [siteFrontId, showInviteDialog])
+    }, [siteFrontId, showInviteDialog, inviteCode])
 
     useEffect(() => {
       if (!showInviteDialog) {
@@ -1070,26 +1073,34 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               <>
                 <DialogHeader>
                   <DialogTitle className="font-bold">邀请加入站点</DialogTitle>
-                  <DialogDescription>请复制并分享邀请链接</DialogDescription>
+                  <DialogDescription>
+                    请复制以下链接并分享给好友
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="relative">
                   <Input
                     readOnly
                     value={
-                      inviteCodeGeneratting
+                      inviteCodeGeneratting || !inviteCode
                         ? `正在生成邀请链接...`
-                        : `${FRONT_END_HOST}/invite/${inviteCode}`
+                        : `${FRONT_END_HOST}/invite/${inviteCode.code}`
                     }
                     className={cn(
                       'pr-[54px]',
                       inviteCodeGeneratting && 'text-gray-500'
                     )}
                   />
+                  {inviteCode && (
+                    <div className="my-2 text-sm text-gray-500">
+                      该邀请链接将在 {timeAgo(inviteCode.expiredAt)}失效
+                    </div>
+                  )}
                   <Button
                     size={'sm'}
                     className="absolute top-0 right-0 h-[40px] rounded-sm rounded-l-none"
-                    data-clipboard-text={`${FRONT_END_HOST}/invite/${inviteCode}`}
+                    data-clipboard-text={`${FRONT_END_HOST}/invite/${inviteCode?.code || ''}`}
                     ref={copyInviteBtnRef}
+                    disabled={!inviteCode}
                   >
                     复制
                   </Button>

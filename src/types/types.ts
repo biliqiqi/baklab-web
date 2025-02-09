@@ -469,6 +469,16 @@ export interface UploadResponse {
   success: boolean
 }
 
-export interface SiteInviteResponse {
+export interface InviteCode {
+  id: string
   code: string
+  createdAt: string
+  updatedAt: string
+  expiredAt: string
+  siteId: string
+  creatorId: string
+}
+
+export interface SiteInviteResponse {
+  code: InviteCode
 }

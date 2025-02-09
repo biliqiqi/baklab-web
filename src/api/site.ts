@@ -141,15 +141,8 @@ export const checkSiteExists = async (frontID: string) => {
   return false
 }
 
-export const inviteToSite = (
-  frontId: string,
-  minutes: number,
-  permanent: boolean
-) =>
-  authRequest.post<ResponseData<SiteInviteResponse>>(
-    `sites/${frontId}/invite`,
-    { json: { minutes, permanent } }
-  )
+export const inviteToSite = (frontId: string) =>
+  authRequest.post<ResponseData<SiteInviteResponse>>(`sites/${frontId}/invite`)
 
 export const acceptSiteInvite = (frontId: string, code: string) =>
   authRequest.post<ResponseData<null>>(`sites/${frontId}/accept_invite`, {

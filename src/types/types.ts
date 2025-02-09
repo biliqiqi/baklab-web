@@ -482,3 +482,8 @@ export interface InviteCode {
 export interface SiteInviteResponse {
   code: InviteCode
 }
+
+export interface InviteCodeItemResponse {
+  invite: InviteCode
+  site: Site
+}

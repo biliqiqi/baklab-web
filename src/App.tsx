@@ -16,7 +16,6 @@ import { refreshAuthState } from './lib/request.ts'
 import { getCookie, noop } from './lib/utils.ts'
 import {
   useAuthedUserStore,
-  useNotFoundStore,
   useNotificationStore,
   useSidebarStore,
   useSiteStore,

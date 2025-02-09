@@ -6,6 +6,7 @@ import ArticlePage from './ArticlePage.tsx'
 import BannedUserListPage from './BannedUserListPage.tsx'
 import CategoryListPage from './CategoryListPage.tsx'
 import EditPage from './EditPage.tsx'
+import InvitePage from './InvitePage.tsx'
 import MessagePage from './MessagePage.tsx'
 import NotFoundPage from './NotFoundPage.tsx'
 import RoleManagePage from './RoleManagePage.tsx'
@@ -65,6 +66,77 @@ export const routes: RouteObject[] = [
   {
     path: '/',
     Component: ArticleListPage,
+  },
+  {
+    path: '/invite/:inviteCode',
+    Component: InvitePage,
+  },
+  {
+    path: '/signup',
+    Component: SignupPage,
+    loader: notAtAuthed,
+  },
+  {
+    path: '/signin',
+    Component: SigninPage,
+    loader: notAtAuthed,
+  },
+  {
+    path: '/users/:username',
+    Component: UserPage,
+  },
+  {
+    path: '/u/:username',
+    Component: UserPage,
+  },
+  {
+    path: '/messages',
+    Component: MessagePage,
+    loader: mustAuthed,
+  },
+  {
+    path: '/manage',
+    loader: needPermission('platform_manage', 'access'),
+    children: [
+      {
+        path: 'sites',
+        Component: SiteListPage,
+        loader: needPermission('site', 'manage_platform'),
+      },
+      {
+        // TODO 分类列表
+        path: 'categories',
+      },
+      {
+        path: '',
+        loader: () => redirect('/manage/activities'),
+      },
+      {
+        path: 'activities',
+        Component: ActivityPage,
+        loader: needPermission('activity', 'manage_platform'),
+      },
+      {
+        path: 'trash',
+        Component: TrashPage,
+        loader: needPermission('platform_manage', 'access'),
+      },
+      {
+        path: 'users',
+        Component: UserListPage,
+        loader: needPermission('user', 'manage_platform'),
+      },
+      {
+        path: 'banned_users',
+        Component: BannedUserListPage,
+        loader: needPermission('user', 'manage_platform'),
+      },
+      {
+        path: 'roles',
+        Component: RoleManagePage,
+        loader: needPermission('role', 'manage_platform'),
+      },
+    ],
   },
   {
     path: '/:siteFrontId',
@@ -151,73 +223,6 @@ export const routes: RouteObject[] = [
   {
     path: '/:siteFrontId/articles/:articleId/edit',
     Component: EditPage,
-  },
-  {
-    path: '/signup',
-    Component: SignupPage,
-    loader: notAtAuthed,
-  },
-  {
-    path: '/signin',
-    Component: SigninPage,
-    loader: notAtAuthed,
-  },
-  {
-    path: '/users/:username',
-    Component: UserPage,
-  },
-  {
-    path: '/u/:username',
-    Component: UserPage,
-  },
-  {
-    path: '/messages',
-    Component: MessagePage,
-    loader: mustAuthed,
-  },
-  {
-    path: '/manage',
-    loader: needPermission('platform_manage', 'access'),
-    children: [
-      {
-        path: 'sites',
-        Component: SiteListPage,
-        loader: needPermission('site', 'manage_platform'),
-      },
-      {
-        // TODO 分类列表
-        path: 'categories',
-      },
-      {
-        path: '',
-        loader: () => redirect('/manage/activities'),
-      },
-      {
-        path: 'activities',
-        Component: ActivityPage,
-        loader: needPermission('activity', 'manage_platform'),
-      },
-      {
-        path: 'trash',
-        Component: TrashPage,
-        loader: needPermission('platform_manage', 'access'),
-      },
-      {
-        path: 'users',
-        Component: UserListPage,
-        loader: needPermission('user', 'manage_platform'),
-      },
-      {
-        path: 'banned_users',
-        Component: BannedUserListPage,
-        loader: needPermission('user', 'manage_platform'),
-      },
-      {
-        path: 'roles',
-        Component: RoleManagePage,
-        loader: needPermission('role', 'manage_platform'),
-      },
-    ],
   },
   {
     path: '*',

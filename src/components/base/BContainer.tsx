@@ -23,7 +23,13 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import { Link, useLocation, useMatch, useParams } from 'react-router-dom'
+import {
+  Link,
+  useLocation,
+  useMatch,
+  useNavigate,
+  useParams,
+} from 'react-router-dom'
 
 import { timeAgo } from '@/lib/dayjs-custom'
 import { toSync } from '@/lib/fire-and-forget'
@@ -168,6 +174,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     })
 
     const { siteFrontId } = useParams()
+    const navigate = useNavigate()
 
     const authPermit = useAuthedUserStore((state) => state.permit)
 
@@ -402,6 +409,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         const { code } = await quitSite(siteFrontId)
         if (!code) {
           setOpenSiteMenu(false)
+          navigate('/', { replace: true })
           await Promise.all([
             siteStore.fetchSiteData(siteFrontId),
             siteStore.fetchSiteList(),
@@ -420,6 +428,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         try {
           setInviteCodeGeneratting(true)
           setShowInviteDialog(true)
+          setOpenSiteMenu(false)
           const { code, data } = await inviteToSite(siteFrontId)
           if (!code) {
             setInviteCode(data.code)

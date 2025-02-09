@@ -12,7 +12,9 @@ export default function SigninPage() {
   const [searchParams, _setSearchParams] = useSearchParams()
   const returnURL = searchParams.get('return')
   /* console.log('account: ', account) */
-  /* console.log('return url: ', returnURL) */
+
+  /* console.log('return url: ', returnURL)
+   * console.log('is inner url: ', isInnerURL(returnURL || '')) */
 
   const navigate = useNavigate()
 
@@ -20,10 +22,10 @@ export default function SigninPage() {
     let targetURL = '/'
     if (returnURL && isInnerURL(returnURL)) {
       targetURL = returnURL.replace(location.origin, '')
-      console.log('to return url: ', targetURL)
+      /* console.log('to return url: ', targetURL) */
     }
 
-    console.log('targetURL: ', targetURL)
+    /* console.log('targetURL: ', targetURL) */
     navigate(targetURL)
   }, [returnURL])
 

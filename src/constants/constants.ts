@@ -7,6 +7,8 @@ import {
 export const SITE_NAME = 'BiliQiqi'
 export const SITE_NAME_CN = '必利淇淇'
 
+export const PLATFORM_NAME = 'BiliQiqi'
+
 // blue
 export const SITE_LOGO_IMAGE =
   'https://static.biliqiqi.net/FESP9bIgGLe8NJPCw4uO1soNI9GfSL66'

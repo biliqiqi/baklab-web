@@ -45,6 +45,7 @@ import {
   SITE_NAME,
 } from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
+import useDocumentTitle from '@/hooks/use-page-title'
 import {
   useAlertDialogStore,
   useAuthedUserStore,
@@ -87,7 +88,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '../ui/dialog'
@@ -179,6 +179,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const authPermit = useAuthedUserStore((state) => state.permit)
 
     const alertDialog = useAlertDialogStore()
+
     const siteStore = useSiteStore()
     const cateStore = useCategoryStore()
     const authStore = useAuthedUserStore()
@@ -229,7 +230,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           confirmed: false,
         }))
       }
-    }, [alertDialog])
+    }, [alertDialog, alertType])
 
     const onAlertDialogConfirm = useCallback(() => {
       if (alertType == 'confirm') {
@@ -239,7 +240,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           confirmed: true,
         }))
       }
-    }, [alertDialog])
+    }, [alertDialog, alertType])
 
     const onToggleTopDrawer = useCallback(() => {
       if (!showTopDrawer) {
@@ -308,7 +309,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           data: undefined,
         }))
       }, 500)
-    }, [siteFormDirty, editSite])
+    }, [siteFormDirty, editSite, alertDialog])
 
     const onCategoryCreated = useCallback(async () => {
       setShowCategoryForm(false)
@@ -320,7 +321,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       }, 500)
       if (!siteFrontId) return
       await fetchCategoryList(siteFrontId)
-    }, [siteFrontId])
+    }, [siteFrontId, fetchCategoryList])
 
     const onSiteCreated = useCallback(async () => {
       setShowSiteForm(false)
@@ -383,7 +384,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         })
         setShowSiteForm(true)
       },
-      [siteStore]
+      [currSite]
     )
 
     const onJoinSiteClick = useCallback(
@@ -399,7 +400,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           ])
         }
       },
-      []
+      [cateStore, siteFrontId, siteStore]
     )
 
     const onQuitSiteClick = useCallback(
@@ -409,15 +410,19 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         const { code } = await quitSite(siteFrontId)
         if (!code) {
           setOpenSiteMenu(false)
-          navigate('/', { replace: true })
+          if (siteStore.site && !siteStore.site.visible) {
+            siteStore.update(null)
+            navigate('/', { replace: true })
+          }
           await Promise.all([
-            siteStore.fetchSiteData(siteFrontId),
+            /* siteStore.fetchSiteData(siteFrontId), */
             siteStore.fetchSiteList(),
             cateStore.fetchCategoryList(siteFrontId),
           ])
+          /* forceUpdate() */
         }
       },
-      []
+      [siteFrontId, siteStore, navigate, cateStore]
     )
 
     const onInviteClick = useCallback(
@@ -458,7 +463,9 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         siteStore.update(null)
         cateStore.updateCategories([])
       }
-    }, [siteFrontId])
+    }, [siteFrontId, globalSiteFrontId])
+
+    useDocumentTitle('')
 
     useEffect(() => {
       /* console.log('location change, not found: ', showNotFound) */
@@ -469,7 +476,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           setSidebarOpenMobile(false)
         }
       }
-    }, [location, isMobile])
+    }, [location, isMobile, updateNotFound])
 
     useEffect(() => {
       let timer: number | undefined
@@ -624,6 +631,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     >
                       {siteFrontId && siteStore.site ? (
                         <BSiteIcon
+                          key={siteStore.site.frontId}
                           className="max-w-[180px]"
                           logoUrl={siteStore.site.logoUrl}
                           name={siteStore.site.name}
@@ -632,6 +640,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                         />
                       ) : (
                         <BSiteIcon
+                          key="home"
                           className="max-w-[180px]"
                           logoUrl={SITE_LOGO_IMAGE}
                           name={SITE_NAME}
@@ -918,7 +927,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                   {authStore.isLogined() ? (
                     siteStore.site &&
                     !siteStore.site.currUserState.isMember && (
-                      <Card className="p-2 text-sm mt-4">
+                      <Card className="p-2 px-4 text-sm mt-4">
                         你还不是当前站点成员，加入后可订阅新内容或参与互动。
                         <Button
                           size={'sm'}

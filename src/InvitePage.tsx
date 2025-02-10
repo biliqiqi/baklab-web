@@ -102,7 +102,7 @@ export default function InvitePage() {
               vertical
             />
             <div className="text-sm text-gray-500 mb-2">
-              {inviteData?.creatorId} 邀请你加入
+              {inviteData?.creatorName} 邀请你加入
             </div>
             <div>{site.name}</div>
             <div className="mt-1 text-sm text-gray-500">

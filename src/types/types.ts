@@ -477,6 +477,7 @@ export interface InviteCode {
   expiredAt: string
   siteId: string
   creatorId: string
+  creatorName: string
 }
 
 export interface SiteInviteResponse {

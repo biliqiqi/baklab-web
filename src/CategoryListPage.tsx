@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { Card } from './components/ui/card'
@@ -5,11 +6,17 @@ import { Card } from './components/ui/card'
 import BContainer from './components/base/BContainer'
 import BIconColorChar from './components/base/BIconColorChar'
 
+import { toSync } from './lib/fire-and-forget'
 import { useCategoryStore } from './state/global'
 
 export default function CategoryListPage() {
   const cateStore = useCategoryStore()
   const { siteFrontId } = useParams()
+
+  useEffect(() => {
+    if (!siteFrontId) return
+    toSync(cateStore.fetchCategoryList)(siteFrontId)
+  }, [siteFrontId])
 
   return (
     <BContainer

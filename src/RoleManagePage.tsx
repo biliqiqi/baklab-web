@@ -252,6 +252,15 @@ export default function RoleManagePage() {
     [defaultRoleForm]
   )
 
+  const onCancelEditSiteDefaultRole = useCallback(
+    (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault()
+      setEditSiteDefaultRole(false)
+      defaultRoleForm.reset({ roleId: '' })
+    },
+    [defaultRoleForm]
+  )
+
   useEffect(() => {
     fetchRoleList()
   }, [params])
@@ -400,7 +409,7 @@ export default function RoleManagePage() {
                       variant="secondary"
                       size="sm"
                       className="mr-2"
-                      onClick={onCancelEditDefaultRole}
+                      onClick={onCancelEditSiteDefaultRole}
                     >
                       取消
                     </Button>

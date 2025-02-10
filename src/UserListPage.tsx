@@ -13,7 +13,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
@@ -64,6 +64,8 @@ export default function UserListPage() {
   const location = useLocation()
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const banDialogRef = useRef<BanDialogRef | null>(null)
+
+  const { siteFrontId } = useParams()
 
   const authStore = useAuthedUserStore()
 
@@ -191,7 +193,10 @@ export default function UserListPage() {
 
           setSearchData((state) => ({ ...state, keywords, roleId }))
 
-          const resp = await getUserList(page, pageSize, keywords, roleId)
+          const resp = await getUserList(page, pageSize, keywords, roleId, '', {
+            siteFrontId,
+          })
+
           if (!resp.code) {
             const { data } = resp
             if (data.list) {
@@ -219,7 +224,7 @@ export default function UserListPage() {
           setLoading(false)
         }
       },
-      [params]
+      [params, siteFrontId]
     )
   )
 

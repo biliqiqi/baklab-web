@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { CircleAlertIcon } from 'lucide-react'
 import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
 import {
@@ -78,6 +79,8 @@ const RoleForm: React.FC<RoleFormProps> = ({
   >([])
   const authStore = useAuthedUserStore()
   const alertDialog = useAlertDialogStore()
+
+  const { siteFrontId } = useParams()
 
   const edittingPermissionIds = useMemo(() => {
     return role?.permissions ? role.permissions.map((item) => item.frontId) : []
@@ -175,7 +178,9 @@ const RoleForm: React.FC<RoleFormProps> = ({
 
       if (!isEdit || !role?.frontId) return
 
-      const { code, data } = await getUserList(1, 1, '', role.id)
+      const { code, data } = await getUserList(1, 1, '', role.id, '', {
+        siteFrontId,
+      })
 
       if (!code) {
         if (data.total > 0) {

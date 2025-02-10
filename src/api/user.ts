@@ -24,7 +24,8 @@ export const getUserList = (
   pageSize?: number,
   keywords?: string,
   roleId?: string,
-  roleFrontId?: string
+  roleFrontId?: string,
+  custom?: CustomRequestOptions
 ) => {
   const params = new URLSearchParams()
 
@@ -48,9 +49,13 @@ export const getUserList = (
     params.set('pageSize', String(pageSize))
   }
 
-  return authRequest.get<ResponseData<UserListResponse>>(`users`, {
-    searchParams: params,
-  })
+  return authRequest.get<ResponseData<UserListResponse>>(
+    `users`,
+    {
+      searchParams: params,
+    },
+    custom
+  )
 }
 
 export const setUserRole = (

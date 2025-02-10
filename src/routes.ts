@@ -164,40 +164,6 @@ export const routes: RouteObject[] = [
       }
     },
     Component: ArticleListPage,
-    children: [
-      /* {
-       *   path: 'manage',
-       *   loader: needPermission('manage', 'access'),
-       *   children: [
-       *     {
-       *       path: '',
-       *       loader: () => redirect('/manage/activities'),
-       *     },
-       *     {
-       *       path: 'activities',
-       *       Component: ActivityPage,
-       *       loader: needPermission('activity', 'access'),
-       *     },
-       *     {
-       *       path: 'trash',
-       *       Component: TrashPage,
-       *     },
-       *     {
-       *       path: 'users',
-       *       Component: UserListPage,
-       *       loader: needPermission('user', 'manage'),
-       *     },
-       *     {
-       *       path: 'blocklist',
-       *     },
-       *     {
-       *       path: 'roles',
-       *       Component: RoleManagePage,
-       *       loader: needPermission('role', 'access'),
-       *     },
-       *   ],
-       * }, */
-    ],
   },
   {
     path: '/:siteFrontId/feed',
@@ -223,6 +189,11 @@ export const routes: RouteObject[] = [
   {
     path: '/:siteFrontId/articles/:articleId/edit',
     Component: EditPage,
+  },
+  {
+    path: '/:siteFrontId/manage/users',
+    Component: UserListPage,
+    loader: mustAuthed,
   },
   {
     path: '*',

@@ -1,5 +1,6 @@
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
 import { cn, noop } from '@/lib/utils'
@@ -46,6 +47,8 @@ const RoleSelector = ({
 
   const [defaultRole, setDefaultRole] = useState<Role | null>(null)
 
+  const { siteFrontId } = useParams()
+
   const selectedRole = useMemo(() => {
     if (defaultRole) {
       return defaultRole
@@ -59,25 +62,33 @@ const RoleSelector = ({
     [selectedRole]
   )
 
-  const searchRoleList = (keywords: string) => {
-    if (searchTimer.current) clearTimeout(searchTimer.current)
+  const searchRoleList = useCallback(
+    (keywords: string) => {
+      if (searchTimer.current) clearTimeout(searchTimer.current)
 
-    searchTimer.current = setTimeout(
-      toSync(async () => {
-        setSearchLoading(true)
+      searchTimer.current = setTimeout(
+        toSync(async () => {
+          setSearchLoading(true)
 
-        const { code, data } = await getRoles(1, DEFAULT_PAGE_SIZE, keywords)
-        if (!code && data.list) {
-          const { list } = data
-          setRoleOptions(() => [...list])
-        } else {
-          setRoleOptions(() => [])
-        }
-        setSearchLoading(false)
-      }),
-      200
-    ) as unknown as number
-  }
+          const { code, data } = await getRoles(
+            1,
+            DEFAULT_PAGE_SIZE,
+            keywords,
+            { siteFrontId }
+          )
+          if (!code && data.list) {
+            const { list } = data
+            setRoleOptions(() => [...list])
+          } else {
+            setRoleOptions(() => [])
+          }
+          setSearchLoading(false)
+        }),
+        200
+      ) as unknown as number
+    },
+    [siteFrontId]
+  )
 
   const fetchRole = toSync(async () => {
     if (!value) return

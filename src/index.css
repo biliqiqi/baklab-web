@@ -167,6 +167,35 @@ a:hover {
   line-height: 1em;
 }
 
+/* styles.css */
+.CollapsibleContent {
+  overflow: hidden;
+}
+.CollapsibleContent[data-state='open'] {
+  animation: slideDown 200ms ease-out;
+}
+.CollapsibleContent[data-state='closed'] {
+  animation: slideUp 200ms ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    height: var(--radix-collapsible-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
 .tiptap p.is-editor-empty:first-child::before {
   @apply text-gray-500;
   content: attr(data-placeholder);

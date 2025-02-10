@@ -4,6 +4,8 @@ import {
   ActivityIcon,
   ChartBarStackedIcon,
   CheckIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
   EllipsisVerticalIcon,
   GlobeIcon,
   LockIcon,
@@ -85,6 +87,11 @@ import {
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '../ui/collapsible'
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -152,7 +159,12 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const { signin, signup, updateSignin, updateSignup } = useDialogStore()
     const { showNotFound, updateNotFound } = useNotFoundStore()
 
-    const { open: sidebarOpen, setOpen: setSidebarOpen } = useSidebarStore()
+    const {
+      open: sidebarOpen,
+      setOpen: setSidebarOpen,
+      groupsOpen,
+      setGroupsOpen,
+    } = useSidebarStore()
     const [sidebarOpenMobile, setSidebarOpenMobile] = useState(false)
     const [categoryFormDirty, setCategoryFormDirty] = useState(false)
     const [openSiteMenu, setOpenSiteMenu] = useState(false)
@@ -727,7 +739,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                       )}
                   </div>
                 )}
-                <SidebarGroup>
+                <SidebarGroup key={'default sides'}>
                   <SidebarGroupContent>
                     <SidebarMenu>
                       <SidebarMenuItem key="feed">
@@ -750,7 +762,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                               <BIconCircle id="categories" size={32}>
                                 <ChartBarStackedIcon size={18} />
                               </BIconCircle>
-                              分类
+                              全部分类
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
@@ -760,7 +772,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 </SidebarGroup>
 
                 {!siteFrontId && authPermit('platform_manage', 'access') && (
-                  <SidebarGroup>
+                  <SidebarGroup key={'platformManage'}>
                     <SidebarGroupLabel>平台管理</SidebarGroupLabel>
                     <SidebarGroupContent>
                       <SidebarMenu>
@@ -842,63 +854,141 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 )}
 
                 {siteFrontId && (
-                  <SidebarGroup>
-                    <SidebarGroupLabel className="flex justify-between">
-                      <span>分类</span>
+                  <SidebarGroup key={'categories'}>
+                    <Collapsible
+                      open={groupsOpen.category}
+                      onOpenChange={(open) =>
+                        setGroupsOpen((state) => ({
+                          ...state,
+                          category: open,
+                        }))
+                      }
+                    >
+                      <CollapsibleTrigger asChild>
+                        <SidebarGroupLabel className="flex justify-between cursor-pointer">
+                          <span>
+                            <ChevronDownIcon
+                              size={14}
+                              className={cn(
+                                'transition-transform duration-200 ease-in-out rotate-0 inline-block align-bottom mr-1',
+                                !groupsOpen.category && '-rotate-90'
+                              )}
+                            />
+                            <span>分类</span>
+                          </span>
 
-                      {authPermit('category', 'create') && (
-                        <Button
-                          variant="ghost"
-                          className="p-0 w-[24px] h-[24px] rounded-full"
-                          onClick={onCreateCategoryClick}
-                        >
-                          <PlusIcon size={18} className="text-gray-500" />
-                        </Button>
-                      )}
-                    </SidebarGroupLabel>
-                    <SidebarGroupContent>
-                      <SidebarMenu>
-                        {cateList.map((item) => (
-                          <SidebarMenuItem key={item.frontId}>
-                            <SidebarMenuButton
-                              asChild
-                              isActive={
-                                location.pathname ==
-                                  `/${siteFrontId}/categories/${item.frontId}` ||
-                                category?.frontId == item.frontId
-                              }
+                          {authPermit('category', 'create') && (
+                            <Button
+                              variant="ghost"
+                              className="p-0 w-[24px] h-[24px] rounded-full"
+                              onClick={onCreateCategoryClick}
                             >
-                              <Link
-                                to={`/${siteFrontId}/categories/${item.frontId}`}
-                              >
-                                <BIconColorChar
-                                  iconId={item.frontId}
-                                  char={item.name}
-                                  size={32}
-                                />
-                                {item.name}
-                              </Link>
-                            </SidebarMenuButton>
-                            {authPermit('category', 'edit') && (
-                              <SidebarMenuAction
-                                style={{
-                                  top: '10px',
-                                  width: '28px',
-                                  height: '28px',
-                                }}
-                                className="rounded-full"
-                                onClick={(e) => onEditCategoryClick(e, item)}
-                              >
-                                <PencilIcon
-                                  size={14}
-                                  className="inline-block mr-1 text-gray-500"
-                                />
-                              </SidebarMenuAction>
+                              <PlusIcon size={18} className="text-gray-500" />
+                            </Button>
+                          )}
+                        </SidebarGroupLabel>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="CollapsibleContent">
+                        <SidebarGroupContent>
+                          <SidebarMenu>
+                            {cateList.map((item) => (
+                              <SidebarMenuItem key={item.frontId}>
+                                <SidebarMenuButton
+                                  asChild
+                                  isActive={
+                                    location.pathname ==
+                                      `/${siteFrontId}/categories/${item.frontId}` ||
+                                    category?.frontId == item.frontId
+                                  }
+                                >
+                                  <Link
+                                    to={`/${siteFrontId}/categories/${item.frontId}`}
+                                  >
+                                    <BIconColorChar
+                                      iconId={item.frontId}
+                                      char={item.name}
+                                      size={32}
+                                    />
+                                    {item.name}
+                                  </Link>
+                                </SidebarMenuButton>
+                                {authPermit('category', 'edit') && (
+                                  <SidebarMenuAction
+                                    style={{
+                                      top: '10px',
+                                      width: '28px',
+                                      height: '28px',
+                                    }}
+                                    className="rounded-full"
+                                    onClick={(e) =>
+                                      onEditCategoryClick(e, item)
+                                    }
+                                  >
+                                    <PencilIcon
+                                      size={14}
+                                      className="inline-block mr-1 text-gray-500"
+                                    />
+                                  </SidebarMenuAction>
+                                )}
+                              </SidebarMenuItem>
+                            ))}
+                          </SidebarMenu>
+                        </SidebarGroupContent>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </SidebarGroup>
+                )}
+                {siteFrontId && authStore.permit('site', 'manage') && (
+                  <SidebarGroup key={'siteManage'}>
+                    <Collapsible
+                      open={groupsOpen.siteManage}
+                      onOpenChange={(open) =>
+                        setGroupsOpen((state) => ({
+                          ...state,
+                          siteManage: open,
+                        }))
+                      }
+                    >
+                      <CollapsibleTrigger asChild>
+                        <SidebarGroupLabel className="flex justify-between cursor-pointer">
+                          <span>
+                            <ChevronDownIcon
+                              size={14}
+                              className={cn(
+                                'transition-transform duration-200 ease-in-out rotate-0 inline-block align-bottom mr-1',
+                                !groupsOpen.siteManage && '-rotate-90'
+                              )}
+                            />
+                            <span>站点管理</span>
+                          </span>
+                          <span></span>
+                        </SidebarGroupLabel>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="CollapsibleContent">
+                        <SidebarGroupContent>
+                          <SidebarMenu>
+                            {authPermit('user', 'manage') && (
+                              <SidebarMenuItem key="users">
+                                <SidebarMenuButton
+                                  asChild
+                                  isActive={
+                                    location.pathname ==
+                                    `/${siteFrontId}/manage/users`
+                                  }
+                                >
+                                  <Link to={`/${siteFrontId}/manage/users`}>
+                                    <BIconCircle id="users" size={32}>
+                                      <UsersRoundIcon size={18} />
+                                    </BIconCircle>
+                                    用户列表
+                                  </Link>
+                                </SidebarMenuButton>
+                              </SidebarMenuItem>
                             )}
-                          </SidebarMenuItem>
-                        ))}
-                      </SidebarMenu>
-                    </SidebarGroupContent>
+                          </SidebarMenu>
+                        </SidebarGroupContent>
+                      </CollapsibleContent>
+                    </Collapsible>
                   </SidebarGroup>
                 )}
               </SidebarContent>

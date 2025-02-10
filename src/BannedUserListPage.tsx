@@ -5,15 +5,8 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import {
-  MouseEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
+import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
@@ -33,11 +26,10 @@ import BAvatar from './components/base/BAvatar'
 import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
 
-import { BanDialogRef, BanSchema } from './components/BanDialog'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 
-import { banManyUsers, getUserList, unbanManyUsers } from './api/user'
+import { getUserList, unbanManyUsers } from './api/user'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
@@ -65,6 +57,8 @@ export default function BannedUserListPage() {
 
   const authStore = useAuthedUserStore()
   const alertDialog = useAlertDialogStore()
+
+  const { siteFrontId } = useParams()
 
   const [pageState, setPageState] = useState<ListPageState>({
     currPage: 1,
@@ -204,7 +198,8 @@ export default function BannedUserListPage() {
             pageSize,
             keywords,
             '',
-            'banned_user'
+            'banned_user',
+            { siteFrontId }
           )
 
           if (!resp.code) {
@@ -234,7 +229,7 @@ export default function BannedUserListPage() {
           setLoading(false)
         }
       },
-      [params]
+      [params, siteFrontId]
     )
   )
 

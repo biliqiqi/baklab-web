@@ -375,15 +375,43 @@ export const useNotFoundStore = create<NotFoundState>((set) => ({
   },
 }))
 
+export interface SidebarGroupsOpenState {
+  category: boolean
+  siteManage: boolean
+}
+
 export interface SidebarState {
   open: boolean
   setOpen: (x: boolean) => void
+  groupsOpen: SidebarGroupsOpenState
+  setGroupsOpen: (
+    s:
+      | SidebarGroupsOpenState
+      | ((s: SidebarGroupsOpenState) => SidebarGroupsOpenState)
+  ) => void
 }
 
 export const useSidebarStore = create<SidebarState>((set) => ({
   open: false,
   setOpen(open) {
     set(() => ({ open }))
+  },
+  groupsOpen: {
+    category: true,
+    siteManage: true,
+  },
+  setGroupsOpen(s) {
+    if (typeof s == 'function') {
+      set((state) => ({
+        ...state,
+        groupsOpen: s(state.groupsOpen),
+      }))
+    } else {
+      set((state) => ({
+        ...state,
+        groupsOpen: s,
+      }))
+    }
   },
 }))
 

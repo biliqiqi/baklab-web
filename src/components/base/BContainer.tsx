@@ -627,7 +627,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             )}
           >
             <Sidebar className="relative max-h-full" gap={false}>
-              <SidebarContent>
+              <SidebarContent className="gap-0">
                 <div
                   className="flex justify-between items-center border-b-2 px-2 py-1"
                   style={{
@@ -865,7 +865,12 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                       }
                     >
                       <CollapsibleTrigger asChild>
-                        <SidebarGroupLabel className="flex justify-between cursor-pointer">
+                        <SidebarGroupLabel
+                          className={cn(
+                            'flex justify-between cursor-pointer',
+                            !groupsOpen.category && 'mb-0'
+                          )}
+                        >
                           <span>
                             <ChevronDownIcon
                               size={14}
@@ -950,7 +955,12 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                       }
                     >
                       <CollapsibleTrigger asChild>
-                        <SidebarGroupLabel className="flex justify-between cursor-pointer">
+                        <SidebarGroupLabel
+                          className={cn(
+                            'flex justify-between cursor-pointer',
+                            !groupsOpen.siteManage && 'mb-0'
+                          )}
+                        >
                           <span>
                             <ChevronDownIcon
                               size={14}
@@ -980,7 +990,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                                     <BIconCircle id="users" size={32}>
                                       <UsersRoundIcon size={18} />
                                     </BIconCircle>
-                                    用户列表
+                                    成员列表
                                   </Link>
                                 </SidebarMenuButton>
                               </SidebarMenuItem>

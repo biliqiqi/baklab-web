@@ -42,7 +42,7 @@ import { banManyUsers, getUserList } from './api/user'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
-import { useAuthedUserStore } from './state/global'
+import { useAuthedUserStore, useSiteStore } from './state/global'
 import { ListPageState, UserData } from './types/types'
 
 interface SearchFields {
@@ -68,6 +68,7 @@ export default function UserListPage() {
   const { siteFrontId } = useParams()
 
   const authStore = useAuthedUserStore()
+  const siteStore = useSiteStore()
 
   const [pageState, setPageState] = useState<ListPageState>({
     currPage: 1,
@@ -110,6 +111,14 @@ export default function UserListPage() {
       cell: ({ row }) => (
         <Link to={'/users/' + row.original.name}>
           <BAvatar username={row.original.name} size={36} showUsername />
+          {siteFrontId && siteStore.site?.creatorId == row.original.id && (
+            <Badge
+              variant={'outline'}
+              className="text-xs text-gray-500 border-primary font-normal m-1"
+            >
+              站点创建人
+            </Badge>
+          )}
         </Link>
       ),
     },
@@ -308,12 +317,21 @@ export default function UserListPage() {
 
   return (
     <BContainer
-      category={{
-        isFront: true,
-        frontId: 'users',
-        name: '用户列表',
-        describe: '全部用户',
-      }}
+      category={
+        siteFrontId
+          ? {
+              isFront: true,
+              frontId: 'siteUsers',
+              name: '成员列表',
+              describe: '本站点成员',
+            }
+          : {
+              isFront: true,
+              frontId: 'users',
+              name: '用户列表',
+              describe: '全部用户',
+            }
+      }
     >
       <Card className="flex flex-wrap justify-between p-2">
         <div className="flex flex-wrap">
@@ -351,7 +369,9 @@ export default function UserListPage() {
         </div>
       </Card>
       <div className="my-4">
-        <Badge variant="secondary">{pageState.total} 个用户</Badge>
+        <Badge variant="secondary">
+          {pageState.total} 个{siteFrontId ? '成员' : '用户'}
+        </Badge>
       </div>
       {loading && (
         <div className="flex justify-center">

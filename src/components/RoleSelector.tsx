@@ -90,14 +90,16 @@ const RoleSelector = ({
     [siteFrontId]
   )
 
-  const fetchRole = toSync(async () => {
-    if (!value) return
+  const fetchRole = toSync(
+    useCallback(async () => {
+      if (!value) return
 
-    const { code, data } = await getRole(value)
-    if (!code) {
-      setDefaultRole(data)
-    }
-  })
+      const { code, data } = await getRole(value, { siteFrontId })
+      if (!code) {
+        setDefaultRole(data)
+      }
+    }, [siteFrontId])
+  )
 
   useEffect(() => {
     onChange(selectedRole)

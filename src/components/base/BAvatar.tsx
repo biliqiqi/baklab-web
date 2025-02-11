@@ -19,7 +19,7 @@ const BAvatar: React.FC<BAvatarProps> = ({
   ...props
 }) => {
   return (
-    <span className="inline-flex items-center">
+    <span className="inline-flex items-center" title={username}>
       <span
         className={cn(
           `overflow-hidden w-[${size}px] h-[${size}px]`,

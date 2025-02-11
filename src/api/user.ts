@@ -62,7 +62,8 @@ export const setUserRole = (
   username: string,
   roleId: string,
   remark?: string,
-  roleName?: string
+  roleName?: string,
+  custom?: CustomRequestOptions
 ) =>
   authRequest.patch<ResponseData<UserSubmitResponse>>(
     `users/${username}/set_role`,
@@ -72,7 +73,8 @@ export const setUserRole = (
         remark: remark || '',
         roleName,
       },
-    }
+    },
+    custom
   )
 
 export const getUserActivityList = async (
@@ -81,7 +83,8 @@ export const getUserActivityList = async (
   actType?: ActivityActionType,
   action?: string,
   page?: number,
-  pageSize?: number
+  pageSize?: number,
+  custom?: CustomRequestOptions
 ): Promise<ResponseData<ActivityListResponse>> => {
   const params = new URLSearchParams()
   if (userId) {
@@ -104,14 +107,23 @@ export const getUserActivityList = async (
     params.set('pageSize', String(pageSize))
   }
 
-  return authRequest.get(`users/${username}/activities`, {
-    searchParams: params,
-  })
+  return authRequest.get(
+    `users/${username}/activities`,
+    {
+      searchParams: params,
+    },
+    custom
+  )
 }
 
-export const getUserPunishedList = async (username: string) =>
+export const getUserPunishedList = async (
+  username: string,
+  custom?: CustomRequestOptions
+) =>
   authRequest.get<ResponseData<ActivityListResponse>>(
-    `users/${username}/punished_log`
+    `users/${username}/punished_log`,
+    {},
+    custom
   )
 
 /**

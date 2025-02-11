@@ -21,6 +21,13 @@ import { Card } from './components/ui/card'
 import { Checkbox } from './components/ui/checkbox'
 import { Input } from './components/ui/input'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
   Table,
   TableBody,
   TableCell,
@@ -37,8 +44,9 @@ import BanDialog, { BanDialogRef, BanSchema } from './components/BanDialog'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 import RoleSelector from './components/RoleSelector'
+import UserDetailCard from './components/UserDetailCard'
 
-import { banManyUsers, getUserList } from './api/user'
+import { banManyUsers, getUser, getUserList } from './api/user'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
@@ -58,8 +66,11 @@ const defaultSearchData: SearchFields = {
 export default function UserListPage() {
   const [loading, setLoading] = useState(false)
   const [banOpen, setBanOpen] = useState(false)
+  const [showUserDetail, setShowUserDetail] = useState(false)
 
   const [list, setList] = useState<UserData[]>([])
+  const [currUser, setCurrUser] = useState<UserData | null>(null)
+
   const [params, setParams] = useSearchParams()
   const location = useLocation()
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
@@ -82,6 +93,24 @@ export default function UserListPage() {
     keywords: params.get('keywords') || '',
     roleId: params.get('role_id') || '',
   })
+
+  const fetchUserData = toSync(
+    useCallback(
+      async (username: string) => {
+        const { code, data } = await getUser(username, {}, { siteFrontId })
+        if (!code) {
+          setCurrUser(data)
+        }
+      },
+      [siteFrontId]
+    )
+  )
+
+  const onShowDetailClick = (user: UserData) => {
+    setCurrUser(user)
+    fetchUserData(user.name)
+    setShowUserDetail(true)
+  }
 
   const columns: ColumnDef<UserData>[] = [
     {
@@ -143,8 +172,12 @@ export default function UserListPage() {
       header: '操作',
       cell: ({ row }) => (
         <>
-          <Button variant="link" asChild size="sm">
-            <Link to={'/users/' + row.original.name}>详细</Link>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => onShowDetailClick(row.original)}
+          >
+            详细
           </Button>
         </>
       ),
@@ -467,6 +500,22 @@ export default function UserListPage() {
           ref={banDialogRef}
         />
       )}
+
+      <Dialog open={showUserDetail} onOpenChange={setShowUserDetail}>
+        {currUser && (
+          <DialogContent className="max-sm:max-w-[90%]">
+            <DialogHeader>
+              <DialogTitle>{currUser.name} 的详细信息</DialogTitle>
+              <DialogDescription></DialogDescription>
+            </DialogHeader>
+            <UserDetailCard
+              user={currUser}
+              title=""
+              className="p-0 bg-transparent border-none shadow-none"
+            />
+          </DialogContent>
+        )}
+      </Dialog>
     </BContainer>
   )
 }

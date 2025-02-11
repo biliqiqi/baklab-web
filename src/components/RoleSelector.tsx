@@ -98,12 +98,12 @@ const RoleSelector = ({
       if (!code) {
         setDefaultRole(data)
       }
-    }, [siteFrontId])
+    }, [siteFrontId, value])
   )
 
   useEffect(() => {
     onChange(selectedRole)
-  }, [selectedRoleId, selectedRole])
+  }, [selectedRoleId, selectedRole, onChange])
 
   useEffect(() => {
     /* console.log('value change: ', value) */

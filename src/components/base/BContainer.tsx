@@ -5,7 +5,6 @@ import {
   ChartBarStackedIcon,
   CheckIcon,
   ChevronDownIcon,
-  ChevronRightIcon,
   EllipsisVerticalIcon,
   GlobeIcon,
   LockIcon,

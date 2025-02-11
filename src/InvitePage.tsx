@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
-import { redirect, useNavigate, useParams } from 'react-router-dom'
+import dayjs from 'dayjs'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
@@ -25,7 +26,13 @@ export default function InvitePage() {
   const authStore = useAuthedUserStore()
   const siteStore = useSiteStore()
 
+  const expired = useMemo(
+    () => (inviteData ? dayjs(inviteData.expiredAt).isBefore(dayjs()) : false),
+    [inviteData]
+  )
+
   /* console.log('invite code: ', inviteCode) */
+  /* console.log('expired', expired) */
 
   const fetchInvite = toSync(
     useCallback(async () => {
@@ -85,15 +92,15 @@ export default function InvitePage() {
 
   useEffect(() => {
     console.log('cookie: ', getCookie(`invite_accept:${inviteCode}`))
-    if (getCookie(`invite_accept:${inviteCode}`) == '1') {
+    if (!expired && getCookie(`invite_accept:${inviteCode}`) == '1') {
       toSync(acceptInvite)()
     }
-  }, [site, inviteData, inviteCode, acceptInvite])
+  }, [site, inviteData, inviteCode, acceptInvite, expired])
 
   return (
     <div className="flex h-screen items-center justify-center">
       <Card className="flex flex-col items-center w-[300px] p-4">
-        {site ? (
+        {site && !expired ? (
           <div className="text-center mb-4">
             <BSiteIcon
               name={site.name}
@@ -109,12 +116,16 @@ export default function InvitePage() {
               300 在线 / 2000 成员
             </div>
           </div>
+        ) : expired ? (
+          <div className="mb-2">邀请已过期</div>
         ) : (
           !loading && <div className="mb-2">缺少邀请数据</div>
         )}
-        <Button onClick={onAcceptInviteClick} disabled={loading || !site}>
-          {loading ? <BLoader /> : '接受邀请'}
-        </Button>
+        {site && !expired && (
+          <Button onClick={onAcceptInviteClick} disabled={loading}>
+            {loading ? <BLoader /> : '接受邀请'}
+          </Button>
+        )}
       </Card>
     </div>
   )

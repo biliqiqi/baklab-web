@@ -5,12 +5,14 @@ import SigninForm from './components/SigninForm'
 
 import { SITE_NAME_CN } from './constants/constants'
 import useDocumentTitle from './hooks/use-page-title'
+import { useForceUpdate } from './state/global'
 
 const isInnerURL = (url: string) => new URL(url).origin == location.origin
 
 export default function SigninPage() {
   const [searchParams, _setSearchParams] = useSearchParams()
   const returnURL = searchParams.get('return')
+  const { forceUpdate } = useForceUpdate()
   /* console.log('account: ', account) */
 
   /* console.log('return url: ', returnURL)
@@ -25,9 +27,10 @@ export default function SigninPage() {
       /* console.log('to return url: ', targetURL) */
     }
 
-    /* console.log('targetURL: ', targetURL) */
-    navigate(targetURL)
-  }, [returnURL])
+    /* console.log('navigate to targetURL: ', targetURL) */
+    navigate(targetURL, { replace: true })
+    forceUpdate()
+  }, [returnURL, navigate, forceUpdate])
 
   useDocumentTitle('登录')
 

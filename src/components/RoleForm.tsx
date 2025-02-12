@@ -118,17 +118,19 @@ const RoleForm: React.FC<RoleFormProps> = ({
 
   const formVals = form.watch()
 
-  const fetchPermisisonList = toSync(async () => {
-    const { code, data } = await getPermissionList()
-    /* console.log('permission data: ', data) */
-    if (!code) {
-      /* setPermissionOptions([...data.list]) */
-      setFormattedPermissions([...data.formattedList])
-    } else {
-      /* setPermissionOptions([]) */
-      setFormattedPermissions([])
-    }
-  })
+  const fetchPermisisonList = toSync(
+    useCallback(async () => {
+      const { code, data } = await getPermissionList({ siteFrontId })
+      /* console.log('permission data: ', data) */
+      if (!code) {
+        /* setPermissionOptions([...data.list]) */
+        setFormattedPermissions([...data.formattedList])
+      } else {
+        /* setPermissionOptions([]) */
+        setFormattedPermissions([])
+      }
+    }, [siteFrontId])
+  )
 
   const onSubmit = useCallback(
     async (vals: RoleSchema) => {
@@ -288,31 +290,33 @@ const RoleForm: React.FC<RoleFormProps> = ({
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="siteNumLimit"
-          key="siteNumLimit"
-          render={({ field, fieldState }) => (
-            <FormItem className="mb-8">
-              <FormLabel>站点数量上限</FormLabel>
-              <FormControl>
-                {isDetail ? (
-                  <div>{role?.siteNumLimit}</div>
-                ) : (
-                  <Input
-                    placeholder="请输入站点数量上限"
-                    autoComplete="off"
-                    pattern="^\d+$"
-                    state={fieldState.invalid ? 'invalid' : 'default'}
-                    disabled={systemRole}
-                    {...field}
-                  />
-                )}
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {!siteFrontId && (
+          <FormField
+            control={form.control}
+            name="siteNumLimit"
+            key="siteNumLimit"
+            render={({ field, fieldState }) => (
+              <FormItem className="mb-8">
+                <FormLabel>站点数量上限</FormLabel>
+                <FormControl>
+                  {isDetail ? (
+                    <div>{role?.siteNumLimit}</div>
+                  ) : (
+                    <Input
+                      placeholder="请输入站点数量上限"
+                      autoComplete="off"
+                      pattern="^\d+$"
+                      state={fieldState.invalid ? 'invalid' : 'default'}
+                      disabled={systemRole}
+                      {...field}
+                    />
+                  )}
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <FormField
           control={form.control}
           name="permissionFrontIds"

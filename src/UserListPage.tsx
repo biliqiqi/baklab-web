@@ -51,7 +51,7 @@ import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { useAuthedUserStore, useSiteStore } from './state/global'
-import { ListPageState, UserData } from './types/types'
+import { ListPageState, Role, UserData } from './types/types'
 
 interface SearchFields {
   keywords?: string
@@ -106,11 +106,11 @@ export default function UserListPage() {
     )
   )
 
-  const onShowDetailClick = (user: UserData) => {
+  const onShowDetailClick = useCallback((user: UserData) => {
     setCurrUser(user)
     setShowUserDetail(true)
     fetchUserData(user.name)
-  }
+  }, [])
 
   const columns: ColumnDef<UserData>[] = [
     {
@@ -175,7 +175,9 @@ export default function UserListPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onShowDetailClick(row.original)}
+            onClick={() => {
+              onShowDetailClick(row.original)
+            }}
           >
             详细
           </Button>
@@ -273,7 +275,7 @@ export default function UserListPage() {
   const onResetClick = useCallback(() => {
     setSearchData({ ...defaultSearchData })
     resetParams()
-  }, [params])
+  }, [params, resetParams])
 
   const onSearchClick = useCallback(() => {
     resetParams()
@@ -292,7 +294,7 @@ export default function UserListPage() {
 
       return params
     })
-  }, [params, searchData])
+  }, [params, searchData, resetParams])
 
   const onCancelBanAlert = () => {
     setBanOpen(false)
@@ -344,9 +346,21 @@ export default function UserListPage() {
     setBanOpen(true)
   }
 
+  const onRoleSelectChange = useCallback((role: Role | undefined) => {
+    if (role) {
+      setSearchData((state) => ({
+        ...state,
+        roleId: role.id,
+      }))
+    }
+  }, [])
+
   useEffect(() => {
     fetchUserList(true)
   }, [location])
+
+  console.log('update!')
+  /* console.log('showUserDetail: ', showUserDetail) */
 
   return (
     <BContainer
@@ -382,14 +396,7 @@ export default function UserListPage() {
           <RoleSelector
             value={searchData.roleId || ''}
             placeholder="选择角色"
-            onChange={(role) => {
-              if (role) {
-                setSearchData((state) => ({
-                  ...state,
-                  roleId: role.id,
-                }))
-              }
-            }}
+            onChange={onRoleSelectChange}
           />
         </div>
         <div>

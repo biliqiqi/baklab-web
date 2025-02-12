@@ -1,6 +1,5 @@
 import {
   LoaderFunction,
-  Params,
   RouteObject,
   redirect,
   replace,
@@ -30,6 +29,7 @@ import {
   ensureSiteData,
   isLogined,
   useAuthedUserStore,
+  useSiteStore,
 } from './state/global.ts'
 
 const notAtAuthed = () => {

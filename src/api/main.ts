@@ -4,6 +4,7 @@ import {
   ActivityActionType,
   ActivityListResponse,
   AuthedDataResponse,
+  CustomRequestOptions,
   PermissionListResponse,
   ResponseData,
   TokenResponse,
@@ -83,5 +84,9 @@ export const eventsPong = (clientID: string) =>
     },
   })
 
-export const getPermissionList = () =>
-  authRequest.get<ResponseData<PermissionListResponse>>(`permissions`)
+export const getPermissionList = (custom?: CustomRequestOptions) =>
+  authRequest.get<ResponseData<PermissionListResponse>>(
+    `permissions`,
+    {},
+    custom
+  )

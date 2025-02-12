@@ -402,7 +402,7 @@ export interface RoleListResponse extends ListPageState {
 }
 
 export interface DefaultRoles {
-  platform: Role
+  platform?: Role
   site: Role
 }
 

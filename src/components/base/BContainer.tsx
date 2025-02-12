@@ -467,7 +467,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 return siteStore.fetchSiteData(siteFrontId)
               }
             })(),
-            ensureCategoryList(siteFrontId),
+            cateStore.fetchCategoryList(siteFrontId),
           ])
         )()
       } else {

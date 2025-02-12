@@ -486,7 +486,7 @@ export const useSiteStore = create(
     siteList: null,
     homePage: '/',
     update(s) {
-      set((state) => ({ ...clone(state), site: clone(s) }))
+      set((state) => ({ ...state, site: clone(s) }))
     },
     updateSiteList(list) {
       set((state) => ({ ...state, siteList: [...list] }))
@@ -495,23 +495,21 @@ export const useSiteStore = create(
       set((state) => ({ ...state, homePage: path }))
     },
     fetchSiteData: async (frontId) => {
-      const siteStore = get()
       try {
         const { code, data } = await getSiteWithFrontId(frontId)
         if (!code) {
-          siteStore.update({
-            ...data,
-          })
-          siteStore.updateHomePage(`/${data.frontId}${data.homePage}`)
+          set((state) => ({
+            ...state,
+            site: clone(data),
+            homePage: `/${data.frontId}${data.homePage}`,
+          }))
           return data
         } else {
-          siteStore.update(null)
-          siteStore.updateHomePage('/')
+          set((state) => ({ ...state, site: null, homePage: `/` }))
           return null
         }
       } catch (err) {
-        siteStore.update(null)
-        siteStore.updateHomePage('/')
+        set((state) => ({ ...state, site: null, homePage: `/` }))
         console.error('fetch site data error: ', err)
       }
       return null

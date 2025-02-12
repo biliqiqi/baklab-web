@@ -48,6 +48,7 @@ import {
 import { useIsMobile } from '@/hooks/use-mobile'
 import useDocumentTitle from '@/hooks/use-page-title'
 import {
+  ensureCategoryList,
   useAlertDialogStore,
   useAuthedUserStore,
   useCategoryStore,
@@ -345,10 +346,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         SITE_VISIBLE.All
       )
       if (!code && data.list) {
-        siteStore.updateState({
-          ...siteStore,
-          siteList: data.list,
-        })
+        siteStore.updateSiteList([...data.list])
       }
 
       setTimeout(() => {
@@ -393,6 +391,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           editting: true,
           data: currSite,
         })
+        setOpenSiteMenu(false)
         setShowSiteForm(true)
       },
       [currSite]
@@ -426,7 +425,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             navigate('/', { replace: true })
           }
           await Promise.all([
-            /* siteStore.fetchSiteData(siteFrontId), */
+            siteStore.fetchSiteData(siteFrontId),
             siteStore.fetchSiteList(),
             cateStore.fetchCategoryList(siteFrontId),
           ])
@@ -459,18 +458,19 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     )
 
     useEffect(() => {
-      /* console.log('globalSiteFrontId: ', globalSiteFrontId) */
-      if (siteFrontId && siteFrontId != globalSiteFrontId) {
-        /* console.log('fetch site data!') */
+      if (siteFrontId) {
         toSync(async () =>
           Promise.all([
-            siteStore.fetchSiteData(siteFrontId),
-            cateStore.fetchCategoryList(siteFrontId),
+            (function () {
+              // 避免重复请求站点数据
+              if (siteFrontId != globalSiteFrontId) {
+                return siteStore.fetchSiteData(siteFrontId)
+              }
+            })(),
+            ensureCategoryList(siteFrontId),
           ])
         )()
-      }
-
-      if (!siteFrontId) {
+      } else {
         siteStore.update(null)
         cateStore.updateCategories([])
       }
@@ -529,6 +529,9 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         setCopyInviteSuccess(false)
       }
     }, [showInviteDialog])
+
+    /* console.log('auth logined: ', authStore.isLogined())
+     * console.log('site user state: ', siteStore.site?.currUserState) */
 
     return (
       <div key={`container_${forceState}`}>
@@ -989,7 +992,25 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                                     <BIconCircle id="users" size={32}>
                                       <UsersRoundIcon size={18} />
                                     </BIconCircle>
-                                    成员列表
+                                    成员
+                                  </Link>
+                                </SidebarMenuButton>
+                              </SidebarMenuItem>
+                            )}
+                            {authPermit('role', 'edit') && (
+                              <SidebarMenuItem key="roles">
+                                <SidebarMenuButton
+                                  asChild
+                                  isActive={
+                                    location.pathname ==
+                                    `/${siteFrontId}/manage/roles`
+                                  }
+                                >
+                                  <Link to={`/${siteFrontId}/manage/roles`}>
+                                    <BIconCircle id="user_roles" size={32}>
+                                      <UserIcon size={18} />
+                                    </BIconCircle>
+                                    角色
                                   </Link>
                                 </SidebarMenuButton>
                               </SidebarMenuItem>

@@ -1,5 +1,8 @@
+import { clone } from 'remeda'
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
+
+import { refreshAuthState } from '@/lib/request'
 
 import { getCategoryList } from '@/api/category'
 import { getNotificationUnreadCount } from '@/api/message'
@@ -90,7 +93,7 @@ export const useAuthedUserStore = create(
         authToken: token,
         username,
         userID,
-        user,
+        user: clone(user),
       }
       set((state) => ({ ...state, ...newState }))
       // localStorage.setItem(AUTHED_USER_LOCAL_STORE_NAME, JSON.stringify(newState))
@@ -471,7 +474,8 @@ export interface SiteState {
   siteList?: Site[] | null
   homePage: string
   update: (s: Site | null) => void
-  updateState: (s: Pick<SiteState, 'site' | 'siteList' | 'homePage'>) => void
+  updateSiteList: (list: Site[]) => void
+  updateHomePage: (path: string) => void
   fetchSiteData: (siteFrontId: string) => Promise<Site | null>
   fetchSiteList: () => Promise<void>
 }
@@ -482,10 +486,13 @@ export const useSiteStore = create(
     siteList: null,
     homePage: '/',
     update(s) {
-      set(() => ({ site: s }))
+      set((state) => ({ ...clone(state), site: clone(s) }))
     },
-    updateState(newState) {
-      set((state) => ({ ...state, ...newState }))
+    updateSiteList(list) {
+      set((state) => ({ ...state, siteList: [...list] }))
+    },
+    updateHomePage(path) {
+      set((state) => ({ ...state, homePage: path }))
     },
     fetchSiteData: async (frontId) => {
       const siteStore = get()
@@ -495,18 +502,16 @@ export const useSiteStore = create(
           siteStore.update({
             ...data,
           })
-          siteStore.updateState({
-            homePage: `/${data.frontId}${data.homePage}`,
-          })
+          siteStore.updateHomePage(`/${data.frontId}${data.homePage}`)
           return data
         } else {
           siteStore.update(null)
-          siteStore.updateState({ homePage: `/` })
+          siteStore.updateHomePage('/')
           return null
         }
       } catch (err) {
         siteStore.update(null)
-        siteStore.updateState({ homePage: `/` })
+        siteStore.updateHomePage('/')
         console.error('fetch site data error: ', err)
       }
       return null
@@ -518,9 +523,9 @@ export const useSiteStore = create(
         const { code, data } = await getJoinedSiteList()
 
         if (!code && data.list) {
-          siteStore.updateState({ ...siteStore, siteList: [...data.list] })
+          siteStore.updateSiteList([...data.list])
         } else {
-          siteStore.updateState({ ...siteStore, siteList: [] })
+          siteStore.updateSiteList([])
         }
       } catch (err) {
         console.error('fetch site data error: ', err)
@@ -559,3 +564,30 @@ export const useAppState = create<AppState>((set) => ({
     set(() => ({ initialized: state }))
   },
 }))
+
+export const ensureLogin = () => {
+  const authState = useAuthedUserStore.getState()
+  if (authState.isLogined()) {
+    return Promise.resolve()
+  } else {
+    return refreshAuthState(true)
+  }
+}
+
+export const ensureSiteData = (frontId: string) => {
+  const siteState = useSiteStore.getState()
+  if (siteState.site) {
+    return Promise.resolve(siteState.site)
+  } else {
+    return siteState.fetchSiteData(frontId)
+  }
+}
+
+export const ensureCategoryList = (siteFrontId: string) => {
+  const cateState = useCategoryStore.getState()
+  if (cateState.categories.length) {
+    return Promise.resolve(cateState.categories)
+  } else {
+    return cateState.fetchCategoryList(siteFrontId)
+  }
+}

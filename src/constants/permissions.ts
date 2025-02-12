@@ -175,6 +175,11 @@ export const PERMISSION_DATA = {
       adapt_id: 'role.edit',
       enabled: false,
     },
+    manage: {
+      name: '管理站点角色',
+      adapt_id: 'role.manage',
+      enabled: false,
+    },
     manage_platform: {
       name: '管理全平台角色',
       adapt_id: 'role.manage_platform',

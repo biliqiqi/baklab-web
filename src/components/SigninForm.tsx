@@ -14,6 +14,7 @@ import useDocumentTitle from '@/hooks/use-page-title'
 import {
   useAuthedUserStore,
   useDialogStore,
+  useForceUpdate,
   useSiteStore,
 } from '@/state/global'
 
@@ -87,6 +88,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
   const account = searchParams.get('account') || email
 
   const siteStore = useSiteStore()
+  const { forceUpdate } = useForceUpdate()
 
   /* const navigate = useNavigate() */
 
@@ -117,6 +119,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
       try {
         const { code, data } = await getSiteWithFrontId(siteFrontId)
         if (!code) {
+          console.log('site data after login: ', data)
           siteStore.update({ ...data })
         } else {
           siteStore.update(null)
@@ -124,7 +127,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
       } catch (err) {
         console.error('fetch site data error: ', err)
       }
-    }, [siteFrontId])
+    }, [siteFrontId, siteStore])
   )
 
   const onSigninSubmit = async (values: SigninScheme) => {
@@ -136,13 +139,14 @@ const SigninForm: React.FC<SigninFromProps> = ({
       setLoading(true)
 
       const data = await postSignin(values.account, values.password)
-      console.log('sign in resp data:', data)
+      /* console.log('sign in resp data:', data) */
 
       if (!data.code) {
         const { token, userID, username, user } = data.data
         updateAuthState(token, username, userID, user)
         fetchSiteData()
         toSync(siteStore.fetchSiteList)()
+        forceUpdate()
         /* console.log('is inner url: ', isInnerURL(returnURL)) */
 
         if (onSuccess && typeof onSuccess == 'function') {

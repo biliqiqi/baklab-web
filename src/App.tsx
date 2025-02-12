@@ -60,6 +60,10 @@ const connectEvents = () => {
     /* console.log('unban user data: ', data) */
 
     toSync(refreshAuthState)(true)
+    const siteState = useSiteStore.getState()
+    if (siteState.site) {
+      toSync(siteState.fetchSiteData)(siteState.site.frontId)
+    }
   })
 
   eventSource.addEventListener('updatenoties', (_ev) => {

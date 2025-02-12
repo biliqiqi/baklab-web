@@ -1,4 +1,10 @@
-import { RouteObject, redirect, replace } from 'react-router-dom'
+import {
+  LoaderFunction,
+  Params,
+  RouteObject,
+  redirect,
+  replace,
+} from 'react-router-dom'
 
 import ActivityPage from './ActivityPage.tsx'
 import ArticleListPage from './ArticleListPage.tsx'
@@ -19,7 +25,12 @@ import UserListPage from './UserListPage.tsx'
 import UserPage from './UserPage.tsx'
 import { getSiteWithFrontId } from './api/site.ts'
 import { PermissionAction, PermissionModule } from './constants/types.ts'
-import { isLogined, useAuthedUserStore } from './state/global.ts'
+import {
+  ensureLogin,
+  ensureSiteData,
+  isLogined,
+  useAuthedUserStore,
+} from './state/global.ts'
 
 const notAtAuthed = () => {
   const data = useAuthedUserStore.getState()
@@ -36,27 +47,62 @@ const redirectToSignin = (returnUrl?: string) => {
   }
 }
 
-const mustAuthed = ({ request }: { request: Request }) => {
-  const data = useAuthedUserStore.getState()
-  const authed = !!data && isLogined(data)
-
-  if (!authed) {
+const mustAuthed = async ({ request }: { request: Request }) => {
+  await ensureLogin()
+  const authState = useAuthedUserStore.getState()
+  if (!authState.isLogined()) {
     return redirectToSignin(request.url)
   }
   return null
 }
 
 const needPermission =
-  <T extends PermissionModule>(module: T, action: PermissionAction<T>) =>
-  ({ request }: { request: Request }) => {
+  <T extends PermissionModule>(
+    module: T,
+    action: PermissionAction<T>
+  ): LoaderFunction =>
+  async ({ request, params: { siteFrontId } }) => {
+    await ensureLogin()
+    const authState = useAuthedUserStore.getState()
+    if (!authState.isLogined()) {
+      return redirectToSignin(request.url)
+    }
+
+    if (siteFrontId) {
+      await ensureSiteData(siteFrontId)
+    }
+
+    if (!authState.permit(module, action)) {
+      if (siteFrontId) {
+        return redirect(`/${siteFrontId}`)
+      } else {
+        return redirect('/')
+      }
+    }
+
+    return null
+  }
+
+const somePermissions =
+  <T extends PermissionModule>(
+    ...pairs: [T, PermissionAction<T>][]
+  ): LoaderFunction =>
+  ({ request, params: { siteFrontId } }) => {
     const authState = useAuthedUserStore.getState()
 
     if (!authState.isLogined()) {
       return redirectToSignin(request.url)
     }
 
-    if (!authState.permit(module, action)) {
-      return redirect('/')
+    const permitted = pairs.some(([module, action]) =>
+      authState.permit(module, action)
+    )
+    if (!permitted) {
+      if (siteFrontId) {
+        return redirect(`/${siteFrontId}`)
+      } else {
+        return redirect('/')
+      }
     }
 
     return null
@@ -176,7 +222,7 @@ export const routes: RouteObject[] = [
   {
     path: '/:siteFrontId/submit',
     Component: SubmitPage,
-    loader: mustAuthed,
+    loader: needPermission('article', 'create'),
   },
   {
     path: '/:siteFrontId/categories/:categoryFrontId',
@@ -189,11 +235,20 @@ export const routes: RouteObject[] = [
   {
     path: '/:siteFrontId/articles/:articleId/edit',
     Component: EditPage,
+    loader: somePermissions(
+      ['article', 'edit_mine'],
+      ['article', 'edit_others']
+    ),
   },
   {
     path: '/:siteFrontId/manage/users',
     Component: UserListPage,
-    loader: mustAuthed,
+    loader: needPermission('user', 'manage'),
+  },
+  {
+    path: '/:siteFrontId/manage/roles',
+    Component: RoleManagePage,
+    loader: needPermission('role', 'manage'),
   },
   {
     path: '*',

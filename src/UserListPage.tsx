@@ -108,8 +108,8 @@ export default function UserListPage() {
 
   const onShowDetailClick = (user: UserData) => {
     setCurrUser(user)
-    fetchUserData(user.name)
     setShowUserDetail(true)
+    fetchUserData(user.name)
   }
 
   const columns: ColumnDef<UserData>[] = [
@@ -173,7 +173,7 @@ export default function UserListPage() {
       cell: ({ row }) => (
         <>
           <Button
-            variant="secondary"
+            variant="ghost"
             size="sm"
             onClick={() => onShowDetailClick(row.original)}
           >
@@ -512,6 +512,10 @@ export default function UserListPage() {
               user={currUser}
               title=""
               className="p-0 bg-transparent border-none shadow-none"
+              onSuccess={() => {
+                setShowUserDetail(false)
+                fetchUserList(false)
+              }}
             />
           </DialogContent>
         )}

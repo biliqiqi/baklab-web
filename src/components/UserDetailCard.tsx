@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { timeFmt } from '@/lib/dayjs-custom'
@@ -70,6 +71,8 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
   const [banOpen, setBanOpen] = useState(false)
   const [selectedRole, setSelectedRole] = useState<Role | null>(user.role)
 
+  const { siteFrontId } = useParams()
+
   const banDialogRef = useRef<BanDialogRef | null>(null)
   const alertDialog = useAlertDialogStore()
 
@@ -124,7 +127,9 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
         /* console.log('roleId: ', roleId)
          * console.log('roleName: ', roleName) */
 
-        const resp = await setUserRole(user.name, roleId, remark, roleName)
+        const resp = await setUserRole(user.name, roleId, remark, roleName, {
+          siteFrontId,
+        })
         if (!resp.code) {
           /* const {data} */
           form.reset({ ...defaultRoleEditData })
@@ -137,7 +142,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
         console.error('confirm delete error: ', err)
       }
     },
-    [user, form, onSuccess]
+    [user, form, onSuccess, siteFrontId]
   )
 
   const onUnbanClick = useCallback(async () => {
@@ -167,7 +172,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
       form.setValue('roleId', '')
       form.setValue('roleName', '')
     }
-  }, [selectedRole])
+  }, [selectedRole, form])
 
   useEffect(() => {
     setSelectedRole(user.role)

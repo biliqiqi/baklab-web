@@ -154,14 +154,16 @@ const RoleForm: React.FC<RoleFormProps> = ({
           vals.name,
           level,
           vals.permissionFrontIds || [],
-          siteNumLimit
+          siteNumLimit,
+          { siteFrontId }
         )
       } else {
         resp = await submitRole(
           vals.name,
           level,
           vals.permissionFrontIds || [],
-          siteNumLimit
+          siteNumLimit,
+          { siteFrontId }
         )
       }
 
@@ -169,7 +171,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
         onSuccess()
       }
     },
-    [form, isEdit, role, systemRole, minLevel]
+    [form, isEdit, role, systemRole, minLevel, siteFrontId, onSuccess]
   )
 
   const onDeleteClick = useCallback(
@@ -197,12 +199,12 @@ const RoleForm: React.FC<RoleFormProps> = ({
 
       if (!confirmed) return
 
-      const respD = await deleteRole(role.id)
+      const respD = await deleteRole(role.id, { siteFrontId })
       if (!respD.code) {
         onSuccess()
       }
     },
-    [isEdit, role]
+    [isEdit, role, alertDialog, onSuccess, siteFrontId]
   )
 
   useEffect(() => {
@@ -211,7 +213,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
 
   useEffect(() => {
     onChange(form.formState.isDirty)
-  }, [form, formVals])
+  }, [form, formVals, onChange])
 
   useEffect(() => {
     if (!isDetail && role) {
@@ -223,7 +225,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
         (role.permissions || []).map((item) => item.frontId)
       )
     }
-  }, [formType, form, role])
+  }, [formType, form, role, isDetail])
 
   if ((isEdit || isDetail) && !role) return null
 

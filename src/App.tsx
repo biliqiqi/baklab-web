@@ -112,12 +112,15 @@ const App = () => {
     }
   }, [authStore.username])
 
-  useEffect(() => {
-    window.onfocus = () => {
-      refreshTokenSync(true)
-      fetchNotiCount()
-    }
-  }, [authStore])
+  /* useEffect(() => {
+   *   window.onfocus = () => {
+   *     refreshTokenSync(true)
+   *     fetchNotiCount()
+   *   }
+   *   return () => {
+   *     window.onfocus = null
+   *   }
+   * }, [authStore]) */
 
   useEffect(() => {
     if (!authed) {
@@ -162,20 +165,6 @@ const App = () => {
   {/* prettier-ignore */}
   return (
     <>
-      {/* <div>
-        {(
-          [
-            'error',
-            'success',
-            'warning',
-            'info',
-            'default',
-            'loading',
-          ] as ToastT['type'][]
-        ).map((tt = 'normal') => (
-          <Button onClick={() => toast[tt](tt)}>{tt}</Button>
-        ))}
-      </div> */}
       {initialized && router ? (
         <RouterProvider router={router} />
       ) : (

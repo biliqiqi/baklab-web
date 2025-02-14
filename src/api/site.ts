@@ -148,3 +148,18 @@ export const acceptSiteInvite = (frontId: string, code: string) =>
   authRequest.post<ResponseData<null>>(`sites/${frontId}/accept_invite`, {
     json: { code },
   })
+
+export const removeMember = (frontId: string, userId: string) =>
+  authRequest.post<ResponseData<null>>(`sites/${frontId}/remove_member`, {
+    json: { userId },
+  })
+
+export const blockUser = (frontId: string, userId: string) =>
+  authRequest.post<ResponseData<null>>(`sites/${frontId}/block_user`, {
+    json: { userId },
+  })
+
+export const unblockUser = (frontId: string, userId: string) =>
+  authRequest.post<ResponseData<null>>(`sites/${frontId}/unblock_user`, {
+    json: { userId },
+  })

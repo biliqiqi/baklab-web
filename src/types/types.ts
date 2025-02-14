@@ -205,6 +205,7 @@ export interface UserData {
   roleName: string
   roleFrontId: string
   role: Role
+  siteRole: Role | null
   permissions: Permission[] | null
   super: boolean
   authFrom: AuthType

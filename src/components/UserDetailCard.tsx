@@ -249,22 +249,26 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
                 </Button>
               )}
 
-              {user.banned ? (
-                <Button
-                  variant="outline"
-                  className="ml-2"
-                  onClick={onUnbanClick}
-                >
-                  解封
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  className="ml-2"
-                  onClick={() => setBanOpen(true)}
-                >
-                  封禁
-                </Button>
+              {authStore.permit('user', 'ban') && (
+                <>
+                  {user.banned ? (
+                    <Button
+                      variant="outline"
+                      className="ml-2"
+                      onClick={onUnbanClick}
+                    >
+                      解封
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      className="ml-2"
+                      onClick={() => setBanOpen(true)}
+                    >
+                      封禁
+                    </Button>
+                  )}
+                </>
               )}
             </div>
           )}

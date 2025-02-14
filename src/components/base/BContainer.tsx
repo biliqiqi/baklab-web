@@ -778,6 +778,42 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     <SidebarGroupLabel>平台管理</SidebarGroupLabel>
                     <SidebarGroupContent>
                       <SidebarMenu>
+                        {authPermit('user', 'manage_platform') && (
+                          <SidebarMenuItem key="users">
+                            <SidebarMenuButton asChild>
+                              <Link to="/manage/users">
+                                <BIconCircle id="users" size={32}>
+                                  <UsersRoundIcon size={18} />
+                                </BIconCircle>
+                                用户
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        )}
+                        {authPermit('user', 'manage_platform') && (
+                          <SidebarMenuItem key="banned_users">
+                            <SidebarMenuButton asChild>
+                              <Link to="/manage/banned_users">
+                                <BIconCircle id="banned_users" size={32}>
+                                  <UserRoundXIcon size={18} />
+                                </BIconCircle>
+                                已封锁
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        )}
+                        {authPermit('role', 'manage_platform') && (
+                          <SidebarMenuItem key="user_roles">
+                            <SidebarMenuButton asChild>
+                              <Link to="/manage/roles">
+                                <BIconCircle id="user_roles" size={32}>
+                                  <UserIcon size={18} />
+                                </BIconCircle>
+                                角色
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        )}
                         {authPermit('site', 'manage_platform') && (
                           <SidebarMenuItem key="sites">
                             <SidebarMenuButton asChild>
@@ -810,42 +846,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                                   <TrashIcon size={18} />
                                 </BIconCircle>
                                 回收站
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        )}
-                        {authPermit('user', 'manage_platform') && (
-                          <SidebarMenuItem key="users">
-                            <SidebarMenuButton asChild>
-                              <Link to="/manage/users">
-                                <BIconCircle id="users" size={32}>
-                                  <UsersRoundIcon size={18} />
-                                </BIconCircle>
-                                用户列表
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        )}
-                        {authPermit('user', 'manage_platform') && (
-                          <SidebarMenuItem key="banned_users">
-                            <SidebarMenuButton asChild>
-                              <Link to="/manage/banned_users">
-                                <BIconCircle id="banned_users" size={32}>
-                                  <UserRoundXIcon size={18} />
-                                </BIconCircle>
-                                已封锁
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        )}
-                        {authPermit('role', 'manage_platform') && (
-                          <SidebarMenuItem key="user_roles">
-                            <SidebarMenuButton asChild>
-                              <Link to="/manage/roles">
-                                <BIconCircle id="user_roles" size={32}>
-                                  <UserIcon size={18} />
-                                </BIconCircle>
-                                角色
                               </Link>
                             </SidebarMenuButton>
                           </SidebarMenuItem>
@@ -1046,8 +1046,9 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                   {children}
                   {authStore.isLogined() ? (
                     siteStore.site &&
+                    siteStore.site.visible &&
                     !siteStore.site.currUserState.isMember && (
-                      <Card className="p-2 px-4 text-sm mt-4">
+                      <Card className="p-2 px-4 text-sm mt-4 text-center">
                         你还不是当前站点成员，加入后可订阅新内容或参与互动。
                         <Button
                           size={'sm'}
@@ -1059,7 +1060,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                       </Card>
                     )
                   ) : (
-                    <Card className="p-2 text-sm mt-4">
+                    <Card className="p-2 text-sm mt-4 text-center">
                       登录可后参与互动。
                       <Button
                         variant="default"

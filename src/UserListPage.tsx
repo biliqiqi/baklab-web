@@ -46,11 +46,16 @@ import { ListPagination } from './components/ListPagination'
 import RoleSelector from './components/RoleSelector'
 import UserDetailCard from './components/UserDetailCard'
 
+import { blockUser, removeMember } from './api/site'
 import { banManyUsers, getUser, getUserList } from './api/user'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
-import { useAuthedUserStore, useSiteStore } from './state/global'
+import {
+  useAlertDialogStore,
+  useAuthedUserStore,
+  useSiteStore,
+} from './state/global'
 import { ListPageState, Role, UserData } from './types/types'
 
 interface SearchFields {
@@ -80,6 +85,7 @@ export default function UserListPage() {
 
   const authStore = useAuthedUserStore()
   const siteStore = useSiteStore()
+  const alertDialog = useAlertDialogStore()
 
   const [pageState, setPageState] = useState<ListPageState>({
     currPage: 1,
@@ -135,6 +141,7 @@ export default function UserListPage() {
       ),
     },
     {
+      id: 'name',
       accessorKey: 'name',
       header: '',
       cell: ({ row }) => (
@@ -152,15 +159,18 @@ export default function UserListPage() {
       ),
     },
     {
+      id: 'roleName',
       accessorKey: 'roleName',
       header: '角色',
     },
     {
+      id: 'roleLevel',
       accessorKey: 'roleLevel',
       header: '权限级别',
       cell: ({ row }) => <span>{row.original?.role?.level || '-'}</span>,
     },
     {
+      id: 'registeredAt',
       accessorKey: 'registeredAt',
       header: '加入时间',
       cell: ({ cell }) => (
@@ -168,18 +178,40 @@ export default function UserListPage() {
       ),
     },
     {
+      id: 'contorles',
       accessorKey: 'contorles',
-      header: '操作',
+      header: '',
       cell: ({ row }) => (
         <>
           <Button
-            variant="ghost"
+            variant="secondary"
             size="sm"
+            className="m-1"
             onClick={() => {
               onShowDetailClick(row.original)
             }}
           >
             详细
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="m-1"
+            onClick={async () => {
+              await onRemoveClick(row.original)
+            }}
+          >
+            除名
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="m-1"
+            onClick={async () => {
+              await onBlockClick(row.original)
+            }}
+          >
+            屏蔽
           </Button>
         </>
       ),
@@ -188,7 +220,9 @@ export default function UserListPage() {
 
   const table = useReactTable({
     data: list,
-    columns,
+    columns: siteFrontId
+      ? columns.filter((col) => !['roleLevel'].includes(col.id || ''))
+      : columns,
     getCoreRowModel: getCoreRowModel(),
     onRowSelectionChange: setRowSelection,
     state: {
@@ -346,6 +380,47 @@ export default function UserListPage() {
     setBanOpen(true)
   }
 
+  const onBlockSelectedClick = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    /* setBlockOpen(true) */
+  }
+
+  const onBlockClick = useCallback(
+    async (user: UserData) => {
+      if (!siteFrontId) return
+      const confirmed = await alertDialog.confirm(
+        `确认`,
+        `屏蔽之后对方将无法参与互动，但仍能查看公开内容，确定从本站屏蔽 ${user.name} ？`,
+        'danger'
+      )
+      if (!confirmed) return
+
+      const { code } = await blockUser(siteFrontId, user.id)
+      if (!code) {
+        fetchUserList()
+      }
+    },
+    [siteFrontId]
+  )
+
+  const onRemoveClick = useCallback(
+    async (user: UserData) => {
+      if (!siteFrontId) return
+      const confirmed = await alertDialog.confirm(
+        `确认`,
+        `确定把 ${user.name} 从本站除名？`,
+        'danger'
+      )
+      if (!confirmed) return
+
+      const { code } = await removeMember(siteFrontId, user.id)
+      if (!code) {
+        fetchUserList()
+      }
+    },
+    [siteFrontId]
+  )
+
   const onRoleSelectChange = useCallback((role: Role | undefined) => {
     if (role) {
       setSearchData((state) => ({
@@ -359,7 +434,7 @@ export default function UserListPage() {
     fetchUserList(true)
   }, [location])
 
-  console.log('update!')
+  /* console.log('update!') */
   /* console.log('showUserDetail: ', showUserDetail) */
 
   return (
@@ -482,13 +557,30 @@ export default function UserListPage() {
                 </div>
                 <div>
                   {bannableUsers.length > 0 && (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={onBanSelectedClick}
-                    >
-                      封禁 {bannableUsers.length} 个已选用户
-                    </Button>
+                    <>
+                      <>
+                        {authStore.permit('user', 'block_from_site') && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={onBlockSelectedClick}
+                          >
+                            屏蔽 {bannableUsers.length} 个已选用户
+                          </Button>
+                        )}
+                      </>
+                      <>
+                        {authStore.permit('user', 'ban') && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={onBanSelectedClick}
+                          >
+                            封禁 {bannableUsers.length} 个已选用户
+                          </Button>
+                        )}
+                      </>
+                    </>
                   )}
                 </div>
               </div>

@@ -137,6 +137,16 @@ export const PERMISSION_DATA = {
       adapt_id: 'user.manage_platform',
       enable: false,
     },
+    block_from_site: {
+      name: '从站点屏蔽用户',
+      adapt_id: 'user.block_from_site',
+      enable: false,
+    },
+    unblock_from_site: {
+      name: '从站点解除对用户的屏蔽',
+      adapt_id: 'user.block_from_site',
+      enable: false,
+    },
   },
   manage: {
     access: {

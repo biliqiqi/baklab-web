@@ -105,18 +105,22 @@ export default function RoleManagePage() {
 
   const columns: ColumnDef<Role>[] = [
     {
+      id: 'name',
       accessorKey: 'name',
       header: '名称',
     },
     {
+      id: 'level',
       accessorKey: 'level',
       header: '权限级别',
     },
     {
+      id: 'siteNumLimit',
       accessorKey: 'siteNumLimit',
       header: '可创建站点数上限',
     },
     {
+      id: 'relateUserCount',
       accessorKey: 'relateUserCount',
       header: '关联用户',
       cell: ({ row }) =>
@@ -135,13 +139,15 @@ export default function RoleManagePage() {
         ),
     },
     {
+      id: 'contorles',
       accessorKey: 'contorles',
       header: '操作',
       cell: ({ row }) => (
         <>
           <Button
-            variant="ghost"
+            variant="secondary"
             size="sm"
+            className="m-1"
             onClick={() => {
               setEditRole({
                 editting: true,
@@ -159,7 +165,9 @@ export default function RoleManagePage() {
 
   const table = useReactTable({
     data: roleList,
-    columns,
+    columns: siteFrontId
+      ? columns.filter((col) => col.id != 'siteNumLimit')
+      : columns,
     getCoreRowModel: getCoreRowModel(),
   })
 

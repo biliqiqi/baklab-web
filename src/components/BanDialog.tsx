@@ -12,15 +12,13 @@ import { noop } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   Form,
   FormControl,
@@ -32,6 +30,7 @@ import {
 
 import { UserData } from '@/types/types'
 
+import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { RadioGroup, RadioGroupItem } from './ui/radio-group'
 
@@ -155,14 +154,14 @@ const BanDialog = forwardRef<BanDialogRef, BanDialogProps>(
     )
 
     return (
-      <AlertDialog defaultOpen={false} open={open} onOpenChange={onOpenChange}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>封禁</AlertDialogTitle>
-            <AlertDialogDescription>
+      <Dialog defaultOpen={false} open={open} onOpenChange={onOpenChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>封禁</DialogTitle>
+            <DialogDescription>
               封禁用户 {users.map((user) => user.name).join(', ')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            </DialogDescription>
+          </DialogHeader>
           <Form {...banForm}>
             <form
               onSubmit={banForm.handleSubmit(handleSubmit)}
@@ -281,14 +280,19 @@ const BanDialog = forwardRef<BanDialogRef, BanDialogProps>(
               />
             </form>
           </Form>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={onCancel}>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={banForm.handleSubmit(handleSubmit)}>
+          <DialogFooter>
+            <Button variant={'secondary'} onClick={onCancel}>
+              取消
+            </Button>
+            <Button
+              variant={'destructive'}
+              onClick={banForm.handleSubmit(handleSubmit)}
+            >
               确认
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     )
   }
 )

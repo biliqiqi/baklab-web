@@ -8,17 +8,15 @@ import { timeFmt } from '@/lib/dayjs-custom'
 import { cn, formatMinutes, getPermissionName, noop } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { Card, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   Form,
   FormControl,
@@ -275,16 +273,12 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
         </div>
       </Card>
 
-      <AlertDialog
-        defaultOpen={false}
-        open={alertOpen}
-        onOpenChange={setAlertOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>更新角色</AlertDialogTitle>
-            <AlertDialogDescription></AlertDialogDescription>
-          </AlertDialogHeader>
+      <Dialog defaultOpen={false} open={alertOpen} onOpenChange={setAlertOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>更新角色</DialogTitle>
+            <DialogDescription></DialogDescription>
+          </DialogHeader>
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onUpdateRole)}
@@ -342,16 +336,14 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
               ></FormField>
             </form>
           </Form>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={onCancelRoleUpdate}>
+          <DialogFooter>
+            <Button variant={'secondary'} onClick={onCancelRoleUpdate}>
               取消
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={form.handleSubmit(onUpdateRole)}>
-              确认
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+            <Button onClick={form.handleSubmit(onUpdateRole)}>确认</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <BanDialog
         open={banOpen}

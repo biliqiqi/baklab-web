@@ -193,26 +193,31 @@ export default function UserListPage() {
           >
             详细
           </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            className="m-1"
-            onClick={async () => {
-              await onRemoveClick(row.original)
-            }}
-          >
-            除名
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            className="m-1"
-            onClick={async () => {
-              await onBlockClick(row.original)
-            }}
-          >
-            屏蔽
-          </Button>
+
+          {authStore.levelCompare(row.original.role) < 0 && (
+            <>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="m-1 text-destructive"
+                onClick={async () => {
+                  await onRemoveClick(row.original)
+                }}
+              >
+                除名
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="m-1 text-destructive"
+                onClick={async () => {
+                  await onBlockClick(row.original)
+                }}
+              >
+                屏蔽
+              </Button>
+            </>
+          )}
         </>
       ),
     },

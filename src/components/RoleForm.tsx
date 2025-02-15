@@ -323,9 +323,9 @@ const RoleForm: React.FC<RoleFormProps> = ({
           key="permissionFrontIds"
           render={({ field }) => (
             <>
-              <FormLabel>权限</FormLabel>
+              <FormLabel>拥有权限</FormLabel>
               <div
-                className="overflow-y-auto mt-2 pb-4"
+                className="overflow-y-auto pb-4"
                 style={{ maxHeight: 'calc(100vh - 600px)', minHeight: '200px' }}
               >
                 {isDetail &&

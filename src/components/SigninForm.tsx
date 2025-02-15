@@ -88,7 +88,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
   const account = searchParams.get('account') || email
 
   const siteStore = useSiteStore()
-  const { forceUpdate } = useForceUpdate()
+  /* const { forceUpdate } = useForceUpdate() */
 
   /* const navigate = useNavigate() */
 

@@ -31,6 +31,7 @@ import {
   useAuthedUserStore,
   useSiteStore,
 } from './state/global.ts'
+import { Site } from './types/types.ts'
 
 const notAtAuthed = () => {
   const data = useAuthedUserStore.getState()
@@ -62,22 +63,43 @@ const needPermission =
     action: PermissionAction<T>
   ): LoaderFunction =>
   async ({ request, params: { siteFrontId } }) => {
-    await ensureLogin()
-    const authState = useAuthedUserStore.getState()
-    if (!authState.isLogined()) {
-      return redirectToSignin(request.url)
-    }
+    try {
+      const logined = await ensureLogin()
 
-    if (siteFrontId) {
-      await ensureSiteData(siteFrontId)
-    }
+      const authState = useAuthedUserStore.getState()
 
-    if (!authState.permit(module, action)) {
-      if (siteFrontId) {
-        return redirect(`/${siteFrontId}`)
-      } else {
-        return redirect('/')
+      console.log('logined: ', logined)
+      if (!logined) {
+        return redirectToSignin(request.url)
       }
+
+      if (siteFrontId) {
+        let site: Site | null | undefined = null
+        const siteStore = useSiteStore.getState()
+        site = siteStore.site
+        if (!site) {
+          site = await siteStore.fetchSiteData(siteFrontId)
+        }
+
+        console.log('the site data: ', site)
+
+        if (site) {
+          console.log(
+            'route permision: ',
+            authState.permitUnderSite(site, module, action)
+          )
+        }
+
+        if (!site || !authState.permitUnderSite(site, module, action)) {
+          return redirect(`/${siteFrontId}`)
+        }
+      } else {
+        if (!authState.permit(module, action)) {
+          return redirect('/')
+        }
+      }
+    } catch (err) {
+      console.error('permission check error in router: ', err)
     }
 
     return null
@@ -148,10 +170,6 @@ export const routes: RouteObject[] = [
         path: 'sites',
         Component: SiteListPage,
         loader: needPermission('site', 'manage_platform'),
-      },
-      {
-        // TODO 分类列表
-        path: 'categories',
       },
       {
         path: '',

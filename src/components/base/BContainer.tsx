@@ -144,7 +144,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const [regEmail, setRegEmail] = useState('')
     /* const [loading, setLoading] = useState(false) */
     const { categories: cateList, fetchCategoryList } = useCategoryStore()
-    const { forceState, forceUpdate } = useForceUpdate()
+    const { forceUpdate } = useForceUpdate()
 
     const [showCategoryForm, setShowCategoryForm] = useState(false)
     const [showSiteForm, setShowSiteForm] = useState(false)
@@ -534,7 +534,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
      * console.log('site user state: ', siteStore.site?.currUserState) */
 
     return (
-      <div key={`container_${forceState}`}>
+      <div>
         <div
           className="bg-gray-300 border-b-[1px] border-gray-300 shadow-inner transition-all opacity-0 h-0 overflow-hidden"
           style={

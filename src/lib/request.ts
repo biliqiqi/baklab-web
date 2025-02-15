@@ -14,6 +14,7 @@ import {
   AuthedDataResponse,
   CustomRequestOptions,
   ResponseData,
+  UserData,
 } from '@/types/types'
 
 const isRefreshRequest: (x: Request) => boolean = (req) =>
@@ -289,6 +290,23 @@ export const refreshToken = async (refresUser = false) => {
 
 export const refreshAuthState = async (refreshUser = false) => {
   try {
+    // 确保 store 成功响应了更新再返回
+    const ps = new Promise((resolve) => {
+      const unsub = useAuthedUserStore.subscribe(
+        (state) => state.user,
+        (user, _prevUser) => {
+          // console.log('state changed in refreshAuthState! user: ', user)
+          // console.log('state changed in refreshAuthState! prevUser: ', prevUser)
+          if (user) {
+            resolve(true)
+          } else {
+            resolve(false)
+          }
+          unsub()
+        }
+      )
+    })
+
     const { data, code } = await refreshToken(refreshUser)
     if (!code) {
       useAuthedUserStore.setState((state) => ({
@@ -300,6 +318,8 @@ export const refreshAuthState = async (refreshUser = false) => {
       if (refreshUser) {
         useAuthedUserStore.setState((state) => ({ ...state, user: data.user }))
       }
+
+      return ps
     }
   } catch (e) {
     console.error('refresh auth state error: ', e)

@@ -7,7 +7,7 @@ import { refreshAuthState } from '@/lib/request'
 import { getCategoryList } from '@/api/category'
 import { getNotificationUnreadCount } from '@/api/message'
 import { getJoinedSiteList, getSiteWithFrontId } from '@/api/site'
-import { PermitFn } from '@/constants/types'
+import { PermitFn, PermitUnderSiteFn } from '@/constants/types'
 import { Category, Role, SITE_STATUS, Site, UserData } from '@/types/types'
 
 export interface ToastState {
@@ -63,6 +63,7 @@ export interface AuthedUserState {
    */
   levelCompare: (targetRole: Role) => number
   permit: PermitFn
+  permitUnderSite: PermitUnderSiteFn
 }
 
 export const updateCurrRole = () => {
@@ -146,9 +147,8 @@ export const useAuthedUserStore = create(
       }
     },
     permit(module, action, globalScope) {
-      const { user } = get()
+      const { user, permitUnderSite } = get()
       const { site } = useSiteStore.getState()
-
       const permissionId = `${module}.${String(action)}`
 
       if (!user || user.id == '0' || !module || !action) return false
@@ -157,31 +157,47 @@ export const useAuthedUserStore = create(
 
       if (user.banned || !user.permissions) return false
 
-      const platformPermitted = user.permissions.some(
+      const basePermitted = user.permissions.some(
         (item) => item.frontId == permissionId
       )
 
       if (site && !globalScope) {
-        if (user.roleFrontId == 'platform_admin') return true
-
-        if (site.status != SITE_STATUS.Normal) {
-          return false
-        }
-
-        let sitePermitted = false
-        if (site.currUserRole?.permissions && site.currUserRole.id != '0') {
-          sitePermitted = site.currUserRole.permissions.some(
-            (item) => item.frontId == permissionId
-          )
-        }
-
-        if (sitePermitted) return true
-
-        if (site.allowNonMemberInteract) {
-          return platformPermitted
-        }
+        return permitUnderSite(site, module, action)
       } else {
-        return platformPermitted
+        return basePermitted
+      }
+    },
+    permitUnderSite(site, module, action) {
+      const { user } = get()
+      const permissionId = `${module}.${String(action)}`
+
+      if (!user || user.id == '0' || !module || !action) return false
+
+      if (user.super) return true
+
+      if (user.banned || !user.permissions) return false
+
+      const basePermitted = user.permissions.some(
+        (item) => item.frontId == permissionId
+      )
+
+      if (user.roleFrontId == 'platform_admin') return true
+
+      if (site.status != SITE_STATUS.Normal) {
+        return false
+      }
+
+      let sitePermitted = false
+      if (site.currUserRole?.permissions && site.currUserRole.id != '0') {
+        sitePermitted = site.currUserRole.permissions.some(
+          (item) => item.frontId == permissionId
+        )
+      }
+
+      if (sitePermitted) return true
+
+      if (site.allowNonMemberInteract) {
+        return basePermitted
       }
 
       return false
@@ -495,6 +511,22 @@ export const useSiteStore = create(
       set((state) => ({ ...state, homePage: path }))
     },
     fetchSiteData: async (frontId) => {
+      const ps = new Promise((resolve) => {
+        const unsub = useSiteStore.subscribe(
+          (state) => state.site,
+          (site, _prevSite) => {
+            // console.log('state changed in fetchSiteData! site: ', site)
+            // console.log('state changed in fetchSiteData! prevSite: ', prevSite)
+            if (site) {
+              resolve(site)
+            } else {
+              resolve(null)
+            }
+            unsub()
+          }
+        )
+      }) as unknown as Promise<Site | null>
+
       try {
         const { code, data } = await getSiteWithFrontId(frontId)
         if (!code) {
@@ -503,16 +535,14 @@ export const useSiteStore = create(
             site: clone(data),
             homePage: `/${data.frontId}${data.homePage}`,
           }))
-          return data
         } else {
           set((state) => ({ ...state, site: null, homePage: `/` }))
-          return null
         }
       } catch (err) {
         set((state) => ({ ...state, site: null, homePage: `/` }))
         console.error('fetch site data error: ', err)
       }
-      return null
+      return ps
     },
     fetchSiteList: async () => {
       try {
@@ -566,7 +596,7 @@ export const useAppState = create<AppState>((set) => ({
 export const ensureLogin = () => {
   const authState = useAuthedUserStore.getState()
   if (authState.isLogined()) {
-    return Promise.resolve()
+    return Promise.resolve(true)
   } else {
     return refreshAuthState(true)
   }

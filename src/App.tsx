@@ -16,6 +16,7 @@ import { refreshAuthState } from './lib/request.ts'
 import { getCookie, noop } from './lib/utils.ts'
 import {
   useAuthedUserStore,
+  useForceUpdate,
   useNotificationStore,
   useSidebarStore,
   useSiteStore,
@@ -100,6 +101,7 @@ const App = () => {
   const { setOpen: setSidebarOpen } = useSidebarStore()
   const { update: setShowTopDrawer } = useTopDrawerStore()
   const isMobile = useIsMobile()
+  const { forceState } = useForceUpdate()
 
   const refreshTokenSync = toSync(useCallback(refreshAuthState, [authStore]))
   const routes = useRoutesStore(useShallow((state) => state.routes))
@@ -112,15 +114,15 @@ const App = () => {
     }
   }, [authStore.username])
 
-  /* useEffect(() => {
-   *   window.onfocus = () => {
-   *     refreshTokenSync(true)
-   *     fetchNotiCount()
-   *   }
-   *   return () => {
-   *     window.onfocus = null
-   *   }
-   * }, [authStore]) */
+  useEffect(() => {
+    window.onfocus = () => {
+      refreshTokenSync(true)
+      fetchNotiCount()
+    }
+    return () => {
+      window.onfocus = null
+    }
+  }, [authStore])
 
   useEffect(() => {
     if (!authed) {
@@ -166,7 +168,7 @@ const App = () => {
   return (
     <>
       {initialized && router ? (
-        <RouterProvider router={router} />
+        <RouterProvider router={router} key={forceState} />
       ) : (
         <div className="flex justify-center py-4">
           <BLoader />

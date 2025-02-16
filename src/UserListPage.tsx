@@ -46,7 +46,7 @@ import { ListPagination } from './components/ListPagination'
 import RoleSelector from './components/RoleSelector'
 import UserDetailCard from './components/UserDetailCard'
 
-import { blockUser, removeMember } from './api/site'
+import { blockUser, blockUsers, removeMember } from './api/site'
 import { banManyUsers, getUser, getUserList } from './api/user'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
@@ -194,7 +194,7 @@ export default function UserListPage() {
             详细
           </Button>
 
-          {authStore.levelCompare(row.original.role) < 0 && (
+          {siteFrontId && authStore.levelCompare(row.original.role) < 0 && (
             <>
               <Button
                 variant="secondary"
@@ -385,10 +385,31 @@ export default function UserListPage() {
     setBanOpen(true)
   }
 
-  const onBlockSelectedClick = (e: MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault()
-    /* setBlockOpen(true) */
-  }
+  const onBlockSelectedClick = useCallback(
+    async (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault()
+      /* setBlockOpen(true) */
+      if (!siteFrontId) return
+
+      console.log('selected rows: ', selectedRows)
+
+      const userIds = selectedRows.map((item) => Number(item.original.id) || 0)
+      if (userIds.length == 0) return
+
+      const confirmed = await alertDialog.confirm(
+        '确认',
+        `确定屏蔽已选中的${userIds.length}个用户？`,
+        'danger'
+      )
+      if (!confirmed) return
+
+      const { code } = await blockUsers(siteFrontId, userIds)
+      if (!code) {
+        fetchUserList()
+      }
+    },
+    [siteFrontId, selectedRows]
+  )
 
   const onBlockClick = useCallback(
     async (user: UserData) => {
@@ -564,15 +585,16 @@ export default function UserListPage() {
                   {bannableUsers.length > 0 && (
                     <>
                       <>
-                        {authStore.permit('user', 'block_from_site') && (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={onBlockSelectedClick}
-                          >
-                            屏蔽 {bannableUsers.length} 个已选用户
-                          </Button>
-                        )}
+                        {siteFrontId &&
+                          authStore.permit('user', 'block_from_site') && (
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={onBlockSelectedClick}
+                            >
+                              屏蔽 {bannableUsers.length} 个已选用户
+                            </Button>
+                          )}
                       </>
                       <>
                         {authStore.permit('user', 'ban') && (
@@ -580,6 +602,7 @@ export default function UserListPage() {
                             size="sm"
                             variant="destructive"
                             onClick={onBanSelectedClick}
+                            className="ml-1"
                           >
                             封禁 {bannableUsers.length} 个已选用户
                           </Button>

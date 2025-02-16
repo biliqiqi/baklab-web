@@ -37,13 +37,13 @@ import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 import UserDetailCard from './components/UserDetailCard'
 
-import { getUser, getUserList, unbanManyUsers } from './api/user'
+import { getSiteBlocklist, unblockUser, unblockUsers } from './api/site'
+import { getUser, unBanUser, unbanManyUsers } from './api/user'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
-import { formatMinutes } from './lib/utils'
 import { useAlertDialogStore, useAuthedUserStore } from './state/global'
-import { ListPageState, UserData } from './types/types'
+import { BlockedUser, ListPageState } from './types/types'
 
 interface SearchFields {
   keywords?: string
@@ -55,12 +55,12 @@ const defaultSearchData: SearchFields = {
   roleId: '',
 }
 
-export default function BannedUserListPage() {
+export default function BlockedUserListPage() {
   const [loading, setLoading] = useState(false)
-  const [currUser, setCurrUser] = useState<UserData | null>(null)
+  const [currUser, setCurrUser] = useState<BlockedUser | null>(null)
   const [showUserDetail, setShowUserDetail] = useState(false)
 
-  const [list, setList] = useState<UserData[]>([])
+  const [list, setList] = useState<BlockedUser[]>([])
   const [params, setParams] = useSearchParams()
   const location = useLocation()
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
@@ -82,7 +82,7 @@ export default function BannedUserListPage() {
     keywords: params.get('keywords') || '',
   })
 
-  const columns: ColumnDef<UserData>[] = [
+  const columns: ColumnDef<BlockedUser>[] = [
     {
       id: 'select',
       header: ({ table }) => (
@@ -113,38 +113,13 @@ export default function BannedUserListPage() {
         </Link>
       ),
     },
-    /* {
-     *   accessorKey: 'roleName',
-     *   header: '角色',
-     * }, */
-    /* {
-     *   accessorKey: 'roleLevel',
-     *   header: '权限级别',
-     *   cell: ({ row }) => <span>{row.original?.role?.level || '-'}</span>,
-     * }, */
     {
-      accessorKey: 'registeredAt',
-      header: '加入时间',
+      accessorKey: 'blockedAt',
+      header: '屏蔽时间',
       cell: ({ row }) => (
         <span title={new Date(row.original.registeredAt).toLocaleString()}>
           {timeFmt(row.original.registeredAt, 'YYYY-M-D')}
         </span>
-      ),
-    },
-    {
-      accessorKey: 'bannedStartAt',
-      header: '封禁时间',
-      cell: ({ row }) => (
-        <span title={new Date(row.original.bannedStartAt).toLocaleString()}>
-          {timeFmt(row.original.bannedStartAt, 'YYYY-M-D h:m:s')}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'bannedMinutes',
-      header: '封禁时长',
-      cell: ({ row }) => (
-        <span>{formatMinutes(row.original.bannedMinutes)}</span>
       ),
     },
     {
@@ -157,10 +132,10 @@ export default function BannedUserListPage() {
             size="sm"
             className="m-1"
             onClick={() => {
-              onShowDetailClick(row.original)
+              onUnblockClick(row.original)
             }}
           >
-            详细
+            解除屏蔽
           </Button>
         </>
       ),
@@ -199,6 +174,8 @@ export default function BannedUserListPage() {
   const fetchUserList = toSync(
     useCallback(
       async (showLoading = false) => {
+        if (!siteFrontId) return
+
         try {
           if (showLoading) {
             setLoading(true)
@@ -210,13 +187,11 @@ export default function BannedUserListPage() {
 
           setSearchData((state) => ({ ...state, keywords }))
 
-          const resp = await getUserList(
+          const resp = await getSiteBlocklist(
+            siteFrontId,
             page,
             pageSize,
-            keywords,
-            '',
-            'banned_user',
-            { siteFrontId }
+            keywords
           )
 
           if (!resp.code) {
@@ -224,7 +199,7 @@ export default function BannedUserListPage() {
             if (data.list) {
               setList([...data.list])
               setPageState({
-                currPage: data.page,
+                currPage: data.currPage,
                 pageSize: data.pageSize,
                 total: data.total,
                 totalPage: data.totalPage,
@@ -274,47 +249,56 @@ export default function BannedUserListPage() {
     })
   }, [params, searchData])
 
-  const onUnbanSelectedClick = useCallback(
+  const onUnblockSelectedClick = useCallback(
     async (e: MouseEvent<HTMLButtonElement>) => {
       e.preventDefault()
+
+      if (!siteFrontId) return
       /* setBanOpen(true) */
       const selectedRows = table.getSelectedRowModel().rows
-      const usernames = selectedRows.map((item) => item.original.name)
+      const userIds = selectedRows.map((item) => Number(item.original.id) || 0)
 
-      if (usernames.length == 0) return
+      if (userIds.length == 0) return
 
       const confirmed = await alertDialog.confirm(
         '确认',
-        `确认解封已选中的 ${usernames.length} 个用户？`
+        `确认解除对已选中的 ${userIds.length} 个用户的屏蔽？`
       )
       if (confirmed) {
-        const { code } = await unbanManyUsers(usernames)
+        const { code } = await unblockUsers(siteFrontId, userIds)
         if (!code) {
           setRowSelection({})
           fetchUserList()
         }
       }
     },
-    [alertDialog, table]
+    [alertDialog, table, siteFrontId]
   )
 
-  const fetchUserData = toSync(
+  /* const onShowDetailClick = useCallback((user: BlockedUser) => {
+   *   setCurrUser(user)
+   *   setShowUserDetail(true)
+   * }, []) */
+
+  const onUnblockClick = toSync(
     useCallback(
-      async (username: string) => {
-        const { code, data } = await getUser(username, {}, { siteFrontId })
+      async (user: BlockedUser) => {
+        if (!siteFrontId) return
+
+        const confirmed = await alertDialog.confirm(
+          '确认',
+          `确定解除对 ${user.name} 的屏蔽？`
+        )
+        if (!confirmed) return
+
+        const { code } = await unblockUser(siteFrontId, user.id)
         if (!code) {
-          setCurrUser(data)
+          fetchUserList()
         }
       },
-      [siteFrontId]
+      [siteFrontId, alertDialog]
     )
   )
-
-  const onShowDetailClick = useCallback((user: UserData) => {
-    setCurrUser(user)
-    setShowUserDetail(true)
-    fetchUserData(user.name)
-  }, [])
 
   useEffect(() => {
     fetchUserList(true)
@@ -325,8 +309,8 @@ export default function BannedUserListPage() {
       category={{
         isFront: true,
         frontId: 'banned_users',
-        name: '已封锁',
-        describe: '已封锁用户',
+        name: '已屏蔽',
+        describe: '已屏蔽用户',
       }}
     >
       <Card className="flex flex-wrap justify-between p-2">
@@ -427,9 +411,9 @@ export default function BannedUserListPage() {
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={onUnbanSelectedClick}
+                      onClick={onUnblockSelectedClick}
                     >
-                      解封 {unbannableUsers.length} 个已选用户
+                      解除对 {unbannableUsers.length} 个已选用户的屏蔽
                     </Button>
                   )}
                 </div>
@@ -438,26 +422,6 @@ export default function BannedUserListPage() {
           )}
         </>
       )}
-
-      <Dialog open={showUserDetail} onOpenChange={setShowUserDetail}>
-        {currUser && (
-          <DialogContent className="max-sm:max-w-[90%]">
-            <DialogHeader>
-              <DialogTitle>{currUser.name} 的详细信息</DialogTitle>
-              <DialogDescription></DialogDescription>
-            </DialogHeader>
-            <UserDetailCard
-              user={currUser}
-              title=""
-              className="p-0 bg-transparent border-none shadow-none"
-              onSuccess={() => {
-                setShowUserDetail(false)
-                fetchUserList(false)
-              }}
-            />
-          </DialogContent>
-        )}
-      </Dialog>
     </BContainer>
   )
 }

@@ -9,6 +9,7 @@ import ActivityPage from './ActivityPage.tsx'
 import ArticleListPage from './ArticleListPage.tsx'
 import ArticlePage from './ArticlePage.tsx'
 import BannedUserListPage from './BannedUserListPage.tsx'
+import BlockedUserListPage from './BlockedUserListPage.tsx'
 import CategoryListPage from './CategoryListPage.tsx'
 import EditPage from './EditPage.tsx'
 import InvitePage from './InvitePage.tsx'
@@ -26,7 +27,6 @@ import { getSiteWithFrontId } from './api/site.ts'
 import { PermissionAction, PermissionModule } from './constants/types.ts'
 import {
   ensureLogin,
-  ensureSiteData,
   isLogined,
   useAuthedUserStore,
   useSiteStore,
@@ -261,6 +261,11 @@ export const routes: RouteObject[] = [
   {
     path: '/:siteFrontId/manage/users',
     Component: UserListPage,
+    loader: needPermission('user', 'manage'),
+  },
+  {
+    path: '/:siteFrontId/manage/blocklist',
+    Component: BlockedUserListPage,
     loader: needPermission('user', 'manage'),
   },
   {

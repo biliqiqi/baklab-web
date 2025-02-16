@@ -77,12 +77,14 @@ const defaultSearchData: SearchFields = {
 }
 
 const tabs: SiteStatus[] = [
-  SITE_STATUS.Normal,
   SITE_STATUS.All,
-  SITE_STATUS.Reject,
+  SITE_STATUS.Normal,
+  /* SITE_STATUS.Reject, */
   SITE_STATUS.Banned,
   SITE_STATUS.ReadOnly,
 ]
+
+const defaultStatus = SITE_STATUS.All
 
 interface EditSiteData {
   rejectting: boolean
@@ -125,7 +127,7 @@ export default function SiteListPage() {
 
   const alertDialog = useAlertDialogStore()
 
-  const tab = params.get('status') || String(SITE_STATUS.Normal)
+  const tab = params.get('status') || String(defaultStatus)
 
   const rejecttingForm = useForm<RejecttingSchema>({
     resolver: zodResolver(rejecttingSchema),
@@ -408,12 +410,12 @@ export default function SiteListPage() {
           const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
           const keywords = params.get('keywords') || ''
           const creatorName = params.get('creator_name') || ''
-          const statusStr = params.get('status') || String(SITE_STATUS.Normal)
+          const statusStr = params.get('status') || String(defaultStatus)
           const deletedStr = params.get('deleted')
 
           let status: SiteStatus | undefined = Number(statusStr) as SiteStatus
           if (!Object.values(SITE_STATUS).includes(status)) {
-            status = SITE_STATUS.Normal
+            status = defaultStatus
           }
 
           let deleted: boolean | undefined = undefined
@@ -544,7 +546,7 @@ export default function SiteListPage() {
         </div>
       </Card>
       <Tabs
-        defaultValue={String(SITE_STATUS.Normal)}
+        defaultValue={String(defaultStatus)}
         value={tab}
         onValueChange={onTabChange}
         className="mt-4"

@@ -489,3 +489,11 @@ export interface InviteCodeItemResponse {
   invite: InviteCode
   site: Site
 }
+
+export interface BlockedUser extends UserData {
+  blockedAt: string
+}
+
+export interface BlockedUserList extends ListPageState {
+  list: BlockedUser[] | null
+}

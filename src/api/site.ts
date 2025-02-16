@@ -1,6 +1,7 @@
 import { authRequest } from '@/lib/request'
 
 import {
+  BlockedUserList,
   ItemExists,
   ResponseData,
   ResponseID,
@@ -163,3 +164,38 @@ export const unblockUser = (frontId: string, userId: string) =>
   authRequest.post<ResponseData<null>>(`sites/${frontId}/unblock_user`, {
     json: { userId },
   })
+
+export const blockUsers = (frontId: string, userIdArr: number[]) =>
+  authRequest.post<ResponseData<null>>(`sites/${frontId}/block_users`, {
+    json: { userIdArr },
+  })
+
+export const unblockUsers = (frontId: string, userIdArr: number[]) =>
+  authRequest.post<ResponseData<null>>(`sites/${frontId}/unblock_users`, {
+    json: { userIdArr },
+  })
+
+export const getSiteBlocklist = (
+  frontId: string,
+  page?: number,
+  pageSize?: number,
+  keywords?: string
+) => {
+  const params = new URLSearchParams()
+  if (keywords) {
+    params.set('keywords', keywords)
+  }
+
+  if (page) {
+    params.set('page', String(page))
+  }
+
+  if (pageSize) {
+    params.set('pageSize', String(pageSize))
+  }
+
+  return authRequest.get<ResponseData<BlockedUserList>>(
+    `sites/${frontId}/blocklist`,
+    { searchParams: params }
+  )
+}

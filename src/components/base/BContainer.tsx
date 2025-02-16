@@ -416,10 +416,19 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const onQuitSiteClick = useCallback(
       async (ev: MouseEvent<HTMLDivElement>) => {
         ev.preventDefault()
-        if (!siteFrontId) return
+        setOpenSiteMenu(false)
+
+        if (!siteFrontId || !siteStore.site) return
+        const { visible, allowNonMemberInteract } = siteStore.site
+        const confirmed = await alertDialog.confirm(
+          '确认',
+          `${!visible || !allowNonMemberInteract ? '退出后将无法参与本站点互动，确定退出' : '确定退出站点'}？`,
+          'danger'
+        )
+        if (!confirmed) return
+
         const { code } = await quitSite(siteFrontId)
         if (!code) {
-          setOpenSiteMenu(false)
           if (siteStore.site && !siteStore.site.visible) {
             siteStore.update(null)
             navigate('/', { replace: true })
@@ -432,7 +441,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           /* forceUpdate() */
         }
       },
-      [siteFrontId, siteStore, navigate, cateStore]
+      [siteFrontId, siteStore, navigate, cateStore, alertDialog]
     )
 
     const onInviteClick = useCallback(
@@ -710,7 +719,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                           )}
                         {!isMySite && currSite.currUserState.isMember && (
                           <DropdownMenuItem
-                            className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                            className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0 text-destructive"
                             onClick={onQuitSiteClick}
                           >
                             退出站点
@@ -993,6 +1002,24 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                                       <UsersRoundIcon size={18} />
                                     </BIconCircle>
                                     成员
+                                  </Link>
+                                </SidebarMenuButton>
+                              </SidebarMenuItem>
+                            )}
+                            {authPermit('user', 'manage') && (
+                              <SidebarMenuItem key="blocklist">
+                                <SidebarMenuButton
+                                  asChild
+                                  isActive={
+                                    location.pathname ==
+                                    `/${siteFrontId}/manage/blocklist`
+                                  }
+                                >
+                                  <Link to={`/${siteFrontId}/manage/blocklist`}>
+                                    <BIconCircle id="blocklist" size={32}>
+                                      <UserRoundXIcon size={18} />
+                                    </BIconCircle>
+                                    黑名单
                                   </Link>
                                 </SidebarMenuButton>
                               </SidebarMenuItem>

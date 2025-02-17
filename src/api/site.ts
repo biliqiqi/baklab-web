@@ -155,6 +155,11 @@ export const removeMember = (frontId: string, userId: string) =>
     json: { userId },
   })
 
+export const removeMembers = (frontId: string, userIdArr: number[]) =>
+  authRequest.post<ResponseData<null>>(`sites/${frontId}/remove_members`, {
+    json: { userIdArr },
+  })
+
 export const blockUser = (frontId: string, userId: string) =>
   authRequest.post<ResponseData<null>>(`sites/${frontId}/block_user`, {
     json: { userId },

@@ -113,7 +113,7 @@ export default function InvitePage() {
             </div>
             <div>{site.name}</div>
             <div className="mt-1 text-sm text-gray-500">
-              300 在线 / 2000 成员
+              {site.onlineCount} 在线 / {site.memberCount} 成员
             </div>
           </div>
         ) : expired ? (

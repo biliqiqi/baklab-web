@@ -459,6 +459,8 @@ export interface Site {
   allowNonMemberInteract: boolean
   homePage: string
   deleted: boolean
+  memberCount: number
+  onlineCount: number
 }
 
 export interface SiteListResponse extends ListPageState {

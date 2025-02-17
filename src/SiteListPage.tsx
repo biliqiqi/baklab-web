@@ -293,6 +293,11 @@ export default function SiteListPage() {
       ),
     },
     {
+      accessorKey: 'memberCount',
+      header: '成员数',
+      cell: ({ row }) => <span>{row.original.memberCount}</span>,
+    },
+    {
       accessorKey: 'createdAt',
       header: '创建时间',
       cell: ({ cell }) => (

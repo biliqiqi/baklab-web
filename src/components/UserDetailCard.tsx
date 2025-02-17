@@ -181,12 +181,14 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
       <Card className={cn('p-3 mb-4 rounded-0', className)}>
         <CardTitle>{title}</CardTitle>
         <div className="table mt-4 w-full">
+          {user.email && (
+            <div className="table-row">
+              <b className="table-cell py-2 w-24">邮箱：</b>
+              <span className="table-cell py-2">{user.email}</span>
+            </div>
+          )}
           <div className="table-row">
-            <b className="table-cell py-2 w-24">邮箱：</b>
-            <span className="table-cell py-2">{user.email}</span>
-          </div>
-          <div className="table-row">
-            <b className="table-cell py-2">角色：</b>
+            <b className="table-cell py-2 w-24">角色：</b>
             <div className="table-cell py-2">
               <Badge
                 variant="outline"
@@ -213,7 +215,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
             </div>
           </div>
           <div className="table-row">
-            <b className="table-cell py-2">权限级别：</b> {user.role.level}
+            <b className="table-cell py-2 w-24">权限级别：</b> {user.role.level}
           </div>
           <div className="table-row">
             {authStore.levelCompare(user.role) < 1 && (

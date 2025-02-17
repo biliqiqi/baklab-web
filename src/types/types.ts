@@ -315,7 +315,7 @@ export interface Activity {
   ipAddr: string
   deviceInfo: string
   details: ActivityDetails
-  formattedText: string
+  // formattedText: string
 }
 
 export interface OptionItem {

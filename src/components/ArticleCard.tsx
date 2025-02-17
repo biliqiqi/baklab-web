@@ -229,7 +229,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           {article.deleted && !authStore.permit('article', 'delete_others') ? (
             <span>未知用户</span>
           ) : (
-            <Link to={'/users/' + article.authorName}>
+            <Link to={`/users/${article.authorName}`}>
               <BAvatar username={article.authorName} size={24} />{' '}
               {article.authorName}
             </Link>

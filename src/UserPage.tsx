@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 
-import { z } from '@/lib/zod-custom'
-
 import { Card } from './components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 
@@ -68,20 +66,6 @@ const activityTabMap: ActivityTabMap = {
   all: '全部',
   manage: '管理行为',
   user: '用户行为',
-}
-
-const roleEditScheme = z.object({
-  roleId: z.string().min(1, '请选择角色'),
-  remark: z.string(),
-  roleName: z.string(),
-})
-
-type RoleEditScheme = z.infer<typeof roleEditScheme>
-
-const defaultRoleEditData: RoleEditScheme = {
-  roleId: '',
-  remark: '',
-  roleName: '',
 }
 
 interface ArticleListProps {
@@ -152,7 +136,7 @@ export default function UserPage() {
   const { updateNotFound } = useNotFoundStore()
 
   const [params, setParams] = useSearchParams()
-  const { username } = useParams()
+  const { username, siteFrontId } = useParams()
 
   const managePermitted = useMemo(() => {
     if (user) {
@@ -178,7 +162,11 @@ export default function UserPage() {
           }
 
           if (showLoading) setLoading(true)
-          const resp = await getUser(username, {}, { showNotFound: true })
+          const resp = await getUser(
+            username,
+            {},
+            { showNotFound: true, siteFrontId }
+          )
 
           if (!resp.code) {
             /* console.log('user data: ', resp.data) */
@@ -190,7 +178,7 @@ export default function UserPage() {
           setLoading(false)
         }
       },
-      [username]
+      [username, siteFrontId, updateNotFound]
     )
   )
 
@@ -212,7 +200,9 @@ export default function UserPage() {
               sort,
               '',
               username,
-              tab || 'all'
+              tab || 'all',
+              '',
+              { siteFrontId }
             )
 
             if (!resp.code) {
@@ -256,7 +246,8 @@ export default function UserPage() {
                 actType == 'all' ? undefined : actType,
                 '',
                 page,
-                pageSize
+                pageSize,
+                { siteFrontId }
               )
             } else {
               resp = await getUserPunishedList(username)
@@ -300,7 +291,7 @@ export default function UserPage() {
           setLoadingList(false)
         }
       },
-      [params, tab, username]
+      [params, tab, username, siteFrontId, actType]
     )
   )
 

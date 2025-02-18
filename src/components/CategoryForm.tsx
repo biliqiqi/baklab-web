@@ -296,7 +296,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
               </Button>
             )}
           </span>
-          <Button type="submit" size="sm">
+          <Button type="submit" size="sm" disabled={!form.formState.isDirty}>
             提交
           </Button>
         </div>

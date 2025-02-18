@@ -1042,6 +1042,26 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                                 </SidebarMenuButton>
                               </SidebarMenuItem>
                             )}
+                            {authPermit('activity', 'access') && (
+                              <SidebarMenuItem key="activities">
+                                <SidebarMenuButton
+                                  asChild
+                                  isActive={
+                                    location.pathname ==
+                                    `/${siteFrontId}/manage/activities`
+                                  }
+                                >
+                                  <Link
+                                    to={`/${siteFrontId}/manage/activities`}
+                                  >
+                                    <BIconCircle id="activities" size={32}>
+                                      <ActivityIcon size={18} />
+                                    </BIconCircle>
+                                    管理日志
+                                  </Link>
+                                </SidebarMenuButton>
+                              </SidebarMenuItem>
+                            )}
                           </SidebarMenu>
                         </SidebarGroupContent>
                       </CollapsibleContent>

@@ -274,6 +274,11 @@ export const routes: RouteObject[] = [
     loader: needPermission('role', 'manage'),
   },
   {
+    path: '/:siteFrontId/manage/activities',
+    Component: ActivityPage,
+    loader: needPermission('activity', 'access'),
+  },
+  {
     path: '*',
     Component: NotFoundPage,
   },

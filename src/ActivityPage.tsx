@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useLocation, useSearchParams } from 'react-router-dom'
+import { useLocation, useParams, useSearchParams } from 'react-router-dom'
 
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
@@ -21,6 +21,7 @@ import { getActivityList } from './api'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { toSync } from './lib/fire-and-forget'
 import { cn } from './lib/utils'
+import { useAuthedUserStore } from './state/global'
 import {
   Activity,
   ActivityActionType,
@@ -51,8 +52,12 @@ export default function ActivityPage() {
     totalPage: 0,
   })
   const usernameRef = useRef<HTMLInputElement | null>(null)
+
+  const { siteFrontId } = useParams()
   const [params, setParams] = useSearchParams()
   const location = useLocation()
+
+  const authStore = useAuthedUserStore()
 
   const [searchData, setSearchData] = useState<SearchFields>({
     ...defaultSearchData,
@@ -79,9 +84,13 @@ export default function ActivityPage() {
           const page = Number(params.get('page')) || 1
           const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
           const username = params.get('username') || ''
-          const actType =
+          let actType =
             (params.get('act_type') as ActivityActionType | null) || undefined
           const action = params.get('action') || ''
+
+          if (!authStore.permit('activity', 'manage_platform')) {
+            actType = 'manage'
+          }
 
           if (showLoading) setLoading(true)
           const resp = await getActivityList(
@@ -90,7 +99,8 @@ export default function ActivityPage() {
             actType,
             action,
             page,
-            pageSize
+            pageSize,
+            { siteFrontId }
           )
           if (!resp.code) {
             const { data } = resp
@@ -122,7 +132,7 @@ export default function ActivityPage() {
           setLoading(false)
         }
       },
-      [params]
+      [params, siteFrontId]
     )
   )
 
@@ -156,12 +166,21 @@ export default function ActivityPage() {
 
   return (
     <BContainer
-      category={{
-        isFront: true,
-        frontId: 'activites',
-        name: '活动记录',
-        describe: '站点成员活动记录',
-      }}
+      category={
+        siteFrontId
+          ? {
+              isFront: true,
+              frontId: 'site_activites',
+              name: '管理日志',
+              describe: '站点内管理行为记录',
+            }
+          : {
+              isFront: true,
+              frontId: 'activites',
+              name: '活动记录',
+              describe: '站点成员活动记录',
+            }
+      }
     >
       <Card className="flex flex-wrap justify-between p-2">
         <div className="flex flex-wrap">
@@ -177,27 +196,33 @@ export default function ActivityPage() {
               }))
             }
           />
-          <Select
-            value={searchData.actType}
-            onValueChange={(actType) =>
-              setSearchData((state) => ({ ...state, actType }))
-            }
-          >
-            <SelectTrigger
-              className={cn(
-                'w-[140px] h-[36px] mr-3 bg-white',
-                !searchData.actType && 'text-gray-500'
-              )}
+          {authStore.permit('activity', 'manage_platform') && (
+            <Select
+              value={searchData.actType}
+              onValueChange={(actType) =>
+                setSearchData((state) => ({ ...state, actType }))
+              }
             >
-              <SelectValue placeholder="操作类别" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="user">普通用户</SelectItem>
-              <SelectItem value="manage">管理</SelectItem>
-              <SelectItem value="anonymous">匿名</SelectItem>
-              <SelectItem value="dev">开发</SelectItem>
-            </SelectContent>
-          </Select>
+              <SelectTrigger
+                className={cn(
+                  'w-[140px] h-[36px] mr-3 bg-white',
+                  !searchData.actType && 'text-gray-500'
+                )}
+              >
+                <SelectValue placeholder="操作类别" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="user">普通用户</SelectItem>
+                <SelectItem value="manage">管理</SelectItem>
+                {authStore.permit('platform_manage', 'access') && (
+                  <>
+                    <SelectItem value="anonymous">匿名</SelectItem>
+                    <SelectItem value="dev">开发</SelectItem>
+                  </>
+                )}
+              </SelectContent>
+            </Select>
+          )}
           <Select
             value={searchData.action}
             onValueChange={(action) =>

@@ -45,7 +45,8 @@ export const getActivityList = async (
   actType?: ActivityActionType,
   action?: string,
   page?: number,
-  pageSize?: number
+  pageSize?: number,
+  custom?: CustomRequestOptions
 ): Promise<ResponseData<ActivityListResponse>> => {
   const params = new URLSearchParams()
   if (userId) {
@@ -72,9 +73,13 @@ export const getActivityList = async (
     params.set('pageSize', String(pageSize))
   }
 
-  return authRequest.get(`activities`, {
-    searchParams: params,
-  })
+  return authRequest.get(
+    `activities`,
+    {
+      searchParams: params,
+    },
+    custom
+  )
 }
 
 export const eventsPong = (clientID: string) =>

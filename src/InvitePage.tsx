@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
@@ -11,7 +11,6 @@ import BSiteIcon from './components/base/BSiteIcon'
 import { getInvite } from './api/invite-code'
 import { acceptSiteInvite } from './api/site'
 import { toSync } from './lib/fire-and-forget'
-import { getCookie } from './lib/utils'
 import { useAuthedUserStore, useSiteStore } from './state/global'
 import { InviteCode, Site } from './types/types'
 
@@ -19,7 +18,9 @@ export default function InvitePage() {
   const [site, setSite] = useState<Site | null>(null)
   const [inviteData, setInviteData] = useState<InviteCode | null>(null)
   const [loading, setLoading] = useState(false)
+
   const { inviteCode } = useParams()
+  const [searchParams] = useSearchParams()
 
   const navigate = useNavigate()
 
@@ -30,6 +31,8 @@ export default function InvitePage() {
     () => (inviteData ? dayjs(inviteData.expiredAt).isBefore(dayjs()) : false),
     [inviteData]
   )
+
+  const accepted = useMemo(() => searchParams.get('accepted'), [searchParams])
 
   /* console.log('invite code: ', inviteCode) */
   /* console.log('expired', expired) */
@@ -55,16 +58,14 @@ export default function InvitePage() {
   )
 
   const acceptInvite = useCallback(async () => {
-    if (!authStore.isLogined()) {
-      document.cookie = `invite_accept:${inviteCode}=1;path=/`
-      navigate(`/signin?return=${encodeURIComponent(location.href)}`, {
-        replace: true,
-      })
-      return
-    }
     try {
       if (!site || !inviteData) {
         throw new Error('lack of site data and invite data')
+      }
+
+      if (site && site.currUserState.isMember) {
+        navigate(`/${site.frontId}`, { replace: true })
+        return
       }
 
       if (loading) {
@@ -82,20 +83,44 @@ export default function InvitePage() {
     } finally {
       setLoading(false)
     }
-  }, [site, inviteData, loading, inviteCode, navigate, authStore, siteStore])
+  }, [site, inviteData, loading, navigate, siteStore])
 
-  const onAcceptInviteClick = acceptInvite
+  const onAcceptInviteClick = useCallback(() => {
+    const currUrl = new URL(location.href)
+    currUrl.searchParams.set('accepted', '1')
+
+    /* console.log('curr url: ', currUrl.toString()) */
+    // TODO 从注册到加入，完整流程
+    if (!authStore.isLogined()) {
+      navigate(`/signin?return=${encodeURIComponent(currUrl.toString())}`, {
+        replace: true,
+      })
+      return
+    } else {
+      return acceptInvite()
+    }
+  }, [acceptInvite, authStore, navigate])
 
   useEffect(() => {
     fetchInvite()
   }, [inviteCode])
 
   useEffect(() => {
-    console.log('cookie: ', getCookie(`invite_accept:${inviteCode}`))
-    if (!expired && getCookie(`invite_accept:${inviteCode}`) == '1') {
+    /* console.log('site: ', site)
+     * console.log('inviteData: ', inviteData)
+     * console.log('loading: ', loading) */
+
+    if (
+      !expired &&
+      authStore.isLogined() &&
+      accepted == '1' &&
+      site &&
+      inviteData &&
+      !loading
+    ) {
       toSync(acceptInvite)()
     }
-  }, [site, inviteData, inviteCode, acceptInvite, expired])
+  }, [acceptInvite, expired, authStore, accepted, site, inviteData, loading])
 
   return (
     <div className="flex h-screen items-center justify-center">

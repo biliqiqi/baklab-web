@@ -53,6 +53,9 @@ export const updateArticle = (
         category: categoryFrontID,
         link,
         content,
+        extra: {
+          title,
+        },
       },
     },
     custom
@@ -62,6 +65,7 @@ export const updateReply = (
   id: string,
   content: string,
   replyToId: string,
+  title?: string,
   custom?: CustomRequestOptions
 ): Promise<ResponseData<ArticleSubmitResponse>> =>
   authRequest.patch(
@@ -70,6 +74,9 @@ export const updateReply = (
       json: {
         content,
         replyToId,
+        extra: {
+          title,
+        },
       },
     },
     custom
@@ -226,14 +233,13 @@ export const getArticle = (
 
 export const deleteArticle = (
   id: string,
-  deletedBy: string, // 删除者用户名
+  title?: string,
   reason?: string,
   custom?: CustomRequestOptions
 ) => {
   const params = new URLSearchParams()
-  params.set('deletedBy', deletedBy)
   if (reason) {
-    params.set('reason', reason)
+    params.set('extra', JSON.stringify({ reason, title }))
   }
 
   return authRequest.delete<ResponseData<ArticleDeleteResponse>>(

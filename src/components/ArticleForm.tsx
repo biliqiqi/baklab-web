@@ -184,9 +184,15 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
           }
 
           if (isReply) {
-            data = await updateReply(article.id, content, article.replyToId, {
-              siteFrontId: article.siteFrontId,
-            })
+            data = await updateReply(
+              article.id,
+              content,
+              article.replyToId,
+              article.displayTitle,
+              {
+                siteFrontId: article.siteFrontId,
+              }
+            )
           } else {
             data = await updateArticle(
               article.id,

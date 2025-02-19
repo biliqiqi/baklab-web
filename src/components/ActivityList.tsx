@@ -14,6 +14,11 @@ import { Empty } from './Empty'
 import { ListPagination } from './ListPagination'
 import { Badge } from './ui/badge'
 import { Card } from './ui/card'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from './ui/collapsible'
 
 export interface ActivityListProps {
   list: Activity[]
@@ -29,6 +34,7 @@ const acTypeMap: AcTypeMap = {
   manage: '管理',
   anonymous: '匿名',
   dev: '开发',
+  platform_manage: '平台管理',
 }
 
 interface ActivityActionTextProps {
@@ -37,9 +43,9 @@ interface ActivityActionTextProps {
 
 const SiteAction = ({ activity: item }: ActivityActionTextProps) => {
   if (
-    !item.details ||
-    item.details['status'] === undefined ||
-    item.details['prevStatus'] === undefined
+    !item.extraInfo ||
+    item.extraInfo['status'] === undefined ||
+    item.extraInfo['prevStatus'] === undefined
   ) {
     return (
       <>
@@ -47,8 +53,8 @@ const SiteAction = ({ activity: item }: ActivityActionTextProps) => {
       </>
     )
   }
-  const status = item.details['status'] as SiteStatus
-  const prevStatus = item.details['prevStatus'] as SiteStatus
+  const status = item.extraInfo['status'] as SiteStatus
+  const prevStatus = item.extraInfo['prevStatus'] as SiteStatus
 
   let actionText = '更新了站点状态'
   switch (status) {
@@ -85,16 +91,17 @@ const ActivityTargetLink = ({ activity: item }: ActivityActionTextProps) => {
   switch (item.targetModel) {
     case 'article':
       return (
-        <Link
-          to={`/${item.details.siteFrontId}/articles/${item.targetId}`}
-        >{`/${item.details.siteFrontId}/articles/${item.targetId}`}</Link>
+        <Link to={`/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}>
+          {item.extraInfo.title ||
+            `/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}
+        </Link>
       )
     case 'user':
       return <Link to={`/users/${item.targetId}`}>{item.targetId}</Link>
     case 'category':
       return (
-        <Link to={`/${item.details.siteFrontId}/categories/${item.targetId}`}>
-          {item.details.name}
+        <Link to={`/${item.extraInfo.siteFrontId}/categories/${item.targetId}`}>
+          {item.extraInfo.categoryName}
         </Link>
       )
     case 'site':
@@ -105,10 +112,12 @@ const ActivityTargetLink = ({ activity: item }: ActivityActionTextProps) => {
 }
 
 const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
-  const removedUsers = (item.details.removedUsers as string[] | undefined) || []
-  const blockedUsers = (item.details.blockedUsers as string[] | undefined) || []
+  const removedUsers =
+    (item.extraInfo.removedUsers as string[] | undefined) || []
+  const blockedUsers =
+    (item.extraInfo.blockedUsers as string[] | undefined) || []
   const unblockedUsers =
-    (item.details.unblockedUsers as string[] | undefined) || []
+    (item.extraInfo.unblockedUsers as string[] | undefined) || []
 
   switch (item.action) {
     case 'set_role':
@@ -116,10 +125,10 @@ const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
         <>
           <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
           设置用户&nbsp;
-          {item.details && <ActivityTargetLink activity={item} />}
+          {item.extraInfo && <ActivityTargetLink activity={item} />}
           &nbsp;角色为&nbsp;
           <span className="inline-block border-[1px] border-gray-500 rounded-sm px-1">
-            {item.details.roleName}
+            {item.extraInfo.roleName}
           </span>
           &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
         </>
@@ -138,7 +147,18 @@ const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
           <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
           创建了角色&nbsp;
           <span className="inline-block border-[1px] border-gray-500 rounded-sm px-1">
-            {item.details.name}
+            {item.extraInfo.roleName}
+          </span>
+          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+        </>
+      )
+    case 'edit_role':
+      return (
+        <>
+          <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
+          更新了角色&nbsp;
+          <span className="inline-block border-[1px] border-gray-500 rounded-sm px-1">
+            {item.extraInfo.roleName}
           </span>
           &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
         </>
@@ -149,7 +169,7 @@ const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
           <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
           删除了角色&nbsp;
           <span className="inline-block border-[1px] border-gray-500 rounded-sm px-1">
-            {item.details.roleName}
+            {item.extraInfo.roleName}
           </span>
           &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
         </>
@@ -228,7 +248,7 @@ const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
         <>
           <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
           {item.actionText}{' '}
-          {item.details && <ActivityTargetLink activity={item} />}
+          {item.extraInfo && <ActivityTargetLink activity={item} />}
           &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
         </>
       )
@@ -239,8 +259,8 @@ export const ActivityList: React.FC<ActivityListProps> = ({
   list,
   pageState,
   isPlatfromManager = false,
-}) =>
-  list.length == 0 ? (
+}) => {
+  return list.length == 0 ? (
     <Empty />
   ) : (
     <>
@@ -252,44 +272,71 @@ export const ActivityList: React.FC<ActivityListProps> = ({
       </div>
       {list.map((item) => (
         <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
-          <div className="mb-2 text-base activity-title">
-            <ActivityActionText activity={item} />
-          </div>
-          {isPlatfromManager && (
-            <div className="text-sm bg-gray-100 p-2">
-              <div className="flex">
-                <div className="flex-shrink-0 w-[80px]">
-                  <b>类型：</b>
-                </div>
-                <div>{acTypeMap[item.type]}</div>
-              </div>
-              <div className="flex">
-                <div className="flex-shrink-0 w-[80px]">
-                  <b>IP地址：</b>
-                </div>
-                <div>{item.ipAddr}</div>
-              </div>
-              <div className="flex">
-                <div className="flex-shrink-0 w-[80px]">
-                  <b>设备信息：</b>
-                </div>
-                <div>{item.deviceInfo}</div>
-              </div>
-              <div className="flex">
-                <div className="flex-shrink-0 w-[80px]">
-                  <b>其他数据：</b>
-                </div>
-                <details>
-                  <summary>查看</summary>
-                  <pre className="flex-grow align-top py-1 whitespace-break-spaces">
-                    {JSON.stringify(item.details, null, '  ')}
-                  </pre>
-                </details>
-              </div>
+          <Collapsible>
+            <div className="text-base activity-title">
+              {item.action == 'delete_article' ? (
+                <CollapsibleTrigger className="w-full text-left">
+                  <ActivityActionText activity={item} />
+                </CollapsibleTrigger>
+              ) : (
+                <ActivityActionText activity={item} />
+              )}
             </div>
-          )}
+            {isPlatfromManager ? (
+              <div className="text-sm bg-gray-100 p-2 mt-2">
+                <div className="flex">
+                  <div className="flex-shrink-0 w-[80px]">
+                    <b>类型：</b>
+                  </div>
+                  <div>{acTypeMap[item.type]}</div>
+                </div>
+                <div className="flex">
+                  <div className="flex-shrink-0 w-[80px]">
+                    <b>IP地址：</b>
+                  </div>
+                  <div>{item.ipAddr}</div>
+                </div>
+                <div className="flex">
+                  <div className="flex-shrink-0 w-[80px]">
+                    <b>设备信息：</b>
+                  </div>
+                  <div>{item.deviceInfo}</div>
+                </div>
+                <div className="flex">
+                  <div className="flex-shrink-0 w-[80px]">
+                    <b>其他数据：</b>
+                  </div>
+                  <details>
+                    <summary>查看</summary>
+                    <span className="font-bold">posts: </span>
+                    <pre className="flex-grow align-top py-1 whitespace-break-spaces">
+                      {JSON.stringify(item.details, null, '  ')}
+                    </pre>
+                    <span className="font-bold">extra: </span>
+                    <pre className="flex-grow align-top py-1 whitespace-break-spaces">
+                      {JSON.stringify(item.extraInfo, null, '  ')}
+                    </pre>
+                  </details>
+                </div>
+              </div>
+            ) : (
+              <CollapsibleContent>
+                <div className="text-sm bg-gray-100 p-2 mt-2">
+                  <div className="flex">
+                    <div className="flex-shrink-0 w-[60px]">
+                      <b>原因：</b>
+                    </div>
+                    <div className="whitespace-break-spaces">
+                      {item.extraInfo.reason || '-'}
+                    </div>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            )}
+          </Collapsible>
         </Card>
       ))}
       <ListPagination pageState={pageState} />
     </>
   )
+}

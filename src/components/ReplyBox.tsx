@@ -146,6 +146,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
             edittingArticle.id,
             content,
             edittingArticle.replyToId,
+            edittingArticle.displayTitle,
             { siteFrontId: edittingArticle.siteFrontId }
           )
         } else {

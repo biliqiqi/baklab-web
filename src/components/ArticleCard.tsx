@@ -32,8 +32,17 @@ import {
 } from './ui/alert-dialog'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
-import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from './ui/form'
 import { Input } from './ui/input'
+import { RadioGroup, RadioGroupItem } from './ui/radio-group'
+import { Textarea } from './ui/textarea'
 
 interface ArticleCardProps extends HTMLAttributes<HTMLDivElement> {
   article: Article
@@ -45,10 +54,19 @@ interface ArticleCardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const delReasonScheme = z.object({
-  reason: z.string().min(1, '请输入删除原因').max(500, '不要超过500各字符'),
+  reason: z.string().min(1, '请选择删除原因'),
+  extra: z.string().max(500, '不要超过500各字符'),
 })
 
 type DelReasonScheme = z.infer<typeof delReasonScheme>
+
+const DEL_REASONS = [
+  '广告营销',
+  '不友善',
+  '激进意识形态',
+  '违反法律法规',
+  '其他',
+]
 
 const highlightElement = (element: HTMLElement) => {
   element.classList.add('b-highlight')
@@ -104,6 +122,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     resolver: zodResolver(delReasonScheme),
     defaultValues: {
       reason: '',
+      extra: '',
     },
   })
 
@@ -136,7 +155,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
         /* console.log('confirmed: ', confirmed) */
         if (confirmed) {
-          const resp = await deleteArticle(article.id, authStore.username, '', {
+          const resp = await deleteArticle(article.id, '', '', {
             siteFrontId: article.siteFrontId,
           })
           if (!resp.code) {
@@ -148,7 +167,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         console.error('delete article failed: ', err)
       }
     },
-    [article, navigate]
+    [article, alertDialog, authStore, onSuccess]
   )
 
   const onDelConfirmCancel = useCallback(() => {
@@ -157,13 +176,15 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   }, [form])
 
   const onDelConfirmClick = useCallback(
-    async ({ reason }: DelReasonScheme) => {
+    async ({ reason, extra }: DelReasonScheme) => {
       try {
         const resp = await deleteArticle(
           article.id,
-          authStore.username,
-          reason,
-          { siteFrontId: article.siteFrontId }
+          article.displayTitle,
+          `${reason}\n\n${extra}`,
+          {
+            siteFrontId: article.siteFrontId,
+          }
         )
         if (!resp.code) {
           /* navigate(-1) */
@@ -175,7 +196,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         console.error('confirm delete error: ', err)
       }
     },
-    [article, navigate, form, authStore]
+    [article, form, onSuccess]
   )
 
   /* console.log('isMyself', isMyself)
@@ -343,14 +364,42 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                 <FormField
                   control={form.control}
                   name="reason"
-                  render={({ field, fieldState }) => (
+                  render={({ field }) => (
                     <FormItem>
+                      <FormLabel>删除原因</FormLabel>
                       <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="请输入删除原因"
-                          state={fieldState.invalid ? 'invalid' : 'default'}
-                        />
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          className="flex flex-wrap"
+                          value={field.value}
+                        >
+                          {DEL_REASONS.map((item) => (
+                            <FormItem
+                              key={item}
+                              className="flex items-center space-y-0 mr-4 mb-2"
+                            >
+                              <FormControl>
+                                <RadioGroupItem value={item} className="mr-1" />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                {item}
+                              </FormLabel>
+                            </FormItem>
+                          ))}
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="extra"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>补充说明</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

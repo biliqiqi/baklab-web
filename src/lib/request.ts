@@ -13,6 +13,7 @@ import {
 import {
   AuthedDataResponse,
   CustomRequestOptions,
+  JSONMap,
   ResponseData,
   UserData,
 } from '@/types/types'
@@ -203,11 +204,31 @@ const request = <T = any>(
 
   if (siteState.site) {
     if (['post', 'put', 'patch'].includes(method.toLowerCase())) {
-      kyOpts.json = { ...(kyOpts.json || {}), fromSite: siteState.site.frontId }
+      const extra =
+        (((kyOpts.json as JSONMap | undefined) || {})['extra'] as
+          | JSONMap
+          | undefined) || {}
+
+      kyOpts.json = {
+        ...(kyOpts.json || {}),
+        extra: {
+          ...extra,
+          siteFrontId: siteState.site.frontId,
+        },
+      }
     } else if (method.toLowerCase() == 'delete') {
       // @ts-expect-error url search params no error
       const params = new URLSearchParams(kyOpts.searchParams || '')
-      params.set('fromSite', siteState.site.frontId)
+      let extra: JSONMap | undefined
+      try {
+        extra = JSON.parse(params.get('extra') || '') as JSONMap
+      } catch (err) {
+        console.error('json parse error: ', err)
+        extra = {}
+      }
+
+      // params.set('fromSite', siteState.site.frontId)
+      extra['siteFrontId'] = siteState.site.frontId
       kyOpts.searchParams = params
     }
   }

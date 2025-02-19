@@ -30,6 +30,9 @@ export const submitCategory = async (
         frontID,
         name,
         description,
+        extra: {
+          categoryName: name,
+        },
       },
     },
     custom
@@ -47,6 +50,9 @@ export const updateCategory = async (
       json: {
         name,
         description,
+        extra: {
+          categoryName: name,
+        },
       },
     },
     custom
@@ -59,8 +65,16 @@ export const deleteCategory = async (
   custom?: CustomRequestOptions
 ) => {
   const params = new URLSearchParams()
-  params.set('deletedBy', deletedBy)
-  params.set('name', name)
+  // params.set('deletedBy', deletedBy)
+  // params.set('name', name)
+  params.set(
+    'extra',
+    JSON.stringify({
+      deletedBy,
+      categoryName: name,
+    })
+  )
+
   return authRequest.delete<ResponseData<null>>(
     `categories/${frontID}`,
     { searchParams: params },

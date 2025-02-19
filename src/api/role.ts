@@ -9,8 +9,8 @@ import {
   RoleListResponse,
 } from '@/types/types'
 
-export const getRole = (roleID: string, custom?: CustomRequestOptions) =>
-  authRequest.get<ResponseData<Role>>(`roles/${roleID}`, {}, custom)
+export const getRole = (roleId: string, custom?: CustomRequestOptions) =>
+  authRequest.get<ResponseData<Role>>(`roles/${roleId}`, {}, custom)
 
 export const getRoles = (
   page?: number,
@@ -50,7 +50,13 @@ export const submitRole = (
   return authRequest.post<ResponseData<ResponseID>>(
     `roles`,
     {
-      json: { name, level, permissionFrontIDs, siteNumLimit },
+      json: {
+        name,
+        level,
+        permissionFrontIDs,
+        siteNumLimit,
+        extra: { roleName: name },
+      },
     },
     custom
   )
@@ -67,7 +73,13 @@ export const updateRole = (
   return authRequest.patch<ResponseData<ResponseID>>(
     `roles/${roleId}`,
     {
-      json: { name, level, permissionFrontIDs, siteNumLimit },
+      json: {
+        name,
+        level,
+        permissionFrontIDs,
+        siteNumLimit,
+        extra: { roleName: name },
+      },
     },
     custom
   )
@@ -79,7 +91,8 @@ export const deleteRole = (
   custom?: CustomRequestOptions
 ) => {
   const params = new URLSearchParams()
-  params.set('roleName', roleName)
+  params.set('extra', JSON.stringify({ roleName }))
+
   return authRequest.delete<ResponseData<null>>(
     `roles/${roleId}`,
     {

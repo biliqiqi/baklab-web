@@ -251,7 +251,12 @@ export type VoteType = 'up' | 'down'
 
 export type ArticleAction = 'delete' | 'save' | 'subscribe' | VoteType
 
-export type ActivityActionType = 'user' | 'manage' | 'anonymous' | 'dev'
+export type ActivityActionType =
+  | 'user'
+  | 'manage'
+  | 'anonymous'
+  | 'dev'
+  | 'platform_manage'
 
 export type ActivityAction =
   | 'register' // Register
@@ -329,6 +334,7 @@ export interface Activity {
   deviceInfo: string
   details: ActivityDetails
   // formattedText: string
+  extraInfo: JSONMap
 }
 
 export interface OptionItem {

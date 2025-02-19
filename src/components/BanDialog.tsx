@@ -178,7 +178,7 @@ const BanDialog = forwardRef<BanDialogRef, BanDialogProps>(
                         onValueChange={field.onChange}
                         defaultValue="1"
                         className="flex flex-wrap"
-                        value={banForm.getValues('duration')}
+                        value={field.value}
                       >
                         {banDays.map((item) => (
                           <FormItem

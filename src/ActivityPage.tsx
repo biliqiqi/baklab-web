@@ -216,6 +216,7 @@ export default function ActivityPage() {
                 <SelectItem value="manage">管理</SelectItem>
                 {authStore.permit('platform_manage', 'access') && (
                   <>
+                    <SelectItem value="platform_manage">平台管理</SelectItem>
                     <SelectItem value="anonymous">匿名</SelectItem>
                     <SelectItem value="dev">开发</SelectItem>
                   </>

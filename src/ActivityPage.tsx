@@ -185,7 +185,7 @@ export default function ActivityPage() {
       <Card className="flex flex-wrap justify-between p-2">
         <div className="flex flex-wrap">
           <Input
-            placeholder="用户名"
+            placeholder="管理者用户名"
             className="w-[140px] h-[36px] mr-3"
             ref={usernameRef}
             value={searchData.username}
@@ -260,7 +260,11 @@ export default function ActivityPage() {
           <BLoader />
         </div>
       ) : (
-        <ActivityList list={list} pageState={pageState} />
+        <ActivityList
+          list={list}
+          pageState={pageState}
+          isPlatfromManager={authStore.permit('platform_manage', 'access')}
+        />
       )}
     </BContainer>
   )

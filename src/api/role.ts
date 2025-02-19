@@ -73,8 +73,20 @@ export const updateRole = (
   )
 }
 
-export const deleteRole = (roleId: string, custom?: CustomRequestOptions) => {
-  return authRequest.delete<ResponseData<null>>(`roles/${roleId}`, {}, custom)
+export const deleteRole = (
+  roleId: string,
+  roleName: string,
+  custom?: CustomRequestOptions
+) => {
+  const params = new URLSearchParams()
+  params.set('roleName', roleName)
+  return authRequest.delete<ResponseData<null>>(
+    `roles/${roleId}`,
+    {
+      searchParams: params,
+    },
+    custom
+  )
 }
 
 export const getDefaultRole = (custom?: CustomRequestOptions) =>

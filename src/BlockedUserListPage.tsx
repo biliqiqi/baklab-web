@@ -260,12 +260,14 @@ export default function BlockedUserListPage() {
 
       if (userIds.length == 0) return
 
+      const usernames = selectedRows.map((item) => item.original.name)
+
       const confirmed = await alertDialog.confirm(
         '确认',
         `确认解除对已选中的 ${userIds.length} 个用户的屏蔽？`
       )
       if (confirmed) {
-        const { code } = await unblockUsers(siteFrontId, userIds)
+        const { code } = await unblockUsers(siteFrontId, userIds, usernames)
         if (!code) {
           setRowSelection({})
           fetchUserList()
@@ -291,7 +293,7 @@ export default function BlockedUserListPage() {
         )
         if (!confirmed) return
 
-        const { code } = await unblockUser(siteFrontId, user.id)
+        const { code } = await unblockUser(siteFrontId, user.id, user.name)
         if (!code) {
           fetchUserList()
         }

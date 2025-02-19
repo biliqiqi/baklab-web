@@ -201,7 +201,9 @@ const RoleForm: React.FC<RoleFormProps> = ({
 
       if (!confirmed) return
 
-      const respD = await deleteRole(role.id, { siteFrontId })
+      /* console.log('role: ', role) */
+
+      const respD = await deleteRole(role.id, role.name, { siteFrontId })
       if (!respD.code) {
         onSuccess()
       }

@@ -259,6 +259,8 @@ export type ActivityAction =
   | 'login' // Login
   | 'logout' // Logout
   | 'update_intro' // Update introduction
+  | 'retrieve_password' // Retrieve password
+  | 'reset_password' // Reset password
   | 'create_article' // Create article
   | 'reply_article' // Reply to article
   | 'edit_article' // Edit article
@@ -266,17 +268,18 @@ export type ActivityAction =
   | 'save_article' // Save article
   | 'vote_article' // Vote article
   | 'react_article' // React to article
-  | 'set_role' // Set role
-  | 'add_role' // Add role
-  | 'edit_role' // Edit role
   | 'subscribe_article' // Subscribe article
-  | 'retrieve_password' // Retrieve password
-  | 'reset_password' // Reset password
-  | 'toggle_hide_history' // Toggle hide history
   | 'recover' // Recover article
   | 'block_regions' // Block regions
   | 'lock_article' // Lock article
   | 'fade_out_article' // Fade out article
+  | 'set_role' // Set role
+  | 'add_role' // Add role
+  | 'edit_role' // Edit role
+  | 'create_role' // Create role
+  | 'delete_role' // Delete role
+  | 'set_default_role' // Set as default role
+  | 'toggle_hide_history' // Toggle hide history
   | 'ban_user' // Ban user
   | 'unban_user' // Unban user
   | 'create_category' // Create category
@@ -286,6 +289,16 @@ export type ActivityAction =
   | 'edit_site' // Edit site
   | 'delete_site' // Delete site
   | 'set_site_status' // Set site status
+  | 'accept_site_invite' // Accept site invite
+  | 'join_site' // Join site
+  | 'quit_site' // Quit site
+  | 'create_invite' // Create invite
+  | 'remove_member' // Remove member
+  | 'remove_members' // Remove members
+  | 'block_user' // Block user
+  | 'unblock_user' // Unblock user
+  | 'block_users' // Block users
+  | 'unblock_users' // Unblock users
 
 export type ActivityTargetModel =
   | 'user'

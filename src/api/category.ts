@@ -54,11 +54,13 @@ export const updateCategory = async (
 
 export const deleteCategory = async (
   frontID: string,
+  name: string,
   deletedBy: string,
   custom?: CustomRequestOptions
 ) => {
   const params = new URLSearchParams()
   params.set('deletedBy', deletedBy)
+  params.set('name', name)
   return authRequest.delete<ResponseData<null>>(
     `categories/${frontID}`,
     { searchParams: params },

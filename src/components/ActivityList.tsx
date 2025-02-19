@@ -18,6 +18,7 @@ import { Card } from './ui/card'
 export interface ActivityListProps {
   list: Activity[]
   pageState: ListPageState
+  isPlatfromManager?: boolean
 }
 
 type AcTypeMap = {
@@ -89,14 +90,12 @@ const ActivityTargetLink = ({ activity: item }: ActivityActionTextProps) => {
         >{`/${item.details.siteFrontId}/articles/${item.targetId}`}</Link>
       )
     case 'user':
-      return (
-        <Link to={`/users/${item.targetId}`}>{`/users/${item.targetId}`}</Link>
-      )
+      return <Link to={`/users/${item.targetId}`}>{item.targetId}</Link>
     case 'category':
       return (
-        <Link
-          to={`/${item.details.siteFrontId}/categories/${item.targetId}`}
-        >{`/${item.details.siteFrontId}/categories/${item.targetId}`}</Link>
+        <Link to={`/${item.details.siteFrontId}/categories/${item.targetId}`}>
+          {item.details.name}
+        </Link>
       )
     case 'site':
       return <Link to={`/${item.targetId}`}>{`/${item.targetId}`}</Link>
@@ -106,6 +105,11 @@ const ActivityTargetLink = ({ activity: item }: ActivityActionTextProps) => {
 }
 
 const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
+  const removedUsers = (item.details.removedUsers as string[] | undefined) || []
+  const blockedUsers = (item.details.blockedUsers as string[] | undefined) || []
+  const unblockedUsers =
+    (item.details.unblockedUsers as string[] | undefined) || []
+
   switch (item.action) {
     case 'set_role':
       return (
@@ -128,6 +132,97 @@ const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
           &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
         </>
       )
+    case 'create_role':
+      return (
+        <>
+          <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
+          创建了角色&nbsp;
+          <span className="inline-block border-[1px] border-gray-500 rounded-sm px-1">
+            {item.details.name}
+          </span>
+          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+        </>
+      )
+    case 'delete_role':
+      return (
+        <>
+          <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
+          删除了角色&nbsp;
+          <span className="inline-block border-[1px] border-gray-500 rounded-sm px-1">
+            {item.details.roleName}
+          </span>
+          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+        </>
+      )
+    case 'remove_member':
+    case 'remove_members':
+      return (
+        <>
+          <Link to={`/users/${item.userName}`}>{item.userName}</Link> 移除了
+          {removedUsers.length == 1 && '成员'}&nbsp;
+          {removedUsers
+            .map((name) => (
+              <Link key={name} to={`/users/${item.userName}`}>
+                {name}
+              </Link>
+            ))
+            .reduce((prev, curr, idx, _arr) => {
+              if (idx == 0) {
+                return [curr]
+              }
+              return [...prev, <span key={idx}>, </span>, curr]
+            }, [] as JSX.Element[])}
+          &nbsp;{removedUsers.length > 1 && `等 ${removedUsers.length} 名成员`}
+          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+        </>
+      )
+    case 'block_user':
+    case 'block_users':
+      return (
+        <>
+          <Link to={`/users/${item.userName}`}>{item.userName}</Link> 屏蔽了
+          {blockedUsers.length == 1 && '用户'}&nbsp;
+          {blockedUsers
+            .map((name) => (
+              <Link key={name} to={`/users/${item.userName}`}>
+                {name}
+              </Link>
+            ))
+            .reduce((prev, curr, idx, _arr) => {
+              if (idx == 0) {
+                return [curr]
+              }
+              return [...prev, <span key={idx}>, </span>, curr]
+            }, [] as JSX.Element[])}
+          &nbsp;{blockedUsers.length > 1 && `等 ${blockedUsers.length} 名用户`}
+          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+        </>
+      )
+    case 'unblock_user':
+    case 'unblock_users':
+      return (
+        <>
+          <Link to={`/users/${item.userName}`}>{item.userName}</Link> 解除了对
+          {unblockedUsers.length == 1 && '用户'}&nbsp;
+          {unblockedUsers
+            .map((name) => (
+              <Link key={name} to={`/users/${item.userName}`}>
+                {name}
+              </Link>
+            ))
+            .reduce((prev, curr, idx, _arr) => {
+              if (idx == 0) {
+                return [curr]
+              }
+              return [...prev, <span key={idx}>, </span>, curr]
+            }, [] as JSX.Element[])}
+          &nbsp;
+          {unblockedUsers.length > 1
+            ? `等 ${unblockedUsers.length} 名用户的屏蔽`
+            : `的屏蔽`}
+          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+        </>
+      )
     default:
       return (
         <>
@@ -143,6 +238,7 @@ const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
 export const ActivityList: React.FC<ActivityListProps> = ({
   list,
   pageState,
+  isPlatfromManager = false,
 }) =>
   list.length == 0 ? (
     <Empty />
@@ -159,37 +255,39 @@ export const ActivityList: React.FC<ActivityListProps> = ({
           <div className="mb-2 text-base activity-title">
             <ActivityActionText activity={item} />
           </div>
-          <div className="text-sm bg-gray-100 p-2">
-            <div className="flex">
-              <div className="flex-shrink-0 w-[80px]">
-                <b>类型：</b>
+          {isPlatfromManager && (
+            <div className="text-sm bg-gray-100 p-2">
+              <div className="flex">
+                <div className="flex-shrink-0 w-[80px]">
+                  <b>类型：</b>
+                </div>
+                <div>{acTypeMap[item.type]}</div>
               </div>
-              <div>{acTypeMap[item.type]}</div>
-            </div>
-            <div className="flex">
-              <div className="flex-shrink-0 w-[80px]">
-                <b>IP地址：</b>
+              <div className="flex">
+                <div className="flex-shrink-0 w-[80px]">
+                  <b>IP地址：</b>
+                </div>
+                <div>{item.ipAddr}</div>
               </div>
-              <div>{item.ipAddr}</div>
-            </div>
-            <div className="flex">
-              <div className="flex-shrink-0 w-[80px]">
-                <b>设备信息：</b>
+              <div className="flex">
+                <div className="flex-shrink-0 w-[80px]">
+                  <b>设备信息：</b>
+                </div>
+                <div>{item.deviceInfo}</div>
               </div>
-              <div>{item.deviceInfo}</div>
-            </div>
-            <div className="flex">
-              <div className="flex-shrink-0 w-[80px]">
-                <b>其他数据：</b>
+              <div className="flex">
+                <div className="flex-shrink-0 w-[80px]">
+                  <b>其他数据：</b>
+                </div>
+                <details>
+                  <summary>查看</summary>
+                  <pre className="flex-grow align-top py-1 whitespace-break-spaces">
+                    {JSON.stringify(item.details, null, '  ')}
+                  </pre>
+                </details>
               </div>
-              <details>
-                <summary>查看</summary>
-                <pre className="flex-grow align-top py-1 whitespace-break-spaces">
-                  {JSON.stringify(item.details, null, '  ')}
-                </pre>
-              </details>
             </div>
-          </div>
+          )}
         </Card>
       ))}
       <ListPagination pageState={pageState} />

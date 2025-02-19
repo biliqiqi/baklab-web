@@ -396,6 +396,8 @@ export default function UserListPage() {
       const userIds = selectedRows.map((item) => Number(item.original.id) || 0)
       if (userIds.length == 0) return
 
+      const usernames = selectedRows.map((item) => item.original.name)
+
       const confirmed = await alertDialog.confirm(
         '确认',
         `确定屏蔽已选中的${userIds.length}个用户？`,
@@ -403,7 +405,7 @@ export default function UserListPage() {
       )
       if (!confirmed) return
 
-      const { code } = await blockUsers(siteFrontId, userIds)
+      const { code } = await blockUsers(siteFrontId, userIds, usernames)
       if (!code) {
         fetchUserList()
       }
@@ -422,6 +424,8 @@ export default function UserListPage() {
       const userIds = selectedRows.map((item) => Number(item.original.id) || 0)
       if (userIds.length == 0) return
 
+      const usernames = selectedRows.map((item) => item.original.name)
+
       const confirmed = await alertDialog.confirm(
         '确认',
         `确定将已选中的${userIds.length}个用户除名？`,
@@ -429,7 +433,7 @@ export default function UserListPage() {
       )
       if (!confirmed) return
 
-      const { code } = await removeMembers(siteFrontId, userIds)
+      const { code } = await removeMembers(siteFrontId, userIds, usernames)
       if (!code) {
         fetchUserList()
       }
@@ -447,7 +451,7 @@ export default function UserListPage() {
       )
       if (!confirmed) return
 
-      const { code } = await blockUser(siteFrontId, user.id)
+      const { code } = await blockUser(siteFrontId, user.id, user.name)
       if (!code) {
         fetchUserList()
       }
@@ -465,7 +469,7 @@ export default function UserListPage() {
       )
       if (!confirmed) return
 
-      const { code } = await removeMember(siteFrontId, user.id)
+      const { code } = await removeMember(siteFrontId, user.id, user.name)
       if (!code) {
         fetchUserList()
       }

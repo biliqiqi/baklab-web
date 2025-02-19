@@ -178,19 +178,24 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
 
       if (!confirmed) return
 
-      const respD = await deleteCategory(category.frontId, authStore.username, {
-        siteFrontId: category.siteFrontId,
-      })
+      const respD = await deleteCategory(
+        category.frontId,
+        category.name,
+        authStore.username,
+        {
+          siteFrontId: category.siteFrontId,
+        }
+      )
       if (!respD.code) {
         onSuccess()
       }
     },
-    [isEdit, category, siteFrontId]
+    [isEdit, category, siteFrontId, alertDialog, authStore.username, onSuccess]
   )
 
   useEffect(() => {
     onChange(form.formState.isDirty)
-  }, [form, formVals])
+  }, [form, formVals, onChange])
 
   /* useEffect(() => {
    *   onFrontIDChange.call(frontIDVal)

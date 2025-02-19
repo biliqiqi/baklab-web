@@ -150,34 +150,54 @@ export const acceptSiteInvite = (frontId: string, code: string) =>
     json: { code },
   })
 
-export const removeMember = (frontId: string, userId: string) =>
+export const removeMember = (
+  frontId: string,
+  userId: string,
+  username: string
+) =>
   authRequest.post<ResponseData<null>>(`sites/${frontId}/remove_member`, {
-    json: { userId },
+    json: { userId, removedUsers: [username] },
   })
 
-export const removeMembers = (frontId: string, userIdArr: number[]) =>
+export const removeMembers = (
+  frontId: string,
+  userIdArr: number[],
+  usernames: string[]
+) =>
   authRequest.post<ResponseData<null>>(`sites/${frontId}/remove_members`, {
-    json: { userIdArr },
+    json: { userIdArr, removedUsers: usernames },
   })
 
-export const blockUser = (frontId: string, userId: string) =>
+export const blockUser = (frontId: string, userId: string, username: string) =>
   authRequest.post<ResponseData<null>>(`sites/${frontId}/block_user`, {
-    json: { userId },
+    json: { userId, blockedUsers: [username] },
   })
 
-export const unblockUser = (frontId: string, userId: string) =>
+export const unblockUser = (
+  frontId: string,
+  userId: string,
+  username: string
+) =>
   authRequest.post<ResponseData<null>>(`sites/${frontId}/unblock_user`, {
-    json: { userId },
+    json: { userId, unblockedUsers: [username] },
   })
 
-export const blockUsers = (frontId: string, userIdArr: number[]) =>
+export const blockUsers = (
+  frontId: string,
+  userIdArr: number[],
+  usernames: string[]
+) =>
   authRequest.post<ResponseData<null>>(`sites/${frontId}/block_users`, {
-    json: { userIdArr },
+    json: { userIdArr, blockedUsers: usernames },
   })
 
-export const unblockUsers = (frontId: string, userIdArr: number[]) =>
+export const unblockUsers = (
+  frontId: string,
+  userIdArr: number[],
+  usernames: string[]
+) =>
   authRequest.post<ResponseData<null>>(`sites/${frontId}/unblock_users`, {
-    json: { userIdArr },
+    json: { userIdArr, unblockedUsers: usernames },
   })
 
 export const getSiteBlocklist = (

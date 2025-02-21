@@ -56,6 +56,32 @@ export interface ArticleList {
   totalPage: number
 }
 
+export interface ArticleLog {
+  id: string
+  primaryArticleId: string
+  createdAt: string
+  operatorId: string
+  operator: UserData
+  currEditTime: string
+  prevEditTime: string
+  prevArticle: Article
+  currArticle: Article
+  versionNum: number
+  titleDelta: string
+  urlDelta: string
+  contentDelta: string
+  categoryFrontIdDelta: string
+  titleDiffHTML: string
+  urlDiffHTML: string
+  contentDiffHTML: string
+  categoryFrontIdDiffHTML: string
+  isHidden: boolean
+}
+
+export interface ArticleHistoryResponse extends ListPageState {
+  list: ArticleLog[] | null
+}
+
 export interface CurrUserState {
   voteType: VoteType
   saved: boolean
@@ -249,7 +275,12 @@ export type ArticleListType =
 
 export type VoteType = 'up' | 'down'
 
-export type ArticleAction = 'delete' | 'save' | 'subscribe' | VoteType
+export type ArticleAction =
+  | 'delete'
+  | 'save'
+  | 'subscribe'
+  | 'show_history'
+  | VoteType
 
 export type ActivityActionType =
   | 'user'

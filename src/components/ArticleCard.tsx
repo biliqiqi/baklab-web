@@ -60,13 +60,7 @@ const delReasonScheme = z.object({
 
 type DelReasonScheme = z.infer<typeof delReasonScheme>
 
-const DEL_REASONS = [
-  '广告营销',
-  '不友善',
-  '激进意识形态',
-  '违反法律法规',
-  '其他',
-]
+const DEL_REASONS = ['广告营销', '不友善', '激进意识形态', '违反法律法规']
 
 const highlightElement = (element: HTMLElement) => {
   element.classList.add('b-highlight')
@@ -104,13 +98,15 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   ...props
 }) => {
   const [alertOpen, setAlertOpen] = useState(false)
+  const [otherReason, setOtherReason] = useState('')
+
   const parent = article.replyToArticle
+
   const { siteFrontId } = useParams()
 
   const authStore = useAuthedUserStore()
   const permit = useAuthedUserStore((state) => state.permit)
 
-  const navigate = useNavigate()
   const isMyself = useMemo(
     () => authStore.isMySelf(article.authorId),
     [authStore, article]
@@ -178,6 +174,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   const onDelConfirmClick = useCallback(
     async ({ reason, extra }: DelReasonScheme) => {
       try {
+        if (reason == 'other') {
+          if (otherReason.trim() == '') {
+            form.setError('reason', { message: '请填写其他原因' })
+            return
+          }
+          reason = otherReason
+        }
         const resp = await deleteArticle(
           article.id,
           article.displayTitle,
@@ -196,7 +199,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         console.error('confirm delete error: ', err)
       }
     },
-    [article, form, onSuccess]
+    [article, form, onSuccess, otherReason]
   )
 
   /* console.log('isMyself', isMyself)
@@ -386,6 +389,25 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                               </FormLabel>
                             </FormItem>
                           ))}
+                          <FormItem
+                            key={'others'}
+                            className="flex items-center space-y-0 mr-4 mb-2"
+                          >
+                            <FormControl>
+                              <RadioGroupItem
+                                value={'other'}
+                                className="mr-1"
+                              />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              其他原因：
+                              <Input
+                                className="inline-block w-[120px]"
+                                onFocus={() => form.setValue('reason', 'other')}
+                                onChange={(e) => setOtherReason(e.target.value)}
+                              />
+                            </FormLabel>
+                          </FormItem>
                         </RadioGroup>
                       </FormControl>
                       <FormMessage />

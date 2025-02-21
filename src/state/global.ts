@@ -8,7 +8,15 @@ import { getCategoryList } from '@/api/category'
 import { getNotificationUnreadCount } from '@/api/message'
 import { getJoinedSiteList, getSiteWithFrontId } from '@/api/site'
 import { PermitFn, PermitUnderSiteFn } from '@/constants/types'
-import { Category, Role, SITE_STATUS, Site, UserData } from '@/types/types'
+import {
+  Article,
+  ArticleLog,
+  Category,
+  Role,
+  SITE_STATUS,
+  Site,
+  UserData,
+} from '@/types/types'
 
 export interface ToastState {
   silence: boolean
@@ -619,3 +627,22 @@ export const ensureCategoryList = (siteFrontId: string) => {
     return cateState.fetchCategoryList(siteFrontId)
   }
 }
+
+export interface ArticleHistoryState {
+  showDialog: boolean
+  article: Article | null
+  history: ArticleLog[]
+  updateState: (state: Partial<ArticleHistoryState>) => void
+}
+
+export const useArticleHistoryStore = create<ArticleHistoryState>((set) => ({
+  showDialog: false,
+  article: null,
+  history: [],
+  updateState(newState) {
+    set((state) => ({
+      ...state,
+      ...newState,
+    }))
+  },
+}))

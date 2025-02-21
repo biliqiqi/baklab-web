@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 
-import { Button } from './components/ui/button'
-import { Card } from './components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 
 import BContainer from './components/base/BContainer'
@@ -42,6 +40,7 @@ type ReplyBoxState = Pick<
 export default function ArticlePage() {
   const [loading, setLoading] = useState(false)
   const [initialized, setInitialized] = useState(false)
+
   const [article, setArticle] = useState<Article | null>(null)
   const [articleCategory, setArticleCategory] = useState<Category | null>(null)
 
@@ -137,7 +136,7 @@ export default function ArticlePage() {
         setLoading(false)
       }
     },
-    [articleId, params, siteFrontId]
+    [articleId, params, siteFrontId, sort, updateNotFound]
   )
 
   const fetchArticleSync = toSync(fetchArticle)
@@ -269,9 +268,7 @@ export default function ArticlePage() {
             )}
           </>
         )}
-
         {pageState.totalPage > 1 && <ListPagination pageState={pageState} />}
-
         {article &&
           !article.deleted &&
           authStore.isLogined() &&

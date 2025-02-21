@@ -1,4 +1,10 @@
-import { BellIcon, BookmarkIcon, MessageSquare, QrCode } from 'lucide-react'
+import {
+  BellIcon,
+  BookmarkIcon,
+  HistoryIcon,
+  MessageSquare,
+  QrCode,
+} from 'lucide-react'
 import {
   HTMLAttributes,
   MouseEvent,
@@ -12,10 +18,12 @@ import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
 import { cn, genArticlePath, noop } from '@/lib/utils'
 
 import {
+  getArticleHistory,
   toggleSaveArticle,
   toggleSubscribeArticle,
   toggleVoteArticle,
 } from '@/api/article'
+import { useArticleHistoryStore } from '@/state/global'
 import {
   Article,
   ArticleAction,
@@ -42,6 +50,7 @@ interface ArticleControlsProps extends HTMLAttributes<HTMLDivElement> {
   linkQrCode?: boolean // 是否显示直达链接二维码
   notify?: boolean
   comment?: boolean
+  history?: boolean
   isTopArticle?: boolean
   onCommentClick?: MouseEventHandler<HTMLButtonElement>
   /* onSaveClick?: MouseEventHandler<HTMLButtonElement> */
@@ -62,6 +71,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   cornerLink = false,
   notify = true,
   comment = true,
+  history = true,
   ctype = 'item',
   isTopArticle = false,
   onCommentClick = noop,
@@ -72,6 +82,10 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   const userState = useMemo(() => article.currUserState, [article])
 
   const isRootArticle = useMemo(() => article.replyToId == '0', [article])
+
+  const articleHistory = useArticleHistoryStore()
+
+  /* console.log('curr article history: ', articleHistory) */
 
   const onSaveClick = useCallback(
     async (e: MouseEvent<HTMLButtonElement>) => {
@@ -87,7 +101,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
         console.error('toggle save article failed: ', err)
       }
     },
-    [article]
+    [article, onSuccess]
   )
 
   const onSubscribeClick = useCallback(
@@ -106,7 +120,36 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
         console.error('toggle subscribe article failed: ', err)
       }
     },
-    [article]
+    [article, onSuccess]
+  )
+
+  const onShowHistoryClick = useCallback(
+    async (e: MouseEvent<HTMLButtonElement>) => {
+      try {
+        e.preventDefault()
+        articleHistory.updateState({
+          showDialog: true,
+          article: article,
+          history: [],
+        })
+
+        const { code, data } = await getArticleHistory(article.id, {
+          siteFrontId,
+        })
+        if (!code && data.list) {
+          articleHistory.updateState({
+            showDialog: true,
+            article: article,
+            history: data.list,
+          })
+
+          onSuccess('show_history')
+        }
+      } catch (err) {
+        console.error('toggle subscribe article failed: ', err)
+      }
+    },
+    [article, onSuccess, siteFrontId, articleHistory]
   )
 
   const onVoteClick = useCallback(
@@ -123,7 +166,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
         console.error('toggle vote article failed: ', err)
       }
     },
-    [article]
+    [article, onSuccess]
   )
 
   return (
@@ -212,6 +255,17 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
               fill={userState.subscribed ? 'currentColor' : 'transparent'}
               className={cn('mr-1', userState.subscribed && 'text-primary')}
             />
+          </Button>
+        )}
+        {history && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onShowHistoryClick}
+            disabled={disabled}
+            className="mr-1"
+          >
+            <HistoryIcon size={20} className={'mr-1'} />
           </Button>
         )}
         {ctype == 'list' && (

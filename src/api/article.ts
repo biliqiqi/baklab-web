@@ -4,6 +4,7 @@ import { authRequest } from '@/lib/request'
 
 import {
   ArticleDeleteResponse,
+  ArticleHistoryResponse,
   ArticleItemResponse,
   ArticleListResponse,
   ArticleListSort,
@@ -289,6 +290,13 @@ export const toggleSubscribeArticle = (
 export const recoverArticle = (id: string, custom?: CustomRequestOptions) =>
   authRequest.patch<ResponseData<ArticleResponse>>(
     `articles/${id}/recover`,
+    {},
+    custom
+  )
+
+export const getArticleHistory = (id: string, custom?: CustomRequestOptions) =>
+  authRequest.get<ResponseData<ArticleHistoryResponse>>(
+    `articles/${id}/history`,
     {},
     custom
   )

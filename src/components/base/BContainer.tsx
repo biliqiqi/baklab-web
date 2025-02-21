@@ -50,6 +50,7 @@ import useDocumentTitle from '@/hooks/use-page-title'
 import {
   ensureCategoryList,
   useAlertDialogStore,
+  useArticleHistoryStore,
   useAuthedUserStore,
   useCategoryStore,
   useDialogStore,
@@ -195,6 +196,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const siteStore = useSiteStore()
     const cateStore = useCategoryStore()
     const authStore = useAuthedUserStore()
+    const articleHistory = useArticleHistoryStore()
 
     const currSite = useMemo(() => siteStore.site, [siteStore])
     const globalSiteFrontId = useMemo(() => currSite?.frontId || '', [currSite])
@@ -292,9 +294,19 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           data: undefined,
         }))
       }, 500)
-    }, [categoryFormDirty, editCategory])
+    }, [categoryFormDirty, editCategory, alertDialog])
 
     const onSiteFormClose = useCallback(async () => {
+      const close = () => {
+        setShowSiteForm(false)
+        setTimeout(() => {
+          setEditSite(() => ({
+            editting: false,
+            data: undefined,
+          }))
+        }, 500)
+      }
+
       if (siteFormDirty) {
         const { editting } = editSite
         const confirmed = await alertDialog.confirm(
@@ -309,18 +321,11 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           }
         )
         if (confirmed) {
-          setShowSiteForm(false)
+          close()
         }
       } else {
-        setShowSiteForm(false)
+        close()
       }
-
-      setTimeout(() => {
-        setEditSite(() => ({
-          editting: false,
-          data: undefined,
-        }))
-      }, 500)
     }, [siteFormDirty, editSite, alertDialog])
 
     const onCategoryCreated = useCallback(async () => {
@@ -364,7 +369,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         })(),
       ])
       forceUpdate()
-    }, [authStore, siteStore, siteFrontId])
+    }, [authStore, siteStore, siteFrontId, forceUpdate])
 
     const onCreateCategoryClick = (ev: MouseEvent<HTMLButtonElement>) => {
       ev.preventDefault()
@@ -483,7 +488,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         siteStore.update(null)
         cateStore.updateCategories([])
       }
-    }, [siteFrontId, globalSiteFrontId])
+    }, [siteFrontId, globalSiteFrontId, siteStore])
 
     useDocumentTitle('')
 
@@ -620,7 +625,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             </div>
           </div>
         </div>
-
         <SidebarProvider
           ref={ref}
           defaultOpen={false}
@@ -1127,7 +1131,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             </div>
           </main>
         </SidebarProvider>
-
         <Dialog open={signin} onOpenChange={updateSignin}>
           <DialogContent className="max-sm:max-w-[90%]">
             <DialogHeader>
@@ -1144,7 +1147,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             />
           </DialogContent>
         </Dialog>
-
         <Dialog open={signup} onOpenChange={updateSignup}>
           <DialogContent className="max-sm:max-w-[90%]">
             <DialogHeader>
@@ -1162,7 +1164,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             />
           </DialogContent>
         </Dialog>
-
         <Dialog open={showCategoryForm} onOpenChange={onCategoryFormClose}>
           <DialogContent>
             <DialogHeader>
@@ -1180,7 +1181,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             />
           </DialogContent>
         </Dialog>
-
         <Dialog open={showSiteForm} onOpenChange={onSiteFormClose}>
           <DialogContent>
             <DialogHeader>
@@ -1198,7 +1198,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             />
           </DialogContent>
         </Dialog>
-
         <AlertDialog
           defaultOpen={false}
           open={alertOpen}
@@ -1230,7 +1229,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-
         <Dialog open={showSiteDetail} onOpenChange={setShowSiteDetail}>
           <DialogContent>
             {currSite && (
@@ -1252,7 +1250,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             )}
           </DialogContent>
         </Dialog>
-
         <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
           <DialogContent ref={inviteCodeDialogRef}>
             {currSite && (
@@ -1298,6 +1295,104 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                       <span>复制成功！</span>
                     </span>
                   )}
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={articleHistory.showDialog}
+          onOpenChange={(open) =>
+            articleHistory.updateState({ showDialog: open })
+          }
+        >
+          <DialogContent>
+            {articleHistory.article && (
+              <>
+                <DialogHeader>
+                  <DialogTitle>{`"${articleHistory.article.displayTitle}" 的编辑历史`}</DialogTitle>
+                  <DialogDescription></DialogDescription>
+                </DialogHeader>
+                <div
+                  className="overflow-y-auto"
+                  style={{ maxHeight: `calc(100vh - 300px)` }}
+                >
+                  {articleHistory.history.map((item) => (
+                    <div key={item.id}>
+                      <div className="flex justify-between items-center mt-4">
+                        <span className="font-bold">
+                          版本：{item.versionNum}
+                        </span>
+                        <span className="text-sm">
+                          由{' '}
+                          <Link
+                            to={`/users/${item.operator.name}`}
+                            className="text-primary"
+                          >
+                            {item.operator.name}
+                          </Link>{' '}
+                          编辑于 {timeAgo(item.createdAt)}
+                        </span>
+                      </div>
+                      <div className="flex mt-2 text-sm">
+                        <div className="w-[50px] font-bold mr-1 pt-2">
+                          标题：
+                        </div>
+                        <div
+                          className="flex-shrink-0 flex-grow bg-gray-100 p-2"
+                          style={{
+                            maxWidth: `calc(100% - 50px)`,
+                          }}
+                          dangerouslySetInnerHTML={{
+                            __html: item.titleDiffHTML,
+                          }}
+                        ></div>
+                      </div>
+                      <div className="flex mt-2 text-sm">
+                        <div className="w-[50px] font-bold mr-1 pt-2">
+                          分类：
+                        </div>
+                        <div
+                          className="flex-shrink-0 flex-grow bg-gray-100 p-2"
+                          style={{
+                            maxWidth: `calc(100% - 50px)`,
+                          }}
+                          dangerouslySetInnerHTML={{
+                            __html: item.categoryFrontIdDiffHTML,
+                          }}
+                        ></div>
+                      </div>
+                      <div className="flex mt-2 text-sm">
+                        <div className="w-[50px] font-bold mr-1 pt-2">
+                          链接：
+                        </div>
+                        <div
+                          className="flex-shrink-0 flex-grow bg-gray-100 p-2"
+                          style={{
+                            maxWidth: `calc(100% - 50px)`,
+                          }}
+                          dangerouslySetInnerHTML={{
+                            __html: item.urlDiffHTML,
+                          }}
+                        ></div>
+                      </div>
+                      <div className="flex mt-2 text-sm">
+                        <div className="w-[50px] font-bold mr-1 pt-2">
+                          内容：
+                        </div>
+                        <div
+                          className="flex-shrink-0 flex-grow bg-gray-100 p-2 whitespace-break-spaces"
+                          style={{
+                            maxWidth: `calc(100% - 50px)`,
+                          }}
+                          dangerouslySetInnerHTML={{
+                            __html: item.contentDiffHTML,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </>
             )}

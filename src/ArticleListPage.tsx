@@ -18,7 +18,7 @@ import { ListPagination } from './components/ListPagination'
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 
 import { getArticleList } from './api/article'
-import { getCategoryList, getCategoryWithFrontId } from './api/category'
+import { getCategoryWithFrontId } from './api/category'
 import { toSync } from './lib/fire-and-forget'
 import { extractDomain, genArticlePath, renderMD } from './lib/utils'
 import { isLogined, useAuthedUserStore, useForceUpdate } from './state/global'
@@ -34,7 +34,7 @@ import {
 
 export default function ArticleListPage() {
   const [loading, setLoading] = useState(false)
-  const [showSummary, setShowSummary] = useState(false)
+  const [showSummary] = useState(false)
   const [currCate, setCurrCate] = useState<Category | null>(null)
 
   const [list, updateList] = useState<Article[]>([])
@@ -173,7 +173,7 @@ export default function ArticleListPage() {
       } else {
         setCurrCate(null)
       }
-    }, [categoryFrontId])
+    }, [categoryFrontId, siteFrontId])
   )
 
   /* console.log('article list siteFrontId: ', siteFrontId) */

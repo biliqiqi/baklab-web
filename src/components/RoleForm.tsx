@@ -468,7 +468,10 @@ const RoleForm: React.FC<RoleFormProps> = ({
                 >
                   取消
                 </Button>
-                <Button type="submit" disabled={systemRole}>
+                <Button
+                  type="submit"
+                  disabled={systemRole || !form.formState.isDirty}
+                >
                   提交
                 </Button>
               </>

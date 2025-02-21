@@ -48,7 +48,6 @@ import {
 import { useIsMobile } from '@/hooks/use-mobile'
 import useDocumentTitle from '@/hooks/use-page-title'
 import {
-  ensureCategoryList,
   useAlertDialogStore,
   useArticleHistoryStore,
   useAuthedUserStore,
@@ -488,7 +487,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         siteStore.update(null)
         cateStore.updateCategories([])
       }
-    }, [siteFrontId, globalSiteFrontId, siteStore])
+    }, [siteFrontId, globalSiteFrontId])
 
     useDocumentTitle('')
 

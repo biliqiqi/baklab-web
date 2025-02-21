@@ -199,6 +199,10 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     const currSite = useMemo(() => siteStore.site, [siteStore])
     const globalSiteFrontId = useMemo(() => currSite?.frontId || '', [currSite])
+    const isReplyHistory = useMemo(
+      () => articleHistory.article?.replyToId != '0',
+      [articleHistory]
+    )
 
     const {
       type: alertType,
@@ -1334,48 +1338,54 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                           编辑于 {timeAgo(item.createdAt)}
                         </span>
                       </div>
-                      <div className="flex mt-2 text-sm">
-                        <div className="w-[50px] font-bold mr-1 pt-2">
-                          标题：
+                      {!isReplyHistory && (
+                        <div className="flex mt-2 text-sm">
+                          <div className="w-[50px] font-bold mr-1 pt-2">
+                            标题：
+                          </div>
+                          <div
+                            className="flex-shrink-0 flex-grow bg-gray-100 p-2"
+                            style={{
+                              maxWidth: `calc(100% - 50px)`,
+                            }}
+                            dangerouslySetInnerHTML={{
+                              __html: item.titleDiffHTML,
+                            }}
+                          ></div>
                         </div>
-                        <div
-                          className="flex-shrink-0 flex-grow bg-gray-100 p-2"
-                          style={{
-                            maxWidth: `calc(100% - 50px)`,
-                          }}
-                          dangerouslySetInnerHTML={{
-                            __html: item.titleDiffHTML,
-                          }}
-                        ></div>
-                      </div>
-                      <div className="flex mt-2 text-sm">
-                        <div className="w-[50px] font-bold mr-1 pt-2">
-                          分类：
+                      )}
+                      {!isReplyHistory && (
+                        <div className="flex mt-2 text-sm">
+                          <div className="w-[50px] font-bold mr-1 pt-2">
+                            分类：
+                          </div>
+                          <div
+                            className="flex-shrink-0 flex-grow bg-gray-100 p-2"
+                            style={{
+                              maxWidth: `calc(100% - 50px)`,
+                            }}
+                            dangerouslySetInnerHTML={{
+                              __html: item.categoryFrontIdDiffHTML,
+                            }}
+                          ></div>
                         </div>
-                        <div
-                          className="flex-shrink-0 flex-grow bg-gray-100 p-2"
-                          style={{
-                            maxWidth: `calc(100% - 50px)`,
-                          }}
-                          dangerouslySetInnerHTML={{
-                            __html: item.categoryFrontIdDiffHTML,
-                          }}
-                        ></div>
-                      </div>
-                      <div className="flex mt-2 text-sm">
-                        <div className="w-[50px] font-bold mr-1 pt-2">
-                          链接：
+                      )}
+                      {!isReplyHistory && (
+                        <div className="flex mt-2 text-sm">
+                          <div className="w-[50px] font-bold mr-1 pt-2">
+                            链接：
+                          </div>
+                          <div
+                            className="flex-shrink-0 flex-grow bg-gray-100 p-2"
+                            style={{
+                              maxWidth: `calc(100% - 50px)`,
+                            }}
+                            dangerouslySetInnerHTML={{
+                              __html: item.urlDiffHTML,
+                            }}
+                          ></div>
                         </div>
-                        <div
-                          className="flex-shrink-0 flex-grow bg-gray-100 p-2"
-                          style={{
-                            maxWidth: `calc(100% - 50px)`,
-                          }}
-                          dangerouslySetInnerHTML={{
-                            __html: item.urlDiffHTML,
-                          }}
-                        ></div>
-                      </div>
+                      )}
                       <div className="flex mt-2 text-sm">
                         <div className="w-[50px] font-bold mr-1 pt-2">
                           内容：

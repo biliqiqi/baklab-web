@@ -11,6 +11,7 @@ import {
 } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { timeAgo } from '@/lib/dayjs-custom'
 import { cn } from '@/lib/utils'
@@ -28,6 +29,7 @@ import {
   useAuthedUserStore,
   useCategoryStore,
   useNotFoundStore,
+  useSiteStore,
 } from '@/state/global'
 import { Article, ArticleSubmitResponse, ResponseData } from '@/types/types'
 
@@ -107,6 +109,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
   const { siteFrontId } = useParams()
   /* const [cateList, setCateList] = useState<CategoryOption[]>([]) */
   const { categories: cateList } = useCategoryStore()
+  const site = useSiteStore((state) => state.site)
 
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -130,7 +133,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
     dragging: isEdit,
   })
 
-  const authStore = useAuthedUserStore()
+  const checkPermit = useAuthedUserStore((state) => state.permit)
 
   const defaultArticleData: ArticleScheme =
     isEdit && article
@@ -210,6 +213,9 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
         }
 
         if (!data.code) {
+          if (site?.reviewBeforePublish && !checkPermit('article', 'review')) {
+            toast.info('提交成功！根据站点设置，内容将会在审核之后展示。')
+          }
           navigate(`/${siteFrontId}/articles/${data.data.id}`, {
             replace: true,
           })
@@ -220,7 +226,16 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
         setLoading(false)
       }
     },
-    [article, isEdit, isReply, navigate, notFound, siteFrontId]
+    [
+      article,
+      isEdit,
+      isReply,
+      navigate,
+      notFound,
+      siteFrontId,
+      site,
+      checkPermit,
+    ]
   )
 
   const onMarkdownModeClick = useCallback(
@@ -346,7 +361,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                               disabled={
                                 loading ||
                                 (isEdit &&
-                                  !authStore.permit('article', 'edit_others'))
+                                  !checkPermit('article', 'edit_others'))
                               }
                             >
                               {categoryVal()

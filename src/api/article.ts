@@ -10,6 +10,7 @@ import {
   ArticleListSort,
   ArticleListType,
   ArticleResponse,
+  ArticleStatus,
   ArticleSubmitResponse,
   CustomRequestOptions,
   ResponseData,
@@ -33,6 +34,9 @@ export const submitArticle = (
         category: categoryFrontID,
         link,
         content,
+        extra: {
+          title,
+        },
       },
     },
     custom
@@ -106,6 +110,7 @@ export const getArticleList = (
   username?: string,
   listType?: ArticleListType,
   keywords?: string,
+  status?: ArticleStatus[],
   custom?: CustomRequestOptions
 ): Promise<ResponseData<ArticleListResponse>> => {
   const params = new URLSearchParams()
@@ -136,6 +141,10 @@ export const getArticleList = (
 
   if (keywords) {
     params.set('keywords', keywords)
+  }
+
+  if (status && status.length > 0) {
+    params.set('status', status.join(','))
   }
 
   return authRequest.get(

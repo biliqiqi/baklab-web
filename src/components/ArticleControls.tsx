@@ -23,7 +23,7 @@ import {
   toggleSubscribeArticle,
   toggleVoteArticle,
 } from '@/api/article'
-import { useArticleHistoryStore } from '@/state/global'
+import { useArticleHistoryStore, useAuthedUserStore } from '@/state/global'
 import {
   Article,
   ArticleAction,
@@ -84,6 +84,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   const isRootArticle = useMemo(() => article.replyToId == '0', [article])
 
   const articleHistory = useArticleHistoryStore()
+  const checkPermit = useAuthedUserStore((state) => state.permit)
 
   /* console.log('curr article history: ', articleHistory) */
 
@@ -257,7 +258,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             />
           </Button>
         )}
-        {history && (
+        {history && checkPermit('article', 'manage') && (
           <Button
             variant="ghost"
             size="sm"

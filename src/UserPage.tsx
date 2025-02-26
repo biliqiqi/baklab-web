@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 
+import { cn } from '@/lib/utils'
+
+import { Badge } from './components/ui/badge'
 import { Card } from './components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 
@@ -14,7 +17,11 @@ import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 import UserDetailCard from './components/UserDetailCard'
 
-import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
+import {
+  ARTICLE_STATUS_COLOR_MAP,
+  ARTICLE_STATUS_NAME_MAP,
+  DEFAULT_PAGE_SIZE,
+} from '@/constants/constants'
 
 import { getArticleList } from './api/article'
 import { getUser, getUserActivityList, getUserPunishedList } from './api/user'
@@ -80,8 +87,11 @@ const ArticleList: React.FC<ArticleListProps> = ({
   tab,
   pageState,
   onSuccess = noop,
-}) =>
-  list.length == 0 ? (
+}) => {
+  const isMySelf = useAuthedUserStore((state) => state.isMySelf)
+  const checkPermit = useAuthedUserStore((state) => state.permit)
+
+  return list.length == 0 ? (
     <Empty />
   ) : (
     <>
@@ -93,6 +103,19 @@ const ArticleList: React.FC<ArticleListProps> = ({
                 {item.displayTitle}
               </Link>
             </div>
+
+            {(isMySelf(item.authorId) || checkPermit('article', 'manage')) &&
+              item.status != 'published' && (
+                <div className="py-1">
+                  <Badge
+                    variant={'secondary'}
+                    className={cn(ARTICLE_STATUS_COLOR_MAP[item.status] || '')}
+                  >
+                    {ARTICLE_STATUS_NAME_MAP[item.status]}
+                  </Badge>
+                </div>
+              )}
+
             {item.replyToId != '0' && (
               <div className="max-h-5 mb-1 overflow-hidden text-sm text-gray-600 text-nowrap text-ellipsis">
                 {item.content}
@@ -111,6 +134,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
       <ListPagination pageState={pageState} />
     </>
   )
+}
 
 export default function UserPage() {
   const [loading, setLoading] = useState(true)
@@ -202,6 +226,7 @@ export default function UserPage() {
               username,
               tab || 'all',
               '',
+              ['pending', 'rejected', 'published'],
               { siteFrontId }
             )
 

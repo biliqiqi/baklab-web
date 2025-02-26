@@ -75,6 +75,11 @@ export const PERMISSION_DATA = {
       adapt_id: 'article.manage',
       enable: false,
     },
+    review: {
+      name: '审核文章',
+      adapt_id: 'article.manage',
+      enable: false,
+    },
     manage_platform: {
       name: '管理全平台文章',
       adapt_id: 'article.manage_platform',
@@ -261,9 +266,9 @@ export const PERMISSION_DATA = {
       adapt_id: 'site.manage_platform',
       enable: false,
     },
-    audit: {
+    review: {
       name: '审核站点',
-      adapt_id: 'site.audit',
+      adapt_id: 'site.review',
       enable: false,
     },
   },

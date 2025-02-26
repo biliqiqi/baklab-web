@@ -8,6 +8,7 @@ import {
 import ActivityPage from './ActivityPage.tsx'
 import ArticleListPage from './ArticleListPage.tsx'
 import ArticlePage from './ArticlePage.tsx'
+import { ArticleReviewPage } from './ArticleReviewPage.tsx'
 import BannedUserListPage from './BannedUserListPage.tsx'
 import BlockedUserListPage from './BlockedUserListPage.tsx'
 import CategoryListPage from './CategoryListPage.tsx'
@@ -277,6 +278,11 @@ export const routes: RouteObject[] = [
     path: '/:siteFrontId/manage/activities',
     Component: ActivityPage,
     loader: needPermission('activity', 'access'),
+  },
+  {
+    path: '/:siteFrontId/manage/article_review',
+    Component: ArticleReviewPage,
+    loader: needPermission('article', 'review'),
   },
   {
     path: '*',

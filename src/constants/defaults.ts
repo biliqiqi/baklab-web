@@ -34,6 +34,7 @@ export const defaultSite: Site = {
   deleted: false,
   memberCount: 0,
   onlineCount: 0,
+  reviewBeforePublish: false,
 }
 
 export const defaultCategory: Category = {
@@ -103,6 +104,8 @@ export const defaultArticle: Article = {
   delLog: null,
   siteFrontId: '',
   site: { ...defaultSite },
+  status: 'draft',
+  version: 0,
 }
 
 export const defaultPageState: ListPageState = {

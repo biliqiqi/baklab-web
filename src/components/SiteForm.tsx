@@ -61,6 +61,7 @@ const siteScheme = z.object({
   nonMemberInteract: z.boolean(),
   visible: z.boolean(),
   homePage: z.string(),
+  reviewBeforePublish: z.boolean(),
 })
 
 const siteEditScheme = z.object({
@@ -71,6 +72,7 @@ const siteEditScheme = z.object({
   nonMemberInteract: z.boolean(),
   visible: z.boolean(),
   homePage: z.string(),
+  reviewBeforePublish: z.boolean(),
 })
 
 type SiteScheme = z.infer<typeof siteScheme>
@@ -91,6 +93,7 @@ const defaultSiteData: SiteScheme = {
   visible: true,
   nonMemberInteract: true,
   homePage: '/',
+  reviewBeforePublish: false,
 }
 
 const SiteForm: React.FC<SiteFormProps> = ({
@@ -99,12 +102,12 @@ const SiteForm: React.FC<SiteFormProps> = ({
   onSuccess = noop,
   onChange = noop,
 }) => {
-  const [imgUrl, setImgUrl] = useState('')
+  /* const [imgUrl, setImgUrl] = useState('') */
   const [uploading, setUploading] = useState(false)
 
   const alertDialog = useAlertDialogStore()
   const authStore = useAuthedUserStore()
-  const siteStore = useSiteStore()
+  /* const siteStore = useSiteStore() */
 
   const form = useForm<SiteScheme>({
     resolver: zodResolver(
@@ -122,6 +125,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
             keywords: site.keywords,
             description: site.description,
             homePage: site.homePage,
+            reviewBeforePublish: site.reviewBeforePublish,
           }
         : defaultSiteData),
     },
@@ -140,6 +144,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
       visible,
       nonMemberInteract,
       homePage,
+      reviewBeforePublish,
     }: SiteScheme) => {
       /* console.log('site vals: ', frontID) */
       try {
@@ -154,7 +159,8 @@ const SiteForm: React.FC<SiteFormProps> = ({
             visible,
             nonMemberInteract,
             logoUrl,
-            homePage
+            homePage,
+            reviewBeforePublish
           )
         } else {
           const exists = await checkSiteExists(frontID)
@@ -177,7 +183,8 @@ const SiteForm: React.FC<SiteFormProps> = ({
             keywords,
             visible,
             nonMemberInteract,
-            logoUrl
+            logoUrl,
+            reviewBeforePublish
           )
         }
         if (!resp?.code) {
@@ -187,7 +194,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
         console.error('validate front id error: ', err)
       }
     },
-    [form, isEdit, onSuccess, site, siteStore]
+    [form, isEdit, onSuccess, site]
   )
 
   const onDeleteClick = useCallback(
@@ -195,9 +202,19 @@ const SiteForm: React.FC<SiteFormProps> = ({
       e.preventDefault()
       if (!isEdit || !site.frontId) return
 
-      const resp = await getArticleList(1, 1, 'latest', '', '', 'article', '', {
-        siteFrontId: site.frontId,
-      })
+      const resp = await getArticleList(
+        1,
+        1,
+        'latest',
+        '',
+        '',
+        'article',
+        '',
+        ['published'],
+        {
+          siteFrontId: site.frontId,
+        }
+      )
       if (!resp.code) {
         if (resp.data.articleTotal > 0) {
           alertDialog.alert('无法删除', '该站点下存在内容，无法删除')
@@ -235,7 +252,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
         const { success, data } = resp
 
         if (success) {
-          setImgUrl(data)
+          /* setImgUrl(data) */
           form.setValue('logoUrl', data)
         }
       } catch (err) {
@@ -309,9 +326,9 @@ const SiteForm: React.FC<SiteFormProps> = ({
                 <RadioGroup
                   onValueChange={(val) => {
                     if (val == '1') {
-                      form.setValue('visible', true)
+                      field.onChange(true)
                     } else {
-                      form.setValue('visible', false)
+                      field.onChange(false)
                       form.setValue('nonMemberInteract', false)
                     }
                   }}
@@ -373,6 +390,32 @@ const SiteForm: React.FC<SiteFormProps> = ({
             )}
           />
         )}
+        <FormField
+          control={form.control}
+          name="reviewBeforePublish"
+          key="reviewBeforePublish"
+          render={({ field }) => (
+            <FormItem className="mb-8">
+              <FormLabel>内容审核</FormLabel>
+              <FormDescription>是否在发布内容之前进行审核</FormDescription>
+              <FormControl>
+                <div className="flex items-center">
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="开启先审后发"
+                    className="mr-1"
+                    id="reviewBeforePublish"
+                  />{' '}
+                  <label htmlFor="reviewBeforePublish" className="text-sm">
+                    开启先审后发
+                  </label>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         {!isEdit && (
           <FormField
             control={form.control}
@@ -424,9 +467,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
                 <FormDescription>从以下页面中选择一个作为首页</FormDescription>
                 <FormControl>
                   <RadioGroup
-                    onValueChange={(val) => {
-                      form.setValue('homePage', val)
-                    }}
+                    onValueChange={field.onChange}
                     defaultValue="/feed"
                     className="flex flex-wrap"
                     value={field.value == '/' ? '/feed' : field.value}

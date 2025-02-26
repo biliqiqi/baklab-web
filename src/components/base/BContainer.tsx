@@ -11,6 +11,7 @@ import {
   PackageIcon,
   PencilIcon,
   PlusIcon,
+  ShieldCheckIcon,
   TrashIcon,
   UserIcon,
   UserRoundXIcon,
@@ -68,6 +69,7 @@ import {
   Site,
 } from '@/types/types'
 
+import ArticleHistory from '../ArticleHistory'
 import CategoryForm from '../CategoryForm'
 import NotFound from '../NotFound'
 import SigninForm from '../SigninForm'
@@ -1049,6 +1051,26 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                                 </SidebarMenuButton>
                               </SidebarMenuItem>
                             )}
+                            {authPermit('article', 'review') && (
+                              <SidebarMenuItem key="article_review">
+                                <SidebarMenuButton
+                                  asChild
+                                  isActive={
+                                    location.pathname ==
+                                    `/${siteFrontId}/manage/article_review`
+                                  }
+                                >
+                                  <Link
+                                    to={`/${siteFrontId}/manage/article_review`}
+                                  >
+                                    <BIconCircle id="article_review" size={32}>
+                                      <ShieldCheckIcon size={18} />
+                                    </BIconCircle>
+                                    内容审核
+                                  </Link>
+                                </SidebarMenuButton>
+                              </SidebarMenuItem>
+                            )}
                             {authPermit('activity', 'access') && (
                               <SidebarMenuItem key="activities">
                                 <SidebarMenuButton
@@ -1318,89 +1340,15 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                   <DialogDescription></DialogDescription>
                 </DialogHeader>
                 <div
-                  className="overflow-y-auto"
+                  className="overflow-y-auto break-words"
                   style={{ maxHeight: `calc(100vh - 300px)` }}
                 >
                   {articleHistory.history.map((item) => (
-                    <div key={item.id}>
-                      <div className="flex justify-between items-center mt-4">
-                        <span className="font-bold">
-                          版本：{item.versionNum}
-                        </span>
-                        <span className="text-sm">
-                          由{' '}
-                          <Link
-                            to={`/users/${item.operator.name}`}
-                            className="text-primary"
-                          >
-                            {item.operator.name}
-                          </Link>{' '}
-                          编辑于 {timeAgo(item.createdAt)}
-                        </span>
-                      </div>
-                      {!isReplyHistory && (
-                        <div className="flex mt-2 text-sm">
-                          <div className="w-[50px] font-bold mr-1 pt-2">
-                            标题：
-                          </div>
-                          <div
-                            className="flex-shrink-0 flex-grow bg-gray-100 p-2"
-                            style={{
-                              maxWidth: `calc(100% - 50px)`,
-                            }}
-                            dangerouslySetInnerHTML={{
-                              __html: item.titleDiffHTML,
-                            }}
-                          ></div>
-                        </div>
-                      )}
-                      {!isReplyHistory && (
-                        <div className="flex mt-2 text-sm">
-                          <div className="w-[50px] font-bold mr-1 pt-2">
-                            分类：
-                          </div>
-                          <div
-                            className="flex-shrink-0 flex-grow bg-gray-100 p-2"
-                            style={{
-                              maxWidth: `calc(100% - 50px)`,
-                            }}
-                            dangerouslySetInnerHTML={{
-                              __html: item.categoryFrontIdDiffHTML,
-                            }}
-                          ></div>
-                        </div>
-                      )}
-                      {!isReplyHistory && (
-                        <div className="flex mt-2 text-sm">
-                          <div className="w-[50px] font-bold mr-1 pt-2">
-                            链接：
-                          </div>
-                          <div
-                            className="flex-shrink-0 flex-grow bg-gray-100 p-2"
-                            style={{
-                              maxWidth: `calc(100% - 50px)`,
-                            }}
-                            dangerouslySetInnerHTML={{
-                              __html: item.urlDiffHTML,
-                            }}
-                          ></div>
-                        </div>
-                      )}
-                      <div className="flex mt-2 text-sm">
-                        <div className="w-[50px] font-bold mr-1 pt-2">
-                          内容：
-                        </div>
-                        <div
-                          className="flex-shrink-0 flex-grow bg-gray-100 p-2 whitespace-break-spaces"
-                          style={{
-                            maxWidth: `calc(100% - 50px)`,
-                          }}
-                          dangerouslySetInnerHTML={{
-                            __html: item.contentDiffHTML,
-                          }}
-                        ></div>
-                      </div>
-                    </div>
+                    <ArticleHistory
+                      key={item.id}
+                      data={item}
+                      isReply={isReplyHistory}
+                    />
                   ))}
                 </div>
               </>

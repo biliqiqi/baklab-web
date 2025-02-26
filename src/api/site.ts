@@ -1,6 +1,7 @@
 import { authRequest } from '@/lib/request'
 
 import {
+  ArticleHistoryResponse,
   BlockedUserList,
   ItemExists,
   ResponseData,
@@ -19,7 +20,8 @@ export const submitSite = (
   keywords: string,
   visible: boolean,
   nonMemberInteract: boolean,
-  logoUrl: string
+  logoUrl: string,
+  reviewBeforePublish: boolean
 ) =>
   authRequest.post<ResponseData<ResponseID>>(`sites`, {
     json: {
@@ -30,6 +32,7 @@ export const submitSite = (
       visible,
       nonMemberInteract,
       logoUrl,
+      reviewBeforePublish,
     },
   })
 
@@ -41,7 +44,8 @@ export const updateSite = (
   visible: boolean,
   nonMemberInteract: boolean,
   logoUrl: string,
-  homePage: string
+  homePage: string,
+  reviewBeforePublish: boolean
 ) =>
   authRequest.patch<ResponseData<ResponseID>>(`sites/${frontId}`, {
     json: {
@@ -52,6 +56,7 @@ export const updateSite = (
       nonMemberInteract,
       logoUrl,
       homePage,
+      reviewBeforePublish,
     },
   })
 

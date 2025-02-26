@@ -4,6 +4,7 @@ import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 /* import mockArticleList from '@/mock/articles.json' */
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
+import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 import { Card } from '@/components/ui/card'
@@ -15,7 +16,10 @@ import ArticleControls from './components/ArticleControls'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 
-import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
+import {
+  ARTICLE_STATUS_NAME_MAP,
+  DEFAULT_PAGE_SIZE,
+} from '@/constants/constants'
 
 import { getArticleList } from './api/article'
 import { getCategoryWithFrontId } from './api/category'
@@ -47,11 +51,10 @@ export default function ArticleListPage() {
 
   const { forceState } = useForceUpdate()
 
-  const authStore = useAuthedUserStore()
-  /* const isMyself = useCallback(
-   *   (authorID: string) => authStore.isMySelf(authorID),
-   *   [authStore]
-   * ) */
+  const isMySelf = useAuthedUserStore((state) => state.isMySelf)
+  const checkPermit = useAuthedUserStore((state) => state.permit)
+  const loginWithDialog = useAuthedUserStore((state) => state.loginWithDialog)
+  const checkIsLogined = useAuthedUserStore((state) => state.isLogined)
 
   const [params, setParams] = useSearchParams()
   const { siteFrontId, categoryFrontId } = useParams()
@@ -90,6 +93,7 @@ export default function ArticleListPage() {
           '',
           undefined,
           '',
+          undefined,
           { siteFrontId }
         )
         if (!resp.code) {
@@ -140,13 +144,13 @@ export default function ArticleListPage() {
     async (e: MouseEvent<HTMLButtonElement>) => {
       e.preventDefault()
 
-      if (authStore.isLogined()) {
+      if (checkIsLogined()) {
         navigate(submitPath)
         return
       }
 
       try {
-        const authData = await authStore.loginWithDialog()
+        const authData = await loginWithDialog()
         /* console.log('authData success', authData) */
         if (isLogined(authData)) {
           setTimeout(() => {
@@ -157,7 +161,7 @@ export default function ArticleListPage() {
         console.error('submit click error: ', err)
       }
     },
-    [authStore, submitPath, navigate]
+    [submitPath, navigate, checkIsLogined, loginWithDialog]
   )
 
   const fetchCategory = toSync(
@@ -201,7 +205,7 @@ export default function ArticleListPage() {
           )}
         </div>
         <div>
-          {siteFrontId && authStore.permit('article', 'create') && (
+          {siteFrontId && checkPermit('article', 'create') && (
             <Button variant="outline" size="sm" asChild onClick={onSubmitClick}>
               <Link to={submitPath}>+ 提交</Link>
             </Button>
@@ -243,6 +247,16 @@ export default function ArticleListPage() {
                     </span>
                   )}
                 </div>
+                <div>{isMySelf(item.authorId)}</div>
+                {(isMySelf(item.authorId) ||
+                  checkPermit('article', 'manage')) &&
+                  item.status != 'published' && (
+                    <div className="py-1">
+                      <Badge variant={'secondary'}>
+                        {ARTICLE_STATUS_NAME_MAP[item.status]}
+                      </Badge>
+                    </div>
+                  )}
                 {showSummary && (
                   <div
                     className="mb-1 break-words"

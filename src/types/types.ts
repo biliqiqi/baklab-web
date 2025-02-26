@@ -56,6 +56,8 @@ export interface ArticleList {
   totalPage: number
 }
 
+export type ArticleLogStatus = ArticleStatus
+
 export interface ArticleLog {
   id: string
   primaryArticleId: string
@@ -66,7 +68,7 @@ export interface ArticleLog {
   prevEditTime: string
   prevArticle: Article
   currArticle: Article
-  versionNum: number
+  prevHistoryId: string
   titleDelta: string
   urlDelta: string
   contentDelta: string
@@ -76,6 +78,8 @@ export interface ArticleLog {
   contentDiffHTML: string
   categoryFrontIdDiffHTML: string
   isHidden: boolean
+  status: ArticleStatus
+  version: number
 }
 
 export interface ArticleHistoryResponse extends ListPageState {
@@ -87,6 +91,16 @@ export interface CurrUserState {
   saved: boolean
   reactFrontId: string
   subscribed: boolean
+}
+
+export type ArticleStatus = 'draft' | 'pending' | 'rejected' | 'published'
+
+export type ArticleStatusNameMap = {
+  [key in ArticleStatus]: string
+}
+
+export type ArticleStatusColorMap = {
+  [key in ArticleStatus]: string
 }
 
 export interface Article {
@@ -135,6 +149,8 @@ export interface Article {
   replyRootArticleTitle: string
   replyRootArticleSiteFrontId: string
   delLog: Activity | null
+  status: ArticleStatus
+  version: number
 }
 
 export interface ArticleListResponse {
@@ -511,6 +527,7 @@ export interface Site {
   deleted: boolean
   memberCount: number
   onlineCount: number
+  reviewBeforePublish: boolean
 }
 
 export interface SiteListResponse extends ListPageState {

@@ -112,11 +112,14 @@ export default function UserListPage() {
     )
   )
 
-  const onShowDetailClick = useCallback((user: UserData) => {
-    setCurrUser(user)
-    setShowUserDetail(true)
-    fetchUserData(user.name)
-  }, [])
+  const onShowDetailClick = useCallback(
+    (user: UserData) => {
+      setCurrUser(user)
+      setShowUserDetail(true)
+      fetchUserData(user.name)
+    },
+    [fetchUserData]
+  )
 
   const columns: ColumnDef<UserData>[] = [
     {
@@ -260,7 +263,7 @@ export default function UserListPage() {
       params.delete('role_id')
       return params
     })
-  }, [params])
+  }, [setParams])
 
   const fetchUserList = toSync(
     useCallback(
@@ -314,7 +317,7 @@ export default function UserListPage() {
   const onResetClick = useCallback(() => {
     setSearchData({ ...defaultSearchData })
     resetParams()
-  }, [params, resetParams])
+  }, [resetParams])
 
   const onSearchClick = useCallback(() => {
     resetParams()
@@ -333,7 +336,7 @@ export default function UserListPage() {
 
       return params
     })
-  }, [params, searchData, resetParams])
+  }, [setParams, searchData, resetParams])
 
   const onCancelBanAlert = () => {
     setBanOpen(false)
@@ -377,7 +380,7 @@ export default function UserListPage() {
         console.error('ban user error: ', err)
       }
     },
-    [table, rowSelection]
+    [table, fetchUserList]
   )
 
   const onBanSelectedClick = (e: MouseEvent<HTMLButtonElement>) => {
@@ -410,7 +413,7 @@ export default function UserListPage() {
         fetchUserList()
       }
     },
-    [siteFrontId, selectedRows]
+    [siteFrontId, selectedRows, alertDialog, fetchUserList]
   )
 
   const onRemoveSelectedClick = useCallback(
@@ -438,7 +441,7 @@ export default function UserListPage() {
         fetchUserList()
       }
     },
-    [siteFrontId, selectedRows]
+    [siteFrontId, selectedRows, alertDialog, fetchUserList]
   )
 
   const onBlockClick = useCallback(
@@ -456,7 +459,7 @@ export default function UserListPage() {
         fetchUserList()
       }
     },
-    [siteFrontId]
+    [siteFrontId, alertDialog, fetchUserList]
   )
 
   const onRemoveClick = useCallback(
@@ -474,7 +477,7 @@ export default function UserListPage() {
         fetchUserList()
       }
     },
-    [siteFrontId]
+    [siteFrontId, alertDialog, fetchUserList]
   )
 
   const onRoleSelectChange = useCallback((role: Role | undefined) => {
@@ -489,9 +492,6 @@ export default function UserListPage() {
   useEffect(() => {
     fetchUserList(true)
   }, [location])
-
-  /* console.log('update!') */
-  /* console.log('showUserDetail: ', showUserDetail) */
 
   return (
     <BContainer

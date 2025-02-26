@@ -137,7 +137,7 @@ export const useAuthedUserStore = create(
     },
     isMySelf(targetUserId: string) {
       const state = get()
-      return isLogined(state) && state.userID == targetUserId
+      return isLogined(state) && String(state.userID) == String(targetUserId)
     },
     levelCompare(targetRole) {
       const { currRole, user } = get()

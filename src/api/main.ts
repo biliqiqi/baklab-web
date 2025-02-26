@@ -3,6 +3,9 @@ import request, { authRequest } from '@/lib/request'
 import {
   ActivityActionType,
   ActivityListResponse,
+  ArticleHistoryResponse,
+  ArticleLogStatus,
+  ArticleStatus,
   AuthedDataResponse,
   CustomRequestOptions,
   PermissionListResponse,
@@ -95,3 +98,41 @@ export const getPermissionList = (custom?: CustomRequestOptions) =>
     {},
     custom
   )
+
+export const getSiteUpdates = (
+  page?: number,
+  pageSize?: number,
+  custom?: CustomRequestOptions
+) => {
+  const params = new URLSearchParams()
+  if (page) {
+    params.set('page', String(page))
+  }
+
+  if (pageSize) {
+    params.set('pageSize', String(pageSize))
+  }
+
+  return authRequest.get<ResponseData<ArticleHistoryResponse>>(
+    `updates`,
+    {
+      searchParams: params,
+    },
+    custom
+  )
+}
+
+export const reviewSiteUpdates = (
+  historyId: string,
+  content: string,
+  status: ArticleLogStatus,
+  custom?: CustomRequestOptions
+) => {
+  return authRequest.post<ResponseData<null>>(
+    `updates/${historyId}/review`,
+    {
+      json: { content, status },
+    },
+    custom
+  )
+}

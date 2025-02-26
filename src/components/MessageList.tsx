@@ -115,7 +115,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
         pageState,
         fetchList: fetchNotifications,
       }
-    }, [notiList, pageState])
+    }, [notiList, pageState, fetchNotifications])
 
     const onReadAllClick = async () => {
       const confirmed = await alertDialog.confirm(

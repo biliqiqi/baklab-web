@@ -265,7 +265,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           {((isMyself && permit('article', 'edit_mine')) ||
             permit('article', 'edit_others')) &&
             !previewMode &&
-            article.status != 'pending' && (
+            !article.hasReviewing &&
+            article.status == 'published' && (
               <Button
                 variant="ghost"
                 size="sm"

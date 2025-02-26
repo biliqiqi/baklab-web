@@ -106,6 +106,7 @@ export const defaultArticle: Article = {
   site: { ...defaultSite },
   status: 'draft',
   version: 0,
+  hasReviewing: false,
 }
 
 export const defaultPageState: ListPageState = {

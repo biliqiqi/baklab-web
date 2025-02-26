@@ -151,6 +151,7 @@ export interface Article {
   delLog: Activity | null
   status: ArticleStatus
   version: number
+  hasReviewing: boolean
 }
 
 export interface ArticleListResponse {

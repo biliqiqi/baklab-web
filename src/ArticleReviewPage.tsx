@@ -286,9 +286,16 @@ export function ArticleReviewPage() {
 
       if (!status) return
 
-      const { code } = await reviewSiteUpdates(history.id, '', status, {
-        siteFrontId,
-      })
+      const { code } = await reviewSiteUpdates(
+        history.id,
+        '',
+        status,
+        history.currArticle.displayTitle,
+        history.currArticle.replyToId != '0',
+        {
+          siteFrontId,
+        }
+      )
       if (!code) {
         toSync(fetchSiteUpdates)()
       }

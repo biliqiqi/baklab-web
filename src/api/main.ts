@@ -126,12 +126,22 @@ export const reviewSiteUpdates = (
   historyId: string,
   content: string,
   status: ArticleLogStatus,
+  displayTitle?: string,
+  isReply?: boolean,
   custom?: CustomRequestOptions
 ) => {
   return authRequest.post<ResponseData<null>>(
     `updates/${historyId}/review`,
     {
-      json: { content, status },
+      json: {
+        content,
+        status,
+        extra: {
+          reviewArticleResult: status,
+          displayTitle,
+          isReviewedReply: isReply,
+        },
+      },
     },
     custom
   )

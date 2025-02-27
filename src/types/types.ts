@@ -326,6 +326,7 @@ export type ActivityAction =
   | 'block_regions' // Block regions
   | 'lock_article' // Lock article
   | 'fade_out_article' // Fade out article
+  | 'review_article' // Review article
   | 'set_role' // Set role
   | 'add_role' // Add role
   | 'edit_role' // Edit role

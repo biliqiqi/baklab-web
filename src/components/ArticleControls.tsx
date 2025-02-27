@@ -82,6 +82,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   const userState = useMemo(() => article.currUserState, [article])
 
   const isRootArticle = useMemo(() => article.replyToId == '0', [article])
+  const isPublished = useMemo(() => article.status == 'published', [article])
 
   const articleHistory = useArticleHistoryStore()
   const checkPermit = useAuthedUserStore((state) => state.permit)
@@ -179,7 +180,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
       {...props}
     >
       <div className="flex flex-wrap items-center">
-        {upVote && (
+        {checkPermit('article', 'vote_up') && isPublished && upVote && (
           <Button
             variant="ghost"
             size="sm"
@@ -195,7 +196,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             {article.voteUp > 0 && article.voteUp}
           </Button>
         )}
-        {downVote && (
+        {checkPermit('article', 'vote_down') && isPublished && downVote && (
           <Button
             variant="ghost"
             size="sm"
@@ -228,7 +229,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             )}
           </Button>
         )}
-        {bookmark && (
+        {checkPermit('article', 'save') && isPublished && bookmark && (
           <Button
             variant="ghost"
             size="sm"
@@ -243,21 +244,24 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             {article.totalSavedCount > 0 && article.totalSavedCount}
           </Button>
         )}
-        {notify && isRootArticle && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onSubscribeClick}
-            disabled={disabled}
-            className="mr-1"
-          >
-            <BellIcon
-              size={20}
-              fill={userState.subscribed ? 'currentColor' : 'transparent'}
-              className={cn('mr-1', userState.subscribed && 'text-primary')}
-            />
-          </Button>
-        )}
+        {checkPermit('article', 'subscribe') &&
+          isPublished &&
+          notify &&
+          isRootArticle && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onSubscribeClick}
+              disabled={disabled}
+              className="mr-1"
+            >
+              <BellIcon
+                size={20}
+                fill={userState.subscribed ? 'currentColor' : 'transparent'}
+                className={cn('mr-1', userState.subscribed && 'text-primary')}
+              />
+            </Button>
+          )}
         {history && checkPermit('article', 'manage') && (
           <Button
             variant="ghost"

@@ -5,6 +5,7 @@ import { timeAgo } from '@/lib/dayjs-custom'
 import {
   Activity,
   ActivityActionType,
+  ArticleStatus,
   ListPageState,
   SITE_STATUS,
   SiteStatus,
@@ -118,6 +119,11 @@ const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
     (item.extraInfo.blockedUsers as string[] | undefined) || []
   const unblockedUsers =
     (item.extraInfo.unblockedUsers as string[] | undefined) || []
+
+  const reviewArticleResult = item.extraInfo[
+    'reviewArticleResult'
+  ] as ArticleStatus
+  const isReviewedReply = item.extraInfo['isReviewedReply'] as boolean
 
   switch (item.action) {
     case 'set_role':
@@ -240,6 +246,23 @@ const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
           {unblockedUsers.length > 1
             ? `等 ${unblockedUsers.length} 名用户的屏蔽`
             : `的屏蔽`}
+          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+        </>
+      )
+    case 'review_article':
+      return (
+        <>
+          <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
+          {reviewArticleResult == 'published'
+            ? '审核通过了'
+            : reviewArticleResult == 'rejected'
+              ? '驳回了'
+              : '更新了'}
+          {isReviewedReply ? '回复' : '文章'}&nbsp;
+          <Link to={`/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}>
+            {item.extraInfo.displayTitle ||
+              `/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}
+          </Link>
           &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
         </>
       )

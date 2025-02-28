@@ -61,7 +61,7 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
   const [errMessage, setErrMessage] = useState('')
 
   const onConfirmClick = useCallback(
-    (data: ReasonScheme) => {
+    (data?: ReasonScheme) => {
       if (!reviewAciton) {
         setErrMessage('未指定操作类型')
         return
@@ -71,7 +71,14 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
       let con = content
 
       if (reviewAciton == 'rejected') {
-        con = `${data.reason}\n\n${data.extra}`
+        if (!data) {
+          console.error('lack of rejection reason')
+          return
+        }
+        con = data.reason
+        if (data.extra.trim()) {
+          con += `\n\n${data.extra}`
+        }
       }
 
       onConfirm(reviewAciton, con)
@@ -228,7 +235,7 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
                         variant={isApproved ? 'default' : 'destructive'}
                         size={'sm'}
                         className="ml-1"
-                        onClick={() => onConfirmClick}
+                        onClick={() => onConfirmClick()}
                       >
                         确定
                       </Button>
@@ -342,7 +349,10 @@ export function ArticleReviewPage() {
         return
       }
 
-      if (!status) return
+      if (!status) {
+        console.error('lack of status')
+        return
+      }
 
       const { code } = await reviewSiteUpdates(
         history.id,

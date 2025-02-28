@@ -1,4 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod'
 import { PencilIcon, SquareArrowOutUpRightIcon, Trash2Icon } from 'lucide-react'
 import {
   HTMLAttributes,
@@ -7,12 +6,10 @@ import {
   useMemo,
   useState,
 } from 'react'
-import { useForm } from 'react-hook-form'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
 import { bus, cn, extractDomain, md2text, noop, renderMD } from '@/lib/utils'
-import { z } from '@/lib/zod-custom'
 
 import { deleteArticle } from '@/api/article'
 import { EV_ON_EDIT_CLICK, EV_ON_REPLY_CLICK } from '@/constants/constants'
@@ -20,29 +17,16 @@ import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
 import { Article, ArticleAction, ArticleCardType } from '@/types/types'
 
 import ArticleControls from './ArticleControls'
+import ModerationForm, { ReasonScheme } from './ModerationForm'
 import BAvatar from './base/BAvatar'
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from './ui/alert-dialog'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from './ui/form'
-import { Input } from './ui/input'
-import { RadioGroup, RadioGroupItem } from './ui/radio-group'
-import { Textarea } from './ui/textarea'
 
 interface ArticleCardProps extends HTMLAttributes<HTMLDivElement> {
   article: Article
@@ -52,15 +36,6 @@ interface ArticleCardProps extends HTMLAttributes<HTMLDivElement> {
   isTop?: boolean
   previewMode?: boolean
 }
-
-const delReasonScheme = z.object({
-  reason: z.string().min(1, '请选择删除原因'),
-  extra: z.string().max(500, '不要超过500各字符'),
-})
-
-type DelReasonScheme = z.infer<typeof delReasonScheme>
-
-const DEL_REASONS = ['广告营销', '不友善', '激进意识形态', '违反法律法规']
 
 const highlightElement = (element: HTMLElement) => {
   element.classList.add('b-highlight')
@@ -98,11 +73,10 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   ...props
 }) => {
   const [alertOpen, setAlertOpen] = useState(false)
-  const [otherReason, setOtherReason] = useState('')
 
   const parent = article.replyToArticle
 
-  const { siteFrontId } = useParams()
+  /* const { siteFrontId } = useParams() */
 
   const authStore = useAuthedUserStore()
   const permit = useAuthedUserStore((state) => state.permit)
@@ -113,14 +87,6 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   )
 
   const alertDialog = useAlertDialogStore()
-
-  const form = useForm<DelReasonScheme>({
-    resolver: zodResolver(delReasonScheme),
-    defaultValues: {
-      reason: '',
-      extra: '',
-    },
-  })
 
   const onEditClick = useCallback(
     (e: MouseEvent) => {
@@ -167,20 +133,12 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   )
 
   const onDelConfirmCancel = useCallback(() => {
-    form.reset({ reason: '' })
     setAlertOpen(false)
-  }, [form])
+  }, [])
 
-  const onDelConfirmClick = useCallback(
-    async ({ reason, extra }: DelReasonScheme) => {
+  const onDelConfirm = useCallback(
+    async ({ reason, extra }: ReasonScheme) => {
       try {
-        if (reason == 'other') {
-          if (otherReason.trim() == '') {
-            form.setError('reason', { message: '请填写其他原因' })
-            return
-          }
-          reason = otherReason
-        }
         const resp = await deleteArticle(
           article.id,
           article.displayTitle,
@@ -190,8 +148,6 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           }
         )
         if (!resp.code) {
-          /* navigate(-1) */
-          form.reset({ reason: '' })
           setAlertOpen(false)
           onSuccess('delete')
         }
@@ -199,14 +155,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         console.error('confirm delete error: ', err)
       }
     },
-    [article, form, onSuccess, otherReason]
+    [article, onSuccess]
   )
-
-  /* console.log('isMyself', isMyself)
-   * console.log(
-   *   "permit('article', 'delete_mine')",
-   *   permit('article', 'delete_mine')
-   * ) */
 
   return (
     <div id={'comment' + article.id} {...props}>
@@ -361,88 +311,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>确认</AlertDialogTitle>
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onDelConfirmClick)}
-                className="py-4"
-              >
-                <FormField
-                  control={form.control}
-                  name="reason"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>删除原因</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          className="flex flex-wrap"
-                          value={field.value}
-                        >
-                          {DEL_REASONS.map((item) => (
-                            <FormItem
-                              key={item}
-                              className="flex items-center space-y-0 mr-4 mb-2"
-                            >
-                              <FormControl>
-                                <RadioGroupItem value={item} className="mr-1" />
-                              </FormControl>
-                              <FormLabel className="font-normal">
-                                {item}
-                              </FormLabel>
-                            </FormItem>
-                          ))}
-                          <FormItem
-                            key={'others'}
-                            className="flex items-center space-y-0 mr-4 mb-2"
-                          >
-                            <FormControl>
-                              <RadioGroupItem
-                                value={'other'}
-                                className="mr-1"
-                              />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              其他原因：
-                              <Input
-                                className="inline-block w-[120px]"
-                                onFocus={() => form.setValue('reason', 'other')}
-                                onChange={(e) => setOtherReason(e.target.value)}
-                              />
-                            </FormLabel>
-                          </FormItem>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="extra"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>补充说明</FormLabel>
-                      <FormControl>
-                        <Textarea {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                ></FormField>
-              </form>
-            </Form>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={onDelConfirmCancel}>
-              取消
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={form.handleSubmit(onDelConfirmClick)}
-              className="bg-red-600 hover:bg-red-500"
-            >
-              确认
-            </AlertDialogAction>
-          </AlertDialogFooter>
+          <ModerationForm
+            reasonLable="删除原因"
+            destructive
+            onSubmit={onDelConfirm}
+            onCancel={onDelConfirmCancel}
+          />
         </AlertDialogContent>
       </AlertDialog>
     </div>

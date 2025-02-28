@@ -140,6 +140,7 @@ export const reviewSiteUpdates = (
           reviewArticleResult: status,
           displayTitle,
           isReviewedReply: isReply,
+          reason: content,
         },
       },
     },

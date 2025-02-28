@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 
 import { Badge } from './components/ui/badge'
@@ -16,6 +23,7 @@ import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
 
 import { Empty } from './components/Empty'
+import ModerationForm, { ReasonScheme } from './components/ModerationForm'
 
 import { getSiteUpdates, reviewSiteUpdates } from './api/main'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
@@ -37,7 +45,7 @@ const isReply = (log: ArticleLog) => log.currArticle.replyToId != '0'
 interface ArticleUpdateItemProps {
   data: ArticleLog
   siteFrontId: string
-  onConfirm: (action: ReviewAction) => void
+  onConfirm: (action: ReviewAction, content: string) => void
 }
 
 type ReviewAction = 'approved' | 'rejected'
@@ -49,6 +57,38 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
 }) => {
   const [reviewAciton, setReviewAction] = useState<ReviewAction | null>(null)
   const isApproved = useMemo(() => reviewAciton == 'approved', [reviewAciton])
+  const [content, setContent] = useState('')
+  const [errMessage, setErrMessage] = useState('')
+
+  const onConfirmClick = useCallback(
+    (data: ReasonScheme) => {
+      if (!reviewAciton) {
+        setErrMessage('未指定操作类型')
+        return
+      }
+      setErrMessage('')
+
+      let con = content
+
+      if (reviewAciton == 'rejected') {
+        con = `${data.reason}\n\n${data.extra}`
+      }
+
+      onConfirm(reviewAciton, con)
+    },
+    [reviewAciton, content, onConfirm]
+  )
+
+  const onContentChange = useCallback(
+    (e: ChangeEvent<HTMLTextAreaElement>) => {
+      if (content.trim()) {
+        setErrMessage('')
+      }
+
+      setContent(e.target.value)
+    },
+    [content]
+  )
 
   return (
     <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
@@ -161,30 +201,48 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
               <div className="mb-1">
                 {isApproved ? '确定通过？' : '确定驳回？请填写驳回原因'}
               </div>
-              <Textarea
-                placeholder={isApproved ? '备注（选填）' : '驳回原因（必填）'}
-              />
-              <div className="flex justify-between mt-2">
-                <span></span>
-                <span>
-                  <Button
-                    variant={'secondary'}
-                    size={'sm'}
-                    className="ml-1"
-                    onClick={() => setReviewAction(null)}
-                  >
-                    取消
-                  </Button>
-                  <Button
-                    variant={isApproved ? 'default' : 'destructive'}
-                    size={'sm'}
-                    className="ml-1"
-                    onClick={() => onConfirm(reviewAciton)}
-                  >
-                    确定
-                  </Button>
-                </span>
-              </div>
+              {reviewAciton == 'approved' ? (
+                <>
+                  <Textarea
+                    placeholder={'备注（选填）'}
+                    value={content}
+                    onChange={onContentChange}
+                  />
+                  {errMessage && (
+                    <div className="my-2 py-2 text-destructive">
+                      {errMessage}
+                    </div>
+                  )}
+                  <div className="flex justify-between mt-2">
+                    <span></span>
+                    <span>
+                      <Button
+                        variant={'secondary'}
+                        size={'sm'}
+                        className="ml-1"
+                        onClick={() => setReviewAction(null)}
+                      >
+                        取消
+                      </Button>
+                      <Button
+                        variant={isApproved ? 'default' : 'destructive'}
+                        size={'sm'}
+                        className="ml-1"
+                        onClick={() => onConfirmClick}
+                      >
+                        确定
+                      </Button>
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <ModerationForm
+                  reasonLable=""
+                  destructive
+                  onCancel={() => setReviewAction(null)}
+                  onSubmit={onConfirmClick}
+                />
+              )}
             </div>
           )}
         </CollapsibleContent>
@@ -274,7 +332,7 @@ export function ArticleReviewPage() {
   }, [siteFrontId])
 
   const onReviewConfirmClick = useCallback(
-    async (history: ArticleLog, action: ReviewAction) => {
+    async (history: ArticleLog, action: ReviewAction, content: string) => {
       let status: ArticleStatus | undefined
       if (action == 'approved') {
         status = 'published'
@@ -288,7 +346,7 @@ export function ArticleReviewPage() {
 
       const { code } = await reviewSiteUpdates(
         history.id,
-        '',
+        content,
         status,
         history.currArticle.displayTitle,
         history.currArticle.replyToId != '0',
@@ -360,7 +418,9 @@ export function ArticleReviewPage() {
               key={item.id}
               data={item}
               siteFrontId={siteFrontId || ''}
-              onConfirm={(action) => onReviewConfirmClick(item, action)}
+              onConfirm={(action, content) =>
+                onReviewConfirmClick(item, action, content)
+              }
             />
           ))}
         </>

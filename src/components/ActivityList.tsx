@@ -14,6 +14,7 @@ import {
 import { Empty } from './Empty'
 import { ListPagination } from './ListPagination'
 import { Badge } from './ui/badge'
+import { Button } from './ui/button'
 import { Card } from './ui/card'
 import {
   Collapsible,
@@ -278,6 +279,28 @@ const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
   }
 }
 
+interface ActivityExtraDetailProps {
+  activity: Activity
+}
+const ActivityExtraDetail = ({ activity: item }: ActivityExtraDetailProps) => {
+  const isArticleApproved =
+    item.action == 'review_article' &&
+    (item.extraInfo.reviewArticleResult as ArticleStatus) == 'published'
+
+  return (
+    <div className="text-sm bg-gray-100 p-2 mt-2">
+      <div className="flex">
+        <div className="flex-shrink-0 w-[60px]">
+          <b>{isArticleApproved ? '说明' : '原因'}：</b>
+        </div>
+        <div className="whitespace-break-spaces">
+          {item.extraInfo.reason || '-'}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export const ActivityList: React.FC<ActivityListProps> = ({
   list,
   pageState,
@@ -296,13 +319,22 @@ export const ActivityList: React.FC<ActivityListProps> = ({
       {list.map((item) => (
         <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
           <Collapsible>
-            <div className="text-base activity-title">
-              {item.action == 'delete_article' ? (
-                <CollapsibleTrigger className="w-full text-left">
-                  <ActivityActionText activity={item} />
-                </CollapsibleTrigger>
+            <div className="flex justify-between items-center text-base activity-title">
+              {['delete_article', 'review_article'].includes(item.action) ? (
+                <>
+                  <div>
+                    <ActivityActionText activity={item} />
+                  </div>
+                  <CollapsibleTrigger asChild>
+                    <Button variant={'secondary'} size="sm">
+                      详细
+                    </Button>
+                  </CollapsibleTrigger>
+                </>
               ) : (
-                <ActivityActionText activity={item} />
+                <div>
+                  <ActivityActionText activity={item} />
+                </div>
               )}
             </div>
             {isPlatfromManager ? (
@@ -344,16 +376,7 @@ export const ActivityList: React.FC<ActivityListProps> = ({
               </div>
             ) : (
               <CollapsibleContent>
-                <div className="text-sm bg-gray-100 p-2 mt-2">
-                  <div className="flex">
-                    <div className="flex-shrink-0 w-[60px]">
-                      <b>原因：</b>
-                    </div>
-                    <div className="whitespace-break-spaces">
-                      {item.extraInfo.reason || '-'}
-                    </div>
-                  </div>
-                </div>
+                <ActivityExtraDetail activity={item} />
               </CollapsibleContent>
             )}
           </Collapsible>

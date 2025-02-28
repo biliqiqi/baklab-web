@@ -33,7 +33,7 @@ import {
   useParams,
 } from 'react-router-dom'
 
-import { timeAgo } from '@/lib/dayjs-custom'
+import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
 import { toSync } from '@/lib/fire-and-forget'
 import { cn, getSiteStatusColor, getSiteStatusName } from '@/lib/utils'
 
@@ -726,6 +726,12 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                               邀请加入
                             </DropdownMenuItem>
                           )}
+                        <DropdownMenuItem
+                          className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                          onClick={() => setShowSiteDetail(true)}
+                        >
+                          关于
+                        </DropdownMenuItem>
                         {!isMySite && currSite.currUserState.isMember && (
                           <DropdownMenuItem
                             className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0 text-destructive"
@@ -734,12 +740,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                             退出站点
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem
-                          className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
-                          onClick={() => setShowSiteDetail(true)}
-                        >
-                          关于
-                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
@@ -1265,11 +1265,12 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                   <DialogDescription></DialogDescription>
                 </DialogHeader>
                 <div>{currSite.description}</div>
-                <div className="text-sm">
-                  <span className="font-bold">创建者</span>：
+                <div className="text-sm text-gray-500">
+                  由&nbsp;
                   <Link to={`/users/${currSite.creatorName}`}>
                     <BAvatar username={currSite.creatorName} showUsername />
                   </Link>
+                  &nbsp;创建于{timeFmt(currSite.createdAt, 'YYYY-M-D')}
                 </div>
               </>
             )}

@@ -568,3 +568,22 @@ export interface BlockedUser extends UserData {
 export interface BlockedUserList extends ListPageState {
   list: BlockedUser[] | null
 }
+
+export interface BlockedWord {
+  id: number
+  content: string
+  creatorId: string
+  creatorName: string
+  createdAt: string
+}
+
+export interface SiteBlockedWord {
+  id: number
+  siteId: string
+  wordId: string
+  word: BlockedWord
+}
+
+export interface SiteBlockedWordList extends ListPageState {
+  list: SiteBlockedWord
+}

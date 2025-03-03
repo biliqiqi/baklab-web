@@ -497,17 +497,20 @@ export interface SiteState {
   site?: Site | null
   siteList?: Site[] | null
   homePage: string
+  showSiteForm: boolean
   update: (s: Site | null) => void
   updateSiteList: (list: Site[]) => void
   updateHomePage: (path: string) => void
   fetchSiteData: (siteFrontId: string) => Promise<Site | null>
   fetchSiteList: () => Promise<void>
+  setShowSiteForm: (show: boolean) => void
 }
 
 export const useSiteStore = create(
   subscribeWithSelector<SiteState>((set, get) => ({
     site: null,
     siteList: null,
+    showSiteForm: false,
     homePage: '/',
     update(s) {
       set((state) => ({ ...state, site: clone(s) }))
@@ -517,6 +520,9 @@ export const useSiteStore = create(
     },
     updateHomePage(path) {
       set((state) => ({ ...state, homePage: path }))
+    },
+    setShowSiteForm(show) {
+      set((state) => ({ ...state, showSiteForm: show }))
     },
     fetchSiteData: async (frontId) => {
       const ps = new Promise((resolve) => {

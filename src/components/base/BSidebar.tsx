@@ -265,7 +265,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
 
   const isFeedPage = useMemo(
     () => ['/', `/${siteFrontId}/feed`].includes(location.pathname),
-    [siteFrontId]
+    [siteFrontId, navigate]
   )
 
   const siteSidebarMenus: (
@@ -535,7 +535,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
       <Sidebar className="relative max-h-full" gap={false}>
         <SidebarContent className="gap-0">
           <div
-            className="flex justify-between items-center border-b-2 px-2 py-1"
+            className="flex justify-between items-center px-2 py-1"
             style={{
               minHeight: `${NAV_HEIGHT}px`,
             }}

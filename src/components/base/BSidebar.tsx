@@ -6,6 +6,7 @@ import {
   EllipsisVerticalIcon,
   GlobeIcon,
   LockIcon,
+  MessageSquareXIcon,
   PackageIcon,
   PencilIcon,
   PlusIcon,
@@ -272,6 +273,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
     | SidebarMenuItem<'role'>
     | SidebarMenuItem<'activity'>
     | SidebarMenuItem<'article'>
+    | SidebarMenuItem<'site'>
   )[] = [
     {
       id: 'users',
@@ -304,6 +306,14 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
       name: '内容审核',
       link: `/${siteFrontId}/manage/article_review`,
       icon: <ShieldCheckIcon size={18} />,
+    },
+    {
+      id: 'blocked_words',
+      permitModule: 'site',
+      permitAction: 'manage',
+      name: '屏蔽词',
+      link: `/${siteFrontId}/manage/blocked_words`,
+      icon: <MessageSquareXIcon size={18} />,
     },
     {
       id: 'activities',
@@ -475,44 +485,50 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
     }
   }, [siteFormDirty, editSite, alertDialog, setShowSiteForm])
 
-  const onSiteCreated = useCallback(async () => {
-    setShowSiteForm(false)
-    const { code, data } = await getSiteList(
-      1,
-      DEFAULT_PAGE_SIZE,
-      '',
+  const onSiteCreated = useCallback(
+    async (newSiteFrontId: string) => {
+      setShowSiteForm(false)
+      const { code, data } = await getSiteList(
+        1,
+        DEFAULT_PAGE_SIZE,
+        '',
+        currUserId,
+        '',
+        SITE_VISIBLE.All
+      )
+      if (!code && data.list) {
+        updateSiteList([...data.list])
+        if (newSiteFrontId) {
+          navigate(`/${newSiteFrontId}`)
+        }
+      }
+
+      setTimeout(() => {
+        setEditSite(() => ({
+          editting: false,
+          data: undefined,
+        }))
+      }, 500)
+
+      await Promise.all([
+        fetchSiteList(),
+        (async () => {
+          if (!newSiteFrontId) return
+          await fetchSiteData(newSiteFrontId)
+        })(),
+      ])
+      forceUpdate()
+    },
+    [
       currUserId,
-      '',
-      SITE_VISIBLE.All
-    )
-    if (!code && data.list) {
-      updateSiteList([...data.list])
-    }
-
-    setTimeout(() => {
-      setEditSite(() => ({
-        editting: false,
-        data: undefined,
-      }))
-    }, 500)
-
-    await Promise.all([
-      fetchSiteList(),
-      (async () => {
-        if (!siteFrontId) return
-        await fetchSiteData(siteFrontId)
-      })(),
-    ])
-    forceUpdate()
-  }, [
-    currUserId,
-    setShowSiteForm,
-    siteFrontId,
-    forceUpdate,
-    updateSiteList,
-    fetchSiteList,
-    fetchSiteData,
-  ])
+      setShowSiteForm,
+      forceUpdate,
+      updateSiteList,
+      fetchSiteList,
+      fetchSiteData,
+      navigate,
+    ]
+  )
 
   return (
     <>

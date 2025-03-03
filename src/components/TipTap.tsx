@@ -192,7 +192,7 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
           editor.destroy()
         }
       }
-    }, [editor])
+    }, [editor, onResize])
 
     if (!editor) return null
 

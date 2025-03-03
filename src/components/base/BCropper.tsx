@@ -36,7 +36,7 @@ const BCropper = ({
   const [imgUrl, setImgUrl] = useState('')
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
-  const [cropperArea, setCropperArea] = useState<Area | null>(null)
+  /* const [cropperArea, setCropperArea] = useState<Area | null>(null) */
   const [cropperAreaPixels, setCropperAreaPixels] = useState<Area | null>(null)
   const [showCropperDialog, setShowCropperDialog] = useState(false)
   const [showCropper, setShowCropper] = useState(false)
@@ -52,12 +52,12 @@ const BCropper = ({
     setCrop({ x: 0, y: 0 })
     setZoom(1)
     /* setCropperAreaPixels(null) */
-    setCropperArea(null)
+    /* setCropperArea(null) */
   }
 
-  const onCropComplete = (area: Area, areaPixels: Area) => {
+  const onCropComplete = (_area: Area, areaPixels: Area) => {
     /* console.log(area, areaPixels) */
-    setCropperArea(() => ({ ...area }))
+    /* setCropperArea(() => ({ ...area })) */
     setCropperAreaPixels(() => ({ ...areaPixels }))
   }
 
@@ -124,7 +124,7 @@ const BCropper = ({
     }
 
     img.src = imgUrl
-  }, [imgUrl, cropperArea])
+  }, [imgUrl, cropperAreaPixels, onSuccess])
 
   useEffect(() => {
     if (imgUrl) {

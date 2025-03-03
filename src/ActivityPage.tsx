@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useParams, useSearchParams } from 'react-router-dom'
+import { useShallow } from 'zustand/react/shallow'
 
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
@@ -57,7 +58,9 @@ export default function ActivityPage() {
   const [params, setParams] = useSearchParams()
   const location = useLocation()
 
-  const authStore = useAuthedUserStore()
+  const { checkPermit } = useAuthedUserStore(
+    useShallow(({ permit }) => ({ checkPermit: permit }))
+  )
 
   const [searchData, setSearchData] = useState<SearchFields>({
     ...defaultSearchData,
@@ -75,7 +78,7 @@ export default function ActivityPage() {
       params.delete('action')
       return params
     })
-  }, [params])
+  }, [setParams])
 
   const fetchList = toSync(
     useCallback(
@@ -88,7 +91,7 @@ export default function ActivityPage() {
             (params.get('act_type') as ActivityActionType | null) || undefined
           const action = params.get('action') || ''
 
-          if (!authStore.permit('activity', 'manage_platform')) {
+          if (!checkPermit('activity', 'manage_platform')) {
             actType = 'manage'
           }
 
@@ -132,14 +135,14 @@ export default function ActivityPage() {
           setLoading(false)
         }
       },
-      [params, siteFrontId]
+      [params, siteFrontId, checkPermit]
     )
   )
 
   const onResetClick = useCallback(() => {
     setSearchData({ ...defaultSearchData })
     resetParams()
-  }, [params])
+  }, [resetParams])
 
   const onSearchClick = useCallback(() => {
     resetParams()
@@ -158,7 +161,7 @@ export default function ActivityPage() {
       }
       return params
     })
-  }, [params, searchData])
+  }, [resetParams, setParams, searchData])
 
   useEffect(() => {
     fetchList(true)
@@ -196,7 +199,7 @@ export default function ActivityPage() {
               }))
             }
           />
-          {authStore.permit('activity', 'manage_platform') && (
+          {checkPermit('activity', 'manage_platform') && (
             <Select
               value={searchData.actType}
               onValueChange={(actType) =>
@@ -214,7 +217,7 @@ export default function ActivityPage() {
               <SelectContent>
                 <SelectItem value="user">普通用户</SelectItem>
                 <SelectItem value="manage">管理</SelectItem>
-                {authStore.permit('platform_manage', 'access') && (
+                {checkPermit('platform_manage', 'access') && (
                   <>
                     <SelectItem value="platform_manage">平台管理</SelectItem>
                     <SelectItem value="anonymous">匿名</SelectItem>
@@ -264,7 +267,7 @@ export default function ActivityPage() {
         <ActivityList
           list={list}
           pageState={pageState}
-          isPlatfromManager={authStore.permit('platform_manage', 'access')}
+          isPlatfromManager={checkPermit('platform_manage', 'access')}
         />
       )}
     </BContainer>

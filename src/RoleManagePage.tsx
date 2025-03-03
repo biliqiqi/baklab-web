@@ -239,7 +239,7 @@ export default function RoleManagePage() {
     } else {
       setShowRoleForm(false)
     }
-  }, [roleFormDirty, editRole])
+  }, [roleFormDirty, editRole, alertDialog])
 
   const onDefaultRoleSubmit = useCallback(
     async ({ roleId }: DefaultRoleSchema) => {
@@ -253,7 +253,7 @@ export default function RoleManagePage() {
         defaultRoleForm.reset({ roleId: '' })
       }
     },
-    [defaultRoleForm]
+    [defaultRoleForm, fetchDefaultRoles]
   )
 
   const onSiteDefaultRoleSubmit = useCallback(
@@ -274,7 +274,7 @@ export default function RoleManagePage() {
         siteDefaultRoleForm.reset({ roleId: '' })
       }
     },
-    [siteDefaultRoleForm, siteFrontId]
+    [siteDefaultRoleForm, siteFrontId, fetchDefaultRoles, fetchSiteDefaultRole]
   )
 
   const onCancelEditDefaultRole = useCallback(

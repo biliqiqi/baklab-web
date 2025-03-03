@@ -13,13 +13,19 @@ export interface BAvatarProps extends React.HTMLAttributes<SVGSVGElement> {
 
 const BAvatar: React.FC<BAvatarProps> = ({
   username,
-  size,
+  size = 24,
   className,
   showUsername = false,
   ...props
 }) => {
   return (
-    <span className="inline-flex items-center" title={username}>
+    <span
+      className="inline-flex items-center"
+      title={username}
+      style={{
+        lineHeight: `${size}px`,
+      }}
+    >
       <span
         className={cn(
           `overflow-hidden w-[${size}px] h-[${size}px]`,
@@ -31,6 +37,7 @@ const BAvatar: React.FC<BAvatarProps> = ({
           iconId={username}
           char={username}
           size={size}
+          className="align-top"
           {...props}
         />
       </span>

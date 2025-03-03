@@ -144,12 +144,12 @@ export default function SiteListPage() {
       params.delete('creator_name')
       return params
     })
-  }, [params])
+  }, [setParams])
 
   const onResetClick = useCallback(() => {
     setSearchData({ ...defaultSearchData })
     resetParams()
-  }, [params])
+  }, [resetParams])
 
   const onSearchClick = useCallback(() => {
     resetParams()
@@ -166,7 +166,7 @@ export default function SiteListPage() {
 
       return params
     })
-  }, [params, searchData])
+  }, [setParams, resetParams, searchData])
 
   const onPassSiteClick = async (site: Site) => {
     const confirmed = await alertDialog.confirm(
@@ -500,7 +500,7 @@ export default function SiteListPage() {
         setEditSite({ rejectting: false, site: null })
       }
     },
-    [currSite]
+    [currSite, fetchSiteList]
   )
 
   useEffect(() => {

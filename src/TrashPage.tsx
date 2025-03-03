@@ -22,7 +22,7 @@ import { ListPagination } from './components/ListPagination'
 
 import { getArticleTrash, recoverArticle } from './api/article'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
-import { timeAgo, timeFmt } from './lib/dayjs-custom'
+import { timeAgo } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { cn, genArticlePath } from './lib/utils'
 import { useAlertDialogStore, useCategoryStore } from './state/global'
@@ -80,12 +80,12 @@ export default function TrashPage() {
       params.delete('category')
       return params
     })
-  }, [params])
+  }, [setParams])
 
   const cateStore = useCategoryStore()
   const alertDialog = useAlertDialogStore()
 
-  let tab = (params.get('tab') as ArticleTab | null) || 'all'
+  const tab = (params.get('tab') as ArticleTab | null) || 'all'
 
   const fetchList = toSync(
     useCallback(
@@ -98,8 +98,9 @@ export default function TrashPage() {
           const keywords = params.get('keywords') || ''
           const category = params.get('category') || ''
 
+          let currTab = tab
           if (!defaultTabs.includes(tab)) {
-            tab = 'all'
+            currTab = 'all'
           }
 
           if (showLoading) {
@@ -112,7 +113,7 @@ export default function TrashPage() {
             sort,
             category,
             '',
-            tab,
+            currTab,
             keywords,
             { siteFrontId }
           )
@@ -143,14 +144,14 @@ export default function TrashPage() {
           setLoadingList(false)
         }
       },
-      [params, siteFrontId]
+      [params, siteFrontId, tab]
     )
   )
 
   const onResetClick = useCallback(() => {
     setSearchData({ ...defaultSearchData })
     resetParams()
-  }, [params])
+  }, [resetParams])
 
   const onSearchClick = useCallback(() => {
     resetParams()
@@ -166,7 +167,7 @@ export default function TrashPage() {
 
       return params
     })
-  }, [params, searchData])
+  }, [resetParams, setParams, searchData])
 
   const onRecoverClick = useCallback(
     async (id: string, title: string, siteFrontId: string) => {
@@ -188,7 +189,7 @@ export default function TrashPage() {
         console.error('recover article error: ', err)
       }
     },
-    []
+    [alertDialog, fetchList]
   )
 
   const onTabChange = (tab: string) => {

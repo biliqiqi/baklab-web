@@ -194,7 +194,7 @@ export default function BannedUserListPage() {
       /* params.delete('role_id') */
       return params
     })
-  }, [params])
+  }, [setParams])
 
   const fetchUserList = toSync(
     useCallback(
@@ -253,7 +253,7 @@ export default function BannedUserListPage() {
   const onResetClick = useCallback(() => {
     setSearchData({ ...defaultSearchData })
     resetParams()
-  }, [params])
+  }, [resetParams])
 
   const onSearchClick = useCallback(() => {
     resetParams()
@@ -272,7 +272,7 @@ export default function BannedUserListPage() {
 
       return params
     })
-  }, [params, searchData])
+  }, [resetParams, setParams, searchData])
 
   const onUnbanSelectedClick = useCallback(
     async (e: MouseEvent<HTMLButtonElement>) => {
@@ -295,7 +295,7 @@ export default function BannedUserListPage() {
         }
       }
     },
-    [alertDialog, table]
+    [alertDialog, table, fetchUserList]
   )
 
   const fetchUserData = toSync(
@@ -310,15 +310,18 @@ export default function BannedUserListPage() {
     )
   )
 
-  const onShowDetailClick = useCallback((user: UserData) => {
-    setCurrUser(user)
-    setShowUserDetail(true)
-    fetchUserData(user.name)
-  }, [])
+  const onShowDetailClick = useCallback(
+    (user: UserData) => {
+      setCurrUser(user)
+      setShowUserDetail(true)
+      fetchUserData(user.name)
+    },
+    [fetchUserData]
+  )
 
   useEffect(() => {
     fetchUserList(true)
-  }, [location])
+  }, [location, fetchUserList])
 
   return (
     <BContainer

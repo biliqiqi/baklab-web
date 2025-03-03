@@ -14,13 +14,6 @@ import { Card } from './components/ui/card'
 import { Checkbox } from './components/ui/checkbox'
 import { Input } from './components/ui/input'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
   Table,
   TableBody,
   TableCell,
@@ -35,10 +28,8 @@ import BLoader from './components/base/BLoader'
 
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
-import UserDetailCard from './components/UserDetailCard'
 
 import { getSiteBlocklist, unblockUser, unblockUsers } from './api/site'
-import { getUser, unBanUser, unbanManyUsers } from './api/user'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
@@ -57,8 +48,6 @@ const defaultSearchData: SearchFields = {
 
 export default function BlockedUserListPage() {
   const [loading, setLoading] = useState(false)
-  const [currUser, setCurrUser] = useState<BlockedUser | null>(null)
-  const [showUserDetail, setShowUserDetail] = useState(false)
 
   const [list, setList] = useState<BlockedUser[]>([])
   const [params, setParams] = useSearchParams()
@@ -169,7 +158,7 @@ export default function BlockedUserListPage() {
       /* params.delete('role_id') */
       return params
     })
-  }, [params])
+  }, [setParams])
 
   const fetchUserList = toSync(
     useCallback(
@@ -247,7 +236,7 @@ export default function BlockedUserListPage() {
 
       return params
     })
-  }, [params, searchData])
+  }, [searchData, resetParams, setParams])
 
   const onUnblockSelectedClick = useCallback(
     async (e: MouseEvent<HTMLButtonElement>) => {
@@ -274,7 +263,7 @@ export default function BlockedUserListPage() {
         }
       }
     },
-    [alertDialog, table, siteFrontId]
+    [alertDialog, table, siteFrontId, fetchUserList]
   )
 
   /* const onShowDetailClick = useCallback((user: BlockedUser) => {
@@ -298,7 +287,7 @@ export default function BlockedUserListPage() {
           fetchUserList()
         }
       },
-      [siteFrontId, alertDialog]
+      [siteFrontId, alertDialog, fetchUserList]
     )
   )
 

@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import { useShallow } from 'zustand/react/shallow'
 
 import { noop, summryText } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
@@ -10,11 +11,7 @@ import { getArticleList } from '@/api/article'
 import { uploadFileBase64 } from '@/api/file'
 import { checkSiteExists, deleteSite, submitSite, updateSite } from '@/api/site'
 import { defaultSite } from '@/constants/defaults'
-import {
-  useAlertDialogStore,
-  useAuthedUserStore,
-  useSiteStore,
-} from '@/state/global'
+import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
 import { ResponseData, ResponseID, Site } from '@/types/types'
 
 import BCropper from './base/BCropper'
@@ -80,7 +77,7 @@ type SiteScheme = z.infer<typeof siteScheme>
 interface SiteFormProps {
   isEdit?: boolean
   site?: Site
-  onSuccess?: () => void
+  onSuccess?: (frontId: string) => void
   onChange?: (isDirty: boolean) => void
 }
 
@@ -106,7 +103,12 @@ const SiteForm: React.FC<SiteFormProps> = ({
   const [uploading, setUploading] = useState(false)
 
   const alertDialog = useAlertDialogStore()
-  const authStore = useAuthedUserStore()
+  const { checkPermit, isLogined } = useAuthedUserStore(
+    useShallow(({ isLogined, permit }) => ({
+      checkPermit: permit,
+      isLogined,
+    }))
+  )
   /* const siteStore = useSiteStore() */
 
   const form = useForm<SiteScheme>({
@@ -188,7 +190,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
           )
         }
         if (!resp?.code) {
-          onSuccess()
+          onSuccess(frontID)
         }
       } catch (err) {
         console.error('validate front id error: ', err)
@@ -232,7 +234,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
 
       const respD = await deleteSite(site.frontId)
       if (!respD.code) {
-        onSuccess()
+        onSuccess('')
       }
     },
     [isEdit, site, alertDialog, onSuccess]
@@ -241,7 +243,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
   const onCropSuccess = useCallback(
     async (imgData: string) => {
       try {
-        if (!authStore.isLogined()) {
+        if (!isLogined()) {
           toast.error('请认证或登录后再试')
           return
         }
@@ -261,12 +263,12 @@ const SiteForm: React.FC<SiteFormProps> = ({
         setUploading(false)
       }
     },
-    [form]
+    [form, isLogined]
   )
 
   useEffect(() => {
     onChange(form.formState.isDirty)
-  }, [form, formVals])
+  }, [form, formVals, onChange])
 
   /* console.log('curr site: ', site) */
 
@@ -554,7 +556,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
         />
         <div className="flex justify-between">
           <span>
-            {isEdit && authStore.permit('site', 'delete') && (
+            {isEdit && checkPermit('site', 'delete') && (
               <Button
                 variant="outline"
                 className="border-destructive outline-destructive"

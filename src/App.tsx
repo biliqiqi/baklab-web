@@ -9,7 +9,6 @@ import { Toaster } from './components/ui/sonner.tsx'
 import BLoader from './components/base/BLoader.tsx'
 
 import { API_HOST, API_PATH_PREFIX } from './constants/constants.ts'
-import { useAuth } from './hooks/use-auth.ts'
 import { useIsMobile } from './hooks/use-mobile.tsx'
 import { toSync } from './lib/fire-and-forget.ts'
 import { refreshAuthState } from './lib/request.ts'
@@ -34,11 +33,6 @@ const fetchNotiCount = toSync(async () => {
   }
 })
 
-/* interface PingData {
- *   clientID: string
- * } */
-
-/* const EVENT_CLIENT_KEY = 'event_client' */
 const EVENT_URL = `${API_HOST}${API_PATH_PREFIX}events`
 
 const connectEvents = () => {
@@ -47,7 +41,6 @@ const connectEvents = () => {
   })
 
   eventSource.addEventListener('ping', (_event: MessageEvent<string>) => {
-    /* console.log('ping event: ', event) */
     try {
       /* const data = JSON.parse(atob(event.data)) as PingData */
       /* console.log('event data: ', data) */
@@ -57,9 +50,6 @@ const connectEvents = () => {
   })
 
   eventSource.addEventListener('updaterole', (_event: MessageEvent<string>) => {
-    /* const data = JSON.parse(atob(event.data)) as UserData */
-    /* console.log('unban user data: ', data) */
-
     toSync(refreshAuthState)(true)
     const siteState = useSiteStore.getState()
     if (siteState.site) {
@@ -77,13 +67,8 @@ const connectEvents = () => {
     eventSource.close()
   })
 
-  /* eventSource.onmessage = (event) => {
-   *   console.log('on message: ', event.data)
-   * } */
-
   eventSource.onerror = (err) => {
     console.error('event source error: ', err)
-    /* eventSource.close() */
   }
 
   return eventSource
@@ -94,16 +79,26 @@ const App = () => {
   const [router, setRouter] = useState<Router | null>(null)
 
   const updateToastState = useToastStore((state) => state.update)
-  const authStore = useAuthedUserStore()
-  const authed = useAuth()
-  const siteStore = useSiteStore()
+  const { currUsername, isLogined } = useAuthedUserStore(
+    useShallow(({ username, isLogined }) => ({
+      currUsername: username,
+      isLogined,
+    }))
+  )
+  /* const authed = useAuth() */
+
+  const { fetchSiteList } = useSiteStore(
+    useShallow(({ fetchSiteList }) => ({
+      fetchSiteList,
+    }))
+  )
 
   const { setOpen: setSidebarOpen } = useSidebarStore()
   const { update: setShowTopDrawer } = useTopDrawerStore()
   const isMobile = useIsMobile()
   const { forceState } = useForceUpdate()
 
-  const refreshTokenSync = toSync(useCallback(refreshAuthState, [authStore]))
+  const refreshTokenSync = toSync(useCallback(refreshAuthState, [currUsername]))
   const routes = useRoutesStore(useShallow((state) => state.routes))
 
   useEffect(() => {
@@ -112,7 +107,7 @@ const App = () => {
     return () => {
       eventSource.close()
     }
-  }, [authStore.username])
+  }, [currUsername])
 
   useEffect(() => {
     window.onfocus = () => {
@@ -122,10 +117,10 @@ const App = () => {
     return () => {
       window.onfocus = null
     }
-  }, [authStore])
+  }, [refreshTokenSync])
 
   useEffect(() => {
-    if (!authed) {
+    if (!isLogined()) {
       updateToastState(true)
       toSync(refreshAuthState, noop, () => {
         setRouter(createBrowserRouter(routes))
@@ -138,31 +133,30 @@ const App = () => {
       refreshTokenSync(true)
       fetchNotiCount()
       /* console.log('fetch site list!') */
-      toSync(siteStore.fetchSiteList)()
+      toSync(fetchSiteList)()
     }
-  }, [authed])
+  }, [isLogined, routes, fetchSiteList, updateToastState, refreshTokenSync])
 
   useEffect(() => {
     /* console.log('routes: ', routes) */
-    if (authed) {
+    if (isLogined()) {
       setRouter(createBrowserRouter(routes))
     }
-  }, [authed, routes])
+  }, [isLogined, routes])
 
   useEffect(() => {
     if (isMobile) {
       setSidebarOpen(false)
-      /* document.cookie = `${SIDEBAR_COOKIE_NAME}=false; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}` */
     } else {
       const state = getCookie(SIDEBAR_COOKIE_NAME)
       setSidebarOpen(state == 'true')
     }
-  }, [isMobile])
+  }, [isMobile, setSidebarOpen])
 
   useEffect(() => {
     const showDock = getCookie('top_drawer:state') == 'true'
     setShowTopDrawer(showDock)
-  }, [])
+  }, [setShowTopDrawer])
 
   {/* prettier-ignore */}
   return (

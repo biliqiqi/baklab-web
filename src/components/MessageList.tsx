@@ -36,12 +36,7 @@ import {
   useAuthedUserStore,
   useNotificationStore,
 } from '@/state/global'
-import {
-  ListPageState,
-  Message,
-  SUBSCRIBE_ACTION,
-  SubscribeAction,
-} from '@/types/types'
+import { ListPageState, Message, SUBSCRIBE_ACTION } from '@/types/types'
 
 import { ListPagination } from './ListPagination'
 import { Badge } from './ui/badge'

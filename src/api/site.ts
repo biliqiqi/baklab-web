@@ -7,6 +7,7 @@ import {
   ResponseData,
   ResponseID,
   Site,
+  SiteBlockedWordList,
   SiteInviteResponse,
   SiteListResponse,
   SiteStatus,
@@ -227,5 +228,42 @@ export const getSiteBlocklist = (
   return authRequest.get<ResponseData<BlockedUserList>>(
     `sites/${frontId}/blocklist`,
     { searchParams: params }
+  )
+}
+
+export const submitSiteBlockedWords = (frontId: string, words: string[]) =>
+  authRequest.post<ResponseData<null>>(`sites/${frontId}/add_blocked_words`, {
+    json: { words },
+  })
+
+export const removeSiteBlockedWords = (frontId: string, wordIdList: number[]) =>
+  authRequest.post<ResponseData<null>>(`sites/${frontId}/add_blocked_words`, {
+    json: { wordIdList },
+  })
+
+export const getSiteBlockedWords = (
+  frontId: string,
+  keywords?: string,
+  page?: number,
+  pageSize?: number
+) => {
+  const params = new URLSearchParams()
+  if (keywords) {
+    params.set('keywords', keywords)
+  }
+
+  if (page) {
+    params.set('page', String(page))
+  }
+
+  if (pageSize) {
+    params.set('pageSize', String(pageSize))
+  }
+
+  return authRequest.get<ResponseData<SiteBlockedWordList>>(
+    `sites/${frontId}/blocked_words`,
+    {
+      searchParams: params,
+    }
   )
 }

@@ -316,8 +316,6 @@ export const refreshAuthState = async (refreshUser = false) => {
       const unsub = useAuthedUserStore.subscribe(
         (state) => state.user,
         (user, _prevUser) => {
-          // console.log('state changed in refreshAuthState! user: ', user)
-          // console.log('state changed in refreshAuthState! prevUser: ', prevUser)
           if (user) {
             resolve(true)
           } else {
@@ -328,16 +326,16 @@ export const refreshAuthState = async (refreshUser = false) => {
       )
     })
 
-    const { data, code } = await refreshToken(refreshUser)
+    const {
+      data: { token, username, userID, user },
+      code,
+    } = await refreshToken(refreshUser)
     if (!code) {
-      useAuthedUserStore.setState((state) => ({
-        ...state,
-        authToken: data.token,
-        username: data.username,
-        userID: data.userID,
-      }))
+      const updateBaseData = useAuthedUserStore.getState().updateBaseData
+      updateBaseData(token, username, userID)
       if (refreshUser) {
-        useAuthedUserStore.setState((state) => ({ ...state, user: data.user }))
+        const updateUserData = useAuthedUserStore.getState().updateUserData
+        updateUserData(user)
       }
 
       return ps

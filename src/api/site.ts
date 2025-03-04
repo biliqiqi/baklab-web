@@ -236,10 +236,13 @@ export const submitSiteBlockedWords = (frontId: string, words: string[]) =>
     json: { words },
   })
 
-export const removeSiteBlockedWords = (frontId: string, wordIdList: number[]) =>
-  authRequest.post<ResponseData<null>>(`sites/${frontId}/add_blocked_words`, {
-    json: { wordIdList },
-  })
+export const removeSiteBlockedWords = (frontId: string, idList: number[]) =>
+  authRequest.post<ResponseData<null>>(
+    `sites/${frontId}/remove_blocked_words`,
+    {
+      json: { idList },
+    }
+  )
 
 export const getSiteBlockedWords = (
   frontId: string,

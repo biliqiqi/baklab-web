@@ -14,6 +14,7 @@ import {
   useState,
 } from 'react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
+import { useShallow } from 'zustand/react/shallow'
 
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
@@ -83,7 +84,12 @@ export default function UserListPage() {
 
   const { siteFrontId } = useParams()
 
-  const authStore = useAuthedUserStore()
+  const { checkPermit, levelCompare } = useAuthedUserStore(
+    useShallow(({ permit, levelCompare }) => ({
+      checkPermit: permit,
+      levelCompare,
+    }))
+  )
   const siteStore = useSiteStore()
   const alertDialog = useAlertDialogStore()
 
@@ -131,14 +137,14 @@ export default function UserListPage() {
             (table.getIsSomePageRowsSelected() && 'indeterminate')
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
+          aria-label="全选"
         />
       ),
       cell: ({ row }) => (
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
+          aria-label="选中该行"
           disabled={!row.getCanSelect()}
         />
       ),
@@ -197,7 +203,7 @@ export default function UserListPage() {
             详细
           </Button>
 
-          {siteFrontId && authStore.levelCompare(row.original.role) < 0 && (
+          {siteFrontId && levelCompare(row.original.role) < 0 && (
             <>
               <Button
                 variant="secondary"
@@ -237,7 +243,7 @@ export default function UserListPage() {
       rowSelection,
     },
     getRowId: (row) => row.name,
-    enableRowSelection: (row) => authStore.levelCompare(row.original.role) < 0,
+    enableRowSelection: (row) => levelCompare(row.original.role) < 0,
   })
 
   const selectedRows = table.getSelectedRowModel().rows
@@ -467,7 +473,7 @@ export default function UserListPage() {
       if (!siteFrontId) return
       const confirmed = await alertDialog.confirm(
         `确认`,
-        `确定把 ${user.name} 从本站除名？`,
+        `确定把成员 ${user.name} 从本站除名？`,
         'danger'
       )
       if (!confirmed) return
@@ -606,7 +612,7 @@ export default function UserListPage() {
             <ListPagination pageState={pageState} />
           </Card>
           {selectedRows.length > 0 && (
-            <Card className="mt-4 p-2">
+            <Card className="sticky bottom-0 mt-4 p-2">
               <div className="flex justify-between items-center">
                 <div className="text-sm">
                   已选中 {selectedRows.length} 个用户
@@ -615,7 +621,7 @@ export default function UserListPage() {
                   {bannableUsers.length > 0 && (
                     <>
                       <>
-                        {siteFrontId && authStore.permit('site', 'manage') && (
+                        {checkPermit('site', 'manage') && (
                           <Button
                             size="sm"
                             variant="destructive"
@@ -626,7 +632,7 @@ export default function UserListPage() {
                         )}
 
                         {siteFrontId &&
-                          authStore.permit('user', 'block_from_site') && (
+                          checkPermit('user', 'block_from_site') && (
                             <Button
                               size="sm"
                               variant="destructive"
@@ -638,7 +644,7 @@ export default function UserListPage() {
                           )}
                       </>
                       <>
-                        {authStore.permit('user', 'ban') && (
+                        {checkPermit('user', 'ban') && (
                           <Button
                             size="sm"
                             variant="destructive"

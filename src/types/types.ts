@@ -582,8 +582,11 @@ export interface SiteBlockedWord {
   siteId: string
   wordId: string
   word: BlockedWord
+  createdAt: string
+  creatorId: string
+  creatorName: string
 }
 
 export interface SiteBlockedWordList extends ListPageState {
-  list: SiteBlockedWord
+  list: SiteBlockedWord[]
 }

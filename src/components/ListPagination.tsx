@@ -11,7 +11,6 @@ import {
   PaginationFirst,
   PaginationItem,
   PaginationLast,
-  PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from './ui/pagination'
@@ -47,7 +46,7 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
         setParams((params) => ({ ...params, page: page }))
       }
     },
-    [pageState]
+    [pageState, setParams]
   )
 
   useEffect(() => {
@@ -58,7 +57,7 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
         })
       }, 200)
     }
-  }, [params])
+  }, [autoScrollTop])
 
   return (
     <>
@@ -84,7 +83,7 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
                   defaultValue={pageState.currPage}
                   autoComplete="off"
                   pattern="[0-9]+"
-                  className="inline-block w-[30px] h-[30px] rounded-full text-center"
+                  className="inline-block w-[42px] h-[30px] rounded-full text-center"
                   onKeyUp={onPageEnter}
                 />{' '}
                 <span className="text-gray-500">/ {pageState.totalPage}</span>

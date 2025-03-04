@@ -633,7 +633,7 @@ export default function SiteListPage() {
             <ListPagination pageState={pageState} />
           </Card>
           {selectedRows.length > 0 && (
-            <Card className="mt-4 p-2">
+            <Card className="sticky bottom-0 mt-4 p-2">
               <div className="flex justify-between items-center">
                 <div className="text-sm">
                   已选中 {selectedRows.length} 个站点

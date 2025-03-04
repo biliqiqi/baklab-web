@@ -71,3 +71,5 @@ export const ARTICLE_STATUS_COLOR_MAP: ArticleStatusColorMap = {
   rejected: 'text-red-500',
   draft: '',
 }
+
+export const MAX_BLOCKED_WORD_LEN = 20

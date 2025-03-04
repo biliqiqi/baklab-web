@@ -567,9 +567,7 @@ export default function RoleManagePage() {
               setShowRoleForm(false)
               fetchRoleList()
             }}
-            onChange={(dirty) => {
-              setRoleFormDirty(dirty)
-            }}
+            onChange={setRoleFormDirty}
           />
         </DialogContent>
       </Dialog>

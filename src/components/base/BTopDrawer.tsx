@@ -88,14 +88,17 @@ const BTopDrawer = () => {
             />
           </Link>
           {isLogined() && checkPermit('site', 'create', true) && (
-            <span className="inline-flex flex-col items-center align-middle">
+            <span
+              className="inline-flex flex-col items-center align-middle cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault()
+                setShowSiteForm(true)
+              }}
+            >
               <Button
                 variant="secondary"
                 className="rounded-full w-[40px] h-[40px] text-[24px] text-center text-gray-500 mb-1"
                 key="new-site"
-                onClick={() => {
-                  setShowSiteForm(true)
-                }}
                 title="创建站点"
               >
                 +

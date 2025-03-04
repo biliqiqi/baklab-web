@@ -11,6 +11,7 @@ import ArticlePage from './ArticlePage.tsx'
 import { ArticleReviewPage } from './ArticleReviewPage.tsx'
 import BannedUserListPage from './BannedUserListPage.tsx'
 import BlockedUserListPage from './BlockedUserListPage.tsx'
+import BlockedWordListPage from './BlockedWordListPage.tsx'
 import CategoryListPage from './CategoryListPage.tsx'
 import EditPage from './EditPage.tsx'
 import InvitePage from './InvitePage.tsx'
@@ -283,6 +284,11 @@ export const routes: RouteObject[] = [
     path: '/:siteFrontId/manage/article_review',
     Component: ArticleReviewPage,
     loader: needPermission('article', 'review'),
+  },
+  {
+    path: '/:siteFrontId/manage/blocked_words',
+    Component: BlockedWordListPage,
+    loader: needPermission('site', 'manage'),
   },
   {
     path: '*',

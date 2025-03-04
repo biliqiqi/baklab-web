@@ -59,6 +59,8 @@ export interface AuthedUserState {
     userID: string,
     user: UserData | null
   ) => void
+  updateBaseData: (token: string, username: string, userID: string) => void
+  updateUserData: (user: UserData | null) => void
   updateObj: (fn: (obj: AuthedUserData) => AuthedUserData) => void
   logout: () => void
   loginWithDialog: () => Promise<AuthedUserData>
@@ -105,7 +107,20 @@ export const useAuthedUserStore = create(
         user: clone(user),
       }
       set((state) => ({ ...state, ...newState }))
-      // localStorage.setItem(AUTHED_USER_LOCAL_STORE_NAME, JSON.stringify(newState))
+    },
+    updateBaseData(token, username, userID) {
+      set((state) => ({
+        ...state,
+        authToken: token,
+        username,
+        userID,
+      }))
+    },
+    updateUserData(user) {
+      set((state) => ({
+        ...state,
+        user,
+      }))
     },
     updateObj: set,
     loginWithDialog: () =>

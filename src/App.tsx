@@ -132,7 +132,6 @@ const App = () => {
     } else {
       refreshTokenSync(true)
       fetchNotiCount()
-      /* console.log('fetch site list!') */
       toSync(fetchSiteList)()
     }
   }, [isLogined, routes, fetchSiteList, updateToastState, refreshTokenSync])

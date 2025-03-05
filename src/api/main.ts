@@ -102,6 +102,7 @@ export const getPermissionList = (custom?: CustomRequestOptions) =>
 export const getSiteUpdates = (
   page?: number,
   pageSize?: number,
+  keywords?: string,
   custom?: CustomRequestOptions
 ) => {
   const params = new URLSearchParams()
@@ -111,6 +112,10 @@ export const getSiteUpdates = (
 
   if (pageSize) {
     params.set('pageSize', String(pageSize))
+  }
+
+  if (keywords) {
+    params.set('keywords', keywords)
   }
 
   return authRequest.get<ResponseData<ArticleHistoryResponse>>(

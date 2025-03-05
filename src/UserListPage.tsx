@@ -529,6 +529,11 @@ export default function UserListPage() {
                 keywords: e.target.value,
               }))
             }
+            onKeyUp={(e) => {
+              if (e.key == 'Enter') {
+                onSearchClick()
+              }
+            }}
           />
           <RoleSelector
             value={searchData.roleId || ''}

@@ -198,6 +198,11 @@ export default function ActivityPage() {
                 username: usernameRef.current?.value || '',
               }))
             }
+            onKeyUp={(e) => {
+              if (e.key == 'Enter') {
+                onSearchClick()
+              }
+            }}
           />
           {checkPermit('activity', 'manage_platform') && (
             <Select

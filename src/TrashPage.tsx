@@ -232,6 +232,11 @@ export default function TrashPage() {
                 keywords: e.target.value || '',
               }))
             }
+            onKeyUp={(e) => {
+              if (e.key == 'Enter') {
+                onSearchClick()
+              }
+            }}
           />
           <Select
             value={searchData.category}

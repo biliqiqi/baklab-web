@@ -138,7 +138,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                 variant="ghost"
                 size="sm"
                 onClick={onMenuClick}
-                className="w-[36px] h-[36px] p-0 rounded-full mr-2"
+                className="w-[36px] h-[36px] p-0 rounded-full mr-2 text-gray-500"
               >
                 <MenuIcon size={20} />
               </Button>

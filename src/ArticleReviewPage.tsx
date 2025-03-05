@@ -309,10 +309,13 @@ export function ArticleReviewPage() {
 
     try {
       setLoading(true)
+
+      const username = params.get('username') || ''
       const {
         code,
         data: { list, currPage, pageSize, total, totalPage },
-      } = await getSiteUpdates(1, DEFAULT_PAGE_SIZE, { siteFrontId })
+      } = await getSiteUpdates(1, DEFAULT_PAGE_SIZE, username, { siteFrontId })
+
       if (!code && list) {
         /* console.log('updates: ', list) */
         setUpdates(() => [...list])
@@ -336,7 +339,7 @@ export function ArticleReviewPage() {
     } finally {
       setLoading(false)
     }
-  }, [siteFrontId])
+  }, [siteFrontId, params])
 
   const onReviewConfirmClick = useCallback(
     async (history: ArticleLog, action: ReviewAction, content: string) => {
@@ -397,6 +400,11 @@ export function ArticleReviewPage() {
                 username: usernameRef.current?.value || '',
               }))
             }
+            onKeyUp={(e) => {
+              if (e.key == 'Enter') {
+                onSearchClick()
+              }
+            }}
           />
         </div>
         <div>

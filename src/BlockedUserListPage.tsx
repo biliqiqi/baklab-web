@@ -316,6 +316,11 @@ export default function BlockedUserListPage() {
                 keywords: e.target.value,
               }))
             }
+            onKeyUp={(e) => {
+              if (e.key == 'Enter') {
+                onSearchClick()
+              }
+            }}
           />
         </div>
         <div>

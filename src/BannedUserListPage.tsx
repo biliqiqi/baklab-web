@@ -321,7 +321,7 @@ export default function BannedUserListPage() {
 
   useEffect(() => {
     fetchUserList(true)
-  }, [location, fetchUserList])
+  }, [location])
 
   return (
     <BContainer
@@ -344,6 +344,11 @@ export default function BannedUserListPage() {
                 keywords: e.target.value,
               }))
             }
+            onKeyUp={(e) => {
+              if (e.key == 'Enter') {
+                onSearchClick()
+              }
+            }}
           />
         </div>
         <div>

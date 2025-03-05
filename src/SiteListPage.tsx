@@ -528,6 +528,11 @@ export default function SiteListPage() {
                 keywords: e.target.value,
               }))
             }
+            onKeyUp={(e) => {
+              if (e.key == 'Enter') {
+                onSearchClick()
+              }
+            }}
           />
           <Input
             placeholder="创建人"
@@ -539,6 +544,11 @@ export default function SiteListPage() {
                 creatorName: e.target.value,
               }))
             }
+            onKeyUp={(e) => {
+              if (e.key == 'Enter') {
+                onSearchClick()
+              }
+            }}
           />
         </div>
         <div>

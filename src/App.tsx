@@ -11,7 +11,7 @@ import BLoader from './components/base/BLoader.tsx'
 import { API_HOST, API_PATH_PREFIX } from './constants/constants.ts'
 import { useIsMobile } from './hooks/use-mobile.tsx'
 import { toSync } from './lib/fire-and-forget.ts'
-import { refreshAuthState } from './lib/request.ts'
+import { refreshAuthState, refreshToken } from './lib/request.ts'
 import { getCookie, noop } from './lib/utils.ts'
 import {
   useAuthedUserStore,
@@ -78,14 +78,16 @@ const App = () => {
   const [initialized, setInitialized] = useState(false)
   const [router, setRouter] = useState<Router | null>(null)
 
-  const updateToastState = useToastStore((state) => state.update)
-  const { currUsername, isLogined } = useAuthedUserStore(
-    useShallow(({ username, isLogined }) => ({
-      currUsername: username,
-      isLogined,
-    }))
-  )
-  /* const authed = useAuth() */
+  /* const updateToastState = useToastStore((state) => state.update) */
+  const { currUsername, isLogined, updateBaseData, updateUserData } =
+    useAuthedUserStore(
+      useShallow(({ username, isLogined, updateBaseData, updateUserData }) => ({
+        currUsername: username,
+        isLogined,
+        updateBaseData,
+        updateUserData,
+      }))
+    )
 
   const { fetchSiteList } = useSiteStore(
     useShallow(({ fetchSiteList }) => ({
@@ -98,7 +100,25 @@ const App = () => {
   const isMobile = useIsMobile()
   const { forceState } = useForceUpdate()
 
-  const refreshTokenSync = toSync(useCallback(refreshAuthState, [currUsername]))
+  const refreshTokenSync = toSync(
+    useCallback(
+      async (refreshUser: boolean) => {
+        const {
+          data: { token, username, userID, user },
+          code,
+        } = await refreshToken(refreshUser)
+
+        if (!code) {
+          updateBaseData(token, username, userID)
+          if (refreshUser) {
+            updateUserData(user)
+          }
+        }
+      },
+      [updateBaseData, updateUserData]
+    )
+  )
+
   const routes = useRoutesStore(useShallow((state) => state.routes))
 
   useEffect(() => {
@@ -121,27 +141,14 @@ const App = () => {
 
   useEffect(() => {
     if (!isLogined()) {
-      updateToastState(true)
-      toSync(refreshAuthState, noop, () => {
-        setRouter(createBrowserRouter(routes))
-        setInitialized(true)
-        setTimeout(() => {
-          updateToastState(false)
-        }, 0)
-      })()
-    } else {
       refreshTokenSync(true)
-      fetchNotiCount()
-      toSync(fetchSiteList)()
     }
-  }, [isLogined, routes, fetchSiteList, updateToastState, refreshTokenSync])
 
-  useEffect(() => {
-    /* console.log('routes: ', routes) */
-    if (isLogined()) {
-      setRouter(createBrowserRouter(routes))
-    }
-  }, [isLogined, routes])
+    setRouter(createBrowserRouter(routes))
+    fetchNotiCount()
+    toSync(fetchSiteList)()
+    setInitialized(true)
+  }, [isLogined, routes, fetchSiteList])
 
   useEffect(() => {
     if (isMobile) {

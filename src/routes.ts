@@ -67,10 +67,9 @@ const needPermission =
   async ({ request, params: { siteFrontId } }) => {
     try {
       const logined = await ensureLogin()
+      const checkPermit = useAuthedUserStore.getState().permit
+      const checkPermitUnderSite = useAuthedUserStore.getState().permitUnderSite
 
-      const authState = useAuthedUserStore.getState()
-
-      // console.log('logined: ', logined)
       if (!logined) {
         return redirectToSignin(request.url)
       }
@@ -83,20 +82,11 @@ const needPermission =
           site = await siteStore.fetchSiteData(siteFrontId)
         }
 
-        // console.log('the site data: ', site)
-
-        // if (site) {
-        //   console.log(
-        //     'route permision: ',
-        //     authState.permitUnderSite(site, module, action)
-        //   )
-        // }
-
-        if (!site || !authState.permitUnderSite(site, module, action)) {
+        if (!site || !checkPermitUnderSite(site, module, action)) {
           return redirect(`/${siteFrontId}`)
         }
       } else {
-        if (!authState.permit(module, action)) {
+        if (!checkPermit(module, action)) {
           return redirect('/')
         }
       }

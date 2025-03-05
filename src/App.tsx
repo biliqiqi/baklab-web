@@ -12,14 +12,13 @@ import { API_HOST, API_PATH_PREFIX } from './constants/constants.ts'
 import { useIsMobile } from './hooks/use-mobile.tsx'
 import { toSync } from './lib/fire-and-forget.ts'
 import { refreshAuthState, refreshToken } from './lib/request.ts'
-import { getCookie, noop } from './lib/utils.ts'
+import { getCookie } from './lib/utils.ts'
 import {
   useAuthedUserStore,
   useForceUpdate,
   useNotificationStore,
   useSidebarStore,
   useSiteStore,
-  useToastStore,
   useTopDrawerStore,
 } from './state/global.ts'
 import { useRoutesStore } from './state/routes.ts'

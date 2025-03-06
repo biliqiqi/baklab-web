@@ -15,7 +15,6 @@ import {
   CustomRequestOptions,
   JSONMap,
   ResponseData,
-  UserData,
 } from '@/types/types'
 
 const isRefreshRequest: (x: Request) => boolean = (req) =>

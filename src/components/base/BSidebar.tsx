@@ -303,7 +303,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
       id: 'article_review',
       permitModule: 'article',
       permitAction: 'review',
-      name: '内容审核',
+      name: '人工审核',
       link: `/${siteFrontId}/manage/article_review`,
       icon: <ShieldCheckIcon size={18} />,
     },

@@ -383,8 +383,8 @@ export function ArticleReviewPage() {
       category={{
         isFront: true,
         frontId: 'article_review',
-        name: '内容审核',
-        describe: '',
+        name: '人工审核',
+        describe: '审核当前站点所有提交和更新',
       }}
     >
       <Card className="flex flex-wrap justify-between p-2">

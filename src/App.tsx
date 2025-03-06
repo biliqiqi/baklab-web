@@ -78,14 +78,23 @@ const App = () => {
   const [router, setRouter] = useState<Router | null>(null)
 
   /* const updateToastState = useToastStore((state) => state.update) */
-  const { currUsername, isLogined, updateBaseData, updateUserData } =
+  const { currUsername, authToken, isLogined, updateBaseData, updateUserData } =
     useAuthedUserStore(
-      useShallow(({ username, isLogined, updateBaseData, updateUserData }) => ({
-        currUsername: username,
-        isLogined,
-        updateBaseData,
-        updateUserData,
-      }))
+      useShallow(
+        ({
+          username,
+          authToken,
+          isLogined,
+          updateBaseData,
+          updateUserData,
+        }) => ({
+          currUsername: username,
+          authToken,
+          isLogined,
+          updateBaseData,
+          updateUserData,
+        })
+      )
     )
 
   const { fetchSiteList } = useSiteStore(
@@ -139,15 +148,16 @@ const App = () => {
   }, [refreshTokenSync])
 
   useEffect(() => {
-    if (!isLogined()) {
+    if (!authToken) {
       refreshTokenSync(true)
+    } else {
+      fetchNotiCount()
+      toSync(fetchSiteList)()
     }
 
     setRouter(createBrowserRouter(routes))
-    fetchNotiCount()
-    toSync(fetchSiteList)()
     setInitialized(true)
-  }, [isLogined, routes, fetchSiteList])
+  }, [authToken, routes, fetchSiteList])
 
   useEffect(() => {
     if (isMobile) {

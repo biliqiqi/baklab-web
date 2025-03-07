@@ -78,7 +78,7 @@ const App = () => {
   const [router, setRouter] = useState<Router | null>(null)
 
   /* const updateToastState = useToastStore((state) => state.update) */
-  const { currUsername, authToken, isLogined, updateBaseData, updateUserData } =
+  const { currUsername, authToken, updateBaseData, updateUserData } =
     useAuthedUserStore(
       useShallow(
         ({

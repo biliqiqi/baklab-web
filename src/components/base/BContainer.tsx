@@ -97,17 +97,17 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       }))
     )
 
-    const { isLogined } = useAuthedUserStore(
-      useShallow(({ permit, userID, isLogined }) => ({
+    const { isLogined, authToken } = useAuthedUserStore(
+      useShallow(({ permit, userID, authToken, isLogined }) => ({
         currUserId: userID,
         authPermit: permit,
         isLogined,
+        authToken,
       }))
     )
 
     const articleHistory = useArticleHistoryStore()
 
-    const globalSiteFrontId = useMemo(() => currSite?.frontId || '', [currSite])
     const isReplyHistory = useMemo(
       () => articleHistory.article?.replyToId != '0',
       [articleHistory]
@@ -193,12 +193,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       if (siteFrontId) {
         toSync(async () =>
           Promise.all([
-            (function () {
-              // 避免重复请求站点数据
-              if (siteFrontId != globalSiteFrontId) {
-                return fetchSiteData(siteFrontId)
-              }
-            })(),
+            fetchSiteData(siteFrontId),
             fetchCategoryList(siteFrontId),
           ])
         )()
@@ -208,11 +203,11 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       }
     }, [
       siteFrontId,
-      globalSiteFrontId,
       fetchSiteData,
       updateCurrSite,
       fetchCategoryList,
       updateCategories,
+      authToken,
     ])
 
     useDocumentTitle('')

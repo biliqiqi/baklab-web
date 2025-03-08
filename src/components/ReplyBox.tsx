@@ -13,7 +13,7 @@ import { useForm } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
-import { bus, md2text, renderMD, summryText } from '@/lib/utils'
+import { bus, cn, md2text, renderMD, summryText } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { submitReply, updateReply } from '@/api/article'
@@ -83,10 +83,11 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   const [isPreview, setPreview] = useState(false)
   const [markdownMode, setMarkdownMode] = useState(false)
   const [updateRef, setUpdateRef] = useState(false)
+  const [targetInputEl, setTargetInputEl] = useState<HTMLElement | null>(null)
 
   const { siteFrontId } = useParams()
 
-  const authStore = useAuthedUserStore()
+  /* const authStore = useAuthedUserStore() */
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const tiptapRef = useRef<TipTapRef | null>(null)
@@ -94,19 +95,6 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   const replyBoxRef = useRef<ReplyBoxData>({
     ...defaultBoxRef,
   })
-
-  const targetInputEl: HTMLElement | null = useMemo(() => {
-    let targetEl: HTMLElement
-    if (markdownMode) {
-      if (!textareaRef.current) return null
-      targetEl = textareaRef.current
-    } else {
-      if (!tiptapRef.current?.element) return null
-      targetEl = tiptapRef.current.element
-    }
-
-    return targetEl
-  }, [markdownMode, updateRef])
 
   const reset = () => {
     setLoading(false)
@@ -266,9 +254,8 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   }
 
   useEffect(() => {
-    /* console.log('replyBoxHeight: ', targetInputEl) */
+    /* console.log('targetInputEl: ', targetInputEl) */
     if (!targetInputEl) return
-
     /* console.log('replyBoxHeight: ', replyBoxHeight) */
 
     if (isActive) {
@@ -282,7 +269,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
       }
     } else {
       form.clearErrors('content')
-      if (replyBoxHeight > REPLY_BOX_INITIAL_HEIGHT) {
+      if (replyBoxHeight != REPLY_BOX_INITIAL_HEIGHT) {
         targetInputEl.classList.add('duration-200', 'transition-all')
         setReplyBoxHeight(REPLY_BOX_INITIAL_HEIGHT)
         setTimeout(() => {
@@ -367,6 +354,14 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   }, [targetInputEl])
 
   useEffect(() => {
+    if (markdownMode) {
+      setTargetInputEl(textareaRef.current)
+    } else {
+      setTargetInputEl(tiptapRef.current?.element || null)
+    }
+  }, [markdownMode])
+
+  useEffect(() => {
     setUpdateRef(true)
   }, [])
 
@@ -382,7 +377,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="max-w-[800px] -mx-2 mt-[10px] sticky bottom-0 bg-white px-3 pb-3 rounded-lg border-[1px]"
+        className="-mx-2 mt-[10px] sticky bottom-0 bg-white px-3 pb-3 rounded-lg border-[1px]"
         style={{
           boxShadow:
             '0 0 15px -3px rgb(0 0 0 / 0.1), 0 0 6px -4px rgb(0 0 0 / 0.1)',
@@ -470,6 +465,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
                     value={escapeHtml(field.value)}
                     hideBubble={markdownMode}
                     disabled={disabled}
+                    className={cn(isActive && 'resize-y overflow-auto')}
                   />
                 </>
               </FormControl>

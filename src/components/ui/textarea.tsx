@@ -27,14 +27,15 @@ export interface TextareaProps
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, state, onResize = noop, ...props }, ref) => {
-    const elRef = React.useRef<HTMLTextAreaElement | null>(null)
+    const elRef = React.useRef<HTMLTextAreaElement>(null)
+
+    /* @ts-expect-error no error */
+    React.useImperativeHandle(ref, () => elRef.current)
 
     React.useEffect(() => {
       let resizeObserver: ResizeObserver | null = null
 
-      if (typeof ref == 'function' && elRef.current) {
-        ref(elRef.current)
-
+      if (elRef.current) {
         resizeObserver = new ResizeObserver((entries) => {
           for (const entry of entries) {
             const { width, height } = entry.contentRect
@@ -49,7 +50,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           resizeObserver.disconnect()
         }
       }
-    }, [])
+    }, [onResize])
 
     return (
       <textarea

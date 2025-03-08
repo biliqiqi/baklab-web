@@ -72,6 +72,9 @@ export const setUserRole = (
         roleId,
         remark: remark || '',
         roleName,
+        extra: {
+          roleName,
+        },
       },
     },
     custom

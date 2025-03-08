@@ -2,11 +2,12 @@ import { CheckIcon, EllipsisVerticalIcon } from 'lucide-react'
 import {
   MouseEvent,
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useState,
 } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
 import { cn, genArticlePath } from '@/lib/utils'
@@ -34,12 +35,17 @@ import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 import {
   useAlertDialogStore,
   useAuthedUserStore,
+  useForceUpdate,
   useNotificationStore,
 } from '@/state/global'
 import { ListPageState, Message, SUBSCRIBE_ACTION } from '@/types/types'
 
 import { ListPagination } from './ListPagination'
 import { Badge } from './ui/badge'
+
+interface MessageFront extends Message {
+  targetPath: string
+}
 
 export interface MessageListRef {
   list: Message[]
@@ -58,7 +64,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
   ({ listType = 'default', pageSize = DEFAULT_PAGE_SIZE }, ref) => {
     const [loading, setLoading] = useState(false)
 
-    const [notiList, setNotiList] = useState<Message[]>([])
+    const [notiList, setNotiList] = useState<MessageFront[]>([])
     /* const [notiTotal, setNotiTotal] = useState(0) */
     const [pageState, setPageState] = useState<ListPageState>({
       currPage: 1,
@@ -68,11 +74,14 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
     })
 
     const [params] = useSearchParams()
+    const location = useLocation()
 
     const authState = useAuthedUserStore()
     const alertDialog = useAlertDialogStore()
 
     const notiStore = useNotificationStore()
+
+    const forceUpdate = useForceUpdate((state) => state.forceUpdate)
 
     const fetchNotifications = async () => {
       const page = Number(params.get('page')) || 1
@@ -84,7 +93,14 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
       if (!resp.code) {
         const { data } = resp
         if (data.list) {
-          setNotiList([...data.list])
+          const list: MessageFront[] = data.list.map((item) => {
+            return {
+              ...item,
+              targetPath: genArticlePath(item.targetData),
+            }
+          })
+
+          setNotiList([...list])
           /* setNotiTotal(resp.data.total) */
           setPageState({
             currPage: data.page,
@@ -153,9 +169,22 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
       await Promise.all([fetchNotifications(), notiStore.fetchUnread()])
     }
 
-    /* useEffect(() => {
-     *   toSync(fetchNotifications)()
-     * }, []) */
+    const onMessageClick = useCallback(
+      (e: MouseEvent<HTMLAnchorElement>, item: MessageFront) => {
+        if (location.pathname == item.targetPath) {
+          e.preventDefault()
+          /* console.log('force update') */
+          forceUpdate()
+
+          setTimeout(() => {
+            toSync(readArticle)(item.contentArticle.id)
+            toSync(fetchNotifications)()
+            toSync(notiStore.fetchUnread)()
+          }, 0)
+        }
+      },
+      [location, forceUpdate, fetchNotifications, notiStore]
+    )
 
     useEffect(() => {
       toSync(fetchNotifications)()
@@ -197,9 +226,10 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
         ) : (
           notiList.map((item) => (
             <Link
-              to={genArticlePath(item.targetData)}
+              to={item.targetPath}
               className="hover:no-underline"
               key={item.id}
+              onClick={(e) => onMessageClick(e, item)}
             >
               <div className="p-3 mb-2 rounded-sm bg-white hover:opacity-80">
                 <div className="flex justify-between items-start mb-2">

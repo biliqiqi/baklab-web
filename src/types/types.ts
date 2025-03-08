@@ -415,13 +415,15 @@ export interface ResponseID {
 export type UserSubmitResponse = ResponseID
 
 export type MessageStatus = 'read' | 'unread'
+export type MessageTargetModel = 'article' | 'category'
+
 export interface Message<T = Article> {
   id: string
   senderUserId: string
   senderUserName: string
   receiverUserId: string
   receiverUserName: string
-  targetModel: string
+  targetModel: MessageTargetModel
   targetID: string
   targetData: T
   contentArticle: Article

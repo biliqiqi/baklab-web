@@ -2,6 +2,7 @@ import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog'
 import {
   BellIcon,
   ChevronLeftIcon,
+  ChevronRightIcon,
   GripIcon,
   Loader,
   MenuIcon,
@@ -121,9 +122,10 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
           className="flex flex-grow  items-center"
           style={{
             maxWidth: 'calc(100% - 8rem)',
+            lineHeight: '36px',
           }}
         >
-          {goBack && history.length > 2 ? (
+          {goBack && isMobile && history.length > 2 ? (
             <Button
               variant="ghost"
               size="sm"
@@ -169,6 +171,12 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
 
           {!!category && (
             <>
+              {!isMobile && sidebar.state == 'collapsed' && (
+                <ChevronRightIcon
+                  size={16}
+                  className="inline-block mr-2 align-middle text-gray-500"
+                />
+              )}
               {category.isFront ? (
                 <span className="flex-shrink-1 text-ellipsis overflow-hidden whitespace-nowrap">
                   {category.name}

@@ -208,7 +208,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               {article.authorName}
             </Link>
           )}
-          &nbsp;发布于&nbsp;
+          &nbsp;·&nbsp;
           <span title={timeFmt(article.createdAt, 'YYYY年M月D日 H时m分s秒')}>
             {timeAgo(article.createdAt)}
           </span>

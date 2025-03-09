@@ -1,6 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { MouseEvent, useCallback, useEffect, useState } from 'react'
+import {
+  ChangeEvent,
+  MouseEvent,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react'
 import { useForm } from 'react-hook-form'
+import sanitize from 'sanitize-html'
 import { toast } from 'sonner'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -10,6 +17,7 @@ import { z } from '@/lib/zod-custom'
 import { getArticleList } from '@/api/article'
 import { uploadFileBase64 } from '@/api/file'
 import { checkSiteExists, deleteSite, submitSite, updateSite } from '@/api/site'
+import { STATIC_HOST_NAME } from '@/constants/constants'
 import { defaultSite } from '@/constants/defaults'
 import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
 import { ResponseData, ResponseID, Site } from '@/types/types'
@@ -55,6 +63,7 @@ const siteScheme = z.object({
   keywords: z.string(),
   description: descriptionScheme,
   logoUrl: z.string().min(1, '请设置 LOGO'),
+  logoBrandHTML: z.string(),
   nonMemberInteract: z.boolean(),
   visible: z.boolean(),
   homePage: z.string(),
@@ -66,11 +75,22 @@ const siteEditScheme = z.object({
   keywords: z.string(),
   description: descriptionScheme,
   logoUrl: z.string().min(1, '请设置 LOGO'),
+  logoBrandHTML: z.string(),
   nonMemberInteract: z.boolean(),
   visible: z.boolean(),
   homePage: z.string(),
   reviewBeforePublish: z.boolean(),
 })
+
+const htmlSanitizeOpts: sanitize.IOptions = {
+  allowedTags: ['span', 'b', 'img'],
+  allowedAttributes: {
+    span: ['style', 'title'],
+    b: ['style', 'title'],
+    img: ['style', 'src', 'alt', 'title', 'width', 'height'],
+  },
+  disallowedTagsMode: 'discard',
+}
 
 type SiteScheme = z.infer<typeof siteScheme>
 
@@ -87,6 +107,7 @@ const defaultSiteData: SiteScheme = {
   keywords: '',
   description: '',
   logoUrl: '',
+  logoBrandHTML: '',
   visible: true,
   nonMemberInteract: true,
   homePage: '/',
@@ -99,8 +120,9 @@ const SiteForm: React.FC<SiteFormProps> = ({
   onSuccess = noop,
   onChange = noop,
 }) => {
-  /* const [imgUrl, setImgUrl] = useState('') */
   const [uploading, setUploading] = useState(false)
+  const [brandUploading, setBrandUploading] = useState(false)
+  const [edittingLogo, setEdittingLogo] = useState(false)
 
   const alertDialog = useAlertDialogStore()
   const { checkPermit, isLogined } = useAuthedUserStore(
@@ -109,7 +131,6 @@ const SiteForm: React.FC<SiteFormProps> = ({
       isLogined,
     }))
   )
-  /* const siteStore = useSiteStore() */
 
   const form = useForm<SiteScheme>({
     resolver: zodResolver(
@@ -121,6 +142,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
       ...(isEdit
         ? {
             logoUrl: site.logoUrl,
+            logoBrandHTML: site.logoHtmlStr,
             visible: site.visible,
             nonMemberInteract: site.allowNonMemberInteract,
             name: site.name,
@@ -143,6 +165,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
       description,
       keywords,
       logoUrl,
+      logoBrandHTML,
       visible,
       nonMemberInteract,
       homePage,
@@ -151,6 +174,10 @@ const SiteForm: React.FC<SiteFormProps> = ({
       /* console.log('site vals: ', frontID) */
       try {
         let resp: ResponseData<ResponseID> | undefined
+
+        if (logoBrandHTML) {
+          logoBrandHTML = sanitize(logoBrandHTML, htmlSanitizeOpts)
+        }
 
         if (isEdit) {
           resp = await updateSite(
@@ -161,6 +188,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
             visible,
             nonMemberInteract,
             logoUrl,
+            logoBrandHTML,
             homePage,
             reviewBeforePublish
           )
@@ -186,6 +214,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
             visible,
             nonMemberInteract,
             logoUrl,
+            logoBrandHTML,
             reviewBeforePublish
           )
         }
@@ -241,13 +270,19 @@ const SiteForm: React.FC<SiteFormProps> = ({
   )
 
   const onCropSuccess = useCallback(
-    async (imgData: string) => {
+    async (imgData: string, logoType: 'logo' | 'logoBrand') => {
       try {
         if (!isLogined()) {
           toast.error('请认证或登录后再试')
           return
         }
-        setUploading(true)
+
+        if (logoType == 'logo') {
+          setUploading(true)
+        } else {
+          setBrandUploading(true)
+        }
+
         const resp = await uploadFileBase64(imgData)
         if (!resp) return
         /* console.log('upload resp: ', resp) */
@@ -255,15 +290,49 @@ const SiteForm: React.FC<SiteFormProps> = ({
 
         if (success) {
           /* setImgUrl(data) */
-          form.setValue('logoUrl', data)
+          if (logoType == 'logo') {
+            form.setValue('logoUrl', data)
+          } else {
+            form.setValue(
+              'logoBrandHTML',
+              `<img alt="${formVals.name}" title="${formVals.name}" src="${data}" style="max-height:100%;max-width:100%;" />`,
+              { shouldDirty: true }
+            )
+          }
         }
       } catch (err) {
         console.error('upload icon error: ', err)
       } finally {
-        setUploading(false)
+        if (logoType == 'logo') {
+          setUploading(false)
+        } else {
+          setBrandUploading(false)
+        }
       }
     },
-    [form, isLogined]
+    [form, isLogined, formVals]
+  )
+
+  const onLogoHtmlPreview = useCallback(
+    (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault()
+      let cleanHtml = sanitize(formVals.logoBrandHTML, htmlSanitizeOpts)
+      const divEl = document.createElement('div')
+      divEl.innerHTML = cleanHtml
+      const imgEls = divEl.getElementsByTagName('img')
+      if (imgEls.length > 0) {
+        for (const imgEl of imgEls) {
+          const imgUrl = new URL(imgEl.src)
+          if (imgUrl.hostname != STATIC_HOST_NAME) {
+            imgEl.src = ''
+            cleanHtml = divEl.innerHTML
+          }
+        }
+      }
+
+      form.setValue('logoBrandHTML', cleanHtml, { shouldDirty: true })
+    },
+    [form, formVals]
   )
 
   useEffect(() => {
@@ -303,15 +372,123 @@ const SiteForm: React.FC<SiteFormProps> = ({
           key="logoUrl"
           render={() => (
             <FormItem className="mb-8">
+              <FormLabel>图标</FormLabel>
+              <FormDescription>
+                用于作为浏览器标签图标、应用安装图标、站点按钮标识等，图片限制为正方形
+              </FormDescription>
               <FormControl>
-                <>
+                <div>
                   <BCropper
                     btnText="上传站点图标"
                     disabled={uploading}
                     loading={uploading}
-                    onSuccess={onCropSuccess}
+                    onSuccess={(data) => onCropSuccess(data, 'logo')}
                   />
-                </>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {!isEdit && (
+          <FormField
+            control={form.control}
+            name="frontID"
+            key="frontID"
+            render={({ field, fieldState }) => (
+              <FormItem className="mb-8">
+                <FormLabel>标识</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="请输入站点标识"
+                    autoComplete="off"
+                    state={fieldState.invalid ? 'invalid' : 'default'}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+        <FormField
+          control={form.control}
+          name="name"
+          key="name"
+          render={({ field, fieldState }) => (
+            <FormItem className="mb-8">
+              <FormLabel>名称</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="请输入站点名称"
+                  autoComplete="off"
+                  state={fieldState.invalid ? 'invalid' : 'default'}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="logoBrandHTML"
+          key="logoBrandHTML"
+          render={({ field }) => (
+            <FormItem className="mb-8">
+              <FormLabel>
+                品牌 LOGO <span className="text-gray-500">(选填)</span>
+              </FormLabel>
+              <FormDescription>
+                用于顶部导航栏或其他地方用到的品牌标识，可以为图片或纯文本，如果没有设置品牌
+                LOGO 则默认使用站点图标和站点名称来代替
+              </FormDescription>
+              <FormControl>
+                <div>
+                  <div className="flex items-center">
+                    <BCropper
+                      cropShape="rect"
+                      btnText="上传 LOGO 图片"
+                      settingAspect
+                      disabled={brandUploading || edittingLogo}
+                      loading={brandUploading}
+                      onSuccess={(data) => onCropSuccess(data, 'logoBrand')}
+                    />
+                    <Button
+                      size={'sm'}
+                      className="ml-2"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setEdittingLogo((state) => !state)
+                      }}
+                    >
+                      编辑 LOGO 源码
+                    </Button>
+                  </div>
+                  <div
+                    dangerouslySetInnerHTML={{ __html: field.value }}
+                    className="flex items-center h-[58px] max-w-[500px] mt-4 logo-preview"
+                  ></div>
+                  {edittingLogo && (
+                    <div className="text-sm mt-4">
+                      <Textarea
+                        value={field.value}
+                        className="text-sm whitespace-break-spaces h-[240px]"
+                        onChange={field.onChange}
+                      />
+                      <div className="flex justify-between items-start mt-1">
+                        <div className="text-gray-500 pr-2">
+                          仅支持 img、span、b 标签，可使用 style 和 title
+                          属性，img 标签额外支持 src、width、height、alt
+                          属性，其他未提及的标签和属性均不支持，图片资源仅支持本站上传
+                        </div>
+                        <Button size={'sm'} onClick={onLogoHtmlPreview}>
+                          预览
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -323,7 +500,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
           key="visible"
           render={({ field }) => (
             <FormItem className="mb-8">
-              <FormLabel>站点可见性</FormLabel>
+              <FormLabel>可见性</FormLabel>
               <FormControl>
                 <RadioGroup
                   onValueChange={(val) => {
@@ -413,46 +590,6 @@ const SiteForm: React.FC<SiteFormProps> = ({
                     开启先审后发
                   </label>
                 </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        {!isEdit && (
-          <FormField
-            control={form.control}
-            name="frontID"
-            key="frontID"
-            render={({ field, fieldState }) => (
-              <FormItem className="mb-8">
-                <FormLabel>标识</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="请输入站点标识"
-                    autoComplete="off"
-                    state={fieldState.invalid ? 'invalid' : 'default'}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-        <FormField
-          control={form.control}
-          name="name"
-          key="name"
-          render={({ field, fieldState }) => (
-            <FormItem className="mb-8">
-              <FormLabel>名称</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="请输入站点名称"
-                  autoComplete="off"
-                  state={fieldState.invalid ? 'invalid' : 'default'}
-                  {...field}
-                />
               </FormControl>
               <FormMessage />
             </FormItem>

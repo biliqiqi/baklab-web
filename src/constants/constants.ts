@@ -24,6 +24,9 @@ export const FRONT_END_HOST = 'http://192.168.31.51:5173'
 export const API_HOST = 'http://192.168.31.51:3001'
 export const API_PATH_PREFIX = '/api/'
 
+export const STATIC_HOST_NAME = `static.biliqiqi.net`
+export const STATIC_HOST = `https://${STATIC_HOST_NAME}`
+
 export const SERVER_ERR_ACCOUNT_EXIST = 1000
 
 export const ARTICLE_MAX_TITILE_LEN = 255

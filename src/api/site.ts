@@ -1,7 +1,6 @@
 import { authRequest } from '@/lib/request'
 
 import {
-  ArticleHistoryResponse,
   BlockedUserList,
   ItemExists,
   ResponseData,
@@ -22,6 +21,7 @@ export const submitSite = (
   visible: boolean,
   nonMemberInteract: boolean,
   logoUrl: string,
+  logoHtmlStr: string,
   reviewBeforePublish: boolean
 ) =>
   authRequest.post<ResponseData<ResponseID>>(`sites`, {
@@ -33,6 +33,7 @@ export const submitSite = (
       visible,
       nonMemberInteract,
       logoUrl,
+      logoHtmlStr,
       reviewBeforePublish,
     },
   })
@@ -45,6 +46,7 @@ export const updateSite = (
   visible: boolean,
   nonMemberInteract: boolean,
   logoUrl: string,
+  logoHtmlStr: string,
   homePage: string,
   reviewBeforePublish: boolean
 ) =>
@@ -56,6 +58,7 @@ export const updateSite = (
       visible,
       nonMemberInteract,
       logoUrl,
+      logoHtmlStr,
       homePage,
       reviewBeforePublish,
     },

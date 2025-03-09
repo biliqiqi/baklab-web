@@ -266,7 +266,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     currSite &&
                     currSite.visible &&
                     !currSite.currUserState.isMember && (
-                      <Card className="p-2 px-4 text-sm mt-4 text-center">
+                      <Card className="sticky bottom-0 p-2 px-4 -mx-2 text-sm mt-4 text-center">
                         你还不是当前站点成员，加入后可订阅新内容或参与互动。
                         <Button
                           size={'sm'}
@@ -278,7 +278,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                       </Card>
                     )
                   ) : (
-                    <Card className="p-2 text-sm mt-4 text-center">
+                    <Card className="sticky bottom-0 p-2 -mx-2 text-sm mt-4 text-center">
                       登录可后参与互动。
                       <Button
                         variant="default"

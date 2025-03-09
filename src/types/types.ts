@@ -516,6 +516,7 @@ export interface Site {
   creatorId: string
   creatorName: string
   logoUrl: string
+  logoHtmlStr: string
   description: string
   keywords: string
   rulesArticleId: number

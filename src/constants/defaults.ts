@@ -17,6 +17,7 @@ export const defaultSite: Site = {
   creatorId: '0',
   creatorName: '',
   logoUrl: '',
+  logoHtmlStr: '',
   description: '',
   keywords: '',
   rulesArticleId: 0,

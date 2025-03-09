@@ -167,6 +167,8 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
     const currData = replyBoxRef.current
 
     e.preventDefault()
+    e.stopPropagation()
+
     /* console.log('is adjusting: ', currData.isAdjusting) */
     /* console.log('start Y: ', currData.startY) */
     if (!currData.isAdjusting) return
@@ -188,9 +190,17 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
     replyBoxRef.current.handleMouseMove = onMouseMove
 
   const onMouseUp = useCallback((e: globalThis.MouseEvent) => {
-    /* console.log('mouseup: ', e) */
+    e.preventDefault()
+    e.stopPropagation()
 
     const currData = replyBoxRef.current
+
+    if (!currData.isAdjusting) {
+      if (currData.handleMouseMove)
+        window.removeEventListener('mousemove', currData.handleMouseMove)
+      return
+    }
+
     if (e.button < 3) {
       e.preventDefault()
     }
@@ -244,6 +254,24 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
       }, 100)
     }
   }
+
+  const onReplyBoxBarMouseDown = useCallback(
+    (e: MouseEvent<HTMLDivElement>) => {
+      const currData = replyBoxRef.current
+      e.preventDefault()
+
+      if (targetInputEl) currData.startHeight = targetInputEl.offsetHeight
+
+      currData.isAdjusting = true
+      currData.startY = e.pageY
+
+      if (currData.handleMouseMove) {
+        window.removeEventListener('mousemove', currData.handleMouseMove)
+        window.addEventListener('mousemove', currData.handleMouseMove)
+      }
+    },
+    [targetInputEl]
+  )
 
   if (!replyBoxRef.current.handleReplyClick) {
     replyBoxRef.current.handleReplyClick = createSetupForm(markdownMode)
@@ -390,20 +418,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
       >
         <div
           className="pt-3 cursor-ns-resize"
-          onMouseDown={(e) => {
-            const currData = replyBoxRef.current
-            e.preventDefault()
-
-            if (targetInputEl) currData.startHeight = targetInputEl.offsetHeight
-
-            currData.isAdjusting = true
-            currData.startY = e.pageY
-
-            if (currData.handleMouseMove) {
-              window.removeEventListener('mousemove', currData.handleMouseMove)
-              window.addEventListener('mousemove', currData.handleMouseMove)
-            }
-          }}
+          onMouseDown={onReplyBoxBarMouseDown}
         ></div>
         {targetArticle && !targetArticle.asMainArticle && (
           <div className="flex items-center justify-between bg-gray-100 rounded-sm py-1 px-2 mb-2 text-gray-500 text-sm">

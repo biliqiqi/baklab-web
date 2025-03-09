@@ -10,6 +10,7 @@ import {
 import React, { useCallback, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
+import { useShallow } from 'zustand/react/shallow'
 
 import { cn, summryText } from '@/lib/utils'
 
@@ -35,7 +36,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
-import { useSidebar } from '../ui/sidebar'
+import { SIDEBAR_WIDTH, useSidebar } from '../ui/sidebar'
 import BAvatar from './BAvatar'
 import BSiteIcon from './BSiteIcon'
 
@@ -62,7 +63,10 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
 
     const { updateSignin } = useDialogStore()
     const notiStore = useNotificationStore()
-    const siteStore = useSiteStore()
+
+    const { currSite } = useSiteStore(
+      useShallow(({ site }) => ({ currSite: site }))
+    )
 
     const onDropdownChange = (open: boolean) => {
       if (!open) {
@@ -146,16 +150,31 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
               </Button>
               {sidebar.state == 'collapsed' && (
                 <Link
-                  className="font-bold text-2xl text-pink-900 leading-3 mr-2"
-                  to={siteFrontId && siteStore.site ? `/${siteFrontId}` : `/`}
+                  className="font-bold text-2xl leading-3 mr-2"
+                  to={siteFrontId && currSite ? `/${siteFrontId}` : `/`}
                 >
-                  {siteFrontId && siteStore.site ? (
-                    <BSiteIcon
-                      className="max-w-[180px]"
-                      logoUrl={siteStore.site.logoUrl}
-                      name={siteStore.site.name}
-                      size={42}
-                    />
+                  {siteFrontId && currSite ? (
+                    currSite.logoHtmlStr ? (
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: currSite.logoHtmlStr,
+                        }}
+                        className="logo-brand"
+                        style={{
+                          height: `${NAV_HEIGHT - 8}px`,
+                          maxWidth: SIDEBAR_WIDTH,
+                        }}
+                      ></div>
+                    ) : (
+                      <BSiteIcon
+                        key={currSite.frontId}
+                        className="max-w-[180px]"
+                        logoUrl={currSite.logoUrl}
+                        name={currSite.name}
+                        size={42}
+                        showSiteName
+                      />
+                    )
                   ) : (
                     <BSiteIcon
                       className="max-w-[180px]"

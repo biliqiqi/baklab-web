@@ -77,6 +77,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 import {
+  SIDEBAR_WIDTH,
   Sidebar,
   SidebarContent,
   SidebarGroup,
@@ -546,14 +547,27 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                 to={siteFrontId && currSite ? `/${siteFrontId}` : `/`}
               >
                 {siteFrontId && currSite ? (
-                  <BSiteIcon
-                    key={currSite.frontId}
-                    className="max-w-[180px]"
-                    logoUrl={currSite.logoUrl}
-                    name={currSite.name}
-                    size={42}
-                    showSiteName
-                  />
+                  currSite.logoHtmlStr ? (
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: currSite.logoHtmlStr,
+                      }}
+                      className="logo-brand"
+                      style={{
+                        height: `${NAV_HEIGHT - 8}px`,
+                        maxWidth: SIDEBAR_WIDTH,
+                      }}
+                    ></div>
+                  ) : (
+                    <BSiteIcon
+                      key={currSite.frontId}
+                      className="max-w-[180px]"
+                      logoUrl={currSite.logoUrl}
+                      name={currSite.name}
+                      size={42}
+                      showSiteName
+                    />
+                  )
                 ) : (
                   <BSiteIcon
                     key="home"

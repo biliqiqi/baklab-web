@@ -195,7 +195,6 @@ const SignupForm: React.FC<SignupFormProps> = ({
         if (onSuccess && typeof onSuccess == 'function') {
           onSuccess()
         }
-        /* navigate('/') */
       }
     } catch (e) {
       console.error('complete email signup error: ', e)

@@ -5,8 +5,7 @@ import SigninForm from './components/SigninForm'
 
 import { SITE_NAME_CN } from './constants/constants'
 import useDocumentTitle from './hooks/use-page-title'
-
-const isInnerURL = (url: string) => new URL(url).origin == location.origin
+import { isInnerURL } from './lib/utils'
 
 export default function SigninPage() {
   const [searchParams, _setSearchParams] = useSearchParams()

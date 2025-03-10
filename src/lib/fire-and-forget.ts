@@ -3,14 +3,13 @@
  * @param asyncFn 要转换的异步函数
  * @returns 返回一个同步函数，该函数接收与原异步函数相同的参数
  */
-
 import { noop } from './utils'
 
 // eslint-disable-next-line
 export function toSync<T extends (...args: any[]) => Promise<any>>(
   asyncFn: T,
   // eslint-disable-next-line
-  thenHandler: (...args: any[]) => void = noop,
+  thenHandler: (resp: Awaited<ReturnType<T>>) => void = noop,
   // eslint-disable-next-line
   finallyHandler: (...args: any[]) => void = noop,
   // eslint-disable-next-line

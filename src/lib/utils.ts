@@ -44,6 +44,22 @@ export const getCookie = (name: string) => {
   return null
 }
 
+export const deleteCookie = (
+  name: string,
+  path: string = '/',
+  domain?: string
+) => {
+  const pastDate = new Date(0).toUTCString()
+
+  let cookieString = `${name}=; expires=${pastDate}; path=${path}`
+
+  if (domain) {
+    cookieString += `; domain=${domain}`
+  }
+
+  document.cookie = cookieString
+}
+
 export const extractDomain = (url: string) => new URL(url).hostname
 
 // export const getRoleName = (roleFrontId: FrontRole) => {
@@ -132,3 +148,6 @@ export const getSiteStatusName = (status: SiteStatus) =>
 
 export const getSiteStatusColor = (status: SiteStatus) =>
   SITE_STATUS_COLOR_MAP[status] || ''
+
+export const isInnerURL = (url: string) =>
+  new URL(url).origin == location.origin

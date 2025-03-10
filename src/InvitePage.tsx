@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useShallow } from 'zustand/react/shallow'
 
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
@@ -10,6 +11,7 @@ import BSiteIcon from './components/base/BSiteIcon'
 
 import { getInvite } from './api/invite-code'
 import { acceptSiteInvite } from './api/site'
+import { SINGUP_RETURN_COOKIE_NAME } from './constants/constants'
 import { toSync } from './lib/fire-and-forget'
 import { useAuthedUserStore, useSiteStore } from './state/global'
 import { InviteCode, Site } from './types/types'
@@ -24,8 +26,12 @@ export default function InvitePage() {
 
   const navigate = useNavigate()
 
-  const authStore = useAuthedUserStore()
-  const siteStore = useSiteStore()
+  const { isLogined } = useAuthedUserStore(
+    useShallow(({ isLogined }) => ({ isLogined }))
+  )
+  const { fetchSiteList } = useSiteStore(
+    useShallow(({ fetchSiteList }) => ({ fetchSiteList }))
+  )
 
   const expired = useMemo(
     () => (inviteData ? dayjs(inviteData.expiredAt).isBefore(dayjs()) : false),
@@ -33,9 +39,6 @@ export default function InvitePage() {
   )
 
   const accepted = useMemo(() => searchParams.get('accepted'), [searchParams])
-
-  /* console.log('invite code: ', inviteCode) */
-  /* console.log('expired', expired) */
 
   const fetchInvite = toSync(
     useCallback(async () => {
@@ -50,8 +53,8 @@ export default function InvitePage() {
         if (site.currUserState.isMember) {
           navigate(`/${site.frontId}`, { replace: true })
         } else {
-          setSite(site)
-          setInviteData(invite)
+          setSite(() => site)
+          setInviteData(() => invite)
         }
       }
     }, [inviteCode, navigate])
@@ -76,22 +79,21 @@ export default function InvitePage() {
       const { code } = await acceptSiteInvite(site.frontId, inviteData.code)
       if (!code) {
         navigate(`/${site.frontId}`, { replace: true })
-        await siteStore.fetchSiteList()
+        await fetchSiteList()
       }
     } catch (err) {
       console.error('accept invite error: ', err)
     } finally {
       setLoading(false)
     }
-  }, [site, inviteData, loading, navigate, siteStore])
+  }, [site, inviteData, loading, navigate, fetchSiteList])
 
   const onAcceptInviteClick = useCallback(() => {
     const currUrl = new URL(location.href)
     currUrl.searchParams.set('accepted', '1')
 
-    /* console.log('curr url: ', currUrl.toString()) */
-    // TODO 从注册到加入，完整流程
-    if (!authStore.isLogined()) {
+    if (!isLogined()) {
+      document.cookie = `${SINGUP_RETURN_COOKIE_NAME}=${encodeURIComponent(currUrl.toString())};path=/`
       navigate(`/signin?return=${encodeURIComponent(currUrl.toString())}`, {
         replace: true,
       })
@@ -99,28 +101,31 @@ export default function InvitePage() {
     } else {
       return acceptInvite()
     }
-  }, [acceptInvite, authStore, navigate])
+  }, [acceptInvite, isLogined, navigate])
 
   useEffect(() => {
     fetchInvite()
-  }, [inviteCode])
+  }, [])
 
   useEffect(() => {
-    /* console.log('site: ', site)
-     * console.log('inviteData: ', inviteData)
-     * console.log('loading: ', loading) */
-
     if (
-      !expired &&
-      authStore.isLogined() &&
-      accepted == '1' &&
-      site &&
+      inviteCode &&
       inviteData &&
+      isLogined() &&
+      accepted == '1' &&
       !loading
     ) {
-      toSync(acceptInvite)()
+      toSync(getInvite, ({ code, data: { invite, site } }) => {
+        if (!code && invite && site) {
+          if (site.currUserState.isMember) {
+            navigate(`/${site.frontId}`, { replace: true })
+          } else {
+            toSync(acceptInvite)()
+          }
+        }
+      })(inviteCode)
     }
-  }, [acceptInvite, expired, authStore, accepted, site, inviteData, loading])
+  }, [inviteCode, inviteData, expired, isLogined, accepted, loading, navigate])
 
   return (
     <div className="flex h-screen items-center justify-center">

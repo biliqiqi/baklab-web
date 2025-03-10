@@ -682,7 +682,7 @@ export default function UserListPage() {
 
       <Dialog open={showUserDetail} onOpenChange={setShowUserDetail}>
         {currUser && (
-          <DialogContent className="max-sm:max-w-[90%]">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>{currUser.name} 的详细信息</DialogTitle>
               <DialogDescription></DialogDescription>

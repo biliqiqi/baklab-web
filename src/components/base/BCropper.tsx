@@ -272,14 +272,14 @@ const BCropper = forwardRef<BCropperObj, BCropperProps>(
                 max={10}
                 step={0.1}
                 autoComplete="false"
-                className="w-[380px] mr-1"
+                className="md:w-[380px] mr-1"
                 aria-labelledby="Zoom"
                 onChange={(e) => {
                   e.preventDefault()
-                  setZoom(Number(Number(e.target.value).toFixed(1)) || 0)
+                  setZoom(Number(e.target.value) || 0)
                 }}
               />
-              <span>{zoom}</span>
+              <span>{Number(zoom).toFixed(1)}</span>
             </div>
             {settingAspect && (
               <div className="flex items-center text-sm text-gray-500">
@@ -291,19 +291,16 @@ const BCropper = forwardRef<BCropperObj, BCropperProps>(
                   max={10}
                   step={0.01}
                   autoComplete="false"
-                  className="w-[380px] mr-1"
+                  className="md:w-[380px] mr-1"
                   aria-labelledby="Aspect"
                   onChange={(e) => {
                     e.preventDefault()
-                    setCustomAspect(
-                      Number(Number(e.target.value).toFixed(2)) || 0.5
-                    )
+                    setCustomAspect(Number(e.target.value) || 0.5)
                   }}
                 />
-                <span>{customAspect}</span>
+                <span>{Number(customAspect).toFixed(2)}</span>
               </div>
             )}
-            <canvas id="previewCanvas"></canvas>
             <div className="flex justify-between mt-2">
               <div></div>
               <div>

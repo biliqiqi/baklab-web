@@ -177,6 +177,11 @@ a:hover {
   animation: slideUp 200ms ease-out;
 }
 
+.logo-brand {
+  display: flex;
+  align-items: center;
+}
+
 .logo-preview img,
 .logo-brand img {
   max-width: 100%;

@@ -162,7 +162,8 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                         className="logo-brand"
                         style={{
                           height: `${NAV_HEIGHT - 8}px`,
-                          maxWidth: SIDEBAR_WIDTH,
+                          maxWidth: `calc(${SIDEBAR_WIDTH} - 60px)`,
+                          minWidth: `50px`,
                         }}
                       ></div>
                     ) : (
@@ -197,19 +198,19 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                 />
               )}
               {category.isFront ? (
-                <span className="flex-shrink-1 text-ellipsis overflow-hidden whitespace-nowrap">
+                <span className="flex-shrink-0 text-ellipsis overflow-hidden whitespace-nowrap">
                   {category.name}
                 </span>
               ) : (
                 <Link
                   to={`/${siteFrontId}/categories/${category.frontId}`}
-                  className="flex-shrink-1 text-ellipsis overflow-hidden whitespace-nowrap"
+                  className="flex-shrink-0 text-ellipsis overflow-hidden whitespace-nowrap"
                 >
                   {category.name}
                 </Link>
               )}
               <span
-                className="px-4 ml-4 border-l-2 text-sm text-gray-500 cursor-pointer flex-grow overflow-hidden whitespace-nowrap text-ellipsis"
+                className="flex-shrink-1 px-4 ml-4 border-l-2 text-sm text-gray-500 cursor-pointer flex-grow overflow-hidden whitespace-nowrap text-ellipsis"
                 onClick={() => setShowCategoryDetail(true)}
               >
                 {summryText(category.describe, 20)}{' '}
@@ -250,8 +251,8 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
           </Button>
           {isLogined(authState) ? (
             <>
-              <DropdownMenu onOpenChange={onNotiClick}>
-                <DropdownMenuTrigger asChild>
+              {isMobile ? (
+                <Link to={'/message'}>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -264,25 +265,42 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                       </Badge>
                     )}
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  sideOffset={6}
-                  align="end"
-                  className={cn(
-                    `w-[360px] px-2 pt-2 pb-4 bg-gray-200 text-sm overflow-y-auto`
-                  )}
-                  style={{
-                    maxHeight: `calc(100vh - ${NAV_HEIGHT}px)`,
-                  }}
-                >
-                  <MessageList ref={msgListRef} pageSize={10} />
-                  <div className="flex justify-center mt-4">
-                    <Button variant="secondary" size="sm" asChild>
-                      <Link to="/messages">查看全部</Link>
+                </Link>
+              ) : (
+                <DropdownMenu onOpenChange={onNotiClick}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="relative w-[36px] h-[36px] p-0 rounded-full mr-2"
+                    >
+                      <BellIcon size={20} />
+                      {notiStore.unreadCount > 0 && (
+                        <Badge className="absolute bg-pink-600 hover:bg-pink-600 right-[2px] top-[3px] text-xs px-[4px] py-[0px]">
+                          {notiStore.unreadCount}
+                        </Badge>
+                      )}
                     </Button>
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    sideOffset={6}
+                    align="end"
+                    className={cn(
+                      `w-[360px] px-2 pt-2 pb-4 bg-gray-200 text-sm overflow-y-auto`
+                    )}
+                    style={{
+                      maxHeight: `calc(100vh - ${NAV_HEIGHT}px)`,
+                    }}
+                  >
+                    <MessageList ref={msgListRef} pageSize={10} />
+                    <div className="flex justify-center mt-4">
+                      <Button variant="secondary" size="sm" asChild>
+                        <Link to="/messages">查看全部</Link>
+                      </Button>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
 
               <DropdownMenu onOpenChange={onDropdownChange}>
                 <DropdownMenuTrigger asChild>

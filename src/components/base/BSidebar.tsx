@@ -541,7 +541,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
               minHeight: `${NAV_HEIGHT}px`,
             }}
           >
-            <div className="flex-shrink-0">
+            <div className="flex items-center flex-shrink-0">
               <Link
                 className="font-bold text-2xl leading-3"
                 to={siteFrontId && currSite ? `/${siteFrontId}` : `/`}
@@ -555,7 +555,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                       className="logo-brand"
                       style={{
                         height: `${NAV_HEIGHT - 8}px`,
-                        maxWidth: SIDEBAR_WIDTH,
+                        maxWidth: `calc(${SIDEBAR_WIDTH} - 60px)`,
                       }}
                     ></div>
                   ) : (
@@ -581,7 +581,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
               </Link>
               {currSite && !currSite.visible && (
                 <span
-                  className="inline-block text-gray-500 ml-1"
+                  className="inline-block text-gray-500 ml-2"
                   title={'私有站点'}
                 >
                   <LockIcon size={14} />
@@ -915,7 +915,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
       </Dialog>
 
       <Dialog open={showSiteForm} onOpenChange={onSiteFormClose}>
-        <DialogContent>
+        <DialogContent className="max-md:max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>
               {editSite.editting ? '设置站点' : '创建站点'}

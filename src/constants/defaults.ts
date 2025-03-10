@@ -50,6 +50,8 @@ export const defaultCategory: Category = {
   totalArticleCount: 0,
   siteId: 0,
   siteFrontId: '',
+  iconBgColor: '',
+  iconContent: '',
 }
 
 export const defaultCurrState: CurrUserState = {

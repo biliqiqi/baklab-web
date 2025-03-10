@@ -314,7 +314,8 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                 >
                   <BIconColorChar
                     iconId={article.categoryFrontId}
-                    char={article.category.name}
+                    char={article.category.iconContent}
+                    color={article.category.iconBgColor}
                     size={20}
                     fontSize={12}
                     className="align-[-5px] mx-1"

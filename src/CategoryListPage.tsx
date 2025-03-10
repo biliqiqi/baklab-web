@@ -40,7 +40,8 @@ export default function CategoryListPage() {
               >
                 <BIconColorChar
                   iconId={cate.frontId}
-                  char={cate.name}
+                  char={cate.iconContent}
+                  color={cate.iconBgColor}
                   size={48}
                 />
               </Link>

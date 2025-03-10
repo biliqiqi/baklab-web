@@ -1,9 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { MouseEvent, useCallback, useEffect } from 'react'
+import { MouseEvent, useCallback, useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
+import stc from 'string-to-color'
 
-import { noop, summryText } from '@/lib/utils'
+import { getFirstChar, noop, summryText } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { getArticleList } from '@/api/article'
@@ -23,14 +24,22 @@ import { Category, ResponseData, ResponseID } from '@/types/types'
 
 import BIconColorChar from './base/BIconColorChar'
 import { Button } from './ui/button'
-import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form'
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from './ui/form'
 import { Input } from './ui/input'
 import { Textarea } from './ui/textarea'
 
 const MAX_CATEGORY_FRONT_ID_LENGTH = 20
 const MAX_CATEGORY_NAME_LENGTH = 12
 
-const frontIDScheme = z
+const frontIDSchema = z
   .string()
   .min(1, '请输入分类标识')
   .max(
@@ -39,29 +48,46 @@ const frontIDScheme = z
   )
   .regex(/^[a-zA-Z0-9_]+$/, '分类标识由数字、字母和下划线组成，不区分大小写')
 
-const nameScheme = z
+const nameSchema = z
   .string()
   .min(1, '请输入分类名称')
   .max(
     MAX_CATEGORY_NAME_LENGTH,
     `分类名称不得超过${MAX_CATEGORY_NAME_LENGTH}个字符`
   )
-const descriptionScheme = z.string()
 
-const categoryScheme = z.object({
-  frontID: frontIDScheme,
-  name: nameScheme,
-  description: descriptionScheme,
+const iconBgColorSchema = z
+  .string()
+  .regex(
+    /(^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$|^rgb\(\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*,\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*,\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*\)$)?/i,
+    '颜色格式错误'
+  )
+
+const descriptionSchema = z.string()
+
+const CATEGORY_ICON_CONTENT_PATTERN = /^(\p{L}|\p{Emoji_Presentation})?$/u
+const categorySchema = z.object({
+  frontID: frontIDSchema,
+  name: nameSchema,
+  iconBgColor: iconBgColorSchema,
+  iconContent: z
+    .string()
+    .regex(CATEGORY_ICON_CONTENT_PATTERN, '限制为一个字符'),
+  description: descriptionSchema,
 })
 
-const categoryEditScheme = z.object({
-  name: nameScheme,
-  description: descriptionScheme,
+const categoryEditSchema = z.object({
+  name: nameSchema,
+  iconBgColor: iconBgColorSchema,
+  iconContent: z
+    .string()
+    .regex(CATEGORY_ICON_CONTENT_PATTERN, '限制为一个字符'),
+  description: descriptionSchema,
 })
 
-type CategoryScheme = z.infer<typeof categoryScheme>
+type CategorySchema = z.infer<typeof categorySchema>
 
-/* type CategoryEditScheme = z.infer<typeof categoryEditScheme> */
+/* type CategoryEditSchema = z.infer<typeof categoryEditSchema> */
 
 interface CategoryFormProps {
   isEdit?: boolean
@@ -70,9 +96,11 @@ interface CategoryFormProps {
   onChange?: (isDirty: boolean) => void
 }
 
-const defaultCategoryData: CategoryScheme = {
+const defaultCategoryData: CategorySchema = {
   frontID: '',
   name: '',
+  iconBgColor: stc('x'),
+  iconContent: '',
   description: '',
 }
 
@@ -82,16 +110,14 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
   onSuccess = noop,
   onChange = noop,
 }) => {
-  /* const [frontIDExists, setFrontIDExists] = useState(false) */
-
   const alertDialog = useAlertDialogStore()
   const authStore = useAuthedUserStore()
   const siteStore = useSiteStore()
   const { siteFrontId } = useParams()
 
-  const form = useForm<CategoryScheme>({
+  const form = useForm<CategorySchema>({
     resolver: zodResolver(
-      isEdit ? categoryEditScheme : categoryScheme,
+      isEdit ? categoryEditSchema : categorySchema,
       {},
       { mode: 'async' }
     ),
@@ -100,6 +126,9 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
         ? {
             name: category.name,
             description: category.describe,
+            iconBgColor:
+              category.iconBgColor || stc(category.frontId.toLowerCase()),
+            iconContent: category.iconContent,
           }
         : defaultCategoryData),
     },
@@ -108,16 +137,35 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
 
   const formVals = form.watch()
 
+  const iconId = useMemo(
+    () =>
+      isEdit ? category.frontId : (formVals.frontID || '').toLowerCase() || 'x',
+    [isEdit, formVals, category.frontId]
+  )
+
   const onSubmit = useCallback(
-    async ({ frontID, name, description }: CategoryScheme) => {
+    async ({
+      frontID,
+      name,
+      description,
+      iconBgColor,
+      iconContent,
+    }: CategorySchema) => {
       /* console.log('category vals: ', vals) */
       try {
         let resp: ResponseData<ResponseID> | undefined
 
         if (isEdit) {
-          resp = await updateCategory(category.frontId, name, description, {
-            siteFrontId: category.siteFrontId,
-          })
+          resp = await updateCategory(
+            category.frontId,
+            name,
+            description,
+            iconBgColor,
+            iconContent,
+            {
+              siteFrontId: category.siteFrontId,
+            }
+          )
         } else {
           if (!siteStore.site) return
 
@@ -134,9 +182,16 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
             form.clearErrors('frontID')
           }
 
-          resp = await submitCategory(frontID, name, description, {
-            siteFrontId,
-          })
+          resp = await submitCategory(
+            frontID,
+            name,
+            description,
+            iconBgColor,
+            iconContent,
+            {
+              siteFrontId,
+            }
+          )
         }
         if (!resp?.code) {
           onSuccess()
@@ -210,12 +265,9 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
       >
         <div className="flex items-start mb-4">
           <BIconColorChar
-            iconId={
-              isEdit
-                ? category.frontId
-                : (formVals.frontID || '').toLowerCase() || 'x'
-            }
-            char={formVals.name}
+            iconId={iconId}
+            color={formVals.iconBgColor}
+            char={formVals.iconContent || ''}
             size={66}
             className="w-[66px] flex-shink-0"
           />
@@ -239,12 +291,20 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
             key="frontID"
             render={({ field, fieldState }) => (
               <FormItem className="mb-8">
+                <FormLabel>标识</FormLabel>
+                <FormDescription>
+                  分类的唯一标识，有字母、数字和下划线组成
+                </FormDescription>
                 <FormControl>
                   <Input
                     placeholder="请输入分类标识"
                     autoComplete="off"
                     state={fieldState.invalid ? 'invalid' : 'default'}
                     {...field}
+                    onChange={(e) => {
+                      form.setValue('iconBgColor', stc(iconId))
+                      field.onChange(e)
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -258,13 +318,74 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
           key="name"
           render={({ field, fieldState }) => (
             <FormItem className="mb-8">
+              <FormLabel>名称</FormLabel>
               <FormControl>
                 <Input
                   placeholder="请输入分类名称"
                   autoComplete="off"
                   state={fieldState.invalid ? 'invalid' : 'default'}
                   {...field}
+                  onChange={(e) => {
+                    form.setValue('iconContent', getFirstChar(e.target.value))
+                    field.onChange(e)
+                  }}
                 />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="iconContent"
+          key="iconContent"
+          render={({ field, fieldState }) => (
+            <FormItem className="mb-8">
+              <FormLabel>
+                图标内容 <span className="text-gray-500">(选填)</span>
+              </FormLabel>
+              <FormDescription>限制为一个字符</FormDescription>
+              <FormControl>
+                <Input
+                  placeholder="请输入图标内容"
+                  autoComplete="off"
+                  state={fieldState.invalid ? 'invalid' : 'default'}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="iconBgColor"
+          key="iconBgColor"
+          render={({ field, fieldState }) => (
+            <FormItem className="mb-8">
+              <FormLabel>
+                图表背景色 <span className="text-gray-500">(选填)</span>
+              </FormLabel>
+              <FormDescription>
+                仅支持十六进制和RGB格式，例如 #fafafa 或 rgb(255, 20, 30)
+              </FormDescription>
+              <FormControl>
+                <div className="flex">
+                  <Input
+                    key={'iconBgColor'}
+                    placeholder="请输入图标背景颜色"
+                    autoComplete="off"
+                    state={fieldState.invalid ? 'invalid' : 'default'}
+                    {...field}
+                    className="w-36 mr-2"
+                  />
+                  <Input
+                    key={'iconBgColorPicker'}
+                    type="color"
+                    className="w-16"
+                    {...field}
+                  />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>

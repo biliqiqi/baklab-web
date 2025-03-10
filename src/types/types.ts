@@ -32,6 +32,8 @@ export interface Category {
   totalArticleCount: number
   siteId: number
   siteFrontId: string
+  iconBgColor: string
+  iconContent: string
 }
 
 export type CategoryExists = ItemExists

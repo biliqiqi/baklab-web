@@ -21,6 +21,8 @@ export const submitCategory = async (
   frontID: string,
   name: string,
   description: string,
+  iconBgColor: string,
+  iconContent: string,
   custom?: CustomRequestOptions
 ) =>
   authRequest.post<ResponseData<ResponseID>>(
@@ -30,6 +32,8 @@ export const submitCategory = async (
         frontID,
         name,
         description,
+        iconBgColor,
+        iconContent,
         extra: {
           categoryName: name,
         },
@@ -42,6 +46,8 @@ export const updateCategory = async (
   frontID: string,
   name: string,
   description: string,
+  iconBgColor: string,
+  iconContent: string,
   custom?: CustomRequestOptions
 ) =>
   authRequest.patch<ResponseData<ResponseID>>(
@@ -50,6 +56,8 @@ export const updateCategory = async (
       json: {
         name,
         description,
+        iconBgColor,
+        iconContent,
         extra: {
           categoryName: name,
         },

@@ -27,7 +27,12 @@ import { Link, useMatch, useNavigate, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { timeFmt } from '@/lib/dayjs-custom'
-import { cn, getSiteStatusColor, getSiteStatusName } from '@/lib/utils'
+import {
+  cn,
+  getFirstChar,
+  getSiteStatusColor,
+  getSiteStatusName,
+} from '@/lib/utils'
 
 import { getSiteList, inviteToSite, quitSite } from '@/api/site'
 import {
@@ -772,7 +777,8 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                             >
                               <BIconColorChar
                                 iconId={item.frontId}
-                                char={item.name}
+                                char={item.iconContent}
+                                color={item.iconBgColor}
                                 size={32}
                               />
                               {item.name}

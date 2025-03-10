@@ -151,3 +151,8 @@ export const getSiteStatusColor = (status: SiteStatus) =>
 
 export const isInnerURL = (url: string) =>
   new URL(url).origin == location.origin
+
+export const getFirstChar = (str: string) => {
+  const firstCharRes = str.match(/(\p{L}|\p{Emoji_Presentation})/u)
+  return firstCharRes ? firstCharRes[0] : ''
+}

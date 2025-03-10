@@ -6,12 +6,13 @@ import { cn } from '@/lib/utils'
 interface BIconColorCharProps extends React.SVGProps<SVGSVGElement> {
   iconId: string
   char: string
+  color?: string
   size?: number
   fontSize?: string | number
 }
 
 const BIconColorChar = React.forwardRef<SVGSVGElement, BIconColorCharProps>(
-  ({ iconId, char, size = 24, fontSize, className, ...props }, ref) => {
+  ({ iconId, char, size = 24, fontSize, color, className, ...props }, ref) => {
     if (!fontSize) {
       fontSize = size * 0.5
     }
@@ -34,7 +35,7 @@ const BIconColorChar = React.forwardRef<SVGSVGElement, BIconColorCharProps>(
           cx={`${size / 2}`}
           cy={`${size / 2}`}
           r={`${size / 2}`}
-          fill={stc(iconId)}
+          fill={color || stc(iconId)}
         />
         <text
           x="50%"
@@ -45,7 +46,7 @@ const BIconColorChar = React.forwardRef<SVGSVGElement, BIconColorCharProps>(
           textAnchor="middle"
           dominantBaseline="middle"
         >
-          {char.charAt(0).toUpperCase()}
+          {char.toUpperCase()}
         </text>
       </svg>
     )

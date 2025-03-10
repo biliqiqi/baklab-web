@@ -35,7 +35,7 @@ const BAvatar: React.FC<BAvatarProps> = ({
       >
         <BIconColorChar
           iconId={username}
-          char={username}
+          char={username.charAt(0)}
           size={size}
           className="align-top"
           {...props}

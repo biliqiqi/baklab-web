@@ -59,7 +59,7 @@ const nameSchema = z
 const iconBgColorSchema = z
   .string()
   .regex(
-    /(^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$|^rgb\(\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*,\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*,\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*\)$)?/i,
+    /^$|^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$|^rgb\(\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*,\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*,\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*\)$/i,
     '颜色格式错误'
   )
 
@@ -364,10 +364,11 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
           render={({ field, fieldState }) => (
             <FormItem className="mb-8">
               <FormLabel>
-                图表背景色 <span className="text-gray-500">(选填)</span>
+                图标背景色 <span className="text-gray-500">(选填)</span>
               </FormLabel>
               <FormDescription>
-                仅支持十六进制和RGB格式，例如 #fafafa 或 rgb(255, 20, 30)
+                支持十六进制和RGB格式，例如 #fafafa 或 rgb(255, 20, 30)，
+                默认颜色基于分类标识字符串生成
               </FormDescription>
               <FormControl>
                 <div className="flex">

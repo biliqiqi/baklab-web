@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import emojiRegex from 'emoji-regex'
 import { MouseEvent, useCallback, useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
@@ -65,23 +66,45 @@ const iconBgColorSchema = z
 
 const descriptionSchema = z.string()
 
-const CATEGORY_ICON_CONTENT_PATTERN = /^(\p{L}|\p{Emoji_Presentation})?$/u
+const emojiRe = emojiRegex()
+
+/* const iconContentSchema = z.string() */
+
+const iconContentSchema = z.string().transform((val, ctx) => {
+  if (/^$|^\p{L}$/u.test(val)) return val
+
+  /* val = val.replace(/\p{L}*$/u, '') */
+  if (/\p{L}+$/u.test(val)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: '限制为一个字符',
+    })
+    return z.NEVER
+  }
+
+  if (new RegExp(`^${emojiRe.source}{,1}$`, emojiRe.flags).test(val)) return val
+
+  ctx.addIssue({
+    code: z.ZodIssueCode.custom,
+    message: '限制为一个字符',
+  })
+
+  return z.NEVER
+})
+
+/* const CATEGORY_ICON_CONTENT_PATTERN = /^$|^(\p{L}|\p{Emoji})$/u */
 const categorySchema = z.object({
   frontID: frontIDSchema,
   name: nameSchema,
   iconBgColor: iconBgColorSchema,
-  iconContent: z
-    .string()
-    .regex(CATEGORY_ICON_CONTENT_PATTERN, '限制为一个字符'),
+  iconContent: iconContentSchema,
   description: descriptionSchema,
 })
 
 const categoryEditSchema = z.object({
   name: nameSchema,
   iconBgColor: iconBgColorSchema,
-  iconContent: z
-    .string()
-    .regex(CATEGORY_ICON_CONTENT_PATTERN, '限制为一个字符'),
+  iconContent: iconContentSchema,
   description: descriptionSchema,
 })
 

@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom'
 import { timeAgo } from '@/lib/dayjs-custom'
 
 import {
+  ARTICLE_LOCK_ACTION,
   Activity,
   ActivityActionType,
+  ArticleLockAction,
   ArticleStatus,
   ListPageState,
   SITE_STATUS,
@@ -120,6 +122,10 @@ const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
     (item.extraInfo.blockedUsers as string[] | undefined) || []
   const unblockedUsers =
     (item.extraInfo.unblockedUsers as string[] | undefined) || []
+
+  const articleLockAction = item.extraInfo.lockAction as
+    | ArticleLockAction
+    | undefined
 
   const reviewArticleResult = item.extraInfo[
     'reviewArticleResult'
@@ -264,6 +270,18 @@ const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
             {item.extraInfo.displayTitle ||
               `/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}
           </Link>
+          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+        </>
+      )
+    case 'lock_article':
+      return (
+        <>
+          <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
+          {articleLockAction == ARTICLE_LOCK_ACTION.Unlock
+            ? '解锁了'
+            : '锁定了'}
+          {'文章 '}
+          {item.extraInfo && <ActivityTargetLink activity={item} />}
           &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
         </>
       )

@@ -180,88 +180,100 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
       {...props}
     >
       <div className="flex flex-wrap items-center">
-        {checkPermit('article', 'vote_up') && isPublished && upVote && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mr-1 p-0 w-[36px] h-[36px]"
-            onClick={(e) => onVoteClick(e, 'up')}
-            disabled={disabled}
-          >
-            {/* <ThumbsUp size={20} className="inline-block mr-1" /> */}
-            <BIconTriangleUp
-              size={28}
-              variant={userState?.voteType == 'up' ? 'full' : 'default'}
-            />
-            {article.voteUp > 0 && article.voteUp}
-          </Button>
-        )}
-        {checkPermit('article', 'vote_down') && isPublished && downVote && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mr-1 p-0 w-[36px] h-[36px]"
-            onClick={(e) => onVoteClick(e, 'down')}
-            disabled={disabled}
-          >
-            <BIconTriangleDown
-              size={28}
-              variant={userState?.voteType == 'down' ? 'full' : 'default'}
-            />
-            {article.voteDown > 0 && article.voteDown}
-          </Button>
-        )}
-        {comment && (
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild={ctype == 'list'}
-            onClick={onCommentClick}
-            className="mr-1"
-          >
-            {ctype == 'list' ? (
-              <Link to={genArticlePath(article)}>
-                <MessageSquare size={20} className="inline-block mr-1" />
-                {article.totalReplyCount > 0 && article.totalReplyCount}
-              </Link>
-            ) : (
-              <MessageSquare size={20} className="inline-block mr-1" />
+        {!article.locked && (
+          <>
+            {checkPermit('article', 'vote_up') && isPublished && upVote && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mr-1 p-0 w-[36px] h-[36px]"
+                onClick={(e) => onVoteClick(e, 'up')}
+                disabled={disabled}
+              >
+                {/* <ThumbsUp size={20} className="inline-block mr-1" /> */}
+                <BIconTriangleUp
+                  size={28}
+                  variant={userState?.voteType == 'up' ? 'full' : 'default'}
+                />
+                {article.voteUp > 0 && article.voteUp}
+              </Button>
             )}
-          </Button>
+            {checkPermit('article', 'vote_down') && isPublished && downVote && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mr-1 p-0 w-[36px] h-[36px]"
+                onClick={(e) => onVoteClick(e, 'down')}
+                disabled={disabled}
+              >
+                <BIconTriangleDown
+                  size={28}
+                  variant={userState?.voteType == 'down' ? 'full' : 'default'}
+                />
+                {article.voteDown > 0 && article.voteDown}
+              </Button>
+            )}
+            {comment && (
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild={ctype == 'list'}
+                onClick={onCommentClick}
+                className="mr-1"
+              >
+                {ctype == 'list' ? (
+                  <Link to={genArticlePath(article)}>
+                    <MessageSquare size={20} className="inline-block mr-1" />
+                    {article.totalReplyCount > 0 && article.totalReplyCount}
+                  </Link>
+                ) : (
+                  <MessageSquare size={20} className="inline-block mr-1" />
+                )}
+              </Button>
+            )}
+            {checkPermit('article', 'save') && isPublished && bookmark && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onSaveClick}
+                disabled={disabled}
+              >
+                <BookmarkIcon
+                  size={20}
+                  fill={userState.saved ? 'currentColor' : 'transparent'}
+                  className={cn('mr-1', userState.saved && 'text-primary')}
+                />
+                {article.totalSavedCount > 0 && article.totalSavedCount}
+              </Button>
+            )}
+            {checkPermit('article', 'subscribe') &&
+              isPublished &&
+              notify &&
+              isRootArticle && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onSubscribeClick}
+                  disabled={disabled}
+                  className="mr-1"
+                >
+                  <BellIcon
+                    size={20}
+                    fill={userState.subscribed ? 'currentColor' : 'transparent'}
+                    className={cn(
+                      'mr-1',
+                      userState.subscribed && 'text-primary'
+                    )}
+                  />
+                </Button>
+              )}
+          </>
         )}
-        {checkPermit('article', 'save') && isPublished && bookmark && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onSaveClick}
-            disabled={disabled}
-          >
-            <BookmarkIcon
-              size={20}
-              fill={userState.saved ? 'currentColor' : 'transparent'}
-              className={cn('mr-1', userState.saved && 'text-primary')}
-            />
-            {article.totalSavedCount > 0 && article.totalSavedCount}
-          </Button>
+        {article.locked && (
+          <i className="inline-block mr-2 text-sm text-gray-500">
+            &lt;已锁定&gt;
+          </i>
         )}
-        {checkPermit('article', 'subscribe') &&
-          isPublished &&
-          notify &&
-          isRootArticle && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onSubscribeClick}
-              disabled={disabled}
-              className="mr-1"
-            >
-              <BellIcon
-                size={20}
-                fill={userState.subscribed ? 'currentColor' : 'transparent'}
-                className={cn('mr-1', userState.subscribed && 'text-primary')}
-              />
-            </Button>
-          )}
         {history && checkPermit('article', 'manage') && (
           <Button
             variant="ghost"
@@ -343,9 +355,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           </>
         )}
         {isTopArticle && (
-          <span className="text-gray-500">
-            {article.totalReplyCount} 个回复
-          </span>
+          <span className="text-gray-500">{article.totalReplyCount} 回复</span>
         )}
       </div>
       <div className="flex items-center">

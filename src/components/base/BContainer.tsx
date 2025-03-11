@@ -300,7 +300,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         </SidebarProvider>
 
         <Dialog open={signin} onOpenChange={updateSignin}>
-          <DialogContent>
+          <DialogContent className="w-[500px]">
             <DialogHeader>
               <DialogTitle>登录</DialogTitle>
               <DialogDescription></DialogDescription>
@@ -316,7 +316,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           </DialogContent>
         </Dialog>
         <Dialog open={signup} onOpenChange={updateSignup}>
-          <DialogContent>
+          <DialogContent className="w-[500px]">
             <DialogHeader>
               <DialogTitle>注册</DialogTitle>
               <DialogDescription></DialogDescription>

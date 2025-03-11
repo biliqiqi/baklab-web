@@ -1,4 +1,10 @@
-import { PencilIcon, SquareArrowOutUpRightIcon, Trash2Icon } from 'lucide-react'
+import {
+  LockIcon,
+  LockOpenIcon,
+  PencilIcon,
+  SquareArrowOutUpRightIcon,
+  Trash2Icon,
+} from 'lucide-react'
 import {
   HTMLAttributes,
   MouseEvent,
@@ -11,10 +17,15 @@ import { Link } from 'react-router-dom'
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
 import { bus, cn, extractDomain, md2text, noop, renderMD } from '@/lib/utils'
 
-import { deleteArticle } from '@/api/article'
+import { deleteArticle, toggleLockArticle } from '@/api/article'
 import { EV_ON_EDIT_CLICK, EV_ON_REPLY_CLICK } from '@/constants/constants'
 import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
-import { Article, ArticleAction, ArticleCardType } from '@/types/types'
+import {
+  ARTICLE_LOCK_ACTION,
+  Article,
+  ArticleAction,
+  ArticleCardType,
+} from '@/types/types'
 
 import ArticleControls from './ArticleControls'
 import ModerationForm, { ReasonScheme } from './ModerationForm'
@@ -132,6 +143,26 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     [article, alertDialog, authStore, onSuccess]
   )
 
+  const onToggleLockClick = useCallback(async () => {
+    const confirmed = await alertDialog.confirm(
+      '确认',
+      `确定${article.locked ? '解锁' : '锁定'}帖子？`
+    )
+    if (confirmed) {
+      const { code } = await toggleLockArticle(
+        article.id,
+        article.displayTitle,
+        article.locked ? ARTICLE_LOCK_ACTION.Unlock : ARTICLE_LOCK_ACTION.Lock,
+        {
+          siteFrontId: article.siteFrontId,
+        }
+      )
+      if (!code) {
+        onSuccess('lock')
+      }
+    }
+  }, [alertDialog, article, onSuccess])
+
   const onDelConfirmCancel = useCallback(() => {
     setAlertOpen(false)
   }, [])
@@ -216,7 +247,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             permit('article', 'edit_others')) &&
             !previewMode &&
             !article.hasReviewing &&
-            article.status == 'published' && (
+            article.status == 'published' &&
+            (!article.locked || permit('site', 'manage')) && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -234,7 +266,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             )}
           {((isMyself && permit('article', 'delete_mine')) ||
             permit('article', 'delete_others')) &&
-            !previewMode && (
+            !previewMode &&
+            (!article.locked || permit('site', 'manage')) && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -245,6 +278,21 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                 <Trash2Icon size={14} />
               </Button>
             )}
+          {permit('article', 'lock') && !previewMode && (
+            <Button
+              variant={'ghost'}
+              size={'sm'}
+              className={cn('mx-1', article.locked && 'text-primary')}
+              title={article.locked ? '解锁' : '锁定'}
+              onClick={onToggleLockClick}
+            >
+              {article.locked ? (
+                <LockIcon size={14} />
+              ) : (
+                <LockOpenIcon size={14} />
+              )}
+            </Button>
+          )}
         </div>
         <div>
           {parent && (

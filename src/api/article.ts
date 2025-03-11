@@ -9,6 +9,7 @@ import {
   ArticleListResponse,
   ArticleListSort,
   ArticleListType,
+  ArticleLockAction,
   ArticleResponse,
   ArticleStatus,
   ArticleSubmitResponse,
@@ -24,6 +25,7 @@ export const submitArticle = (
   categoryFrontID: string,
   link?: string,
   content?: string,
+  locked: boolean = false,
   custom?: CustomRequestOptions
 ): Promise<ResponseData<ArticleSubmitResponse>> =>
   authRequest.post(
@@ -34,6 +36,7 @@ export const submitArticle = (
         category: categoryFrontID,
         link,
         content,
+        locked,
         extra: {
           title,
         },
@@ -48,6 +51,7 @@ export const updateArticle = (
   categoryFrontID?: string,
   link?: string,
   content?: string,
+  locked: boolean = false,
   custom?: CustomRequestOptions
 ): Promise<ResponseData<ArticleSubmitResponse>> =>
   authRequest.patch(
@@ -58,6 +62,7 @@ export const updateArticle = (
         category: categoryFrontID,
         link,
         content,
+        locked,
         extra: {
           title,
         },
@@ -71,6 +76,7 @@ export const updateReply = (
   content: string,
   replyToId: string,
   title?: string,
+  locked: boolean = false,
   custom?: CustomRequestOptions
 ): Promise<ResponseData<ArticleSubmitResponse>> =>
   authRequest.patch(
@@ -79,6 +85,7 @@ export const updateReply = (
       json: {
         content,
         replyToId,
+        locked,
         extra: {
           title,
         },
@@ -307,5 +314,24 @@ export const getArticleHistory = (id: string, custom?: CustomRequestOptions) =>
   authRequest.get<ResponseData<ArticleHistoryResponse>>(
     `articles/${id}/history`,
     {},
+    custom
+  )
+
+export const toggleLockArticle = (
+  id: string,
+  title?: string,
+  lockAction?: ArticleLockAction,
+  custom?: CustomRequestOptions
+) =>
+  authRequest.post<ResponseData<null>>(
+    `articles/${id}/toggle_lock`,
+    {
+      json: {
+        extra: {
+          title,
+          lockAction,
+        },
+      },
+    },
     custom
   )

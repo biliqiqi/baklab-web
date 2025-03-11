@@ -299,6 +299,7 @@ export type ArticleAction =
   | 'save'
   | 'subscribe'
   | 'show_history'
+  | 'lock'
   | VoteType
 
 export type ActivityActionType =
@@ -455,6 +456,13 @@ export const SUBSCRIBE_ACTION = Object.freeze({
 } as const)
 
 export type SubscribeAction = ValuesToUnion<typeof SUBSCRIBE_ACTION>
+
+export const ARTICLE_LOCK_ACTION = Object.freeze({
+  Lock: 1,
+  Unlock: 2,
+} as const)
+
+export type ArticleLockAction = ValuesToUnion<typeof ARTICLE_LOCK_ACTION>
 
 export interface Role {
   id: string

@@ -192,6 +192,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
               content,
               article.replyToId,
               article.displayTitle,
+              false,
               {
                 siteFrontId: article.siteFrontId,
               }
@@ -203,11 +204,12 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
               category,
               link,
               content,
+              false,
               { siteFrontId: article.siteFrontId }
             )
           }
         } else {
-          data = await submitArticle(title, category, link, content, {
+          data = await submitArticle(title, category, link, content, false, {
             siteFrontId,
           })
         }

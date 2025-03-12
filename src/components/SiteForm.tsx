@@ -120,7 +120,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
   const [uploading, setUploading] = useState(false)
   const [brandUploading, setBrandUploading] = useState(false)
   const [edittingLogo, setEdittingLogo] = useState(false)
-  const [showMoreSettings, setShowMoreSettings] = useState(false)
+  const [showMoreSettings, setShowMoreSettings] = useState(isEdit)
 
   const alertDialog = useAlertDialogStore()
   const { checkPermit, isLogined } = useAuthedUserStore(

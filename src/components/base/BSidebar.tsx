@@ -888,12 +888,14 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
             <DialogDescription></DialogDescription>
           </DialogHeader>
 
-          <CategoryForm
-            isEdit={editCategory.editting}
-            category={editCategory.data}
-            onChange={setCategoryFormDirty}
-            onSuccess={onCategoryCreated}
-          />
+          <div className="grid gap-4 py-4">
+            <CategoryForm
+              isEdit={editCategory.editting}
+              category={editCategory.data}
+              onChange={setCategoryFormDirty}
+              onSuccess={onCategoryCreated}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 

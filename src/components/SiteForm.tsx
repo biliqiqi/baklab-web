@@ -1,17 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  ChangeEvent,
-  MouseEvent,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react'
+import { Collapsible } from '@radix-ui/react-collapsible'
+import { ChevronDownIcon } from 'lucide-react'
+import { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import sanitize from 'sanitize-html'
 import { toast } from 'sonner'
 import { useShallow } from 'zustand/react/shallow'
 
-import { noop, summryText } from '@/lib/utils'
+import { cn, noop, summryText } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { getArticleList } from '@/api/article'
@@ -26,6 +22,7 @@ import BCropper from './base/BCropper'
 import BSiteIcon from './base/BSiteIcon'
 import { Button } from './ui/button'
 import { Checkbox } from './ui/checkbox'
+import { CollapsibleContent, CollapsibleTrigger } from './ui/collapsible'
 import {
   Form,
   FormControl,
@@ -123,6 +120,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
   const [uploading, setUploading] = useState(false)
   const [brandUploading, setBrandUploading] = useState(false)
   const [edittingLogo, setEdittingLogo] = useState(false)
+  const [showMoreSettings, setShowMoreSettings] = useState(false)
 
   const alertDialog = useAlertDialogStore()
   const { checkPermit, isLogined } = useAuthedUserStore(
@@ -430,255 +428,257 @@ const SiteForm: React.FC<SiteFormProps> = ({
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="logoBrandHTML"
-          key="logoBrandHTML"
-          render={({ field }) => (
-            <FormItem className="mb-8">
-              <FormLabel>
-                品牌 LOGO <span className="text-gray-500">(选填)</span>
-              </FormLabel>
-              <FormDescription>
-                用于顶部导航栏或其他地方用到的品牌标识，可以为图片或纯文本，如果没有设置品牌
-                LOGO 则默认使用站点图标和站点名称来代替
-              </FormDescription>
-              <FormControl>
-                <div>
-                  <div className="flex items-center">
-                    <BCropper
-                      cropShape="rect"
-                      btnText="上传 LOGO 图片"
-                      settingAspect
-                      disabled={brandUploading || edittingLogo}
-                      loading={brandUploading}
-                      onSuccess={(data) => onCropSuccess(data, 'logoBrand')}
-                    />
-                    <Button
-                      size={'sm'}
-                      className="ml-2"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        setEdittingLogo((state) => !state)
-                      }}
-                    >
-                      编辑 LOGO 源码
-                    </Button>
-                  </div>
-                  <div
-                    dangerouslySetInnerHTML={{ __html: field.value }}
-                    className="flex items-center h-[58px] max-w-[500px] mt-4 logo-preview"
-                  ></div>
-                  {edittingLogo && (
-                    <div className="text-sm mt-4">
-                      <Textarea
-                        value={field.value}
-                        className="text-sm whitespace-break-spaces h-[240px]"
-                        onChange={field.onChange}
-                      />
-                      <div className="flex justify-between items-start mt-1">
-                        <div className="text-gray-500 pr-2">
-                          仅支持 img、span、b 标签，可使用 style 和 title
-                          属性，img 标签额外支持 src、width、height、alt
-                          属性，其他未提及的标签和属性均不支持，图片资源仅支持本站上传
-                        </div>
-                        <Button size={'sm'} onClick={onLogoHtmlPreview}>
-                          预览
+        <Collapsible open={showMoreSettings} onOpenChange={setShowMoreSettings}>
+          <CollapsibleTrigger asChild>
+            <Button
+              size={'sm'}
+              variant={'link'}
+              className="text-gray-500 px-0 mb-4 hover:no-underline"
+            >
+              <ChevronDownIcon
+                size={14}
+                className={cn(
+                  'transition-transform duration-200 ease-in-out rotate-0 inline-block align-bottom mr-1',
+                  !showMoreSettings && '-rotate-90'
+                )}
+              />
+              更多设置
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <FormField
+              control={form.control}
+              name="logoBrandHTML"
+              key="logoBrandHTML"
+              render={({ field }) => (
+                <FormItem className="mb-8">
+                  <FormLabel>
+                    品牌 LOGO <span className="text-gray-500">(选填)</span>
+                  </FormLabel>
+                  <FormDescription>
+                    用于顶部导航栏或其他地方用到的品牌标识，可以为图片或纯文本，如果没有设置品牌
+                    LOGO 则默认使用站点图标和站点名称来代替
+                  </FormDescription>
+                  <FormControl>
+                    <div>
+                      <div className="flex items-center">
+                        <BCropper
+                          cropShape="rect"
+                          btnText="上传 LOGO 图片"
+                          settingAspect
+                          disabled={brandUploading || edittingLogo}
+                          loading={brandUploading}
+                          onSuccess={(data) => onCropSuccess(data, 'logoBrand')}
+                        />
+                        <Button
+                          size={'sm'}
+                          className="ml-2"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            setEdittingLogo((state) => !state)
+                          }}
+                        >
+                          编辑 LOGO 源码
                         </Button>
                       </div>
+                      <div
+                        dangerouslySetInnerHTML={{ __html: field.value }}
+                        className="flex items-center h-[58px] max-w-[500px] mt-4 logo-preview"
+                      ></div>
+                      {edittingLogo && (
+                        <div className="text-sm mt-4">
+                          <Textarea
+                            value={field.value}
+                            className="text-sm whitespace-break-spaces h-[240px]"
+                            onChange={field.onChange}
+                          />
+                          <div className="flex justify-between items-start mt-1">
+                            <div className="text-gray-500 pr-2">
+                              仅支持 img、span、b 标签，可使用 style 和 title
+                              属性，img 标签额外支持 src、width、height、alt
+                              属性，其他未提及的标签和属性均不支持，图片资源仅支持本站上传
+                            </div>
+                            <Button size={'sm'} onClick={onLogoHtmlPreview}>
+                              预览
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="visible"
-          key="visible"
-          render={({ field }) => (
-            <FormItem className="mb-8">
-              <FormLabel>可见性</FormLabel>
-              <FormControl>
-                <RadioGroup
-                  onValueChange={(val) => {
-                    if (val == '1') {
-                      field.onChange(true)
-                    } else {
-                      field.onChange(false)
-                      form.setValue('nonMemberInteract', false)
-                    }
-                  }}
-                  defaultValue="1"
-                  className="flex flex-wrap"
-                  value={field.value ? '1' : '0'}
-                >
-                  <FormItem
-                    className="flex items-center space-y-0 mr-4 mb-4"
-                    key="1"
-                  >
-                    <FormControl>
-                      <RadioGroupItem value="1" className="mr-1" />
-                    </FormControl>
-                    <FormLabel className="font-normal">公开</FormLabel>
-                  </FormItem>
-                  <FormItem
-                    className="flex items-center space-y-0 mr-4 mb-4"
-                    key="0"
-                  >
-                    <FormControl>
-                      <RadioGroupItem value="0" className="mr-1" />
-                    </FormControl>
-                    <FormLabel className="font-normal">私有</FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        {formVals.visible && (
-          <FormField
-            control={form.control}
-            name="nonMemberInteract"
-            key="nonMemberInteract"
-            render={({ field }) => (
-              <FormItem className="mb-8">
-                <FormLabel>是否允许非成员交互</FormLabel>
-                <FormDescription>
-                  是否允许未加入的用户进行投票、订阅、收藏、评论等操作，若不允许，则只能浏览内容
-                </FormDescription>
-                <FormControl>
-                  <div className="flex items-center">
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      aria-label="允许"
-                      className="mr-1"
-                      id="allowNonMemberInteract"
-                    />{' '}
-                    <label htmlFor="allowNonMemberInteract" className="text-sm">
-                      允许
-                    </label>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-        <FormField
-          control={form.control}
-          name="reviewBeforePublish"
-          key="reviewBeforePublish"
-          render={({ field }) => (
-            <FormItem className="mb-8">
-              <FormLabel>内容审核</FormLabel>
-              <FormDescription>是否在发布内容之前进行审核</FormDescription>
-              <FormControl>
-                <div className="flex items-center">
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    aria-label="开启先审后发"
-                    className="mr-1"
-                    id="reviewBeforePublish"
-                  />{' '}
-                  <label htmlFor="reviewBeforePublish" className="text-sm">
-                    开启先审后发
-                  </label>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        {isEdit && (
-          <FormField
-            control={form.control}
-            name="homePage"
-            key="homePage"
-            render={({ field }) => (
-              <FormItem className="mb-8">
-                <FormLabel>首页</FormLabel>
-                <FormDescription>从以下页面中选择一个作为首页</FormDescription>
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue="/feed"
-                    className="flex flex-wrap"
-                    value={field.value == '/' ? '/feed' : field.value}
-                  >
-                    <FormItem
-                      className="flex items-center space-y-0 mr-4 mb-4"
-                      key="feed"
-                    >
-                      <FormControl>
-                        <RadioGroupItem value="/feed" className="mr-1" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        信息流 (&nbsp;
-                        <span className="text-sm text-gray-500">
-                          {`/${site.frontId}/feed`}
-                        </span>
-                        &nbsp;)
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem
-                      className="flex items-center space-y-0 mr-4 mb-4"
-                      key="categories"
-                    >
-                      <FormControl>
-                        <RadioGroupItem value="/categories" className="mr-1" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        分类 (&nbsp;
-                        <span className="text-sm text-gray-500">
-                          {`/${site.frontId}/categories`}
-                        </span>
-                        &nbsp;)
-                      </FormLabel>
-                    </FormItem>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-        <FormField
-          control={form.control}
-          name="keywords"
-          key="keywords"
-          render={({ field, fieldState }) => (
-            <FormItem className="mb-8">
-              <FormLabel>关键词</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="请输入站点关键字词，用逗号 ( , ) 隔开"
-                  autoComplete="off"
-                  state={fieldState.invalid ? 'invalid' : 'default'}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="description"
-          key="description"
-          render={({ field, fieldState }) => (
-            <FormItem className="mb-8">
-              <FormControl>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="visible"
+              key="visible"
+              render={({ field }) => (
                 <FormItem className="mb-8">
-                  <FormLabel>描述</FormLabel>
+                  <FormLabel>可见性</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="请输入站点描述"
+                    <RadioGroup
+                      onValueChange={(val) => {
+                        if (val == '1') {
+                          field.onChange(true)
+                        } else {
+                          field.onChange(false)
+                          form.setValue('nonMemberInteract', false)
+                        }
+                      }}
+                      defaultValue="1"
+                      className="flex flex-wrap"
+                      value={field.value ? '1' : '0'}
+                    >
+                      <FormItem
+                        className="flex items-center space-y-0 mr-4 mb-4"
+                        key="1"
+                      >
+                        <FormControl>
+                          <RadioGroupItem value="1" className="mr-1" />
+                        </FormControl>
+                        <FormLabel className="font-normal">公开</FormLabel>
+                      </FormItem>
+                      <FormItem
+                        className="flex items-center space-y-0 mr-4 mb-4"
+                        key="0"
+                      >
+                        <FormControl>
+                          <RadioGroupItem value="0" className="mr-1" />
+                        </FormControl>
+                        <FormLabel className="font-normal">私有</FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {formVals.visible && (
+              <FormField
+                control={form.control}
+                name="nonMemberInteract"
+                key="nonMemberInteract"
+                render={({ field }) => (
+                  <FormItem className="mb-8">
+                    <FormLabel>是否允许非成员交互</FormLabel>
+                    <FormDescription>
+                      是否允许未加入的用户进行投票、订阅、收藏、评论等操作，若不允许，则只能浏览内容
+                    </FormDescription>
+                    <FormControl>
+                      <div className="flex items-center">
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          aria-label="允许"
+                          className="mr-1"
+                          id="allowNonMemberInteract"
+                        />{' '}
+                        <label
+                          htmlFor="allowNonMemberInteract"
+                          className="text-sm"
+                        >
+                          允许
+                        </label>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            <FormField
+              control={form.control}
+              name="reviewBeforePublish"
+              key="reviewBeforePublish"
+              render={({ field }) => (
+                <FormItem className="mb-8">
+                  <FormLabel>内容审核</FormLabel>
+                  <FormDescription>是否在发布内容之前进行审核</FormDescription>
+                  <FormControl>
+                    <div className="flex items-center">
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        aria-label="开启先审后发"
+                        className="mr-1"
+                        id="reviewBeforePublish"
+                      />{' '}
+                      <label htmlFor="reviewBeforePublish" className="text-sm">
+                        开启先审后发
+                      </label>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {isEdit && (
+              <FormField
+                control={form.control}
+                name="homePage"
+                key="homePage"
+                render={({ field }) => (
+                  <FormItem className="mb-8">
+                    <FormLabel>首页</FormLabel>
+                    <FormDescription>
+                      从以下页面中选择一个作为首页
+                    </FormDescription>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue="/feed"
+                        className="flex flex-wrap"
+                        value={field.value == '/' ? '/feed' : field.value}
+                      >
+                        <FormItem
+                          className="flex items-center space-y-0 mr-4 mb-4"
+                          key="feed"
+                        >
+                          <FormControl>
+                            <RadioGroupItem value="/feed" className="mr-1" />
+                          </FormControl>
+                          <FormLabel className="font-normal">
+                            信息流 (&nbsp;
+                            <span className="text-sm text-gray-500">
+                              {`/${site.frontId}/feed`}
+                            </span>
+                            &nbsp;)
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem
+                          className="flex items-center space-y-0 mr-4 mb-4"
+                          key="categories"
+                        >
+                          <FormControl>
+                            <RadioGroupItem value="/bankuai" className="mr-1" />
+                          </FormControl>
+                          <FormLabel className="font-normal">
+                            板块 (&nbsp;
+                            <span className="text-sm text-gray-500">
+                              {`/${site.frontId}/bankuai`}
+                            </span>
+                            &nbsp;)
+                          </FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            <FormField
+              control={form.control}
+              name="keywords"
+              key="keywords"
+              render={({ field, fieldState }) => (
+                <FormItem className="mb-8">
+                  <FormLabel>关键词</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="请输入站点关键字词，用逗号 ( , ) 隔开"
                       autoComplete="off"
                       state={fieldState.invalid ? 'invalid' : 'default'}
                       {...field}
@@ -686,11 +686,34 @@ const SiteForm: React.FC<SiteFormProps> = ({
                   </FormControl>
                   <FormMessage />
                 </FormItem>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="description"
+              key="description"
+              render={({ field, fieldState }) => (
+                <FormItem className="mb-8">
+                  <FormControl>
+                    <FormItem className="mb-8">
+                      <FormLabel>描述</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="请输入站点描述"
+                          autoComplete="off"
+                          state={fieldState.invalid ? 'invalid' : 'default'}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CollapsibleContent>
+        </Collapsible>
         <div className="flex justify-between">
           <span>
             {isEdit && checkPermit('site', 'delete') && (

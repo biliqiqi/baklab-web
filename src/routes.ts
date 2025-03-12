@@ -226,7 +226,7 @@ export const routes: RouteObject[] = [
     Component: ArticleListPage,
   },
   {
-    path: '/:siteFrontId/categories',
+    path: '/:siteFrontId/bankuai',
     Component: CategoryListPage,
   },
   {
@@ -235,7 +235,7 @@ export const routes: RouteObject[] = [
     loader: needPermission('article', 'create'),
   },
   {
-    path: '/:siteFrontId/categories/:categoryFrontId',
+    path: '/:siteFrontId/bankuai/:categoryFrontId',
     Component: ArticleListPage,
   },
   {

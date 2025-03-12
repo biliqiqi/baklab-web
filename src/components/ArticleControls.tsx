@@ -322,7 +322,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             <span className="whitespace-nowrap">
               {siteFrontId ? (
                 <Link
-                  to={`/${article.siteFrontId}/categories/${article.category.frontId}`}
+                  to={`/${article.siteFrontId}/bankuai/${article.category.frontId}`}
                 >
                   <BIconColorChar
                     iconId={article.categoryFrontId}

@@ -141,7 +141,7 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
               )}
               {!isReply(item) && (
                 <div className="flex mt-2 text-sm">
-                  <div className="w-[50px] font-bold mr-1 pt-2">分类：</div>
+                  <div className="w-[50px] font-bold mr-1 pt-2">板块：</div>
                   <div
                     className="flex-shrink-0 flex-grow bg-gray-100 p-2"
                     style={{

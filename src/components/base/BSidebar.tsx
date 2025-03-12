@@ -262,7 +262,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
     )
   )
 
-  const categoryListMatch = useMatch(`/${siteFrontId}/categories`)
+  const categoryListMatch = useMatch(`/${siteFrontId}/bankuai`)
 
   const isMySite = useMemo(
     () => (currSite ? currSite.creatorId == currUserId : false),
@@ -396,7 +396,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
       const { editting } = editCategory
       const confirmed = await alertDialog.confirm(
         '确认',
-        editting ? '分类设置未完成，确认舍弃？' : '分类创建未完成，确认舍弃？',
+        editting ? '板块设置未完成，确认舍弃？' : '板块创建未完成，确认舍弃？',
         'normal',
         {
           confirmBtnText: '确定舍弃',
@@ -677,11 +677,11 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                       asChild
                       isActive={categoryListMatch != null}
                     >
-                      <Link to={`/${siteFrontId}/categories`}>
+                      <Link to={`/${siteFrontId}/bankuai`}>
                         <BIconCircle id="categories" size={32}>
                           <ChartBarStackedIcon size={18} />
                         </BIconCircle>
-                        全部分类
+                        全部板块
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -745,7 +745,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                           !groupsOpen.category && '-rotate-90'
                         )}
                       />
-                      <span>分类</span>
+                      <span>板块</span>
                     </span>
 
                     {authPermit('category', 'create') && (
@@ -768,12 +768,12 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                             asChild
                             isActive={
                               location.pathname ==
-                                `/${siteFrontId}/categories/${item.frontId}` ||
+                                `/${siteFrontId}/bankuai/${item.frontId}` ||
                               category?.frontId == item.frontId
                             }
                           >
                             <Link
-                              to={`/${siteFrontId}/categories/${item.frontId}`}
+                              to={`/${siteFrontId}/bankuai/${item.frontId}`}
                             >
                               <BIconColorChar
                                 iconId={item.frontId}
@@ -883,7 +883,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editCategory.editting ? '设置分类' : '创建分类'}
+              {editCategory.editting ? '设置板块' : '创建板块'}
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
@@ -907,13 +907,15 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                 </DialogTitle>
                 <DialogDescription></DialogDescription>
               </DialogHeader>
-              <div>{currSite.description}</div>
-              <div className="text-sm text-gray-500">
-                由&nbsp;
-                <Link to={`/users/${currSite.creatorName}`}>
-                  <BAvatar username={currSite.creatorName} showUsername />
-                </Link>
-                &nbsp;创建于{timeFmt(currSite.createdAt, 'YYYY-M-D')}
+              <div className="grid gap-4 py-4">
+                <div>{currSite.description}</div>
+                <div className="text-sm text-gray-500">
+                  由&nbsp;
+                  <Link to={`/users/${currSite.creatorName}`}>
+                    <BAvatar username={currSite.creatorName} showUsername />
+                  </Link>
+                  &nbsp;创建于{timeFmt(currSite.createdAt, 'YYYY-M-D')}
+                </div>
               </div>
             </>
           )}
@@ -921,7 +923,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
       </Dialog>
 
       <Dialog open={showSiteForm} onOpenChange={onSiteFormClose}>
-        <DialogContent className="max-md:max-h-[90vh]">
+        <DialogContent className="max-md:max-h-[90vh] max-h-[675px]">
           <DialogHeader>
             <DialogTitle>
               {editSite.editting ? '设置站点' : '创建站点'}
@@ -929,12 +931,14 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
             <DialogDescription></DialogDescription>
           </DialogHeader>
 
-          <SiteForm
-            isEdit={editSite.editting}
-            site={editSite.data}
-            onChange={setSiteFormDirty}
-            onSuccess={onSiteCreated}
-          />
+          <div className="grid gap-4 py-4">
+            <SiteForm
+              isEdit={editSite.editting}
+              site={editSite.data}
+              onChange={setSiteFormDirty}
+              onSuccess={onSiteCreated}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -948,11 +952,13 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                   请复制以下链接并分享给好友
                 </DialogDescription>
               </DialogHeader>
-              <Invite
-                data={inviteCode}
-                loading={inviteCodeGeneratting}
-                container={inviteCodeDialogRef.current}
-              />
+              <div className="grid gap-4 py-4">
+                <Invite
+                  data={inviteCode}
+                  loading={inviteCodeGeneratting}
+                  container={inviteCodeDialogRef.current}
+                />
+              </div>
             </>
           )}
         </DialogContent>

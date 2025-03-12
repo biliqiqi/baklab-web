@@ -71,7 +71,7 @@ const articleScheme = z.object({
         val === undefined || z.string().trim().url().safeParse(val).success,
       '链接格式错误'
     ),
-  category: z.string().min(1, '分类不能为空').trim(),
+  category: z.string().min(1, '板块不能为空').trim(),
   content: contentRule,
 })
 
@@ -382,9 +382,9 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                                 cateMap[val].includes(search) ? 1 : 0
                               }
                             >
-                              <CommandInput placeholder="搜索分类..." />
+                              <CommandInput placeholder="搜索板块..." />
                               <CommandList>
-                                <CommandEmpty>未找到分类</CommandEmpty>
+                                <CommandEmpty>未找到板块</CommandEmpty>
                                 <CommandGroup>
                                   {cateList.map((cate) => (
                                     <CommandItem

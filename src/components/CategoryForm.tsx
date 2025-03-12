@@ -42,19 +42,19 @@ const MAX_CATEGORY_NAME_LENGTH = 12
 
 const frontIDSchema = z
   .string()
-  .min(1, '请输入分类标识')
+  .min(1, '请输入板块标识')
   .max(
     MAX_CATEGORY_FRONT_ID_LENGTH,
-    `分类标识不得超过${MAX_CATEGORY_FRONT_ID_LENGTH}个字符`
+    `板块标识不得超过${MAX_CATEGORY_FRONT_ID_LENGTH}个字符`
   )
-  .regex(/^[a-zA-Z0-9_]+$/, '分类标识由数字、字母和下划线组成，不区分大小写')
+  .regex(/^[a-zA-Z0-9_]+$/, '板块标识由数字、字母和下划线组成，不区分大小写')
 
 const nameSchema = z
   .string()
-  .min(1, '请输入分类名称')
+  .min(1, '请输入板块名称')
   .max(
     MAX_CATEGORY_NAME_LENGTH,
-    `分类名称不得超过${MAX_CATEGORY_NAME_LENGTH}个字符`
+    `板块名称不得超过${MAX_CATEGORY_NAME_LENGTH}个字符`
   )
 
 const iconBgColorSchema = z
@@ -197,7 +197,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
           if (exists) {
             form.setError(
               'frontID',
-              { message: '分类标识已存在' },
+              { message: '板块标识已存在' },
               { shouldFocus: true }
             )
             return
@@ -244,7 +244,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
       )
       if (!resp.code) {
         if (resp.data.articleTotal > 0) {
-          alertDialog.alert('无法删除', '该分类下存在内容，无法删除')
+          alertDialog.alert('无法删除', '该板块下存在内容，无法删除')
           return
         }
       }
@@ -296,7 +296,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
           />
           <div className="pl-4 flex-grow max-w-[calc(100%-82px)] overflow-hidden">
             <div className="text-sm text-gray-500 h-5">
-              {`/${siteFrontId}/categories/` +
+              {`/${siteFrontId}/bankuai/` +
                 (isEdit
                   ? category.frontId
                   : (formVals.frontID || '').toLowerCase())}
@@ -316,11 +316,11 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
               <FormItem className="mb-8">
                 <FormLabel>标识</FormLabel>
                 <FormDescription>
-                  分类的唯一标识，有字母、数字和下划线组成
+                  板块的唯一标识，有字母、数字和下划线组成
                 </FormDescription>
                 <FormControl>
                   <Input
-                    placeholder="请输入分类标识"
+                    placeholder="请输入板块标识"
                     autoComplete="off"
                     state={fieldState.invalid ? 'invalid' : 'default'}
                     {...field}
@@ -344,7 +344,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
               <FormLabel>名称</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="请输入分类名称"
+                  placeholder="请输入板块名称"
                   autoComplete="off"
                   state={fieldState.invalid ? 'invalid' : 'default'}
                   {...field}
@@ -391,7 +391,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
               </FormLabel>
               <FormDescription>
                 支持十六进制和RGB格式，例如 #fafafa 或 rgb(255, 20, 30)，
-                默认颜色基于分类标识字符串生成
+                默认颜色基于板块标识字符串生成
               </FormDescription>
               <FormControl>
                 <div className="flex">
@@ -425,7 +425,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
                 <FormItem className="mb-8">
                   <FormControl>
                     <Textarea
-                      placeholder="请输入分类描述"
+                      placeholder="请输入板块描述"
                       autoComplete="off"
                       state={fieldState.invalid ? 'invalid' : 'default'}
                       {...field}

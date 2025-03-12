@@ -215,22 +215,22 @@ export const PERMISSION_DATA = {
   },
   category: {
     create: {
-      name: '创建分类',
+      name: '创建板块',
       adapt_id: 'category.create',
       enable: false,
     },
     edit: {
-      name: '编辑分类',
+      name: '编辑板块',
       adapt_id: 'category.edit',
       enable: false,
     },
     delete: {
-      name: '删除分类',
+      name: '删除板块',
       adapt_id: 'category.delete',
       enable: false,
     },
     manage_platform: {
-      name: '管理全平台分类',
+      name: '管理全平台板块',
       adapt_id: 'category.manage_platform',
       enable: false,
     },
@@ -282,6 +282,6 @@ export const PERMISSION_MODULE_DATA = {
   permission: '权限',
   role: '角色',
   activity: '活动记录',
-  category: '分类',
+  category: '板块',
   site: '站点',
 }

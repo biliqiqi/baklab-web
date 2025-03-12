@@ -22,9 +22,9 @@ export default function CategoryListPage() {
     <BContainer
       category={{
         isFront: true,
-        frontId: 'categories',
-        name: '分类',
-        describe: '全部分类',
+        frontId: 'bankuai',
+        name: '板块',
+        describe: '全部板块',
       }}
     >
       <div className="flex justify-between flex-wrap -m-2">
@@ -35,7 +35,7 @@ export default function CategoryListPage() {
           >
             <Card className="flex items-start p-2 w-full">
               <Link
-                to={`/${siteFrontId}/categories/${cate.frontId}`}
+                to={`/${siteFrontId}/bankuai/${cate.frontId}`}
                 className="mr-2"
               >
                 <BIconColorChar
@@ -47,7 +47,7 @@ export default function CategoryListPage() {
               </Link>
               <div>
                 <div className="font-bold pt-2">
-                  <Link to={`/${siteFrontId}/categories/${cate.frontId}`}>
+                  <Link to={`/${siteFrontId}/bankuai/${cate.frontId}`}>
                     {cate.name}
                   </Link>
                 </div>

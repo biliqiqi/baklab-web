@@ -239,6 +239,10 @@ export const routes: RouteObject[] = [
     Component: ArticleListPage,
   },
   {
+    path: '/:siteFrontId/b/:categoryFrontId',
+    Component: ArticleListPage,
+  },
+  {
     path: '/:siteFrontId/articles/:articleId',
     Component: ArticlePage,
   },

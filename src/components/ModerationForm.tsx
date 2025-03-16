@@ -126,7 +126,11 @@ const ModerationForm: React.FC<ModerationFormProps> = ({
                       其他：
                       <Input
                         className="inline-block w-[120px]"
-                        onFocus={() => form.setValue('reason', 'other')}
+                        onFocus={() =>
+                          form.setValue('reason', 'other', {
+                            shouldDirty: true,
+                          })
+                        }
                         onChange={(e) => setOtherReason(e.target.value)}
                       />
                     </FormLabel>

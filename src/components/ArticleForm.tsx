@@ -395,7 +395,8 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                                           'category',
                                           currentValue === categoryVal()
                                             ? ''
-                                            : currentValue
+                                            : currentValue,
+                                          { shouldDirty: true }
                                         )
                                         setOpen(false)
                                       }}

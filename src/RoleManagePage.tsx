@@ -358,9 +358,15 @@ export default function RoleManagePage() {
                                 placeholder="选择默认角色"
                                 onChange={(role) => {
                                   if (role) {
-                                    defaultRoleForm.setValue('roleId', role.id)
+                                    defaultRoleForm.setValue(
+                                      'roleId',
+                                      role.id,
+                                      { shouldDirty: true }
+                                    )
                                   } else {
-                                    defaultRoleForm.setValue('roleId', '')
+                                    defaultRoleForm.setValue('roleId', '', {
+                                      shouldDirty: true,
+                                    })
                                   }
                                 }}
                               />
@@ -436,10 +442,13 @@ export default function RoleManagePage() {
                                 if (role) {
                                   siteDefaultRoleForm.setValue(
                                     'roleId',
-                                    role.id
+                                    role.id,
+                                    { shouldDirty: true }
                                   )
                                 } else {
-                                  siteDefaultRoleForm.setValue('roleId', '')
+                                  siteDefaultRoleForm.setValue('roleId', '', {
+                                    shouldDirty: true,
+                                  })
                                 }
                               }}
                             />

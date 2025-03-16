@@ -322,7 +322,9 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
                     state={fieldState.invalid ? 'invalid' : 'default'}
                     {...field}
                     onChange={(e) => {
-                      form.setValue('iconBgColor', stc(iconId))
+                      form.setValue('iconBgColor', stc(iconId), {
+                        shouldDirty: true,
+                      })
                       field.onChange(e)
                     }}
                   />
@@ -346,7 +348,9 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
                   state={fieldState.invalid ? 'invalid' : 'default'}
                   {...field}
                   onChange={(e) => {
-                    form.setValue('iconContent', getFirstChar(e.target.value))
+                    form.setValue('iconContent', getFirstChar(e.target.value), {
+                      shouldDirty: true,
+                    })
                     field.onChange(e)
                   }}
                 />

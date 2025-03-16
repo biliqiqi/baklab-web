@@ -289,7 +289,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
         if (success) {
           /* setImgUrl(data) */
           if (logoType == 'logo') {
-            form.setValue('logoUrl', data)
+            form.setValue('logoUrl', data, { shouldDirty: true })
           } else {
             form.setValue(
               'logoBrandHTML',
@@ -524,7 +524,9 @@ const SiteForm: React.FC<SiteFormProps> = ({
                           field.onChange(true)
                         } else {
                           field.onChange(false)
-                          form.setValue('nonMemberInteract', false)
+                          form.setValue('nonMemberInteract', false, {
+                            shouldDirty: true,
+                          })
                         }
                       }}
                       defaultValue="1"

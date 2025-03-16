@@ -104,7 +104,7 @@ const BanDialog = forwardRef<BanDialogRef, BanDialogProps>(
     }, [banForm])
 
     const onBanInputFocus = useCallback(
-      () => banForm.setValue('duration', 'custom'),
+      () => banForm.setValue('duration', 'custom', { shouldDirty: true }),
       [banForm]
     )
 
@@ -121,7 +121,7 @@ const BanDialog = forwardRef<BanDialogRef, BanDialogProps>(
 
           setBanCustom((state) => ({ ...state, [inputType]: val }))
 
-          banForm.setValue('duration', 'custom')
+          banForm.setValue('duration', 'custom', { shouldDirty: true })
         }
       },
       [banForm]

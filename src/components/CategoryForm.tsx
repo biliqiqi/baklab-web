@@ -60,7 +60,7 @@ const nameSchema = z
 const iconBgColorSchema = z
   .string()
   .regex(
-    /^$|^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$|^rgb\(\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*,\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*,\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*\)$/i,
+    /^$|^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$|^rgb\(\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*\)$/i,
     '颜色格式错误'
   )
 
@@ -68,12 +68,9 @@ const descriptionSchema = z.string()
 
 const emojiRe = emojiRegex()
 
-/* const iconContentSchema = z.string() */
-
 const iconContentSchema = z.string().transform((val, ctx) => {
   if (/^$|^\p{L}$/u.test(val)) return val
 
-  /* val = val.replace(/\p{L}*$/u, '') */
   if (/\p{L}+$/u.test(val)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,

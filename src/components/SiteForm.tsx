@@ -453,10 +453,10 @@ const SiteForm: React.FC<SiteFormProps> = ({
               render={({ field }) => (
                 <FormItem className="mb-8">
                   <FormLabel>
-                    品牌 LOGO <span className="text-gray-500">(选填)</span>
+                    LOGO <span className="text-gray-500">(选填)</span>
                   </FormLabel>
                   <FormDescription>
-                    用于顶部导航栏或其他地方用到的品牌标识，可以为图片或纯文本，如果没有设置品牌
+                    用于顶部导航栏或其他地方，可以是图片或纯文本，如果没有设置
                     LOGO 则默认使用站点图标和站点名称来代替
                   </FormDescription>
                   <FormControl>

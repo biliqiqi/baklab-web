@@ -271,6 +271,7 @@ export default function ArticlePage() {
         {pageState.totalPage > 1 && <ListPagination pageState={pageState} />}
         {article &&
           !article.deleted &&
+          !article.locked &&
           article.status == 'published' &&
           authStore.isLogined() &&
           (siteStore.site?.currUserState.isMember ||

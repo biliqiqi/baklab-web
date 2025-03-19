@@ -391,7 +391,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
                 图标背景色 <span className="text-gray-500">(选填)</span>
               </FormLabel>
               <FormDescription>
-                支持十六进制和RGB格式，例如 #fafafa 或 rgb(255, 20, 30)，
+                支持十六进制和RGB格式，例如 #fafafa 或 rgb(255 20 30)，
                 默认颜色基于板块标识字符串生成
               </FormDescription>
               <FormControl>

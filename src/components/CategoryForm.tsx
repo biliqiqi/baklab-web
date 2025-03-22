@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import emojiRegex from 'emoji-regex'
-import { MouseEvent, useCallback, useEffect, useMemo } from 'react'
+import { ChevronDownIcon } from 'lucide-react'
+import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
 import stc from 'string-to-color'
 
-import { getFirstChar, noop, summryText } from '@/lib/utils'
+import { cn, getFirstChar, noop, summryText } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { getArticleList } from '@/api/article'
@@ -23,8 +24,14 @@ import {
 } from '@/state/global'
 import { Category, ResponseData, ResponseID } from '@/types/types'
 
+import ContentFormSelector from './ContentFormSelector'
 import BIconColorChar from './base/BIconColorChar'
 import { Button } from './ui/button'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from './ui/collapsible'
 import {
   Form,
   FormControl,
@@ -64,6 +71,7 @@ const iconBgColorSchema = z
     '颜色格式错误'
   )
 
+const contentFormIdSchema = z.string()
 const descriptionSchema = z.string()
 
 const emojiRe = emojiRegex()
@@ -96,6 +104,7 @@ const categorySchema = z.object({
   iconBgColor: iconBgColorSchema,
   iconContent: iconContentSchema,
   description: descriptionSchema,
+  contentFormId: contentFormIdSchema,
 })
 
 const categoryEditSchema = z.object({
@@ -103,6 +112,7 @@ const categoryEditSchema = z.object({
   iconBgColor: iconBgColorSchema,
   iconContent: iconContentSchema,
   description: descriptionSchema,
+  contentFormId: contentFormIdSchema,
 })
 
 type CategorySchema = z.infer<typeof categorySchema>
@@ -122,6 +132,7 @@ const defaultCategoryData: CategorySchema = {
   iconBgColor: stc('x'),
   iconContent: '',
   description: '',
+  contentFormId: '0',
 }
 
 const CategoryForm: React.FC<CategoryFormProps> = ({
@@ -130,6 +141,8 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
   onSuccess = noop,
   onChange = noop,
 }) => {
+  const [showMoreSettings, setShowMoreSettings] = useState(isEdit)
+
   const alertDialog = useAlertDialogStore()
   const authStore = useAuthedUserStore()
   const siteStore = useSiteStore()
@@ -149,6 +162,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
             iconBgColor:
               category.iconBgColor || stc(category.frontId.toLowerCase()),
             iconContent: category.iconContent,
+            contentFormId: category.contentFormId,
           }
         : defaultCategoryData),
     },
@@ -170,6 +184,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
       description,
       iconBgColor,
       iconContent,
+      contentFormId,
     }: CategorySchema) => {
       /* console.log('category vals: ', vals) */
       try {
@@ -208,6 +223,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
             description,
             iconBgColor,
             iconContent,
+            contentFormId,
             {
               siteFrontId,
             }
@@ -304,36 +320,6 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
             </div>
           </div>
         </div>
-        {!isEdit && (
-          <FormField
-            control={form.control}
-            name="frontID"
-            key="frontID"
-            render={({ field, fieldState }) => (
-              <FormItem className="mb-8">
-                <FormLabel>标识</FormLabel>
-                <FormDescription>
-                  板块的唯一标识，有字母、数字和下划线组成
-                </FormDescription>
-                <FormControl>
-                  <Input
-                    placeholder="请输入板块标识"
-                    autoComplete="off"
-                    state={fieldState.invalid ? 'invalid' : 'default'}
-                    {...field}
-                    onChange={(e) => {
-                      form.setValue('iconBgColor', stc(iconId), {
-                        shouldDirty: true,
-                      })
-                      field.onChange(e)
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
         <FormField
           control={form.control}
           name="name"
@@ -359,77 +345,50 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="iconContent"
-          key="iconContent"
-          render={({ field, fieldState }) => (
-            <FormItem className="mb-8">
-              <FormLabel>
-                图标内容 <span className="text-gray-500">(选填)</span>
-              </FormLabel>
-              <FormDescription>限制为一个字符</FormDescription>
-              <FormControl>
-                <Input
-                  placeholder="请输入图标内容"
-                  autoComplete="off"
-                  state={fieldState.invalid ? 'invalid' : 'default'}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="iconBgColor"
-          key="iconBgColor"
-          render={({ field, fieldState }) => (
-            <FormItem className="mb-8">
-              <FormLabel>
-                图标背景色 <span className="text-gray-500">(选填)</span>
-              </FormLabel>
-              <FormDescription>
-                支持十六进制和RGB格式，例如 #fafafa 或 rgb(255 20 30)，
-                默认颜色基于板块标识字符串生成
-              </FormDescription>
-              <FormControl>
-                <div className="flex">
+        {!isEdit && (
+          <FormField
+            control={form.control}
+            name="frontID"
+            key="frontID"
+            render={({ field, fieldState }) => (
+              <FormItem className="mb-8">
+                <FormLabel>标识</FormLabel>
+                <FormDescription>
+                  板块的唯一标识，由字母、数字和下划线组成
+                </FormDescription>
+                <FormControl>
                   <Input
-                    key={'iconBgColor'}
-                    placeholder="请输入图标背景颜色"
+                    placeholder="请输入板块标识"
                     autoComplete="off"
                     state={fieldState.invalid ? 'invalid' : 'default'}
                     {...field}
-                    className="w-36 mr-2"
+                    onChange={(e) => {
+                      form.setValue('iconBgColor', stc(iconId), {
+                        shouldDirty: true,
+                      })
+                      field.onChange(e)
+                    }}
                   />
-                  <Input
-                    key={'iconBgColorPicker'}
-                    type="color"
-                    className="w-16"
-                    {...field}
-                  />
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <FormField
           control={form.control}
-          name="description"
-          key="description"
-          render={({ field, fieldState }) => (
+          name="contentFormId"
+          key="contentFormId"
+          render={({ field }) => (
             <FormItem className="mb-8">
+              <FormLabel>内容形式</FormLabel>
               <FormControl>
                 <FormItem className="mb-8">
                   <FormControl>
-                    <Textarea
-                      placeholder="请输入板块描述"
-                      autoComplete="off"
-                      state={fieldState.invalid ? 'invalid' : 'default'}
-                      {...field}
+                    <ContentFormSelector
+                      disabled={isEdit}
+                      value={field.value}
+                      onChange={field.onChange}
                     />
                   </FormControl>
                   <FormMessage />
@@ -439,6 +398,103 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
             </FormItem>
           )}
         />
+        <Collapsible open={showMoreSettings} onOpenChange={setShowMoreSettings}>
+          <CollapsibleTrigger asChild>
+            <Button
+              size={'sm'}
+              variant={'link'}
+              className="text-gray-500 px-0 mb-4 hover:no-underline"
+            >
+              <ChevronDownIcon
+                size={14}
+                className={cn(
+                  'transition-transform duration-200 ease-in-out rotate-0 inline-block align-bottom mr-1',
+                  !showMoreSettings && '-rotate-90'
+                )}
+              />
+              更多设置
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="CollapsibleContent">
+            <FormField
+              control={form.control}
+              name="iconContent"
+              key="iconContent"
+              render={({ field, fieldState }) => (
+                <FormItem className="mb-8">
+                  <FormLabel>图标内容</FormLabel>
+                  <FormDescription>限制为一个字符</FormDescription>
+                  <FormControl>
+                    <Input
+                      placeholder="请输入图标内容"
+                      autoComplete="off"
+                      state={fieldState.invalid ? 'invalid' : 'default'}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="iconBgColor"
+              key="iconBgColor"
+              render={({ field, fieldState }) => (
+                <FormItem className="mb-8">
+                  <FormLabel>图标背景色</FormLabel>
+                  <FormDescription>
+                    支持十六进制和RGB格式，例如 #fafafa 或 rgb(255 20 30)，
+                    默认颜色基于板块标识字符串生成
+                  </FormDescription>
+                  <FormControl>
+                    <div className="flex">
+                      <Input
+                        key={'iconBgColor'}
+                        placeholder="请输入图标背景颜色"
+                        autoComplete="off"
+                        state={fieldState.invalid ? 'invalid' : 'default'}
+                        {...field}
+                        className="w-36 mr-2"
+                      />
+                      <Input
+                        key={'iconBgColorPicker'}
+                        type="color"
+                        className="w-16"
+                        {...field}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="description"
+              key="description"
+              render={({ field, fieldState }) => (
+                <FormItem className="mb-8">
+                  <FormLabel>描述</FormLabel>
+                  <FormControl>
+                    <FormItem className="mb-8">
+                      <FormControl>
+                        <Textarea
+                          placeholder="请输入板块描述"
+                          autoComplete="off"
+                          state={fieldState.invalid ? 'invalid' : 'default'}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CollapsibleContent>
+        </Collapsible>
         <div className="flex justify-between">
           <span>
             {isEdit && authStore.permit('category', 'delete') && (

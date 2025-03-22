@@ -34,6 +34,7 @@ export interface Category {
   siteFrontId: string
   iconBgColor: string
   iconContent: string
+  contentFormId: string
 }
 
 export type CategoryExists = ItemExists
@@ -602,4 +603,30 @@ export interface SiteBlockedWord {
 
 export interface SiteBlockedWordList extends ListPageState {
   list: SiteBlockedWord[]
+}
+
+export interface ContentStatus {
+  id: string
+  name: string
+  contentHtmlStr: string
+  contentFormId: number
+  asDefault: boolean
+  creatorId: string
+  creatorName: string
+  createdAt: string
+}
+
+export interface ContentForm {
+  id: string
+  name: string
+  frontId: string
+  description: string
+  creatorId: string
+  creatorName: string
+  createdAt: string
+  statusList: ContentStatus[] | null
+}
+
+export interface ContentFormListResponse {
+  list: ContentForm[]
 }

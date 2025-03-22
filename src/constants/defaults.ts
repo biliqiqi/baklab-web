@@ -1,6 +1,7 @@
 import {
   Article,
   Category,
+  ContentForm,
   CurrUserState,
   ListPageState,
   SITE_STATUS,
@@ -39,7 +40,7 @@ export const defaultSite: Site = {
 }
 
 export const defaultCategory: Category = {
-  id: '',
+  id: '0',
   frontId: '',
   name: '',
   describe: '',
@@ -52,6 +53,18 @@ export const defaultCategory: Category = {
   siteFrontId: '',
   iconBgColor: '',
   iconContent: '',
+  contentFormId: '',
+}
+
+export const defaultContentForm: ContentForm = {
+  id: '0',
+  name: '',
+  frontId: '',
+  description: '',
+  creatorId: '',
+  creatorName: '',
+  createdAt: '',
+  statusList: null,
 }
 
 export const defaultCurrState: CurrUserState = {
@@ -62,7 +75,7 @@ export const defaultCurrState: CurrUserState = {
 }
 
 export const defaultArticle: Article = {
-  id: '',
+  id: '0',
   title: '',
   displayTitle: '',
   asMainArticle: false, // 是否在前端作为顶层文章

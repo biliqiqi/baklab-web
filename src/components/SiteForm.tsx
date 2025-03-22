@@ -445,16 +445,14 @@ const SiteForm: React.FC<SiteFormProps> = ({
               更多设置
             </Button>
           </CollapsibleTrigger>
-          <CollapsibleContent>
+          <CollapsibleContent className="CollapsibleContent">
             <FormField
               control={form.control}
               name="logoBrandHTML"
               key="logoBrandHTML"
               render={({ field }) => (
                 <FormItem className="mb-8">
-                  <FormLabel>
-                    LOGO <span className="text-gray-500">(选填)</span>
-                  </FormLabel>
+                  <FormLabel>LOGO</FormLabel>
                   <FormDescription>
                     用于顶部导航栏或其他地方，可以是图片或纯文本，如果没有设置
                     LOGO 则默认使用站点图标和站点名称来代替

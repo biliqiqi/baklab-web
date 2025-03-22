@@ -23,6 +23,7 @@ export const submitCategory = async (
   description: string,
   iconBgColor: string,
   iconContent: string,
+  contentFormId: string,
   custom?: CustomRequestOptions
 ) =>
   authRequest.post<ResponseData<ResponseID>>(
@@ -34,6 +35,7 @@ export const submitCategory = async (
         description,
         iconBgColor,
         iconContent,
+        contentFormId,
         extra: {
           categoryName: name,
         },

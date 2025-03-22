@@ -401,15 +401,22 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                                         setOpen(false)
                                       }}
                                     >
-                                      {cate.name}
-                                      <Check
-                                        className={cn(
-                                          'ml-auto',
-                                          categoryVal() === cate.id
-                                            ? 'opacity-100'
-                                            : 'opacity-0'
-                                        )}
-                                      />
+                                      <div>
+                                        <div className="flex items-center justify-between">
+                                          {cate.name}
+                                          <Check
+                                            className={cn(
+                                              'ml-auto',
+                                              categoryVal() === cate.id
+                                                ? 'opacity-100'
+                                                : 'opacity-0'
+                                            )}
+                                          />
+                                        </div>
+                                        <div className="text-gray-500 text-xs">
+                                          {cate.describe}
+                                        </div>
+                                      </div>
                                     </CommandItem>
                                   ))}
                                 </CommandGroup>

@@ -2,6 +2,7 @@ import { authRequest } from '@/lib/request'
 
 import {
   BlockedUserList,
+  ContentFormListResponse,
   ItemExists,
   ResponseData,
   ResponseID,
@@ -273,3 +274,8 @@ export const getSiteBlockedWords = (
     }
   )
 }
+
+export const getContentForms = (frontId: string) =>
+  authRequest.get<ResponseData<ContentFormListResponse>>(
+    `sites/${frontId}/content_forms`
+  )

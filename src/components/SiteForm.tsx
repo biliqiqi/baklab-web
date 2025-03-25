@@ -388,6 +388,25 @@ const SiteForm: React.FC<SiteFormProps> = ({
             </FormItem>
           )}
         />
+        <FormField
+          control={form.control}
+          name="name"
+          key="name"
+          render={({ field, fieldState }) => (
+            <FormItem className="mb-8">
+              <FormLabel>名称</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="请输入站点名称"
+                  autoComplete="off"
+                  state={fieldState.invalid ? 'invalid' : 'default'}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         {!isEdit && (
           <FormField
             control={form.control}
@@ -409,25 +428,6 @@ const SiteForm: React.FC<SiteFormProps> = ({
             )}
           />
         )}
-        <FormField
-          control={form.control}
-          name="name"
-          key="name"
-          render={({ field, fieldState }) => (
-            <FormItem className="mb-8">
-              <FormLabel>名称</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="请输入站点名称"
-                  autoComplete="off"
-                  state={fieldState.invalid ? 'invalid' : 'default'}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         <Collapsible open={showMoreSettings} onOpenChange={setShowMoreSettings}>
           <CollapsibleTrigger asChild>
             <Button

@@ -155,6 +155,11 @@ export interface Article {
   status: ArticleStatus
   version: number
   hasReviewing: boolean
+  contentFormId: string
+  contentForm: ContentForm | null
+  contentStatusId: string
+  contentStatus: ContentStatus | null
+  acceptAnswerId: string
 }
 
 export interface ArticleListResponse {
@@ -301,6 +306,7 @@ export type ArticleAction =
   | 'subscribe'
   | 'show_history'
   | 'lock'
+  | 'accept_answer'
   | VoteType
 
 export type ActivityActionType =
@@ -630,3 +636,8 @@ export interface ContentForm {
 export interface ContentFormListResponse {
   list: ContentForm[]
 }
+
+export const SYSTEM_ARTICLE_CONTENT_FORM = Object.freeze({
+  QnA: 'qna',
+  Ticket: 'ticket',
+} as const)

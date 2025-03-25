@@ -17,6 +17,7 @@ import {
 } from '@/constants/constants'
 
 import { getArticle } from './api/article'
+import { ArticleContext } from './contexts/ArticleContext'
 import { toSync } from './lib/fire-and-forget'
 import { bus } from './lib/utils'
 import {
@@ -42,6 +43,7 @@ export default function ArticlePage() {
   const [initialized, setInitialized] = useState(false)
 
   const [article, setArticle] = useState<Article | null>(null)
+  const [rootArticle, setRootArticle] = useState<Article | null>(null)
   const [articleCategory, setArticleCategory] = useState<Category | null>(null)
 
   const [pageState, setPageState] = useState<ArticleListState>({
@@ -81,54 +83,69 @@ export default function ArticlePage() {
         const page = Number(params.get('page')) || 1
         const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
 
-        if (articleId) {
-          const resp = await getArticle(
-            articleId,
-            sort,
-            {},
-            { showNotFound: true, siteFrontId },
-            false,
-            page,
-            pageSize
-          )
-          /* console.log('article resp: ', resp.data) */
-          if (!resp.code) {
-            /* setReplyToID(resp.data.article.id) */
-            const { article, category } = resp.data
-
-            article.asMainArticle = true
-
-            setArticle(article)
-            setArticleCategory(category)
-
-            setInitialized(true)
-
-            /* setReplyToArticle(article) */
-            setReplyBoxState({
-              isEditting: false,
-              replyToArticle: article,
-              edittingArticle: null,
-            })
-
-            if (article.replies) {
-              setPageState({
-                currPage: article.replies.currPage,
-                pageSize: article.replies.pageSize,
-                total: article.replies.total,
-                totalPage: article.replies.totalPage,
-              })
-            } else {
-              setPageState({
-                currPage: 1,
-                pageSize: DEFAULT_PAGE_SIZE,
-                total: 0,
-                totalPage: 0,
-              })
-            }
-          }
-        } else {
+        if (!articleId) {
           updateNotFound(true)
           return
+        }
+
+        const resp = await getArticle(
+          articleId,
+          sort,
+          {},
+          { showNotFound: true, siteFrontId },
+          false,
+          page,
+          pageSize
+        )
+        /* console.log('article resp: ', resp.data) */
+        if (!resp.code) {
+          /* setReplyToID(resp.data.article.id) */
+          const { article, category } = resp.data
+
+          article.asMainArticle = true
+
+          setArticle(article)
+          setArticleCategory(category)
+
+          setInitialized(true)
+
+          /* setReplyToArticle(article) */
+          setReplyBoxState({
+            isEditting: false,
+            replyToArticle: article,
+            edittingArticle: null,
+          })
+
+          if (article.replies) {
+            setPageState({
+              currPage: article.replies.currPage,
+              pageSize: article.replies.pageSize,
+              total: article.replies.total,
+              totalPage: article.replies.totalPage,
+            })
+          } else {
+            setPageState({
+              currPage: 1,
+              pageSize: DEFAULT_PAGE_SIZE,
+              total: 0,
+              totalPage: 0,
+            })
+          }
+
+          if (article.replyToId != '0') {
+            const { code, data } = await getArticle(
+              article.replyToId,
+              'latest',
+              {},
+              {},
+              true,
+              1,
+              1
+            )
+            if (!code) {
+              setRootArticle(data.article)
+            }
+          }
         }
       } catch (err) {
         console.error('fetch article error: ', err)
@@ -136,7 +153,7 @@ export default function ArticlePage() {
         setLoading(false)
       }
     },
-    [articleId, params, siteFrontId, sort, updateNotFound]
+    [params, siteFrontId, sort, updateNotFound, articleId]
   )
 
   const fetchArticleSync = toSync(fetchArticle)
@@ -178,7 +195,9 @@ export default function ArticlePage() {
   }
 
   useEffect(() => {
-    fetchArticleSync(true)
+    if (articleId) {
+      fetchArticleSync(true)
+    }
 
     if (replyHandlerRef.current) {
       bus.off(EV_ON_REPLY_CLICK, replyHandlerRef.current)
@@ -202,10 +221,10 @@ export default function ArticlePage() {
   }, [articleId])
 
   useEffect(() => {
-    if (initialized) {
+    if (initialized && articleId) {
       fetchArticleSync(false)
     }
-  }, [params, initialized, forceState])
+  }, [params, initialized, forceState, articleId])
 
   return (
     <>
@@ -226,7 +245,12 @@ export default function ArticlePage() {
         loading={loading}
       >
         {article && (
-          <>
+          <ArticleContext.Provider
+            value={{
+              root: article.replyToId == '0' ? article : rootArticle,
+              top: article,
+            }}
+          >
             <ArticleCard
               isTop
               key={article.id}
@@ -266,7 +290,7 @@ export default function ArticlePage() {
                   />
                 ))
             )}
-          </>
+          </ArticleContext.Provider>
         )}
         {pageState.totalPage > 1 && <ListPagination pageState={pageState} />}
         {article &&

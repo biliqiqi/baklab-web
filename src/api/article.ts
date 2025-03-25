@@ -26,6 +26,7 @@ export const submitArticle = (
   link?: string,
   content?: string,
   locked: boolean = false,
+  contentFormId?: string,
   custom?: CustomRequestOptions
 ): Promise<ResponseData<ArticleSubmitResponse>> =>
   authRequest.post(
@@ -37,6 +38,7 @@ export const submitArticle = (
         link,
         content,
         locked,
+        contentFormId,
         extra: {
           title,
         },
@@ -335,3 +337,8 @@ export const toggleLockArticle = (
     },
     custom
   )
+
+export const acceptAnswer = (id: string, answerId: string) =>
+  authRequest.post<ResponseData<null>>(`articles/${id}/accept_answer`, {
+    json: { answerId },
+  })

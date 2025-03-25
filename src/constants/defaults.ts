@@ -123,6 +123,11 @@ export const defaultArticle: Article = {
   status: 'draft',
   version: 0,
   hasReviewing: false,
+  contentFormId: '0',
+  contentForm: null,
+  contentStatusId: '',
+  contentStatus: null,
+  acceptAnswerId: '0',
 }
 
 export const defaultPageState: ListPageState = {

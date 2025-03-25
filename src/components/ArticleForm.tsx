@@ -21,7 +21,6 @@ import { submitArticle, updateArticle, updateReply } from '@/api/article'
 import {
   ARTICLE_MAX_CONTENT_LEN,
   ARTICLE_MAX_TITILE_LEN,
-  NAV_HEIGHT,
 } from '@/constants/constants'
 import { defaultArticle } from '@/constants/defaults'
 import useDocumentTitle from '@/hooks/use-page-title'
@@ -31,9 +30,15 @@ import {
   useNotFoundStore,
   useSiteStore,
 } from '@/state/global'
-import { Article, ArticleSubmitResponse, ResponseData } from '@/types/types'
+import {
+  Article,
+  ArticleSubmitResponse,
+  Category,
+  ResponseData,
+} from '@/types/types'
 
 import ArticleCard from './ArticleCard'
+import ContentFormSelector from './ContentFormSelector'
 import TipTap from './TipTap'
 import BAvatar from './base/BAvatar'
 import BLoader from './base/BLoader'
@@ -47,7 +52,14 @@ import {
   CommandItem,
   CommandList,
 } from './ui/command'
-import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from './ui/form'
 import { Input } from './ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { Textarea } from './ui/textarea'
@@ -72,14 +84,19 @@ const articleScheme = z.object({
       '链接格式错误'
     ),
   category: z.string().min(1, '板块不能为空').trim(),
+  contentFormId: z.string().optional(),
   content: contentRule,
 })
 
 type ArticleScheme = z.infer<typeof articleScheme>
 /* type ContentScheme = z.infer<typeof contentScheme> */
 
-interface CategoryMap {
+interface CategoryNameMap {
   [x: string]: string
+}
+
+interface CategoryMap {
+  [x: string]: Category
 }
 
 export interface ArticleFormProps {
@@ -102,6 +119,10 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
   const [isPreview, setPreview] = useState(false)
   /* const [isDragging, setDragging] = useState(false) */
 
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null
+  )
+
   const [contentBoxHeight, setContentBoxHeight] = useState(
     INIT_CONTENT_BOX_HEIGHT
   )
@@ -115,9 +136,16 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
   const [searchParams] = useSearchParams()
   const notFound = useNotFoundStore()
 
-  const cateMap: CategoryMap = useMemo(() => {
-    return cateList.reduce((obj: CategoryMap, item) => {
+  const categoryNameMap: CategoryNameMap = useMemo(() => {
+    return cateList.reduce((obj: CategoryNameMap, item) => {
       obj[item.id] = item.name
+      return obj
+    }, {})
+  }, [cateList])
+
+  const categoryMap: CategoryMap = useMemo(() => {
+    return cateList.reduce((obj: CategoryMap, item) => {
+      obj[item.id] = item
       return obj
     }, {})
   }, [cateList])
@@ -127,6 +155,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
     () => Boolean(article && article.replyToId != '0'),
     [article]
   )
+  const paramCateId = searchParams.get('category_id') || ''
 
   const draggingRef = useRef<DraggingInfo>({
     inputType: 'tiptap',
@@ -155,6 +184,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
           link: '',
           category: searchParams.get('category_id') || '',
           content: '',
+          contentFormId: categoryMap[paramCateId]?.contentFormId || '0',
         }
 
   /* console.log('default form data: ', defaultArticleData) */
@@ -169,7 +199,13 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
   const categoryVal = () => form.getValues('category')
 
   const onSubmit = useCallback(
-    async ({ title, link, category, content }: ArticleScheme) => {
+    async ({
+      title,
+      link,
+      category,
+      content,
+      contentFormId,
+    }: ArticleScheme) => {
       /* console.log('values: ', content)
        * console.log('isEdit:', isEdit)
        * console.log('isReply:', isReply) */
@@ -209,9 +245,17 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
             )
           }
         } else {
-          data = await submitArticle(title, category, link, content, false, {
-            siteFrontId,
-          })
+          data = await submitArticle(
+            title,
+            category,
+            link,
+            content,
+            false,
+            contentFormId,
+            {
+              siteFrontId,
+            }
+          )
         }
 
         if (!data.code) {
@@ -301,6 +345,13 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
     }
   }, [])
 
+  useEffect(() => {
+    form.setValue(
+      'contentFormId',
+      categoryMap[formVals.category]?.contentFormId || '0'
+    )
+  }, [categoryMap, formVals.category, form])
+
   return (
     <Card className="p-3">
       {article && !isPreview && (
@@ -343,94 +394,121 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="category"
-                key="category"
-                render={({ fieldState }) => (
-                  <FormItem style={{ display: isPreview ? 'none' : '' }}>
-                    <div>
-                      <FormControl>
-                        <Popover open={open} onOpenChange={setOpen}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant={
-                                fieldState.invalid ? 'invalid' : 'outline'
-                              }
-                              role="combobox"
-                              aria-expanded={open}
-                              className="w-[200px] justify-between text-gray-700"
-                              disabled={
-                                loading ||
-                                (isEdit &&
-                                  !checkPermit('article', 'edit_others'))
-                              }
-                            >
-                              {categoryVal()
-                                ? '发布到【' +
-                                  cateList.find(
-                                    (cate) => cate.id === categoryVal()
-                                  )?.name +
-                                  '】'
-                                : '发布到...'}
-                              <ChevronsUpDown className="opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-[200px] p-0">
-                            <Command
-                              filter={(val, search) =>
-                                cateMap[val].includes(search) ? 1 : 0
-                              }
-                            >
-                              <CommandInput placeholder="搜索板块..." />
-                              <CommandList>
-                                <CommandEmpty>未找到板块</CommandEmpty>
-                                <CommandGroup>
-                                  {cateList.map((cate) => (
-                                    <CommandItem
-                                      key={cate.id}
-                                      value={cate.id}
-                                      onSelect={(currentValue) => {
-                                        form.setValue(
-                                          'category',
-                                          currentValue === categoryVal()
-                                            ? ''
-                                            : currentValue,
-                                          { shouldDirty: true }
-                                        )
-                                        setOpen(false)
-                                      }}
-                                    >
-                                      <div>
-                                        <div className="flex items-center justify-between">
-                                          {cate.name}
-                                          <Check
-                                            className={cn(
-                                              'ml-auto',
-                                              categoryVal() === cate.id
-                                                ? 'opacity-100'
-                                                : 'opacity-0'
-                                            )}
-                                          />
+              <div className="flex justify-between items-center">
+                <FormField
+                  control={form.control}
+                  name="category"
+                  key="category"
+                  render={({ fieldState }) => (
+                    <FormItem style={{ display: isPreview ? 'none' : '' }}>
+                      <div>
+                        <FormLabel className="text-gray-500 mr-2">
+                          发布到
+                        </FormLabel>
+                        <FormControl>
+                          <Popover open={open} onOpenChange={setOpen}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant={
+                                  fieldState.invalid ? 'invalid' : 'outline'
+                                }
+                                role="combobox"
+                                aria-expanded={open}
+                                className="w-[200px] justify-between text-gray-700"
+                                disabled={
+                                  loading ||
+                                  (isEdit &&
+                                    !checkPermit('article', 'edit_others'))
+                                }
+                              >
+                                {categoryVal()
+                                  ? cateList.find(
+                                      (cate) => cate.id === categoryVal()
+                                    )?.name
+                                  : '请选择'}
+                                <ChevronsUpDown className="opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[200px] p-0">
+                              <Command
+                                filter={(val, search) =>
+                                  categoryNameMap[val].includes(search) ? 1 : 0
+                                }
+                              >
+                                <CommandInput placeholder="搜索板块..." />
+                                <CommandList>
+                                  <CommandEmpty>未找到板块</CommandEmpty>
+                                  <CommandGroup>
+                                    {cateList.map((cate) => (
+                                      <CommandItem
+                                        key={cate.id}
+                                        value={cate.id}
+                                        onSelect={(currentValue) => {
+                                          form.setValue(
+                                            'category',
+                                            currentValue === categoryVal()
+                                              ? ''
+                                              : currentValue,
+                                            { shouldDirty: true }
+                                          )
+                                          setOpen(false)
+                                          setSelectedCategory(() => cate)
+                                        }}
+                                      >
+                                        <div>
+                                          <div className="flex items-center justify-between">
+                                            {cate.name}
+                                            <Check
+                                              className={cn(
+                                                'ml-auto',
+                                                categoryVal() === cate.id
+                                                  ? 'opacity-100'
+                                                  : 'opacity-0'
+                                              )}
+                                            />
+                                          </div>
+                                          <div className="text-gray-500 text-xs">
+                                            {cate.describe}
+                                          </div>
                                         </div>
-                                        <div className="text-gray-500 text-xs">
-                                          {cate.describe}
-                                        </div>
-                                      </div>
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
-                      </FormControl>
-                    </div>
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </FormControl>
+                      </div>
 
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="contentFormId"
+                  key="contentFormId"
+                  render={({ field }) => (
+                    <FormItem style={{ display: isPreview ? 'none' : '' }}>
+                      <FormLabel className="text-gray-500 mr-2">
+                        内容形式
+                      </FormLabel>
+                      <FormControl>
+                        <ContentFormSelector
+                          value={field.value || '0'}
+                          onChange={field.onChange}
+                          disabled={Boolean(
+                            formVals.contentFormId &&
+                              formVals.contentFormId != '0'
+                          )}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <FormField
                 control={form.control}
                 name="link"

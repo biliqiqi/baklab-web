@@ -1,6 +1,7 @@
 import {
   BellIcon,
   BookmarkIcon,
+  CheckIcon,
   HistoryIcon,
   MessageSquare,
   QrCode,
@@ -10,6 +11,7 @@ import {
   MouseEvent,
   MouseEventHandler,
   useCallback,
+  useContext,
   useMemo,
 } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -18,11 +20,13 @@ import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
 import { cn, genArticlePath, noop } from '@/lib/utils'
 
 import {
+  acceptAnswer,
   getArticleHistory,
   toggleSaveArticle,
   toggleSubscribeArticle,
   toggleVoteArticle,
 } from '@/api/article'
+import { ArticleContext } from '@/contexts/ArticleContext'
 import { useArticleHistoryStore, useAuthedUserStore } from '@/state/global'
 import {
   Article,
@@ -59,6 +63,10 @@ interface ArticleControlsProps extends HTMLAttributes<HTMLDivElement> {
   onSuccess?: (a: ArticleAction) => void
 }
 
+const checkContentForm = (targetArticle: Article, contentForm: string) => {
+  return targetArticle.contentForm?.frontId == contentForm
+}
+
 const ArticleControls: React.FC<ArticleControlsProps> = ({
   disabled = false,
   article,
@@ -86,8 +94,11 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
 
   const articleHistory = useArticleHistoryStore()
   const checkPermit = useAuthedUserStore((state) => state.permit)
+  const isMyself = useAuthedUserStore((state) => state.isMySelf)
 
   /* console.log('curr article history: ', articleHistory) */
+
+  const articleCtx = useContext(ArticleContext)
 
   const onSaveClick = useCallback(
     async (e: MouseEvent<HTMLButtonElement>) => {
@@ -152,6 +163,17 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
       }
     },
     [article, onSuccess, siteFrontId, articleHistory]
+  )
+
+  const onAcceptAnswerClick = useCallback(
+    async (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault()
+      const { code } = await acceptAnswer(article.replyToId, article.id)
+      if (!code) {
+        onSuccess('accept_answer')
+      }
+    },
+    [article, onSuccess]
   )
 
   const onVoteClick = useCallback(
@@ -282,9 +304,59 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             disabled={disabled}
             className="mr-1"
           >
-            <HistoryIcon size={20} className={'mr-1'} />
+            <HistoryIcon size={20} className="mr-1" />
           </Button>
         )}
+        {!isRootArticle &&
+          isMyself(article.replyRootAuthorId) &&
+          articleCtx.root &&
+          checkContentForm(articleCtx.root, 'qna') &&
+          articleCtx.root.acceptAnswerId == '0' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onAcceptAnswerClick}
+              disabled={disabled}
+              className="mr-1"
+            >
+              <CheckIcon size={20} className="mr-1" />
+              &nbsp;
+              <span className="text-sm text-gray-500 font-normal">
+                标记为已答案
+              </span>
+            </Button>
+          )}
+
+        {!isRootArticle &&
+          articleCtx.root &&
+          articleCtx.root.acceptAnswerId == article.id && (
+            <span className="mr-1 text-green-500 text-sm">
+              <CheckIcon size={20} className="mr-1 inline" />
+              &nbsp;已标记为答案
+            </span>
+          )}
+
+        {isRootArticle &&
+          articleCtx.root &&
+          checkContentForm(articleCtx.root, 'qna') &&
+          articleCtx.root.acceptAnswerId !== '0' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mr-1 text-green-500"
+              asChild
+              title="查看答案"
+            >
+              <Link
+                to={`/${siteFrontId}/articles/${articleCtx.root.acceptAnswerId}`}
+              >
+                <CheckIcon size={20} className="mr-1" />
+                &nbsp;
+                <span className="text-sm font-normal">已解决</span>
+              </Link>
+            </Button>
+          )}
+
         {ctype == 'list' && (
           <>
             {author && (

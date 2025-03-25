@@ -29,7 +29,7 @@ export interface ContentFormSelectorProps {
   valid?: boolean
   value: string
   placeholder?: string
-  disabled: boolean
+  disabled?: boolean
   onChange?: (id: string) => void
 }
 
@@ -82,7 +82,7 @@ const ContentFormSelector = ({
           const { list } = data
           setContentFormOptions(() => [defaultOption, ...list])
         } else {
-          setContentFormOptions(() => [])
+          setContentFormOptions(() => [defaultOption])
         }
         setSearchLoading(false)
       }),

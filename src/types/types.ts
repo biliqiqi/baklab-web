@@ -83,6 +83,8 @@ export interface ArticleLog {
   isHidden: boolean
   status: ArticleStatus
   version: number
+  extraDelta: JSONMap<string> | null
+  extraDiffHTML: JSONMap<string> | null
 }
 
 export interface ArticleHistoryResponse extends ListPageState {
@@ -372,9 +374,9 @@ export type ActivityTargetModel =
   | 'site'
   | 'empty'
 
-export interface JSONMap {
-  // eslint-disable-next-line
-  [x: string]: any
+// eslint-disable-next-line
+export interface JSONMap<T = any> {
+  [x: string]: T
 }
 
 export type ActivityDetails = JSONMap

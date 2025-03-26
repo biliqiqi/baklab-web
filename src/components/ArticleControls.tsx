@@ -329,10 +329,11 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
 
         {!isRootArticle &&
           articleCtx.root &&
+          checkContentForm(articleCtx.root, 'qna') &&
           articleCtx.root.acceptAnswerId == article.id && (
-            <span className="mr-1 text-green-500 text-sm">
+            <span className="inline-flex items-center mr-2 text-green-500 text-sm whitespace-nowrap">
               <CheckIcon size={20} className="mr-1 inline" />
-              &nbsp;已标记为答案
+              &nbsp;<span>标记为答案</span>
             </span>
           )}
 

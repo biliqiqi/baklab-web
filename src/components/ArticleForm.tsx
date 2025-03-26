@@ -113,15 +113,15 @@ interface DraggingInfo {
 }
 
 const ArticleForm = ({ article }: ArticleFormProps) => {
-  const [open, setOpen] = useState(false)
+  const [openCategoryList, setOpenCategoryList] = useState(false)
   const [loading, setLoading] = useState(false)
   const [markdownMode, setMarkdownMode] = useState(false)
   const [isPreview, setPreview] = useState(false)
   /* const [isDragging, setDragging] = useState(false) */
 
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    null
-  )
+  /* const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+   *   null
+   * ) */
 
   const [contentBoxHeight, setContentBoxHeight] = useState(
     INIT_CONTENT_BOX_HEIGHT
@@ -178,6 +178,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
             link: article.link,
             category: article.categoryId,
             content: article.content,
+            contentFormId: article.contentFormId || '0',
           }
       : {
           title: '',
@@ -241,6 +242,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
               link,
               content,
               false,
+              contentFormId,
               { siteFrontId: article.siteFrontId }
             )
           }
@@ -313,6 +315,18 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
     }
   }, [])
 
+  const onSelectCategory = useCallback(
+    (currentValue: string) => {
+      const newVal = currentValue === categoryVal() ? '' : currentValue
+
+      form.setValue('category', newVal, { shouldDirty: true })
+
+      form.setValue('contentFormId', categoryMap[newVal]?.contentFormId || '0')
+      setOpenCategoryList(false)
+    },
+    [categoryVal, form]
+  )
+
   const onMouseDown =
     (it: InputType) =>
     (e: MouseEvent<HTMLDivElement | HTMLTextAreaElement>) => {
@@ -346,11 +360,15 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
   }, [])
 
   useEffect(() => {
-    form.setValue(
-      'contentFormId',
-      categoryMap[formVals.category]?.contentFormId || '0'
-    )
-  }, [categoryMap, formVals.category, form])
+    if (!isEdit) {
+      if (categoryMap[formVals.category]?.contentFormId) {
+        form.setValue(
+          'contentFormId',
+          categoryMap[formVals.category].contentFormId || '0'
+        )
+      }
+    }
+  }, [categoryMap, isEdit])
 
   return (
     <Card className="p-3">
@@ -406,14 +424,17 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                           发布到
                         </FormLabel>
                         <FormControl>
-                          <Popover open={open} onOpenChange={setOpen}>
+                          <Popover
+                            open={openCategoryList}
+                            onOpenChange={setOpenCategoryList}
+                          >
                             <PopoverTrigger asChild>
                               <Button
                                 variant={
                                   fieldState.invalid ? 'invalid' : 'outline'
                                 }
                                 role="combobox"
-                                aria-expanded={open}
+                                aria-expanded={openCategoryList}
                                 className="w-[200px] justify-between text-gray-700"
                                 disabled={
                                   loading ||
@@ -443,17 +464,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                                       <CommandItem
                                         key={cate.id}
                                         value={cate.id}
-                                        onSelect={(currentValue) => {
-                                          form.setValue(
-                                            'category',
-                                            currentValue === categoryVal()
-                                              ? ''
-                                              : currentValue,
-                                            { shouldDirty: true }
-                                          )
-                                          setOpen(false)
-                                          setSelectedCategory(() => cate)
-                                        }}
+                                        onSelect={onSelectCategory}
                                       >
                                         <div>
                                           <div className="flex items-center justify-between">
@@ -499,8 +510,9 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                           value={field.value || '0'}
                           onChange={field.onChange}
                           disabled={Boolean(
-                            formVals.contentFormId &&
-                              formVals.contentFormId != '0'
+                            categoryMap[formVals.category]?.contentFormId &&
+                              categoryMap[formVals.category]?.contentFormId !=
+                                '0'
                           )}
                         />
                       </FormControl>

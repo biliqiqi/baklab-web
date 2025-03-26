@@ -1,8 +1,10 @@
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 
 import { timeAgo } from '@/lib/dayjs-custom'
 
-import { ArticleLog } from '@/types/types'
+import { useCategoryStore } from '@/state/global'
+import { ArticleLog, Category, JSONMap } from '@/types/types'
 
 import {
   Collapsible,
@@ -13,6 +15,10 @@ import {
 interface ArticleHistoryProps {
   data: ArticleLog
   isReply: boolean
+}
+
+const fieldNameMap: JSONMap<string> = {
+  contentForm: '内容形式',
 }
 
 const ArticleHistory: React.FC<ArticleHistoryProps> = ({ data, isReply }) => {
@@ -37,7 +43,7 @@ const ArticleHistory: React.FC<ArticleHistoryProps> = ({ data, isReply }) => {
         <CollapsibleContent>
           {!isReply && (
             <div className="flex mt-2 text-sm">
-              <div className="w-[50px] font-bold mr-1 pt-2">标题：</div>
+              <div className="w-[80px] font-bold mr-1 pt-2">标题：</div>
               <div
                 className="flex-shrink-0 flex-grow bg-gray-100 p-2"
                 style={{
@@ -51,7 +57,7 @@ const ArticleHistory: React.FC<ArticleHistoryProps> = ({ data, isReply }) => {
           )}
           {!isReply && (
             <div className="flex mt-2 text-sm">
-              <div className="w-[50px] font-bold mr-1 pt-2">板块：</div>
+              <div className="w-[80px] font-bold mr-1 pt-2">板块：</div>
               <div
                 className="flex-shrink-0 flex-grow bg-gray-100 p-2"
                 style={{
@@ -65,7 +71,7 @@ const ArticleHistory: React.FC<ArticleHistoryProps> = ({ data, isReply }) => {
           )}
           {!isReply && (
             <div className="flex mt-2 text-sm">
-              <div className="w-[50px] font-bold mr-1 pt-2">链接：</div>
+              <div className="w-[80px] font-bold mr-1 pt-2">链接：</div>
               <div
                 className="flex-shrink-0 flex-grow bg-gray-100 p-2"
                 style={{
@@ -77,8 +83,25 @@ const ArticleHistory: React.FC<ArticleHistoryProps> = ({ data, isReply }) => {
               ></div>
             </div>
           )}
+          {!isReply &&
+            Object.entries(data.extraDiffHTML || {}).map(([key, val]) => (
+              <div className="flex mt-2 text-sm">
+                <div className="w-[80px] font-bold mr-1 pt-2">
+                  {fieldNameMap[key] || '-'}：
+                </div>
+                <div
+                  className="flex-shrink-0 flex-grow bg-gray-100 p-2"
+                  style={{
+                    maxWidth: `calc(100% - 50px)`,
+                  }}
+                  dangerouslySetInnerHTML={{
+                    __html: val,
+                  }}
+                ></div>
+              </div>
+            ))}
           <div className="flex mt-2 text-sm">
-            <div className="w-[50px] font-bold mr-1 pt-2">内容：</div>
+            <div className="w-[80px] font-bold mr-1 pt-2">内容：</div>
             <div
               className="flex-shrink-0 flex-grow bg-gray-100 p-2 whitespace-break-spaces"
               style={{

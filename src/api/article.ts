@@ -54,6 +54,7 @@ export const updateArticle = (
   link?: string,
   content?: string,
   locked: boolean = false,
+  contentFormId?: string,
   custom?: CustomRequestOptions
 ): Promise<ResponseData<ArticleSubmitResponse>> =>
   authRequest.patch(
@@ -65,6 +66,7 @@ export const updateArticle = (
         link,
         content,
         locked,
+        contentFormId,
         extra: {
           title,
         },

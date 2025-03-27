@@ -224,12 +224,13 @@ export default function ArticleListPage() {
             <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
               <div className="mb-3">
                 <div className="mb-1 ">
-                  {item.acceptAnswerId !== '0' && (
-                    <CheckIcon
-                      size={18}
-                      className="inline mr-1 text-gray-500 align-[-3px]"
-                    />
-                  )}
+                  {item.acceptAnswerId !== '0' &&
+                    item.contentForm?.frontId == 'qna' && (
+                      <CheckIcon
+                        size={18}
+                        className="inline mr-1 text-gray-500 align-[-3px]"
+                      />
+                    )}
                   <Link className="mr-2" to={genArticlePath(item)}>
                     {item.title}
                   </Link>

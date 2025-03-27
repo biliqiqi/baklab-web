@@ -643,3 +643,5 @@ export const SYSTEM_ARTICLE_CONTENT_FORM = Object.freeze({
   QnA: 'qna',
   Ticket: 'ticket',
 } as const)
+
+export type SiteUIMode = 'sidebar' | 'top_nav'

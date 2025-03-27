@@ -12,9 +12,11 @@ import {
   Article,
   ArticleLog,
   Category,
+  InviteCode,
   Role,
   SITE_STATUS,
   Site,
+  SiteUIMode,
   UserData,
 } from '@/types/types'
 
@@ -425,6 +427,8 @@ export interface SidebarGroupsOpenState {
 export interface SidebarState {
   open: boolean
   setOpen: (x: boolean) => void
+  openMobile: boolean
+  setOpenMobile: (x: boolean) => void
   groupsOpen: SidebarGroupsOpenState
   setGroupsOpen: (
     s:
@@ -436,7 +440,11 @@ export interface SidebarState {
 export const useSidebarStore = create<SidebarState>((set) => ({
   open: false,
   setOpen(open) {
-    set(() => ({ open }))
+    set((state) => ({ ...state, open }))
+  },
+  openMobile: false,
+  setOpenMobile(openMobile) {
+    set((state) => ({ ...state, openMobile }))
   },
   groupsOpen: {
     category: true,
@@ -454,6 +462,15 @@ export const useSidebarStore = create<SidebarState>((set) => ({
         groupsOpen: s,
       }))
     }
+  },
+}))
+
+export const useRightSidebarStore = create<
+  Pick<SidebarState, 'open' | 'setOpen'>
+>((set) => ({
+  open: false,
+  setOpen(open) {
+    set(() => ({ open }))
   },
 }))
 
@@ -513,12 +530,18 @@ export interface SiteState {
   siteList?: Site[] | null
   homePage: string
   showSiteForm: boolean
+  editting: boolean
+  setEditting: (editing: boolean) => void
+  edittingData: Site | null
+  setEdittingData: (site: Site | null) => void
   update: (s: Site | null) => void
   updateSiteList: (list: Site[]) => void
   updateHomePage: (path: string) => void
   fetchSiteData: (siteFrontId: string) => Promise<Site | null>
   fetchSiteList: () => Promise<void>
   setShowSiteForm: (show: boolean) => void
+  showSiteAbout: boolean
+  setShowSiteAbout: (show: boolean) => void
 }
 
 export const useSiteStore = create(
@@ -527,6 +550,14 @@ export const useSiteStore = create(
     siteList: null,
     showSiteForm: false,
     homePage: '/',
+    editting: false,
+    setEditting(editting) {
+      set((state) => ({ ...state, editting }))
+    },
+    edittingData: null,
+    setEdittingData(site) {
+      set((state) => ({ ...state, edittingData: site }))
+    },
     update(s) {
       set((state) => ({ ...state, site: clone(s) }))
     },
@@ -538,6 +569,10 @@ export const useSiteStore = create(
     },
     setShowSiteForm(show) {
       set((state) => ({ ...state, showSiteForm: show }))
+    },
+    showSiteAbout: false,
+    setShowSiteAbout(show) {
+      set((state) => ({ ...state, showSiteAbout: show }))
     },
     fetchSiteData: async (frontId) => {
       const ps = new Promise((resolve) => {
@@ -665,5 +700,41 @@ export const useArticleHistoryStore = create<ArticleHistoryState>((set) => ({
       ...state,
       ...newState,
     }))
+  },
+}))
+
+export interface SiteUIState {
+  mode: SiteUIMode
+  setMode: (mode: SiteUIMode) => void
+}
+
+export const useSiteUIStore = create<SiteUIState>((set) => ({
+  mode: 'top_nav',
+  setMode(mode) {
+    set((state) => ({ ...state, mode }))
+  },
+}))
+
+export interface InviteDataState {
+  generatting: boolean
+  setGeneratting: (loading: boolean) => void
+  showDialog: boolean
+  setShowDialog: (show: boolean) => void
+  inviteCode: InviteCode | null
+  setInviteCode: (code: InviteCode) => void
+}
+
+export const useInviteCodeStore = create<InviteDataState>((set) => ({
+  generatting: false,
+  setGeneratting(loading) {
+    set((state) => ({ ...state, generatting: loading }))
+  },
+  showDialog: false,
+  setShowDialog(show: boolean) {
+    set((state) => ({ ...state, showDialog: show }))
+  },
+  inviteCode: null,
+  setInviteCode(code: InviteCode | null) {
+    set((state) => ({ ...state, inviteCode: code }))
   },
 }))

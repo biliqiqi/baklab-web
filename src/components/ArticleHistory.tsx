@@ -42,7 +42,7 @@ const ArticleHistory: React.FC<ArticleHistoryProps> = ({ data, isReply }) => {
         </CollapsibleTrigger>
         <CollapsibleContent>
           {!isReply && (
-            <div className="flex mt-2 text-sm">
+            <div className="flex mt-2 text-sm" key="title">
               <div className="w-[80px] font-bold mr-1 pt-2">标题：</div>
               <div
                 className="flex-shrink-0 flex-grow bg-gray-100 p-2"
@@ -56,7 +56,7 @@ const ArticleHistory: React.FC<ArticleHistoryProps> = ({ data, isReply }) => {
             </div>
           )}
           {!isReply && (
-            <div className="flex mt-2 text-sm">
+            <div className="flex mt-2 text-sm" key="category">
               <div className="w-[80px] font-bold mr-1 pt-2">板块：</div>
               <div
                 className="flex-shrink-0 flex-grow bg-gray-100 p-2"
@@ -70,7 +70,7 @@ const ArticleHistory: React.FC<ArticleHistoryProps> = ({ data, isReply }) => {
             </div>
           )}
           {!isReply && (
-            <div className="flex mt-2 text-sm">
+            <div className="flex mt-2 text-sm" key="link">
               <div className="w-[80px] font-bold mr-1 pt-2">链接：</div>
               <div
                 className="flex-shrink-0 flex-grow bg-gray-100 p-2"
@@ -85,7 +85,7 @@ const ArticleHistory: React.FC<ArticleHistoryProps> = ({ data, isReply }) => {
           )}
           {!isReply &&
             Object.entries(data.extraDiffHTML || {}).map(([key, val]) => (
-              <div className="flex mt-2 text-sm">
+              <div className="flex mt-2 text-sm" key={key}>
                 <div className="w-[80px] font-bold mr-1 pt-2">
                   {fieldNameMap[key] || '-'}：
                 </div>

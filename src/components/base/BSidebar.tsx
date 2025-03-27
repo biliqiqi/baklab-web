@@ -1,9 +1,7 @@
-import { DropdownMenu } from '@radix-ui/react-dropdown-menu'
 import {
   ActivityIcon,
   ChartBarStackedIcon,
   ChevronDownIcon,
-  EllipsisVerticalIcon,
   GlobeIcon,
   LockIcon,
   MessageSquareXIcon,
@@ -16,52 +14,26 @@ import {
   UserRoundIcon,
   UserRoundXIcon,
 } from 'lucide-react'
-import React, {
-  MouseEvent,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import React, { MouseEvent, useCallback, useMemo, useState } from 'react'
 import { Link, useMatch, useNavigate, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
-import { timeFmt } from '@/lib/dayjs-custom'
-import {
-  cn,
-  getFirstChar,
-  getSiteStatusColor,
-  getSiteStatusName,
-} from '@/lib/utils'
+import { cn, getSiteStatusColor, getSiteStatusName } from '@/lib/utils'
 
-import { getSiteList, inviteToSite, quitSite } from '@/api/site'
-import {
-  DEFAULT_PAGE_SIZE,
-  NAV_HEIGHT,
-  SITE_LOGO_IMAGE,
-  SITE_NAME,
-} from '@/constants/constants'
+import { NAV_HEIGHT, SITE_LOGO_IMAGE, SITE_NAME } from '@/constants/constants'
 import { PermissionAction, PermissionModule } from '@/constants/types'
 import {
   useAlertDialogStore,
   useAuthedUserStore,
   useCategoryStore,
-  useForceUpdate,
   useSidebarStore,
   useSiteStore,
+  useSiteUIStore,
 } from '@/state/global'
-import {
-  Category,
-  FrontCategory,
-  InviteCode,
-  SITE_STATUS,
-  SITE_VISIBLE,
-  Site,
-} from '@/types/types'
+import { Category, FrontCategory, SITE_STATUS } from '@/types/types'
 
 import CategoryForm from '../CategoryForm'
-import Invite from '../Invite'
-import SiteForm from '../SiteForm'
+import SiteMenuButton from '../SiteMenuButton'
 import BIconCircle from '../icon/Circle'
 import { Button } from '../ui/button'
 import {
@@ -77,11 +49,6 @@ import {
   DialogTitle,
 } from '../ui/dialog'
 import {
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '../ui/dropdown-menu'
-import {
   SIDEBAR_WIDTH,
   Sidebar,
   SidebarContent,
@@ -93,18 +60,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '../ui/sidebar'
-import BAvatar from './BAvatar'
 import BIconColorChar from './BIconColorChar'
 import BSiteIcon from './BSiteIcon'
 
 interface EditCategoryData {
   editting: boolean
   data: Category | undefined
-}
-
-interface EditSiteData {
-  editting: boolean
-  data: Site | undefined
 }
 
 interface BSidebarProps {
@@ -178,25 +139,10 @@ const platformSidebarMenus: (
 ]
 
 const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
-  const [showInviteDialog, setShowInviteDialog] = useState(false)
-  const [inviteCode, setInviteCode] = useState<InviteCode | null>(null)
-  const [inviteCodeGeneratting, setInviteCodeGeneratting] = useState(false)
-  const [openSiteMenu, setOpenSiteMenu] = useState(false)
   const [showCategoryForm, setShowCategoryForm] = useState(false)
-  const [showSiteDetail, setShowSiteDetail] = useState(false)
   const [categoryFormDirty, setCategoryFormDirty] = useState(false)
-  const [siteFormDirty, setSiteFormDirty] = useState(false)
-
-  const forceUpdate = useForceUpdate((state) => state.forceUpdate)
-
-  const inviteCodeDialogRef = useRef<HTMLDivElement | null>(null)
 
   const [editCategory, setEditCategory] = useState<EditCategoryData>({
-    editting: false,
-    data: undefined,
-  })
-
-  const [editSite, setEditSite] = useState<EditSiteData>({
     editting: false,
     data: undefined,
   })
@@ -232,42 +178,18 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
     }))
   )
 
-  const {
-    currSite,
-    updateCurrSite,
-    showSiteForm,
-    setShowSiteForm,
-    updateSiteList,
-    fetchSiteList,
-    fetchSiteData,
-  } = useSiteStore(
-    useShallow(
-      ({
-        site,
-        update,
-        showSiteForm,
-        setShowSiteForm,
-        updateSiteList,
-        fetchSiteList,
-        fetchSiteData,
-      }) => ({
-        currSite: site,
-        updateCurrSite: update,
-        showSiteForm,
-        setShowSiteForm,
-        updateSiteList,
-        fetchSiteList,
-        fetchSiteData,
-      })
-    )
+  const { currSite } = useSiteStore(
+    useShallow(({ site, update }) => ({
+      currSite: site,
+      updateCurrSite: update,
+    }))
+  )
+
+  const { siteMode } = useSiteUIStore(
+    useShallow(({ mode }) => ({ siteMode: mode }))
   )
 
   const categoryListMatch = useMatch(`/${siteFrontId}/bankuai`)
-
-  const isMySite = useMemo(
-    () => (currSite ? currSite.creatorId == currUserId : false),
-    [currSite, currUserId]
-  )
 
   const isFeedPage = useMemo(
     () => ['/', `/${siteFrontId}/feed`].includes(location.pathname),
@@ -331,66 +253,6 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
     },
   ]
 
-  const onQuitSiteClick = useCallback(
-    async (ev: MouseEvent<HTMLDivElement>) => {
-      ev.preventDefault()
-      setOpenSiteMenu(false)
-
-      if (!siteFrontId || !currSite) return
-      const { visible, allowNonMemberInteract } = currSite
-      const confirmed = await alertDialog.confirm(
-        '确认',
-        `${!visible || !allowNonMemberInteract ? '退出后将无法参与本站点互动，确定退出' : '确定退出站点'}？`,
-        'danger'
-      )
-      if (!confirmed) return
-
-      const { code } = await quitSite(siteFrontId)
-      if (!code) {
-        if (currSite && !currSite.visible) {
-          updateCurrSite(null)
-          navigate('/', { replace: true })
-        }
-        await Promise.all([
-          fetchSiteData(siteFrontId),
-          fetchSiteList(),
-          fetchCategoryList(siteFrontId),
-        ])
-      }
-    },
-    [
-      siteFrontId,
-      navigate,
-      fetchCategoryList,
-      alertDialog,
-      currSite,
-      fetchSiteData,
-      fetchSiteList,
-    ]
-  )
-
-  const onInviteClick = useCallback(
-    async (ev: MouseEvent<HTMLDivElement>) => {
-      ev.preventDefault()
-      if (!siteFrontId) return
-
-      try {
-        setInviteCodeGeneratting(true)
-        setShowInviteDialog(true)
-        setOpenSiteMenu(false)
-        const { code, data } = await inviteToSite(siteFrontId)
-        if (!code) {
-          setInviteCode(data.code)
-        }
-      } catch (err) {
-        console.error('generate invite code error: ', err)
-      } finally {
-        setInviteCodeGeneratting(false)
-      }
-    },
-    [siteFrontId]
-  )
-
   const onCategoryFormClose = useCallback(async () => {
     if (categoryFormDirty) {
       const { editting } = editCategory
@@ -447,202 +309,67 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
     setShowCategoryForm(true)
   }
 
-  const onEditSiteClick = useCallback(
-    (ev: MouseEvent<HTMLDivElement>) => {
-      ev.preventDefault()
-      if (!currSite) return
-      setEditSite({
-        editting: true,
-        data: currSite,
-      })
-      setOpenSiteMenu(false)
-      setShowSiteForm(true)
-    },
-    [currSite, setShowSiteForm]
-  )
-
-  const onSiteFormClose = useCallback(async () => {
-    const close = () => {
-      setShowSiteForm(false)
-      setTimeout(() => {
-        setEditSite(() => ({
-          editting: false,
-          data: undefined,
-        }))
-      }, 500)
-    }
-
-    if (siteFormDirty) {
-      const { editting } = editSite
-      const confirmed = await alertDialog.confirm(
-        '确认',
-        editting ? '站点设置未完成，确认舍弃？' : '站点创建未完成，确认舍弃？',
-        'normal',
-        {
-          confirmBtnText: '确定舍弃',
-          cancelBtnText: editting ? '继续设置' : '继续创建',
-        }
-      )
-      if (confirmed) {
-        close()
-      }
-    } else {
-      close()
-    }
-  }, [siteFormDirty, editSite, alertDialog, setShowSiteForm])
-
-  const onSiteCreated = useCallback(
-    async (newSiteFrontId: string) => {
-      setShowSiteForm(false)
-      const { code, data } = await getSiteList(
-        1,
-        DEFAULT_PAGE_SIZE,
-        '',
-        currUserId,
-        '',
-        SITE_VISIBLE.All
-      )
-      if (!code && data.list) {
-        updateSiteList([...data.list])
-        if (newSiteFrontId) {
-          navigate(`/${newSiteFrontId}`)
-        }
-      }
-
-      setTimeout(() => {
-        setEditSite(() => ({
-          editting: false,
-          data: undefined,
-        }))
-      }, 500)
-
-      await Promise.all([
-        fetchSiteList(),
-        (async () => {
-          if (!newSiteFrontId) return
-          await fetchSiteData(newSiteFrontId)
-        })(),
-      ])
-      forceUpdate()
-    },
-    [
-      currUserId,
-      setShowSiteForm,
-      forceUpdate,
-      updateSiteList,
-      fetchSiteList,
-      fetchSiteData,
-      navigate,
-    ]
-  )
-
   return (
     <>
       <Sidebar className="relative max-h-full" gap={false}>
         <SidebarContent className="gap-0">
-          <div
-            className="flex justify-between items-center px-2 py-1"
-            style={{
-              minHeight: `${NAV_HEIGHT}px`,
-            }}
-          >
-            <div className="flex items-center flex-shrink-0">
-              <Link
-                className="font-bold text-2xl leading-3"
-                to={siteFrontId && currSite ? `/${siteFrontId}` : `/`}
-              >
-                {siteFrontId && currSite ? (
-                  currSite.logoHtmlStr ? (
-                    <div
-                      dangerouslySetInnerHTML={{
-                        __html: currSite.logoHtmlStr,
-                      }}
-                      className="logo-brand"
-                      style={{
-                        height: `${NAV_HEIGHT - 8}px`,
-                        maxWidth: `calc(${SIDEBAR_WIDTH} - 60px)`,
-                      }}
-                    ></div>
+          {siteMode == 'sidebar' && (
+            <div
+              className="flex justify-between items-center px-2 py-1"
+              style={{
+                minHeight: `${NAV_HEIGHT}px`,
+              }}
+            >
+              <div className="flex items-center flex-shrink-0">
+                <Link
+                  className="font-bold text-2xl leading-3"
+                  to={siteFrontId && currSite ? `/${siteFrontId}` : `/`}
+                >
+                  {siteFrontId && currSite ? (
+                    currSite.logoHtmlStr ? (
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: currSite.logoHtmlStr,
+                        }}
+                        className="logo-brand"
+                        style={{
+                          height: `${NAV_HEIGHT - 8}px`,
+                          maxWidth: `calc(${SIDEBAR_WIDTH} - 60px)`,
+                        }}
+                      ></div>
+                    ) : (
+                      <BSiteIcon
+                        key={currSite.frontId}
+                        className="max-w-[180px]"
+                        logoUrl={currSite.logoUrl}
+                        name={currSite.name}
+                        size={42}
+                        showSiteName
+                      />
+                    )
                   ) : (
                     <BSiteIcon
-                      key={currSite.frontId}
+                      key="home"
                       className="max-w-[180px]"
-                      logoUrl={currSite.logoUrl}
-                      name={currSite.name}
+                      logoUrl={SITE_LOGO_IMAGE}
+                      name={SITE_NAME}
                       size={42}
                       showSiteName
                     />
-                  )
-                ) : (
-                  <BSiteIcon
-                    key="home"
-                    className="max-w-[180px]"
-                    logoUrl={SITE_LOGO_IMAGE}
-                    name={SITE_NAME}
-                    size={42}
-                    showSiteName
-                  />
+                  )}
+                </Link>
+                {currSite && !currSite.visible && (
+                  <span
+                    className="inline-block text-gray-500 ml-2"
+                    title={'私有站点'}
+                  >
+                    <LockIcon size={14} />
+                  </span>
                 )}
-              </Link>
-              {currSite && !currSite.visible && (
-                <span
-                  className="inline-block text-gray-500 ml-2"
-                  title={'私有站点'}
-                >
-                  <LockIcon size={14} />
-                </span>
-              )}
+              </div>
+              {currSite && <SiteMenuButton />}
             </div>
-            {currSite && (
-              <DropdownMenu open={openSiteMenu} onOpenChange={setOpenSiteMenu}>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-[36px] w-[36px] p-0 text-gray-500"
-                  >
-                    <EllipsisVerticalIcon size={20} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  className="px-0"
-                  align="end"
-                  sideOffset={6}
-                >
-                  {authPermit('site', 'manage') && (
-                    <DropdownMenuItem
-                      className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
-                      onClick={onEditSiteClick}
-                    >
-                      站点设置
-                    </DropdownMenuItem>
-                  )}
-                  {!currSite.visible && authPermit('site', 'invite') && (
-                    <DropdownMenuItem
-                      className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
-                      onClick={onInviteClick}
-                    >
-                      邀请加入
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem
-                    className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
-                    onClick={() => setShowSiteDetail(true)}
-                  >
-                    关于
-                  </DropdownMenuItem>
-                  {!isMySite && currSite.currUserState.isMember && (
-                    <DropdownMenuItem
-                      className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0 text-destructive"
-                      onClick={onQuitSiteClick}
-                    >
-                      退出站点
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
+          )}
           {currSite && currSite.status != SITE_STATUS.Normal && (
             <div className="bg-yellow-300 p-2 m-2 text-sm rounded-sm leading-6">
               站点状态：
@@ -896,73 +623,6 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
               onSuccess={onCategoryCreated}
             />
           </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={showSiteDetail} onOpenChange={setShowSiteDetail}>
-        <DialogContent>
-          {currSite && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="font-bold">
-                  关于{currSite.name}{' '}
-                </DialogTitle>
-                <DialogDescription></DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div>{currSite.description}</div>
-                <div className="text-sm text-gray-500">
-                  由&nbsp;
-                  <Link to={`/users/${currSite.creatorName}`}>
-                    <BAvatar username={currSite.creatorName} showUsername />
-                  </Link>
-                  &nbsp;创建于{timeFmt(currSite.createdAt, 'YYYY-M-D')}
-                </div>
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={showSiteForm} onOpenChange={onSiteFormClose}>
-        <DialogContent className="max-md:max-h-[90vh] max-h-[675px]">
-          <DialogHeader>
-            <DialogTitle>
-              {editSite.editting ? '设置站点' : '创建站点'}
-            </DialogTitle>
-            <DialogDescription></DialogDescription>
-          </DialogHeader>
-
-          <div className="grid gap-4 py-4">
-            <SiteForm
-              isEdit={editSite.editting}
-              site={editSite.data}
-              onChange={setSiteFormDirty}
-              onSuccess={onSiteCreated}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
-        <DialogContent ref={inviteCodeDialogRef}>
-          {currSite && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="font-bold">邀请加入站点</DialogTitle>
-                <DialogDescription>
-                  请复制以下链接并分享给好友
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <Invite
-                  data={inviteCode}
-                  loading={inviteCodeGeneratting}
-                  container={inviteCodeDialogRef.current}
-                />
-              </div>
-            </>
-          )}
         </DialogContent>
       </Dialog>
     </>

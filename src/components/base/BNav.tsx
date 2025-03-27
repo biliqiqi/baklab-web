@@ -7,7 +7,7 @@ import {
   Loader,
   MenuIcon,
 } from 'lucide-react'
-import React, { useCallback, useRef, useState } from 'react'
+import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useShallow } from 'zustand/react/shallow'
@@ -22,11 +22,14 @@ import {
   useAuthedUserStore,
   useDialogStore,
   useNotificationStore,
+  useSidebarStore,
   useSiteStore,
+  useSiteUIStore,
 } from '@/state/global'
 import { FrontCategory } from '@/types/types'
 
 import MessageList, { MessageListRef } from '../MessageList'
+import SiteMenuButton from '../SiteMenuButton'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { Dialog, DialogContent, DialogHeader } from '../ui/dialog'
@@ -36,7 +39,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
-import { SIDEBAR_WIDTH, useSidebar } from '../ui/sidebar'
+import { SIDEBAR_WIDTH } from '../ui/sidebar'
 import BAvatar from './BAvatar'
 import BSiteIcon from './BSiteIcon'
 
@@ -58,8 +61,31 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
     const authState = useAuthedUserStore()
     const navigate = useNavigate()
     const isMobile = useIsMobile()
-    const sidebar = useSidebar()
+    /* const sidebar = useSidebar() */
+    const {
+      sidebarOpen,
+      setSidebarOpen,
+      sidebarOpenMobile,
+      setSidebarOpenMobile,
+    } = useSidebarStore(
+      useShallow(({ open, setOpen, openMobile, setOpenMobile }) => ({
+        sidebarOpen: open,
+        setSidebarOpen: setOpen,
+        sidebarOpenMobile: openMobile,
+        setSidebarOpenMobile: setOpenMobile,
+      }))
+    )
+
+    const { siteMode } = useSiteUIStore(
+      useShallow(({ mode }) => ({ siteMode: mode }))
+    )
+
     const msgListRef = useRef<MessageListRef | null>(null)
+
+    const sidebarExpanded = useMemo(
+      () => sidebarOpen || sidebarOpenMobile,
+      [sidebarOpen, sidebarOpenMobile]
+    )
 
     const { updateSignin } = useDialogStore()
     const notiStore = useNotificationStore()
@@ -84,12 +110,20 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
       /* sidebarStore.setOpen(!sidebarStore.open) */
       /* sidebar.toggleSidebar() */
       if (isMobile) {
-        sidebar.setOpenMobile(!sidebar.openMobile)
+        /* sidebar.setOpenMobile(!sidebar.openMobile) */
+        setSidebarOpenMobile(!sidebarOpenMobile)
       } else {
         /* console.log('toggle desktop sidebar') */
-        sidebar.toggleSidebar()
+        /* sidebar.toggleSidebar() */
+        setSidebarOpen(!sidebarOpen)
       }
-    }, [isMobile, sidebar])
+    }, [
+      isMobile,
+      setSidebarOpen,
+      sidebarOpen,
+      setSidebarOpenMobile,
+      sidebarOpenMobile,
+    ])
 
     const logout = useCallback(async () => {
       if (loading) return
@@ -113,7 +147,8 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
     return (
       <div
         className={cn(
-          'flex justify-between items-center py-2 px-4 border-b-2 shadow-sm bg-white sticky top-0 z-10',
+          'flex justify-between items-center py-2 border-b-2 shadow-sm bg-white sticky top-0 z-10',
+          siteMode == 'sidebar' && 'px-4',
           className
         )}
         style={{
@@ -148,7 +183,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
               >
                 <MenuIcon size={20} />
               </Button>
-              {sidebar.state == 'collapsed' && (
+              {(!sidebarExpanded || siteMode == 'top_nav') && (
                 <Link
                   className="font-bold text-2xl leading-3 mr-2"
                   to={siteFrontId && currSite ? `/${siteFrontId}` : `/`}
@@ -191,7 +226,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
 
           {!!category && (
             <>
-              {!isMobile && sidebar.state == 'collapsed' && (
+              {!isMobile && (!sidebarExpanded || siteMode == 'top_nav') && (
                 <ChevronRightIcon
                   size={16}
                   className="inline-block mr-2 align-middle text-gray-500"
@@ -237,10 +272,12 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
               </DrawerTrigger> */}
             </>
           )}
+          {siteMode == 'top_nav' && <SiteMenuButton />}
           <Button
             variant="ghost"
             size="sm"
             className="w-[36px] h-[36px] p-0 rounded-full mr-2"
+            title="站点列表"
             onClick={() => {
               if (onGripClick && typeof onGripClick == 'function') {
                 onGripClick()
@@ -257,6 +294,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                     variant="ghost"
                     size="sm"
                     className="relative w-[36px] h-[36px] p-0 rounded-full mr-2"
+                    title="通知"
                   >
                     <BellIcon size={20} />
                     {notiStore.unreadCount > 0 && (
@@ -273,6 +311,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                       variant="ghost"
                       size="sm"
                       className="relative w-[36px] h-[36px] p-0 rounded-full mr-2"
+                      title="通知"
                     >
                       <BellIcon size={20} />
                       {notiStore.unreadCount > 0 && (

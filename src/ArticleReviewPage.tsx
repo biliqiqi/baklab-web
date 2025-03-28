@@ -30,6 +30,7 @@ import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeAgo } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { noop } from './lib/utils'
+import { useLoading } from './state/global'
 import { ArticleLog, ArticleStatus, ListPageState } from './types/types'
 
 interface SearchFields {
@@ -260,7 +261,7 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
 
 export function ArticleReviewPage() {
   const { siteFrontId } = useParams()
-  const [loading, setLoading] = useState(false)
+  /* const [loading, setLoading] = useState(false) */
 
   const location = useLocation()
   const [pageState, setPageState] = useState<ListPageState>({
@@ -273,6 +274,8 @@ export function ArticleReviewPage() {
   const [updates, setUpdates] = useState<ArticleLog[]>([])
   const usernameRef = useRef<HTMLInputElement | null>(null)
   const [params, setParams] = useSearchParams()
+
+  const { loading, setLoading } = useLoading()
 
   const [searchData, setSearchData] = useState<SearchFields>({
     ...defaultSearchData,
@@ -417,11 +420,7 @@ export function ArticleReviewPage() {
         </div>
       </Card>
 
-      {loading ? (
-        <div className="flex justify-center py-4">
-          <BLoader />
-        </div>
-      ) : updates.length == 0 ? (
+      {updates.length == 0 ? (
         <Empty />
       ) : (
         <>

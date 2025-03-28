@@ -23,6 +23,7 @@ import { bus } from './lib/utils'
 import {
   useAuthedUserStore,
   useForceUpdate,
+  useLoading,
   useNotFoundStore,
   useSiteStore,
 } from './state/global'
@@ -39,12 +40,14 @@ type ReplyBoxState = Pick<
 >
 
 export default function ArticlePage() {
-  const [loading, setLoading] = useState(false)
+  /* const [loading, setLoading] = useState(false) */
   const [initialized, setInitialized] = useState(false)
 
   const [article, setArticle] = useState<Article | null>(null)
   const [rootArticle, setRootArticle] = useState<Article | null>(null)
   const [articleCategory, setArticleCategory] = useState<Category | null>(null)
+
+  const { loading, setLoading } = useLoading()
 
   const [pageState, setPageState] = useState<ArticleListState>({
     currPage: 1,

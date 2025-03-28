@@ -104,6 +104,7 @@ const SiteMenuButton = () => {
       ev.preventDefault()
 
       setOpenRightSidebar(!openRightSidebar)
+      setOpenSiteMenu(false)
     },
     [openRightSidebar, setOpenRightSidebar]
   )

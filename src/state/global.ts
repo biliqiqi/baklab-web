@@ -738,3 +738,15 @@ export const useInviteCodeStore = create<InviteDataState>((set) => ({
     set((state) => ({ ...state, inviteCode: code }))
   },
 }))
+
+export interface GlobalLoadingState {
+  loading: boolean
+  setLoading: (loading: boolean) => void
+}
+
+export const useLoading = create<GlobalLoadingState>((set) => ({
+  loading: false,
+  setLoading(loading) {
+    set((state) => ({ ...state, loading }))
+  },
+}))

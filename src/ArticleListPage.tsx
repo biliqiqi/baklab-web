@@ -1,4 +1,4 @@
-import { CheckIcon, SquareArrowOutUpRightIcon } from 'lucide-react'
+import { SquareArrowOutUpRightIcon } from 'lucide-react'
 import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 
 /* import mockArticleList from '@/mock/articles.json' */
@@ -10,10 +10,8 @@ import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 import { Card } from '@/components/ui/card'
 
 import BContainer from './components/base/BContainer'
-import BLoader from './components/base/BLoader'
 
 import ArticleControls from './components/ArticleControls'
-import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 
 import {
@@ -25,7 +23,7 @@ import { getArticleList } from './api/article'
 import { getCategoryWithFrontId } from './api/category'
 import { toSync } from './lib/fire-and-forget'
 import { extractDomain, genArticlePath, renderMD } from './lib/utils'
-import { isLogined, useAuthedUserStore, useForceUpdate } from './state/global'
+import { isLogined, useAuthedUserStore, useLoading } from './state/global'
 import {
   Article,
   ArticleListSort,
@@ -37,11 +35,13 @@ import {
 /* const articleList = mockArticleList as Article[] */
 
 export default function ArticleListPage() {
-  const [loading, setLoading] = useState(false)
+  /* const [loading, setLoading] = useState(false) */
+
   const [showSummary] = useState(false)
   const [currCate, setCurrCate] = useState<Category | null>(null)
 
   const [list, updateList] = useState<Article[]>([])
+
   const [pageState, setPageState] = useState<ArticleListState>({
     currPage: 1,
     pageSize: DEFAULT_PAGE_SIZE,
@@ -49,15 +49,18 @@ export default function ArticleListPage() {
     totalPage: 0,
   })
 
-  const { forceState } = useForceUpdate()
+  /* const forceUpdate = useForceUpdate((state) => state.forceUpdate) */
 
   const isMySelf = useAuthedUserStore((state) => state.isMySelf)
   const checkPermit = useAuthedUserStore((state) => state.permit)
   const loginWithDialog = useAuthedUserStore((state) => state.loginWithDialog)
   const checkIsLogined = useAuthedUserStore((state) => state.isLogined)
+  const authToken = useAuthedUserStore((state) => state.authToken)
 
   const [params, setParams] = useSearchParams()
   const { siteFrontId, categoryFrontId } = useParams()
+
+  const { setLoading } = useLoading()
 
   const navigate = useNavigate()
   /* const siteStore = useSiteStore() */
@@ -79,9 +82,7 @@ export default function ArticleListPage() {
         const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
         const sort = (params.get('sort') as ArticleListSort | null) || 'best'
 
-        if (list.length == 0) {
-          setLoading(true)
-        }
+        setLoading(true)
 
         /* if (!siteFrontId) return */
 
@@ -106,6 +107,8 @@ export default function ArticleListPage() {
           }
 
           if (data.articles) {
+            /* console.log('articles: ', data.articles) */
+
             updateList([...data.articles])
             setPageState({
               currPage: data.currPage,
@@ -188,10 +191,15 @@ export default function ArticleListPage() {
     }
 
     fetchArticles()
-  }, [params, siteFrontId, categoryFrontId, forceState])
+  }, [params, siteFrontId, categoryFrontId, authToken])
+
+  /* console.log('list: ', list) */
 
   return (
-    <BContainer category={pageState.category} loading={loading}>
+    <BContainer
+      category={pageState.category}
+      key={`article_list_${list.length}`}
+    >
       <div className="flex justify-between items-center">
         <div>
           {list.length > 0 && (
@@ -213,85 +221,66 @@ export default function ArticleListPage() {
         </div>
       </div>
       <div className="mt-4" key={categoryFrontId}>
-        {loading ? (
-          <div className="flex justify-center">
-            <BLoader />
-          </div>
-        ) : list.length == 0 ? (
-          <Empty />
-        ) : (
-          list.map((item) => (
-            <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
-              <div className="mb-3">
-                <div className="mb-1 ">
-                  {item.acceptAnswerId !== '0' &&
-                    item.contentForm?.frontId == 'qna' && (
-                      <CheckIcon
-                        size={18}
-                        className="inline mr-1 text-gray-500 align-[-3px]"
-                      />
-                    )}
-                  <Link className="mr-2" to={genArticlePath(item)}>
-                    {item.title}
-                  </Link>
-                  {item.link && (
-                    <span className="text-gray-500 text-sm">
-                      (来源&nbsp;
-                      <a
-                        href={item.link}
-                        target="_blank"
-                        title={item.link}
-                        className="break-all"
-                      >
-                        <SquareArrowOutUpRightIcon
-                          size={14}
-                          className="inline"
-                        />
-                        &nbsp;
-                        {extractDomain(item.link)}...
-                      </a>
-                      )
-                    </span>
-                  )}
-                </div>
-                <div>{isMySelf(item.authorId)}</div>
-                {(isMySelf(item.authorId) ||
-                  checkPermit('article', 'manage')) &&
-                  item.status != 'published' && (
-                    <div className="py-1">
-                      <Badge variant={'secondary'}>
-                        {ARTICLE_STATUS_NAME_MAP[item.status]}
-                      </Badge>
-                    </div>
-                  )}
-                {showSummary && (
-                  <div
-                    className="mb-1 break-words"
-                    dangerouslySetInnerHTML={{ __html: renderMD(item.summary) }}
-                  ></div>
-                )}
-                {item.picURL && (
-                  <div className="w-[120px] h-[120px] rounded mr-4 bg-gray-200 shrink-0 overflow-hidden">
-                    <a href="#">
-                      <img
-                        alt={item.title}
-                        src={item.picURL}
-                        className="max-w-full"
-                      />
+        {list.map((item) => (
+          <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
+            <div className="mb-3">
+              <div className="mb-1 ">
+                <Link className="mr-2" to={genArticlePath(item)}>
+                  {item.title}
+                </Link>
+                {item.link && (
+                  <span className="text-gray-500 text-sm">
+                    (来源&nbsp;
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      title={item.link}
+                      className="break-all"
+                    >
+                      <SquareArrowOutUpRightIcon size={14} className="inline" />
+                      &nbsp;
+                      {extractDomain(item.link)}...
                     </a>
-                  </div>
+                    )
+                  </span>
                 )}
               </div>
-              <ArticleControls
-                article={item}
-                ctype="list"
-                bookmark={false}
-                notify={false}
-                onSuccess={() => fetchArticles()}
-              />
-            </Card>
-          ))
-        )}
+              <div>{isMySelf(item.authorId)}</div>
+              {(isMySelf(item.authorId) || checkPermit('article', 'manage')) &&
+                item.status != 'published' && (
+                  <div className="py-1">
+                    <Badge variant={'secondary'}>
+                      {ARTICLE_STATUS_NAME_MAP[item.status]}
+                    </Badge>
+                  </div>
+                )}
+              {showSummary && (
+                <div
+                  className="mb-1 break-words"
+                  dangerouslySetInnerHTML={{ __html: renderMD(item.summary) }}
+                ></div>
+              )}
+              {item.picURL && (
+                <div className="w-[120px] h-[120px] rounded mr-4 bg-gray-200 shrink-0 overflow-hidden">
+                  <a href="#">
+                    <img
+                      alt={item.title}
+                      src={item.picURL}
+                      className="max-w-full"
+                    />
+                  </a>
+                </div>
+              )}
+            </div>
+            <ArticleControls
+              article={item}
+              ctype="list"
+              bookmark={false}
+              notify={false}
+              onSuccess={() => fetchArticles()}
+            />
+          </Card>
+        ))}
       </div>
 
       {pageState.totalPage > 1 && (

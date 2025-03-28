@@ -1,3 +1,4 @@
+import { PanelRightClose } from 'lucide-react'
 import React, {
   MouseEvent,
   useCallback,
@@ -61,7 +62,7 @@ import {
 } from '../ui/dialog'
 import { Sidebar, SidebarContent, SidebarProvider } from '../ui/sidebar'
 import BAvatar from './BAvatar'
-import { BLoaderBlock } from './BLoader'
+import BLoader, { BLoaderBlock } from './BLoader'
 import BNav from './BNav'
 import BSidebar from './BSidebar'
 import BTopDrawer from './BTopDrawer'
@@ -401,14 +402,21 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         if (isMobile) {
           setSidebarOpenMobile(false)
         }
+        setShowSiteAbout(false)
       }
-    }, [location, isMobile, updateNotFound])
+    }, [
+      location,
+      isMobile,
+      updateNotFound,
+      setShowSiteAbout,
+      setSidebarOpenMobile,
+    ])
 
     return (
       <div>
         <BTopDrawer />
         {siteMode == 'top_nav' && (
-          <div className="bg-white">
+          <div className="bg-white sticky top-0 z-50 border-b-2 shadow-sm">
             <BNav
               category={category}
               goBack={goBack}
@@ -420,11 +428,14 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         <SidebarProvider
           ref={ref}
           defaultOpen={false}
-          className="max-w-[1200px] mx-auto relative justify-between"
+          className="max-w-[1200px] mx-auto justify-between"
           open={sidebarOpen}
           onOpenChange={setSidebarOpen}
           openMobile={sidebarOpenMobile}
           onOpenMobileChange={setSidebarOpenMobile}
+          style={{
+            minHeight: `calc(100vh - ${NAV_HEIGHT}px)`,
+          }}
         >
           <div
             className={cn(
@@ -432,6 +443,11 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               !isMobile && 'duration-200 transition-[width] ease-linear',
               !isMobile && sidebarOpen && 'w-[var(--sidebar-width)]'
             )}
+            style={{
+              top: `${NAV_HEIGHT}px`,
+              maxHeight:
+                siteMode == 'top_nav' ? `calc(100vh - ${NAV_HEIGHT}px)` : '',
+            }}
           >
             <BSidebar category={category} />
           </div>
@@ -454,8 +470,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             <div className="container mx-auto max-w-3xl px-4 py-4" {...props}>
               {showNotFound ? (
                 <NotFound />
-              ) : loading ? (
-                <BLoaderBlock />
               ) : (
                 <>
                   {children}
@@ -499,6 +513,10 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             open={openRightSidebar}
             onOpenChange={setOpenRightSidebar}
             className="w-auto"
+            style={{
+              maxHeight: `calc(100vh - ${NAV_HEIGHT}px)`,
+              minHeight: 'auto',
+            }}
           >
             <div
               className={cn(
@@ -506,14 +524,27 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 !isMobile && 'duration-200 transition-[width] ease-linear',
                 !isMobile && openRightSidebar && 'w-[var(--sidebar-width)]'
               )}
+              style={{
+                top: `${NAV_HEIGHT}px`,
+                maxHeight: `calc(100vh - ${NAV_HEIGHT}px)`,
+              }}
             >
               <Sidebar side="right" className="relative max-h-full" gap={false}>
                 <SidebarContent className="gap-0 px-2">
                   <div
-                    className="flex items-center mb-2"
+                    className="flex items-center justify-between mb-2"
                     style={{ height: `${NAV_HEIGHT}px` }}
                   >
                     <span className="font-bold">站点界面设置</span>
+                    <Button
+                      variant={'ghost'}
+                      size={'sm'}
+                      title="关闭"
+                      className="text-gray-500"
+                      onClick={() => setOpenRightSidebar(false)}
+                    >
+                      <PanelRightClose size={20} />
+                    </Button>
                   </div>
                 </SidebarContent>
               </Sidebar>

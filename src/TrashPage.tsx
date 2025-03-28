@@ -14,7 +14,6 @@ import {
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 
 import BContainer from './components/base/BContainer'
-import BLoader from './components/base/BLoader'
 
 import ArticleControls from './components/ArticleControls'
 import { Empty } from './components/Empty'
@@ -25,7 +24,11 @@ import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeAgo } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { cn, genArticlePath } from './lib/utils'
-import { useAlertDialogStore, useCategoryStore } from './state/global'
+import {
+  useAlertDialogStore,
+  useCategoryStore,
+  useLoading,
+} from './state/global'
 import { Article, ArticleListSort, ListPageState } from './types/types'
 
 interface SearchFields {
@@ -53,7 +56,7 @@ const TabMapData: UserTabMap = {
 const defaultTabs: ArticleTab[] = ['all', 'article', 'reply']
 
 export default function TrashPage() {
-  const [loadingList, setLoadingList] = useState(true)
+  /* const [loadingList, setLoadingList] = useState(true) */
   const [list, updateList] = useState<Article[]>([])
   const [pageState, setPageState] = useState<ListPageState>({
     currPage: 1,
@@ -61,6 +64,8 @@ export default function TrashPage() {
     total: 0,
     totalPage: 0,
   })
+
+  const { loading, setLoading } = useLoading()
 
   const { siteFrontId } = useParams()
 
@@ -104,7 +109,7 @@ export default function TrashPage() {
           }
 
           if (showLoading) {
-            setLoadingList(true)
+            setLoading(true)
           }
 
           const resp = await getArticleTrash(
@@ -141,7 +146,7 @@ export default function TrashPage() {
         } catch (e) {
           console.error('get list error: ', e)
         } finally {
-          setLoadingList(false)
+          setLoading(false)
         }
       },
       [params, siteFrontId, tab]
@@ -285,12 +290,6 @@ export default function TrashPage() {
           ))}
         </TabsList>
       </Tabs>
-
-      {loadingList && (
-        <div className="flex justify-center py-4">
-          <BLoader />
-        </div>
-      )}
 
       {pageState.total == 0 ? (
         <Empty />

@@ -57,7 +57,7 @@ import { DEFAULT_PAGE_SIZE, SITE_STATUS_NAME_MAP } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { getSiteStatusColor, getSiteStatusName } from './lib/utils'
-import { useAlertDialogStore } from './state/global'
+import { useAlertDialogStore, useLoading } from './state/global'
 import {
   ListPageState,
   SITE_STATUS,
@@ -98,7 +98,7 @@ const rejecttingSchema = z.object({
 type RejecttingSchema = z.infer<typeof rejecttingSchema>
 
 export default function SiteListPage() {
-  const [loading, setLoading] = useState(false)
+  /* const [loading, setLoading] = useState(false) */
   const [editSite, setEditSite] = useState<EditSiteData>({
     rejectting: false,
     site: null,
@@ -111,6 +111,8 @@ export default function SiteListPage() {
     keywords: params.get('keywords') || '',
     creatorName: params.get('creator_name') || '',
   })
+
+  const { loading, setLoading } = useLoading()
 
   const currSite = useMemo(() => editSite.site, [editSite])
 
@@ -580,11 +582,6 @@ export default function SiteListPage() {
       <div className="my-4">
         <Badge variant="secondary">{pageState.total} 个站点</Badge>
       </div>
-      {loading && (
-        <div className="flex justify-center">
-          <BLoader />
-        </div>
-      )}
 
       {list.length == 0 ? (
         <Empty />

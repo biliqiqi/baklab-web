@@ -106,7 +106,9 @@ const App = () => {
   const { setOpen: setSidebarOpen } = useSidebarStore()
   const { update: setShowTopDrawer } = useTopDrawerStore()
   const isMobile = useIsMobile()
-  const { forceState } = useForceUpdate()
+  const { forceState, forceUpdate } = useForceUpdate(
+    useShallow(({ forceState, forceUpdate }) => ({ forceState, forceUpdate }))
+  )
 
   const refreshTokenSync = toSync(
     useCallback(
@@ -157,7 +159,7 @@ const App = () => {
 
     setRouter(createBrowserRouter(routes))
     setInitialized(true)
-  }, [authToken, routes, fetchSiteList])
+  }, [authToken, routes, fetchSiteList, forceUpdate])
 
   useEffect(() => {
     if (isMobile) {
@@ -172,6 +174,9 @@ const App = () => {
     const showDock = getCookie('top_drawer:state') == 'true'
     setShowTopDrawer(showDock)
   }, [setShowTopDrawer])
+
+  /* console.log('initialized: ', initialized)
+   * console.log('authToken: ', authToken) */
 
   {/* prettier-ignore */}
   return (

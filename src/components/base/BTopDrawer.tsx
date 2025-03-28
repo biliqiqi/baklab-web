@@ -39,7 +39,9 @@ const BTopDrawer = () => {
               opacity: 1,
               height: `${DOCK_HEIGHT}px`,
             }
-          : {}
+          : {
+              border: 'none',
+            }
       }
     >
       <div

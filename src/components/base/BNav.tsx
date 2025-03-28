@@ -21,6 +21,7 @@ import {
   isLogined,
   useAuthedUserStore,
   useDialogStore,
+  useLoading,
   useNotificationStore,
   useSidebarStore,
   useSiteStore,
@@ -41,6 +42,7 @@ import {
 } from '../ui/dropdown-menu'
 import { SIDEBAR_WIDTH } from '../ui/sidebar'
 import BAvatar from './BAvatar'
+import BLoader from './BLoader'
 import BSiteIcon from './BSiteIcon'
 
 export interface NavProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -54,10 +56,11 @@ const isOneOfPath = (loc: Location, pathes: string[]) =>
 
 const BNav = React.forwardRef<HTMLDivElement, NavProps>(
   ({ className, category, goBack = false, onGripClick, ...props }, ref) => {
-    const [loading, setLoading] = useState(false)
+    /* const [loading, setLoading] = useState(false) */
     const [showCategoryDetail, setShowCategoryDetail] = useState(false)
     const { siteFrontId } = useParams()
 
+    const { loading, setLoading } = useLoading()
     const authState = useAuthedUserStore()
     const navigate = useNavigate()
     const isMobile = useIsMobile()
@@ -147,8 +150,8 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
     return (
       <div
         className={cn(
-          'flex justify-between items-center py-2 border-b-2 shadow-sm bg-white sticky top-0 z-10',
-          siteMode == 'sidebar' && 'px-4',
+          'flex justify-between items-center py-2 bg-white sticky top-0 z-10',
+          siteMode == 'sidebar' && 'px-4 border-b-2 shadow-sm',
           className
         )}
         style={{
@@ -224,33 +227,40 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
             </>
           )}
 
-          {!!category && (
-            <>
-              {!isMobile && (!sidebarExpanded || siteMode == 'top_nav') && (
-                <ChevronRightIcon
-                  size={16}
-                  className="inline-block mr-2 align-middle text-gray-500"
-                />
-              )}
-              {category.isFront ? (
-                <span className="flex-shrink-0 text-ellipsis overflow-hidden whitespace-nowrap">
-                  {category.name}
-                </span>
-              ) : (
-                <Link
-                  to={`/${siteFrontId}/bankuai/${category.frontId}`}
-                  className="flex-shrink-0 text-ellipsis overflow-hidden whitespace-nowrap"
+          {loading ? (
+            <BLoader
+              className="inline-block ml-6 b-loader--gray"
+              style={{ fontSize: '4px' }}
+            />
+          ) : (
+            category != undefined && (
+              <>
+                {!isMobile && (!sidebarExpanded || siteMode == 'top_nav') && (
+                  <ChevronRightIcon
+                    size={16}
+                    className="inline-block mr-2 align-middle text-gray-500"
+                  />
+                )}
+                {category.isFront ? (
+                  <span className="flex-shrink-0 text-ellipsis overflow-hidden whitespace-nowrap">
+                    {category.name}
+                  </span>
+                ) : (
+                  <Link
+                    to={`/${siteFrontId}/bankuai/${category.frontId}`}
+                    className="flex-shrink-0 text-ellipsis overflow-hidden whitespace-nowrap"
+                  >
+                    {category.name}
+                  </Link>
+                )}
+                <span
+                  className="flex-shrink-1 px-4 ml-4 border-l-2 text-sm text-gray-500 cursor-pointer flex-grow overflow-hidden whitespace-nowrap text-ellipsis"
+                  onClick={() => setShowCategoryDetail(true)}
                 >
-                  {category.name}
-                </Link>
-              )}
-              <span
-                className="flex-shrink-1 px-4 ml-4 border-l-2 text-sm text-gray-500 cursor-pointer flex-grow overflow-hidden whitespace-nowrap text-ellipsis"
-                onClick={() => setShowCategoryDetail(true)}
-              >
-                {summryText(category.describe, 20)}{' '}
-              </span>
-            </>
+                  {summryText(category.describe, 20)}{' '}
+                </span>
+              </>
+            )
           )}
         </div>
         <div className="flex items-center">

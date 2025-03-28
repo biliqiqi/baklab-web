@@ -337,26 +337,28 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             </span>
           )}
 
-        {isRootArticle &&
+        {((isRootArticle &&
           articleCtx.root &&
           checkContentForm(articleCtx.root, 'qna') &&
-          articleCtx.root.acceptAnswerId !== '0' && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="mr-1 text-green-500"
-              asChild
-              title="查看答案"
+          articleCtx.root.acceptAnswerId !== '0') ||
+          (article.acceptAnswerId !== '0' &&
+            article.contentForm?.frontId == 'qna')) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mr-1 text-green-500"
+            asChild
+            title="查看答案"
+          >
+            <Link
+              to={`/${siteFrontId}/articles/${(articleCtx.root || article).acceptAnswerId}`}
             >
-              <Link
-                to={`/${siteFrontId}/articles/${articleCtx.root.acceptAnswerId}`}
-              >
-                <CheckIcon size={20} className="mr-1" />
-                &nbsp;
-                <span className="text-sm font-normal">已解决</span>
-              </Link>
-            </Button>
-          )}
+              <CheckIcon size={20} className="mr-1" />
+              &nbsp;
+              <span className="text-sm font-normal">已解决</span>
+            </Link>
+          </Button>
+        )}
 
         {ctype == 'list' && (
           <>

@@ -42,7 +42,11 @@ import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { formatMinutes } from './lib/utils'
-import { useAlertDialogStore, useAuthedUserStore } from './state/global'
+import {
+  useAlertDialogStore,
+  useAuthedUserStore,
+  useLoading,
+} from './state/global'
 import { ListPageState, UserData } from './types/types'
 
 interface SearchFields {
@@ -56,7 +60,7 @@ const defaultSearchData: SearchFields = {
 }
 
 export default function BannedUserListPage() {
-  const [loading, setLoading] = useState(false)
+  /* const [loading, setLoading] = useState(false) */
   const [currUser, setCurrUser] = useState<UserData | null>(null)
   const [showUserDetail, setShowUserDetail] = useState(false)
 
@@ -64,6 +68,8 @@ export default function BannedUserListPage() {
   const [params, setParams] = useSearchParams()
   const location = useLocation()
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+
+  const { loading, setLoading } = useLoading()
 
   const authStore = useAuthedUserStore()
   const alertDialog = useAlertDialogStore()
@@ -363,11 +369,6 @@ export default function BannedUserListPage() {
       <div className="my-4">
         <Badge variant="secondary">{pageState.total} 个用户</Badge>
       </div>
-      {loading && (
-        <div className="flex justify-center">
-          <BLoader />
-        </div>
-      )}
       {list.length == 0 ? (
         <Empty />
       ) : (

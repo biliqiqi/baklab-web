@@ -26,6 +26,7 @@ export default function CategoryListPage() {
         name: '板块',
         describe: '全部板块',
       }}
+      key={`category_list_${cateStore.categories.length}`}
     >
       <div className="flex justify-between flex-wrap -m-2">
         {cateStore.categories.map((cate) => (

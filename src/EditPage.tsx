@@ -8,11 +8,15 @@ import ArticleForm from './components/ArticleForm'
 
 import { getArticle } from './api/article'
 import { toSync } from './lib/fire-and-forget'
-import { useAuthedUserStore, useNotFoundStore } from './state/global'
+import {
+  useAuthedUserStore,
+  useLoading,
+  useNotFoundStore,
+} from './state/global'
 import { Article } from './types/types'
 
 export default function EditPage() {
-  const [loading, setLoading] = useState(false)
+  /* const [loading, setLoading] = useState(false) */
   const [article, setArticle] = useState<Article | null>(null)
   const { siteFrontId, articleId } = useParams()
   const { updateNotFound } = useNotFoundStore()
@@ -20,6 +24,8 @@ export default function EditPage() {
   const navigate = useNavigate()
 
   /* console.log('article id: ', articleId) */
+
+  const { loading, setLoading } = useLoading()
 
   const fetchArticle = useCallback(
     async (showLoading = true) => {
@@ -87,7 +93,6 @@ export default function EditPage() {
         isFront: true,
       }}
       goBack
-      loading={loading}
     >
       {article && <ArticleForm article={article} />}
     </BContainer>

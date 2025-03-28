@@ -41,7 +41,11 @@ import { getSiteBlockedWords, removeSiteBlockedWords } from './api/site'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
-import { useAlertDialogStore, useAuthedUserStore } from './state/global'
+import {
+  useAlertDialogStore,
+  useAuthedUserStore,
+  useLoading,
+} from './state/global'
 import { ListPageState, SiteBlockedWord } from './types/types'
 
 interface SearchFields {
@@ -53,7 +57,7 @@ const defaultSearchData: SearchFields = {
 }
 
 export default function BlockedWordListPage() {
-  const [loading, setLoading] = useState(false)
+  /* const [loading, setLoading] = useState(false) */
   const [showBlockedWordForm, setShowBlockedWordForm] = useState(false)
   const [wordFormDirty, setWordFormDirty] = useState(false)
 
@@ -65,6 +69,8 @@ export default function BlockedWordListPage() {
     total: 0,
     totalPage: 0,
   })
+
+  const { loading, setLoading } = useLoading()
 
   const [params, setParams] = useSearchParams()
   const location = useLocation()
@@ -362,11 +368,6 @@ export default function BlockedWordListPage() {
         </Button>
       </div>
 
-      {loading && (
-        <div className="flex justify-center">
-          <BLoader />
-        </div>
-      )}
       {list.length == 0 ? (
         <Empty />
       ) : (

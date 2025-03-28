@@ -32,7 +32,6 @@ import {
 } from '@/components/ui/table'
 
 import BContainer from './components/base/BContainer'
-import { BLoaderBlock } from './components/base/BLoader'
 
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
@@ -43,7 +42,7 @@ import roleAPI, { getDefaultRole, getDefaultRoles, getRoles } from './api/role'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { defaultPageState } from './constants/defaults'
 import { toSync } from './lib/fire-and-forget'
-import { useAlertDialogStore } from './state/global'
+import { useAlertDialogStore, useLoading } from './state/global'
 import { DefaultRoles, ListPageState, Role } from './types/types'
 
 const defaultRoleSchema = z.object({
@@ -58,7 +57,7 @@ interface EditRoleState {
 }
 
 export default function RoleManagePage() {
-  const [loading, setLoading] = useState(false)
+  /* const [loading, setLoading] = useState(false) */
 
   const [pageState, setPageState] = useState<ListPageState>({
     ...defaultPageState,
@@ -70,6 +69,8 @@ export default function RoleManagePage() {
   const [editSiteDefaultRole, setEditSiteDefaultRole] = useState(false)
 
   const [defaultRoles, setDefaultRoles] = useState<DefaultRoles | null>(null)
+
+  const { loading, setLoading } = useLoading()
 
   const { siteFrontId } = useParams()
 
@@ -504,8 +505,6 @@ export default function RoleManagePage() {
           </Button>
         </div>
       </div>
-
-      {loading && <BLoaderBlock />}
 
       <Card className="mt-4 overflow-hidden">
         <Table>

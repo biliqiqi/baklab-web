@@ -28,7 +28,11 @@ import { getUser, getUserActivityList, getUserPunishedList } from './api/user'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { genArticlePath, noop } from './lib/utils'
-import { useAuthedUserStore, useNotFoundStore } from './state/global'
+import {
+  useAuthedUserStore,
+  useLoading,
+  useNotFoundStore,
+} from './state/global'
 import {
   Activity,
   ActivityListResponse,
@@ -137,8 +141,8 @@ const ArticleList: React.FC<ArticleListProps> = ({
 }
 
 export default function UserPage() {
-  const [loading, setLoading] = useState(true)
-  const [loadingList, setLoadingList] = useState(true)
+  /* const [loading, setLoading] = useState(true) */
+  /* const [loadingList, setLoadingList] = useState(true) */
   const [user, setUser] = useState<UserData | null>(null)
   const [tabs, setTabs] = useState<UserTab[]>([...defaultTabs])
   /* const [tab, setTab] = useState<UserTab>('activity') */
@@ -150,6 +154,8 @@ export default function UserPage() {
     total: 0,
     totalPage: 0,
   })
+
+  const { loading, setLoading } = useLoading()
 
   const [actSubTabs, setActSubTabs] = useState<ActivityTab[]>([
     ...defaultActSubTabs,
@@ -207,117 +213,113 @@ export default function UserPage() {
   )
 
   const fetchList = toSync(
-    useCallback(
-      async (showLoading: boolean = false) => {
-        try {
-          const page = Number(params.get('page')) || 1
-          const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
-          const sort =
-            (params.get('sort') as ArticleListSort | null) || 'latest'
+    useCallback(async () => {
+      try {
+        const page = Number(params.get('page')) || 1
+        const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
+        const sort = (params.get('sort') as ArticleListSort | null) || 'latest'
 
-          if (showLoading) setLoadingList(true)
+        setLoading(true)
 
-          if (tab != 'activity' && tab != 'violation') {
-            const resp = await getArticleList(
-              page,
-              pageSize,
-              sort,
-              '',
-              username,
-              tab || 'all',
-              '',
-              ['pending', 'rejected', 'published'],
-              { siteFrontId }
-            )
+        if (tab != 'activity' && tab != 'violation') {
+          const resp = await getArticleList(
+            page,
+            pageSize,
+            sort,
+            '',
+            username,
+            tab || 'all',
+            '',
+            ['pending', 'rejected', 'published'],
+            { siteFrontId }
+          )
 
-            if (!resp.code) {
-              /* console.log('article list: ', resp.data) */
-              const { data } = resp
-              let category: FrontCategory | undefined
-              if (data.category) {
-                const { frontId, name, describe } = data.category
-                category = { frontId, name, describe } as FrontCategory
-              }
-
-              if (data.articles) {
-                updateList([...data.articles])
-                setPageState({
-                  currPage: data.currPage,
-                  pageSize: data.pageSize,
-                  total: data.articleTotal,
-                  totalPage: data.totalPage,
-                  category,
-                })
-              } else {
-                updateList([])
-                setPageState({
-                  currPage: 1,
-                  pageSize: data.pageSize,
-                  total: 0,
-                  totalPage: 0,
-                  category,
-                })
-              }
+          if (!resp.code) {
+            /* console.log('article list: ', resp.data) */
+            const { data } = resp
+            let category: FrontCategory | undefined
+            if (data.category) {
+              const { frontId, name, describe } = data.category
+              category = { frontId, name, describe } as FrontCategory
             }
-          } else {
-            if (!username) return
 
-            let resp: ResponseData<ActivityListResponse> | undefined
-
-            if (tab == 'activity') {
-              resp = await getUserActivityList(
-                username,
-                '',
-                actType == 'all' ? undefined : actType,
-                '',
-                page,
-                pageSize,
-                { siteFrontId }
-              )
+            if (data.articles) {
+              updateList([...data.articles])
+              setPageState({
+                currPage: data.currPage,
+                pageSize: data.pageSize,
+                total: data.articleTotal,
+                totalPage: data.totalPage,
+                category,
+              })
             } else {
-              resp = await getUserPunishedList(username)
-            }
-
-            if (!resp.code) {
-              const { data } = resp
-              if (data.list) {
-                updateActList([...data.list])
-                setPageState({
-                  currPage: data.page,
-                  pageSize: data.pageSize,
-                  total: data.total,
-                  totalPage: data.totalPage,
-                  category: undefined,
-                })
-              } else {
-                updateActList([])
-                setPageState({
-                  currPage: 1,
-                  pageSize: data.pageSize,
-                  total: 0,
-                  totalPage: 0,
-                  category: undefined,
-                })
-              }
+              updateList([])
+              setPageState({
+                currPage: 1,
+                pageSize: data.pageSize,
+                total: 0,
+                totalPage: 0,
+                category,
+              })
             }
           }
-        } catch (e) {
-          console.error('get list error: ', e)
-          updateList([])
-          updateActList([])
-          setPageState({
-            currPage: 1,
-            pageSize: DEFAULT_PAGE_SIZE,
-            total: 0,
-            totalPage: 0,
-            category: undefined,
-          })
-        } finally {
-          setLoadingList(false)
+        } else {
+          if (!username) return
+
+          let resp: ResponseData<ActivityListResponse> | undefined
+
+          if (tab == 'activity') {
+            resp = await getUserActivityList(
+              username,
+              '',
+              actType == 'all' ? undefined : actType,
+              '',
+              page,
+              pageSize,
+              { siteFrontId }
+            )
+          } else {
+            resp = await getUserPunishedList(username)
+          }
+
+          if (!resp.code) {
+            const { data } = resp
+            if (data.list) {
+              updateActList([...data.list])
+              setPageState({
+                currPage: data.page,
+                pageSize: data.pageSize,
+                total: data.total,
+                totalPage: data.totalPage,
+                category: undefined,
+              })
+            } else {
+              updateActList([])
+              setPageState({
+                currPage: 1,
+                pageSize: data.pageSize,
+                total: 0,
+                totalPage: 0,
+                category: undefined,
+              })
+            }
+          }
         }
-      },
-      [params, tab, username, siteFrontId, actType]
-    )
+      } catch (e) {
+        console.error('get list error: ', e)
+        updateList([])
+        updateActList([])
+        setPageState({
+          currPage: 1,
+          pageSize: DEFAULT_PAGE_SIZE,
+          total: 0,
+          totalPage: 0,
+          category: undefined,
+        })
+      } finally {
+        setLoading(false)
+      }
+    }, [params, tab, username, siteFrontId, actType])
   )
 
   const onTabChange = (tab: string) => {
@@ -341,7 +343,7 @@ export default function UserPage() {
   }, [username])
 
   useEffect(() => {
-    fetchList(false)
+    fetchList()
   }, [params])
 
   useEffect(() => {
@@ -371,7 +373,7 @@ export default function UserPage() {
           describe: '',
         }}
       >
-        {!loading && user && (
+        {user && (
           <>
             {authStore.permit('user', 'manage') && (
               <UserDetailCard
@@ -421,18 +423,14 @@ export default function UserPage() {
         )}
 
         <div className="py-4" key={tab}>
-          {loadingList ? (
-            <div className="flex justify-center">
-              <BLoader />
-            </div>
-          ) : tab == 'activity' || tab == 'violation' ? (
+          {tab == 'activity' || tab == 'violation' ? (
             <ActivityList list={actList} pageState={pageState} />
           ) : (
             <ArticleList
               list={list}
               tab={tab}
               pageState={pageState}
-              onSuccess={() => fetchList(false)}
+              onSuccess={() => fetchList()}
             />
           )}
         </div>

@@ -134,6 +134,10 @@ a:hover {
   left: 3.5em;
 }
 
+.b-loader.b-loader--gray {
+  @apply text-gray-500;
+}
+
 .b-text-link {
   @apply text-primary underline-offset-4 hover:underline;
 }

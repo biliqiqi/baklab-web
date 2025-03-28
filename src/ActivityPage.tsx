@@ -22,7 +22,7 @@ import { getActivityList } from './api'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { toSync } from './lib/fire-and-forget'
 import { cn } from './lib/utils'
-import { useAuthedUserStore } from './state/global'
+import { useAuthedUserStore, useLoading } from './state/global'
 import {
   Activity,
   ActivityActionType,
@@ -43,7 +43,7 @@ const defaultSearchData: SearchFields = {
 }
 
 export default function ActivityPage() {
-  const [loading, setLoading] = useState(false)
+  /* const [loading, setLoading] = useState(false) */
   const [list, updateActList] = useState<Activity[]>([])
   const [actionList, setActionList] = useState<OptionItem[]>([])
   const [pageState, setPageState] = useState<ListPageState>({
@@ -53,6 +53,8 @@ export default function ActivityPage() {
     totalPage: 0,
   })
   const usernameRef = useRef<HTMLInputElement | null>(null)
+
+  const { loading, setLoading } = useLoading()
 
   const { siteFrontId } = useParams()
   const [params, setParams] = useSearchParams()
@@ -264,17 +266,12 @@ export default function ActivityPage() {
           </Button>
         </div>
       </Card>
-      {loading ? (
-        <div className="flex justify-center py-4">
-          <BLoader />
-        </div>
-      ) : (
-        <ActivityList
-          list={list}
-          pageState={pageState}
-          isPlatfromManager={checkPermit('platform_manage', 'access')}
-        />
-      )}
+
+      <ActivityList
+        list={list}
+        pageState={pageState}
+        isPlatfromManager={checkPermit('platform_manage', 'access')}
+      />
     </BContainer>
   )
 }

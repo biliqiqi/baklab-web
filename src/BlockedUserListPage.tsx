@@ -33,7 +33,11 @@ import { getSiteBlocklist, unblockUser, unblockUsers } from './api/site'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
-import { useAlertDialogStore, useAuthedUserStore } from './state/global'
+import {
+  useAlertDialogStore,
+  useAuthedUserStore,
+  useLoading,
+} from './state/global'
 import { BlockedUser, ListPageState } from './types/types'
 
 interface SearchFields {
@@ -47,12 +51,14 @@ const defaultSearchData: SearchFields = {
 }
 
 export default function BlockedUserListPage() {
-  const [loading, setLoading] = useState(false)
+  /* const [loading, setLoading] = useState(false) */
 
   const [list, setList] = useState<BlockedUser[]>([])
   const [params, setParams] = useSearchParams()
   const location = useLocation()
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+
+  const { loading, setLoading } = useLoading()
 
   const authStore = useAuthedUserStore()
   const alertDialog = useAlertDialogStore()
@@ -335,11 +341,6 @@ export default function BlockedUserListPage() {
       <div className="my-4">
         <Badge variant="secondary">{pageState.total} 个用户</Badge>
       </div>
-      {loading && (
-        <div className="flex justify-center">
-          <BLoader />
-        </div>
-      )}
       {list.length == 0 ? (
         <Empty />
       ) : (

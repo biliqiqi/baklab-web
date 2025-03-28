@@ -39,7 +39,6 @@ import {
 
 import BAvatar from './components/base/BAvatar'
 import BContainer from './components/base/BContainer'
-import BLoader from './components/base/BLoader'
 
 import BanDialog, { BanDialogRef, BanSchema } from './components/BanDialog'
 import { Empty } from './components/Empty'
@@ -55,6 +54,7 @@ import { toSync } from './lib/fire-and-forget'
 import {
   useAlertDialogStore,
   useAuthedUserStore,
+  useLoading,
   useSiteStore,
 } from './state/global'
 import { ListPageState, Role, UserData } from './types/types'
@@ -70,12 +70,14 @@ const defaultSearchData: SearchFields = {
 }
 
 export default function UserListPage() {
-  const [loading, setLoading] = useState(false)
+  /* const [loading, setLoading] = useState(false) */
   const [banOpen, setBanOpen] = useState(false)
   const [showUserDetail, setShowUserDetail] = useState(false)
 
   const [list, setList] = useState<UserData[]>([])
   const [currUser, setCurrUser] = useState<UserData | null>(null)
+
+  const { loading, setLoading } = useLoading()
 
   const [params, setParams] = useSearchParams()
   const location = useLocation()
@@ -555,11 +557,6 @@ export default function UserListPage() {
           {pageState.total} 个{siteFrontId ? '成员' : '用户'}
         </Badge>
       </div>
-      {loading && (
-        <div className="flex justify-center">
-          <BLoader />
-        </div>
-      )}
       {list.length == 0 ? (
         <Empty />
       ) : (

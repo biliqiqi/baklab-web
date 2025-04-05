@@ -19,7 +19,7 @@ import {
 
 import { useIsMobile } from '@/hooks/use-mobile'
 
-export const SIDEBAR_COOKIE_NAME = 'sidebar:state'
+/* export const SIDEBAR_COOKIE_NAME = 'sidebar:state' */
 export const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 export const SIDEBAR_WIDTH = '16rem'
 export const SIDEBAR_WIDTH_MOBILE = '18rem'
@@ -55,6 +55,7 @@ const SidebarProvider = React.forwardRef<
     onOpenChange?: (open: boolean) => void
     openMobile?: boolean
     onOpenMobileChange?: (open: boolean) => void
+    statePersistKey?: string
   }
 >(
   (
@@ -64,6 +65,7 @@ const SidebarProvider = React.forwardRef<
       onOpenChange: setOpenProp,
       openMobile: openMobileProp,
       onOpenMobileChange: setOpenMobileProp,
+      statePersistKey,
       className,
       style,
       children,
@@ -74,6 +76,8 @@ const SidebarProvider = React.forwardRef<
     const isMobile = useIsMobile()
     const [_openMobile, _setOpenMobile] = React.useState(false)
     const openMobile = openMobileProp ?? _openMobile
+    /* console.log('statePersistKey', statePersistKey) */
+
     const setOpenMobile = React.useCallback(
       (value: boolean | ((value: boolean) => boolean)) => {
         const openState =
@@ -85,9 +89,13 @@ const SidebarProvider = React.forwardRef<
         }
 
         // This sets the cookie to keep the sidebar state.
-        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+        /* document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}` */
+        /* console.log('in mobile function statePersistKey', statePersistKey) */
+        if (statePersistKey) {
+          localStorage.setItem(statePersistKey, String(openState))
+        }
       },
-      [setOpenMobileProp, openMobile]
+      [setOpenMobileProp, openMobile, statePersistKey]
     )
 
     // This is the internal state of the sidebar.
@@ -104,9 +112,13 @@ const SidebarProvider = React.forwardRef<
         }
 
         // This sets the cookie to keep the sidebar state.
-        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+        /* document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}` */
+        /* console.log('in function statePersistKey', statePersistKey) */
+        if (statePersistKey) {
+          localStorage.setItem(statePersistKey, String(openState))
+        }
       },
-      [setOpenProp, open]
+      [setOpenProp, open, statePersistKey]
     )
 
     // Helper to toggle the sidebar.

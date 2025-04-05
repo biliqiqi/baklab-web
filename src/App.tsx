@@ -3,20 +3,25 @@ import { useCallback, useEffect, useState } from 'react'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
-import { SIDEBAR_COOKIE_NAME } from './components/ui/sidebar.tsx'
 import { Toaster } from './components/ui/sonner.tsx'
 
 import BLoader from './components/base/BLoader.tsx'
 
-import { API_HOST, API_PATH_PREFIX } from './constants/constants.ts'
+import {
+  API_HOST,
+  API_PATH_PREFIX,
+  LEFT_SIDEBAR_STATE_KEY,
+  RIGHT_SIDEBAR_STATE_KEY,
+  TOP_DRAWER_STATE_KEY,
+} from './constants/constants.ts'
 import { useIsMobile } from './hooks/use-mobile.tsx'
 import { toSync } from './lib/fire-and-forget.ts'
 import { refreshAuthState, refreshToken } from './lib/request.ts'
-import { getCookie } from './lib/utils.ts'
 import {
   useAuthedUserStore,
   useForceUpdate,
   useNotificationStore,
+  useRightSidebarStore,
   useSidebarStore,
   useSiteStore,
   useTopDrawerStore,
@@ -103,8 +108,10 @@ const App = () => {
     }))
   )
 
-  const { setOpen: setSidebarOpen } = useSidebarStore()
-  const { update: setShowTopDrawer } = useTopDrawerStore()
+  const setSidebarOpen = useSidebarStore((state) => state.setOpen)
+  const setShowTopDrawer = useTopDrawerStore((state) => state.update)
+  const setRightSidebarOpen = useRightSidebarStore((state) => state.setOpen)
+
   const isMobile = useIsMobile()
   const { forceState, forceUpdate } = useForceUpdate(
     useShallow(({ forceState, forceUpdate }) => ({ forceState, forceUpdate }))
@@ -165,13 +172,16 @@ const App = () => {
     if (isMobile) {
       setSidebarOpen(false)
     } else {
-      const state = getCookie(SIDEBAR_COOKIE_NAME)
-      setSidebarOpen(state == 'true')
+      const leftSidebarState = localStorage.getItem(LEFT_SIDEBAR_STATE_KEY)
+      const rightSidebarState = localStorage.getItem(RIGHT_SIDEBAR_STATE_KEY)
+
+      setSidebarOpen(leftSidebarState == 'true')
+      setRightSidebarOpen(rightSidebarState == 'true')
     }
-  }, [isMobile, setSidebarOpen])
+  }, [isMobile, setSidebarOpen, setRightSidebarOpen])
 
   useEffect(() => {
-    const showDock = getCookie('top_drawer:state') == 'true'
+    const showDock = localStorage.getItem(TOP_DRAWER_STATE_KEY) == 'true'
     setShowTopDrawer(showDock)
   }, [setShowTopDrawer])
 

@@ -4,6 +4,7 @@ import {
   BlockedUserList,
   ContentFormListResponse,
   ItemExists,
+  JSONMap,
   ResponseData,
   ResponseID,
   Site,
@@ -279,3 +280,8 @@ export const getContentForms = (frontId: string) =>
   authRequest.get<ResponseData<ContentFormListResponse>>(
     `sites/${frontId}/content_forms`
   )
+
+export const saveSiteUISettings = (frontId: string, settings: JSONMap) =>
+  authRequest.post<ResponseData<null>>(`sites/${frontId}/save_ui_settings`, {
+    json: settings,
+  })

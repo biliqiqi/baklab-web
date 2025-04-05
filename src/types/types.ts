@@ -552,6 +552,7 @@ export interface Site {
   memberCount: number
   onlineCount: number
   reviewBeforePublish: boolean
+  uiSettings: JSONMap | null
 }
 
 export interface SiteListResponse extends ListPageState {
@@ -644,4 +645,9 @@ export const SYSTEM_ARTICLE_CONTENT_FORM = Object.freeze({
   Ticket: 'ticket',
 } as const)
 
-export type SiteUIMode = 'sidebar' | 'top_nav'
+export const SITE_UI_MODE = Object.freeze({
+  Sidebar: 'sidebar',
+  TopNav: 'top_nav',
+} as const)
+
+export type SiteUIMode = ValuesToUnion<typeof SITE_UI_MODE>

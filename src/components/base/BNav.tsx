@@ -376,6 +376,9 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                   >
                     <Link to={'/users/' + authState.username}>个人主页</Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0">
+                    个性化界面
+                  </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                     onClick={logout}

@@ -15,7 +15,13 @@ import { toSync } from '@/lib/fire-and-forget'
 import { cn } from '@/lib/utils'
 
 import { getSiteList, joinSite } from '@/api/site'
-import { DEFAULT_PAGE_SIZE, NAV_HEIGHT } from '@/constants/constants'
+import {
+  DEFAULT_PAGE_SIZE,
+  LEFT_SIDEBAR_STATE_KEY,
+  NAV_HEIGHT,
+  RIGHT_SIDEBAR_STATE_KEY,
+  TOP_DRAWER_STATE_KEY,
+} from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
 import useDocumentTitle from '@/hooks/use-page-title'
 import {
@@ -41,6 +47,7 @@ import NotFound from '../NotFound'
 import SigninForm from '../SigninForm'
 import SignupForm from '../SignupForm'
 import SiteForm from '../SiteForm'
+import SiteUIForm from '../SiteUIForm'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,7 +69,6 @@ import {
 } from '../ui/dialog'
 import { Sidebar, SidebarContent, SidebarProvider } from '../ui/sidebar'
 import BAvatar from './BAvatar'
-import BLoader, { BLoaderBlock } from './BLoader'
 import BNav from './BNav'
 import BSidebar from './BSidebar'
 import BTopDrawer from './BTopDrawer'
@@ -275,7 +281,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         })
       }
       setShowTopDrawer(!showTopDrawer)
-      document.cookie = `top_drawer:state=${String(!showTopDrawer)};path=/`
+      localStorage.setItem(TOP_DRAWER_STATE_KEY, String(!showTopDrawer))
     }, [showTopDrawer, setShowTopDrawer])
 
     const onJoinSiteClick = useCallback(
@@ -433,6 +439,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           onOpenChange={setSidebarOpen}
           openMobile={sidebarOpenMobile}
           onOpenMobileChange={setSidebarOpenMobile}
+          statePersistKey={LEFT_SIDEBAR_STATE_KEY}
           style={{
             minHeight: `calc(100vh - ${NAV_HEIGHT}px)`,
           }}
@@ -444,7 +451,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               !isMobile && sidebarOpen && 'w-[var(--sidebar-width)]'
             )}
             style={{
-              top: `${NAV_HEIGHT}px`,
+              top: siteMode == 'top_nav' ? `${NAV_HEIGHT}px` : '',
               maxHeight:
                 siteMode == 'top_nav' ? `calc(100vh - ${NAV_HEIGHT}px)` : '',
             }}
@@ -513,8 +520,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             open={openRightSidebar}
             onOpenChange={setOpenRightSidebar}
             className="w-auto"
+            statePersistKey={RIGHT_SIDEBAR_STATE_KEY}
             style={{
-              maxHeight: `calc(100vh - ${NAV_HEIGHT}px)`,
               minHeight: 'auto',
             }}
           >
@@ -525,8 +532,9 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 !isMobile && openRightSidebar && 'w-[var(--sidebar-width)]'
               )}
               style={{
-                top: `${NAV_HEIGHT}px`,
-                maxHeight: `calc(100vh - ${NAV_HEIGHT}px)`,
+                top: siteMode == 'top_nav' ? `${NAV_HEIGHT}px` : '',
+                maxHeight:
+                  siteMode == 'top_nav' ? `calc(100vh - ${NAV_HEIGHT}px)` : '',
               }}
             >
               <Sidebar side="right" className="relative max-h-full" gap={false}>
@@ -546,6 +554,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                       <PanelRightClose size={20} />
                     </Button>
                   </div>
+                  <SiteUIForm />
                 </SidebarContent>
               </Sidebar>
             </div>

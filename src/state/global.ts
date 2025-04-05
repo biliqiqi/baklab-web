@@ -7,6 +7,10 @@ import { refreshAuthState } from '@/lib/request'
 import { getCategoryList } from '@/api/category'
 import { getNotificationUnreadCount } from '@/api/message'
 import { getJoinedSiteList, getSiteWithFrontId } from '@/api/site'
+import {
+  LEFT_SIDEBAR_STATE_KEY,
+  RIGHT_SIDEBAR_STATE_KEY,
+} from '@/constants/constants'
 import { PermitFn, PermitUnderSiteFn } from '@/constants/types'
 import {
   Article,
@@ -15,6 +19,7 @@ import {
   InviteCode,
   Role,
   SITE_STATUS,
+  SITE_UI_MODE,
   Site,
   SiteUIMode,
   UserData,
@@ -441,10 +446,12 @@ export const useSidebarStore = create<SidebarState>((set) => ({
   open: false,
   setOpen(open) {
     set((state) => ({ ...state, open }))
+    localStorage.setItem(LEFT_SIDEBAR_STATE_KEY, String(open))
   },
   openMobile: false,
   setOpenMobile(openMobile) {
     set((state) => ({ ...state, openMobile }))
+    localStorage.setItem(LEFT_SIDEBAR_STATE_KEY, String(openMobile))
   },
   groupsOpen: {
     category: true,
@@ -471,6 +478,7 @@ export const useRightSidebarStore = create<
   open: false,
   setOpen(open) {
     set(() => ({ open }))
+    localStorage.setItem(RIGHT_SIDEBAR_STATE_KEY, String(open))
   },
 }))
 
@@ -628,8 +636,15 @@ export const useSiteStore = create(
 
 useSiteStore.subscribe(
   (state) => state.site,
-  (_site) => {
+  (site) => {
     updateCurrRole()
+    if (site?.uiSettings) {
+      const siteUIStore = useSiteUIStore.getState()
+
+      siteUIStore.setMode(
+        (site.uiSettings.mode as SiteUIMode | undefined) || SITE_UI_MODE.TopNav
+      )
+    }
   }
 )
 
@@ -709,7 +724,7 @@ export interface SiteUIState {
 }
 
 export const useSiteUIStore = create<SiteUIState>((set) => ({
-  mode: 'top_nav',
+  mode: SITE_UI_MODE.TopNav,
   setMode(mode) {
     set((state) => ({ ...state, mode }))
   },

@@ -37,6 +37,7 @@ export const defaultSite: Site = {
   memberCount: 0,
   onlineCount: 0,
   reviewBeforePublish: false,
+  uiSettings: null,
 }
 
 export const defaultCategory: Category = {

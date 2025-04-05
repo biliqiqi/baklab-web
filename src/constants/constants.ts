@@ -40,6 +40,10 @@ export const DEFAULT_PAGE_SIZE = 20
 
 export const SINGUP_RETURN_COOKIE_NAME = 'signup_return'
 
+export const LEFT_SIDEBAR_STATE_KEY = 'left_sidebar_state'
+export const RIGHT_SIDEBAR_STATE_KEY = 'right_sidebar_state'
+export const TOP_DRAWER_STATE_KEY = 'top_drawer_state'
+
 export const URL_PATTERN =
   /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g
 

@@ -18,9 +18,12 @@ import {
   Category,
   InviteCode,
   Role,
+  SITE_LIST_MODE,
   SITE_STATUS,
   SITE_UI_MODE,
+  SettingsType,
   Site,
+  SiteListMode,
   SiteUIMode,
   UserData,
 } from '@/types/types'
@@ -472,13 +475,21 @@ export const useSidebarStore = create<SidebarState>((set) => ({
   },
 }))
 
-export const useRightSidebarStore = create<
-  Pick<SidebarState, 'open' | 'setOpen'>
->((set) => ({
+export interface RightSidebarState
+  extends Pick<SidebarState, 'open' | 'setOpen'> {
+  settingsType: SettingsType
+  setSettingsType: (sType: SettingsType) => void
+}
+
+export const useRightSidebarStore = create<RightSidebarState>((set) => ({
   open: false,
   setOpen(open) {
-    set(() => ({ open }))
+    set((state) => ({ ...state, open }))
     localStorage.setItem(RIGHT_SIDEBAR_STATE_KEY, String(open))
+  },
+  settingsType: 'site_ui',
+  setSettingsType(t) {
+    set((state) => ({ ...state, settingsType: t }))
   },
 }))
 
@@ -550,6 +561,8 @@ export interface SiteState {
   setShowSiteForm: (show: boolean) => void
   showSiteAbout: boolean
   setShowSiteAbout: (show: boolean) => void
+  showSiteListDropdown: boolean
+  setShowSiteListDropdown: (show: boolean) => void
 }
 
 export const useSiteStore = create(
@@ -581,6 +594,10 @@ export const useSiteStore = create(
     showSiteAbout: false,
     setShowSiteAbout(show) {
       set((state) => ({ ...state, showSiteAbout: show }))
+    },
+    showSiteListDropdown: false,
+    setShowSiteListDropdown(show) {
+      set((state) => ({ ...state, showSiteListDropdown: show }))
     },
     fetchSiteData: async (frontId) => {
       const ps = new Promise((resolve) => {
@@ -726,6 +743,18 @@ export interface SiteUIState {
 export const useSiteUIStore = create<SiteUIState>((set) => ({
   mode: SITE_UI_MODE.TopNav,
   setMode(mode) {
+    set((state) => ({ ...state, mode }))
+  },
+}))
+
+export interface UserUIState {
+  siteListMode: SiteListMode
+  setSiteListMode: (mode: SiteListMode) => void
+}
+
+export const useUserUIStore = create<UserUIState>((set) => ({
+  siteListMode: SITE_LIST_MODE.DropdownMenu,
+  setSiteListMode(mode) {
     set((state) => ({ ...state, mode }))
   },
 }))

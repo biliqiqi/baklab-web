@@ -651,3 +651,12 @@ export const SITE_UI_MODE = Object.freeze({
 } as const)
 
 export type SiteUIMode = ValuesToUnion<typeof SITE_UI_MODE>
+
+export type SettingsType = 'site_ui' | 'user_ui'
+
+export const SITE_LIST_MODE = Object.freeze({
+  TopDrawer: 'top_drawer',
+  DropdownMenu: 'dropdown_menu',
+} as const)
+
+export type SiteListMode = ValuesToUnion<typeof SITE_LIST_MODE>

@@ -1,7 +1,15 @@
 import { EllipsisVerticalIcon } from 'lucide-react'
-import { MouseEvent, useCallback, useMemo, useState } from 'react'
+import React, {
+  HTMLAttributes,
+  MouseEvent,
+  useCallback,
+  useMemo,
+  useState,
+} from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
+
+import { cn } from '@/lib/utils'
 
 import {
   DropdownMenu,
@@ -22,7 +30,12 @@ import {
 
 import { Button } from './ui/button'
 
-const SiteMenuButton = () => {
+type SiteMenuButtonProps = HTMLAttributes<HTMLButtonElement>
+
+const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
+  className,
+  ...props
+}) => {
   const [openSiteMenu, setOpenSiteMenu] = useState(false)
 
   const { siteFrontId } = useParams()
@@ -74,12 +87,14 @@ const SiteMenuButton = () => {
     [currSite, currUserId]
   )
 
-  const { openRightSidebar, setOpenRightSidebar } = useRightSidebarStore(
-    useShallow(({ open, setOpen }) => ({
-      openRightSidebar: open,
-      setOpenRightSidebar: setOpen,
-    }))
-  )
+  const { openRightSidebar, setOpenRightSidebar, setSettingsType } =
+    useRightSidebarStore(
+      useShallow(({ open, setOpen, setSettingsType }) => ({
+        openRightSidebar: open,
+        setOpenRightSidebar: setOpen,
+        setSettingsType,
+      }))
+    )
 
   const { alertConfirm } = useAlertDialogStore(
     useShallow(({ confirm }) => ({ alertConfirm: confirm }))
@@ -103,10 +118,11 @@ const SiteMenuButton = () => {
     (ev: MouseEvent<HTMLDivElement>) => {
       ev.preventDefault()
 
-      setOpenRightSidebar(!openRightSidebar)
+      setSettingsType('site_ui')
+      setOpenRightSidebar(true)
       setOpenSiteMenu(false)
     },
-    [openRightSidebar, setOpenRightSidebar]
+    [openRightSidebar, setOpenRightSidebar, setSettingsType]
   )
 
   const { setInviteCodeGeneratting, setShowInviteDialog, setInviteCode } =
@@ -186,9 +202,10 @@ const SiteMenuButton = () => {
     <DropdownMenu open={openSiteMenu} onOpenChange={setOpenSiteMenu}>
       <DropdownMenuTrigger asChild>
         <Button
+          {...props}
           variant="ghost"
           size="sm"
-          className="h-[36px] w-[36px] p-0 text-gray-500"
+          className={cn('h-[36px] w-[36px] p-0 text-gray-500', className)}
           title="站点菜单"
         >
           <EllipsisVerticalIcon size={20} />

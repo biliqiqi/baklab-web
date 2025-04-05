@@ -130,7 +130,7 @@ const SiteUIForm = () => {
         <div className="flex justify-between">
           <span></span>
           <Button type="submit" size="sm" disabled={!form.formState.isDirty}>
-            提交
+            保存
           </Button>
         </div>
       </form>

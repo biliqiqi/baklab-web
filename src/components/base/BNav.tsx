@@ -18,14 +18,15 @@ import { logoutToken } from '@/api'
 import { NAV_HEIGHT, SITE_LOGO_IMAGE, SITE_NAME } from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
-  isLogined,
   useAuthedUserStore,
   useDialogStore,
   useLoading,
   useNotificationStore,
+  useRightSidebarStore,
   useSidebarStore,
   useSiteStore,
   useSiteUIStore,
+  useUserUIStore,
 } from '@/state/global'
 import { FrontCategory } from '@/types/types'
 
@@ -61,10 +62,19 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
     const { siteFrontId } = useParams()
 
     const { loading, setLoading } = useLoading()
-    const authState = useAuthedUserStore()
+    /* const authState = useAuthedUserStore() */
     const navigate = useNavigate()
     const isMobile = useIsMobile()
     /* const sidebar = useSidebar() */
+    const { checkPermit, isLogined, authLogout, currUsername } =
+      useAuthedUserStore(
+        useShallow(({ permit, isLogined, logout, username }) => ({
+          checkPermit: permit,
+          authLogout: logout,
+          currUsername: username,
+          isLogined,
+        }))
+      )
     const {
       sidebarOpen,
       setSidebarOpen,
@@ -79,8 +89,21 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
       }))
     )
 
+    const { openRightSidebar, setOpenRightSidebar, setSettingsType } =
+      useRightSidebarStore(
+        useShallow(({ open, setOpen, setSettingsType }) => ({
+          openRightSidebar: open,
+          setOpenRightSidebar: setOpen,
+          setSettingsType,
+        }))
+      )
+
     const { siteMode } = useSiteUIStore(
       useShallow(({ mode }) => ({ siteMode: mode }))
+    )
+
+    const { siteListMode } = useUserUIStore(
+      useShallow(({ siteListMode }) => ({ siteListMode }))
     )
 
     const msgListRef = useRef<MessageListRef | null>(null)
@@ -93,8 +116,28 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
     const { updateSignin } = useDialogStore()
     const notiStore = useNotificationStore()
 
-    const { currSite } = useSiteStore(
-      useShallow(({ site }) => ({ currSite: site }))
+    const {
+      currSite,
+      siteList,
+      setShowSiteForm,
+      showSiteListDropdown,
+      setShowSiteListDropdown,
+    } = useSiteStore(
+      useShallow(
+        ({
+          site,
+          siteList,
+          setShowSiteForm,
+          showSiteListDropdown,
+          setShowSiteListDropdown,
+        }) => ({
+          currSite: site,
+          siteList,
+          setShowSiteForm,
+          showSiteListDropdown,
+          setShowSiteListDropdown,
+        })
+      )
     )
 
     const onDropdownChange = (open: boolean) => {
@@ -134,7 +177,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
         setLoading(true)
         const data = await logoutToken()
         if (!data.code) {
-          authState.logout()
+          authLogout()
           navigate(0)
         }
       } catch (e) {
@@ -143,7 +186,12 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
       } finally {
         setLoading(false)
       }
-    }, [authState, loading, navigate])
+    }, [loading, navigate, setLoading, authLogout])
+
+    const onUserUISettingClick = useCallback(() => {
+      setSettingsType('user_ui')
+      setOpenRightSidebar(true)
+    }, [setOpenRightSidebar, setSettingsType])
 
     /* console.log('msgListRef: ', msgListRef.current?.pageState.totalCount) */
 
@@ -282,21 +330,120 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
               </DrawerTrigger> */}
             </>
           )}
-          {siteMode == 'top_nav' && <SiteMenuButton />}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-[36px] h-[36px] p-0 rounded-full mr-2"
-            title="站点列表"
-            onClick={() => {
-              if (onGripClick && typeof onGripClick == 'function') {
-                onGripClick()
-              }
-            }}
-          >
-            <GripIcon size={20} />
-          </Button>
-          {isLogined(authState) ? (
+          {siteMode == 'top_nav' && <SiteMenuButton className="mr-2" />}
+          {siteListMode == 'top_drawer' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-[36px] h-[36px] p-0 rounded-full mr-2"
+              title="站点列表"
+              onClick={() => {
+                if (onGripClick && typeof onGripClick == 'function') {
+                  onGripClick()
+                }
+              }}
+            >
+              <GripIcon size={20} />
+            </Button>
+          )}
+          {siteListMode == 'dropdown_menu' && (
+            <DropdownMenu
+              open={showSiteListDropdown}
+              onOpenChange={setShowSiteListDropdown}
+            >
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-[36px] h-[36px] p-0 rounded-full mr-2"
+                  title="站点列表"
+                >
+                  <GripIcon size={20} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                sideOffset={6}
+                align="end"
+                className={cn(
+                  `w-[330px] px-2 pt-2 pb-4 bg-gray-200 text-sm overflow-y-auto`
+                )}
+                style={{
+                  maxHeight: `calc(100vh - ${NAV_HEIGHT}px)`,
+                }}
+              >
+                <div>
+                  <div className="flex flex-wrap items-center">
+                    {siteList &&
+                      siteList.map((site) => (
+                        <Link
+                          to={`/${site.frontId}`}
+                          key={site.frontId}
+                          className={cn(
+                            'flex justify-center w-[60px] overflow-hidden flex-shrink-0 flex-grow-0 mx-2 my-4 leading-3'
+                          )}
+                          onClick={() => setShowSiteListDropdown(false)}
+                        >
+                          <BSiteIcon
+                            logoUrl={site.logoUrl}
+                            name={site.name}
+                            size={40}
+                            fontSize={14}
+                            showSiteName
+                            active={siteFrontId == site.frontId}
+                            vertical
+                            className="w-full"
+                          />
+                        </Link>
+                      ))}
+                  </div>
+                  <div className="flex flex-wrap pt-4 mt-4 items-center border-t-2 border-gray-300">
+                    <Link
+                      to={`/`}
+                      className={cn(
+                        'flex justify-center w-[60px] overflow-hidden flex-shrink-0 flex-grow-0 mx-2 my-4 leading-3'
+                      )}
+                      onClick={() => setShowSiteListDropdown(false)}
+                    >
+                      <BSiteIcon
+                        logoUrl={SITE_LOGO_IMAGE}
+                        name={`首页`}
+                        size={40}
+                        fontSize={14}
+                        showSiteName
+                        active={!siteFrontId}
+                        className="w-full"
+                        vertical
+                      />
+                    </Link>
+                    {isLogined() && checkPermit('site', 'create', true) && (
+                      <span
+                        className="inline-flex flex-col items-center align-middle cursor-pointer mx-2 my-4"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          setShowSiteForm(true)
+                          setShowSiteListDropdown(false)
+                        }}
+                      >
+                        <Button
+                          variant="secondary"
+                          className="rounded-full w-[40px] h-[40px] text-[24px] text-center text-gray-500 mb-1"
+                          key="new-site"
+                          title="创建站点"
+                        >
+                          +
+                        </Button>
+                        <span className="text-[14px] leading-[1.2]">
+                          创建站点
+                        </span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
+          {isLogined() ? (
             <>
               {isMobile ? (
                 <Link to={'/message'}>
@@ -359,7 +506,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                     className="w-[36px] h-[36px] p-0 rounded-full"
                   >
                     <BAvatar
-                      username={authState.username}
+                      username={currUsername}
                       className="cursor-pointer"
                       size={32}
                     />
@@ -374,9 +521,12 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                     className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                     asChild
                   >
-                    <Link to={'/users/' + authState.username}>个人主页</Link>
+                    <Link to={'/users/' + currUsername}>个人主页</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0">
+                  <DropdownMenuItem
+                    className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                    onClick={onUserUISettingClick}
+                  >
                     个性化界面
                   </DropdownMenuItem>
                   <DropdownMenuItem

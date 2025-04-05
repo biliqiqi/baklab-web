@@ -480,6 +480,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                         variant="ghost"
                         className="p-0 w-[24px] h-[24px] rounded-full"
                         onClick={onCreateCategoryClick}
+                        title="创建板块"
                       >
                         <PlusIcon size={18} className="text-gray-500" />
                       </Button>

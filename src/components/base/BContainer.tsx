@@ -1,4 +1,4 @@
-import { PanelRightClose } from 'lucide-react'
+import { PanelRightClose, XIcon } from 'lucide-react'
 import React, {
   MouseEvent,
   useCallback,
@@ -38,6 +38,7 @@ import {
   useSiteStore,
   useSiteUIStore,
   useTopDrawerStore,
+  useUserUIStore,
 } from '@/state/global'
 import { FrontCategory, SITE_VISIBLE } from '@/types/types'
 
@@ -108,12 +109,18 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       useShallow(({ mode }) => ({ siteMode: mode }))
     )
 
-    const { openRightSidebar, setOpenRightSidebar } = useRightSidebarStore(
-      useShallow(({ open, setOpen }) => ({
-        openRightSidebar: open,
-        setOpenRightSidebar: setOpen,
-      }))
+    const { siteListMode } = useUserUIStore(
+      useShallow(({ siteListMode }) => ({ siteListMode }))
     )
+
+    const { openRightSidebar, setOpenRightSidebar, settingsType } =
+      useRightSidebarStore(
+        useShallow(({ open, setOpen, settingsType }) => ({
+          openRightSidebar: open,
+          setOpenRightSidebar: setOpen,
+          settingsType,
+        }))
+      )
     /* const [openRightSidebar, setOpenRightSidebar] = useState(false) */
     /* const [sidebarOpenMobile, setSidebarOpenMobile] = useState(false) */
 
@@ -420,7 +427,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     return (
       <div>
-        <BTopDrawer />
+        {siteListMode == 'top_drawer' && <BTopDrawer />}
         {siteMode == 'top_nav' && (
           <div className="bg-white sticky top-0 z-50 border-b-2 shadow-sm">
             <BNav
@@ -543,7 +550,12 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     className="flex items-center justify-between mb-2"
                     style={{ height: `${NAV_HEIGHT}px` }}
                   >
-                    <span className="font-bold">站点界面设置</span>
+                    {settingsType == 'site_ui' && (
+                      <span className="font-bold">站点界面设置</span>
+                    )}
+                    {settingsType == 'user_ui' && (
+                      <span className="font-bold">个性化界面设置</span>
+                    )}
                     <Button
                       variant={'ghost'}
                       size={'sm'}
@@ -551,10 +563,10 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                       className="text-gray-500"
                       onClick={() => setOpenRightSidebar(false)}
                     >
-                      <PanelRightClose size={20} />
+                      <XIcon size={20} />
                     </Button>
                   </div>
-                  <SiteUIForm />
+                  {settingsType == 'site_ui' && <SiteUIForm />}
                 </SidebarContent>
               </Sidebar>
             </div>

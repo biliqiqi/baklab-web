@@ -11,13 +11,17 @@ import {
   API_HOST,
   API_PATH_PREFIX,
   LEFT_SIDEBAR_STATE_KEY,
+  RIGHT_SIDEBAR_SETTINGS_TYPE_KEY,
   RIGHT_SIDEBAR_STATE_KEY,
   TOP_DRAWER_STATE_KEY,
+  USER_UI_SETTINGS_KEY,
 } from './constants/constants.ts'
 import { useIsMobile } from './hooks/use-mobile.tsx'
 import { toSync } from './lib/fire-and-forget.ts'
 import { refreshAuthState, refreshToken } from './lib/request.ts'
 import {
+  UserUIStateData,
+  getLocalUserUISettings,
   useAuthedUserStore,
   useForceUpdate,
   useNotificationStore,
@@ -25,8 +29,10 @@ import {
   useSidebarStore,
   useSiteStore,
   useTopDrawerStore,
+  useUserUIStore,
 } from './state/global.ts'
 import { useRoutesStore } from './state/routes.ts'
+import { SettingsType } from './types/types.ts'
 
 const fetchNotiCount = toSync(async () => {
   const notiState = useNotificationStore.getState()
@@ -111,6 +117,9 @@ const App = () => {
   const setSidebarOpen = useSidebarStore((state) => state.setOpen)
   const setShowTopDrawer = useTopDrawerStore((state) => state.update)
   const setRightSidebarOpen = useRightSidebarStore((state) => state.setOpen)
+  const setSettingsType = useRightSidebarStore((state) => state.setSettingsType)
+
+  const setUserUIState = useUserUIStore((state) => state.setState)
 
   const isMobile = useIsMobile()
   const { forceState, forceUpdate } = useForceUpdate(
@@ -174,11 +183,30 @@ const App = () => {
     } else {
       const leftSidebarState = localStorage.getItem(LEFT_SIDEBAR_STATE_KEY)
       const rightSidebarState = localStorage.getItem(RIGHT_SIDEBAR_STATE_KEY)
+      const rightSidebarSettingsType = localStorage.getItem(
+        RIGHT_SIDEBAR_SETTINGS_TYPE_KEY
+      ) as SettingsType | null
+
+      const userUISettings = getLocalUserUISettings()
+
+      if (userUISettings) {
+        setUserUIState(userUISettings)
+      }
+
+      if (rightSidebarSettingsType) {
+        setSettingsType(rightSidebarSettingsType)
+      }
 
       setSidebarOpen(leftSidebarState == 'true')
       setRightSidebarOpen(rightSidebarState == 'true')
     }
-  }, [isMobile, setSidebarOpen, setRightSidebarOpen])
+  }, [
+    isMobile,
+    setSidebarOpen,
+    setRightSidebarOpen,
+    setSettingsType,
+    setUserUIState,
+  ])
 
   useEffect(() => {
     const showDock = localStorage.getItem(TOP_DRAWER_STATE_KEY) == 'true'

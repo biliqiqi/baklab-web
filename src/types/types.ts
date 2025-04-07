@@ -267,6 +267,7 @@ export interface UserData {
   bannedEndAt: string // ISO date string
   bannedMinutes: number
   bannedCount: number
+  uiSettings: JSONMap | null
 }
 
 export interface CustomRequestOptions {

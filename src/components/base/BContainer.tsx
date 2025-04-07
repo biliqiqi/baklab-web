@@ -49,6 +49,7 @@ import SigninForm from '../SigninForm'
 import SignupForm from '../SignupForm'
 import SiteForm from '../SiteForm'
 import SiteUIForm from '../SiteUIForm'
+import UserUIForm from '../UserUIForm'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -567,6 +568,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     </Button>
                   </div>
                   {settingsType == 'site_ui' && <SiteUIForm />}
+                  {settingsType == 'user_ui' && <UserUIForm />}
                 </SidebarContent>
               </Sidebar>
             </div>

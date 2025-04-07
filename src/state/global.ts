@@ -9,7 +9,9 @@ import { getNotificationUnreadCount } from '@/api/message'
 import { getJoinedSiteList, getSiteWithFrontId } from '@/api/site'
 import {
   LEFT_SIDEBAR_STATE_KEY,
+  RIGHT_SIDEBAR_SETTINGS_TYPE_KEY,
   RIGHT_SIDEBAR_STATE_KEY,
+  USER_UI_SETTINGS_KEY,
 } from '@/constants/constants'
 import { PermitFn, PermitUnderSiteFn } from '@/constants/types'
 import {
@@ -238,11 +240,40 @@ export const useAuthedUserStore = create(
   }))
 )
 
+export const setLocalUserUISettings = (data: UserUIStateData) => {
+  localStorage.setItem(USER_UI_SETTINGS_KEY, JSON.stringify(data))
+}
+
+export const getLocalUserUISettings = () => {
+  const userUISettings = localStorage.getItem(USER_UI_SETTINGS_KEY)
+  if (userUISettings) {
+    try {
+      return JSON.parse(userUISettings) as UserUIStateData
+    } catch (e) {
+      console.error('parse user UI settings failed: ', e)
+      return null
+    }
+  }
+
+  return null
+}
+
 useAuthedUserStore.subscribe(
   (state) => state.user,
-  () => {
+  (_user) => {
     // console.log('user changed')
     updateCurrRole()
+
+    // const localUISettings = localStorage.getItem(USER_UI_SETTINGS_KEY)
+
+    // if (user?.uiSettings && !localUISettings) {
+    //   const userUIStore = useUserUIStore.getState()
+
+    //   userUIStore.setSiteListMode(
+    //     (user.uiSettings.mode as SiteListMode | undefined) ||
+    //       SITE_LIST_MODE.TopDrawer
+    //   )
+    // }
   }
 )
 
@@ -481,17 +512,26 @@ export interface RightSidebarState
   setSettingsType: (sType: SettingsType) => void
 }
 
-export const useRightSidebarStore = create<RightSidebarState>((set) => ({
-  open: false,
-  setOpen(open) {
-    set((state) => ({ ...state, open }))
-    localStorage.setItem(RIGHT_SIDEBAR_STATE_KEY, String(open))
-  },
-  settingsType: 'site_ui',
-  setSettingsType(t) {
-    set((state) => ({ ...state, settingsType: t }))
-  },
-}))
+export const useRightSidebarStore = create(
+  subscribeWithSelector<RightSidebarState>((set) => ({
+    open: false,
+    setOpen(open) {
+      set((state) => ({ ...state, open }))
+      localStorage.setItem(RIGHT_SIDEBAR_STATE_KEY, String(open))
+    },
+    settingsType: 'site_ui',
+    setSettingsType(t) {
+      set((state) => ({ ...state, settingsType: t }))
+    },
+  }))
+)
+
+useRightSidebarStore.subscribe(
+  (state) => state.settingsType,
+  (sType) => {
+    localStorage.setItem(RIGHT_SIDEBAR_SETTINGS_TYPE_KEY, sType)
+  }
+)
 
 export interface CategoryState {
   categories: Category[]
@@ -750,12 +790,20 @@ export const useSiteUIStore = create<SiteUIState>((set) => ({
 export interface UserUIState {
   siteListMode: SiteListMode
   setSiteListMode: (mode: SiteListMode) => void
+  setState: (state: UserUIStateData) => void
+}
+
+export interface UserUIStateData extends Pick<UserUIState, 'siteListMode'> {
+  updatedAt: number
 }
 
 export const useUserUIStore = create<UserUIState>((set) => ({
-  siteListMode: SITE_LIST_MODE.DropdownMenu,
+  siteListMode: SITE_LIST_MODE.TopDrawer,
   setSiteListMode(mode) {
-    set((state) => ({ ...state, mode }))
+    set((state) => ({ ...state, siteListMode: mode }))
+  },
+  setState(newState) {
+    set((state) => ({ ...state, ...newState }))
   },
 }))
 

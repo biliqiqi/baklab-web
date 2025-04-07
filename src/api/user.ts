@@ -6,6 +6,7 @@ import {
   ActivityActionType,
   ActivityListResponse,
   CustomRequestOptions,
+  JSONMap,
   ResponseData,
   UserData,
   UserListResponse,
@@ -163,4 +164,9 @@ export const unbanManyUsers = (usernames: string[]) =>
     json: {
       usernames,
     },
+  })
+
+export const saveUserUISettings = (settings: JSONMap) =>
+  authRequest.post<ResponseData<null>>(`save_ui_settings`, {
+    json: settings,
   })

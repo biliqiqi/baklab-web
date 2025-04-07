@@ -222,7 +222,10 @@ export default function ArticleListPage() {
       </div>
       <div className="mt-4" key={categoryFrontId}>
         {list.map((item) => (
-          <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
+          <Card
+            key={item.id}
+            className="p-3 my-2 hover:bg-slate-50 dark:hover:bg-slate-900"
+          >
             <div className="mb-3">
               <div className="mb-1 ">
                 <Link className="mr-2" to={genArticlePath(item)}>

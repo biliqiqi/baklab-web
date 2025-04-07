@@ -4,6 +4,7 @@ import MarkdownIt from 'markdown-it'
 import { twMerge } from 'tailwind-merge'
 
 import {
+  DEFAULT_FONT_SIZE,
   SITE_STATUS_COLOR_MAP,
   SITE_STATUS_NAME_MAP,
 } from '@/constants/constants'
@@ -155,4 +156,9 @@ export const isInnerURL = (url: string) =>
 export const getFirstChar = (str: string) => {
   const firstCharRes = str.match(/(\p{L}|\p{Emoji_Presentation})/u)
   return firstCharRes ? firstCharRes[0] : ''
+}
+
+export const setRootFontSize = (size: string) => {
+  const sizeNum = Number(size) || DEFAULT_FONT_SIZE
+  document.documentElement.style.fontSize = `${sizeNum}px`
 }

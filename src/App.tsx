@@ -7,9 +7,13 @@ import { Toaster } from './components/ui/sonner.tsx'
 
 import BLoader from './components/base/BLoader.tsx'
 
+import { useTheme } from './components/ThemeProvider.tsx'
+
 import {
   API_HOST,
   API_PATH_PREFIX,
+  DEFAULT_FONT_SIZE,
+  DEFAULT_THEME,
   LEFT_SIDEBAR_STATE_KEY,
   RIGHT_SIDEBAR_SETTINGS_TYPE_KEY,
   RIGHT_SIDEBAR_STATE_KEY,
@@ -19,6 +23,7 @@ import {
 import { useIsMobile } from './hooks/use-mobile.tsx'
 import { toSync } from './lib/fire-and-forget.ts'
 import { refreshAuthState, refreshToken } from './lib/request.ts'
+import { setRootFontSize } from './lib/utils.ts'
 import {
   UserUIStateData,
   getLocalUserUISettings,
@@ -114,6 +119,8 @@ const App = () => {
     }))
   )
 
+  const { setTheme } = useTheme()
+
   const setSidebarOpen = useSidebarStore((state) => state.setOpen)
   const setShowTopDrawer = useTopDrawerStore((state) => state.update)
   const setRightSidebarOpen = useRightSidebarStore((state) => state.setOpen)
@@ -189,8 +196,12 @@ const App = () => {
 
       const userUISettings = getLocalUserUISettings()
 
+      console.log('local ui settings: ', userUISettings)
+
       if (userUISettings) {
         setUserUIState(userUISettings)
+        setTheme(userUISettings.theme || DEFAULT_THEME)
+        setRootFontSize(String(userUISettings.fontSize) || DEFAULT_FONT_SIZE)
       }
 
       if (rightSidebarSettingsType) {

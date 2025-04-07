@@ -46,6 +46,10 @@ export const TOP_DRAWER_STATE_KEY = 'top_drawer_state'
 export const RIGHT_SIDEBAR_SETTINGS_TYPE_KEY = 'right_sidebar_settings_type'
 export const USER_UI_SETTINGS_KEY = 'user_ui_settings'
 
+export const DEFAULT_THEME = 'system'
+export const DEFAULT_FONT_SIZE = '16'
+export const DEFAULT_CONTENT_WIDTH = '1200'
+
 export const URL_PATTERN =
   /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g
 

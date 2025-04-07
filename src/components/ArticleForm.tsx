@@ -412,7 +412,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                   </FormItem>
                 )}
               />
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap justify-between items-center">
                 <FormField
                   control={form.control}
                   name="category"

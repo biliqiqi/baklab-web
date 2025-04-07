@@ -661,3 +661,5 @@ export const SITE_LIST_MODE = Object.freeze({
 } as const)
 
 export type SiteListMode = ValuesToUnion<typeof SITE_LIST_MODE>
+
+export type Theme = 'dark' | 'light' | 'system'

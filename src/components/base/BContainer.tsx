@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils'
 
 import { getSiteList, joinSite } from '@/api/site'
 import {
+  DEFAULT_CONTENT_WIDTH,
   DEFAULT_PAGE_SIZE,
   LEFT_SIDEBAR_STATE_KEY,
   NAV_HEIGHT,
@@ -110,8 +111,11 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       useShallow(({ mode }) => ({ siteMode: mode }))
     )
 
-    const { siteListMode } = useUserUIStore(
-      useShallow(({ siteListMode }) => ({ siteListMode }))
+    const { siteListMode, contentWidth } = useUserUIStore(
+      useShallow(({ siteListMode, contentWidth }) => ({
+        siteListMode,
+        contentWidth: contentWidth || DEFAULT_CONTENT_WIDTH,
+      }))
     )
 
     const { openRightSidebar, setOpenRightSidebar, settingsType } =
@@ -430,19 +434,24 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       <div>
         {siteListMode == 'top_drawer' && <BTopDrawer />}
         {siteMode == 'top_nav' && (
-          <div className="bg-white sticky top-0 z-50 border-b-2 shadow-sm">
+          <div className="bg-white dark:bg-slate-900 sticky top-0 z-50 border-b-2 shadow-sm">
             <BNav
               category={category}
               goBack={goBack}
               onGripClick={onToggleTopDrawer}
-              className="max-w-[1200px] mx-auto"
+              className={cn('mx-auto')}
+              style={{
+                maxWidth: contentWidth == -1 ? '' : `${contentWidth}px`,
+                paddingLeft: contentWidth == -1 ? `0.6rem` : ``,
+                paddingRight: contentWidth == -1 ? `0.6rem` : ``,
+              }}
             />
           </div>
         )}
         <SidebarProvider
           ref={ref}
           defaultOpen={false}
-          className="max-w-[1200px] mx-auto justify-between"
+          className={cn('mx-auto justify-between')}
           open={sidebarOpen}
           onOpenChange={setSidebarOpen}
           openMobile={sidebarOpenMobile}
@@ -450,6 +459,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           statePersistKey={LEFT_SIDEBAR_STATE_KEY}
           style={{
             minHeight: `calc(100vh - ${NAV_HEIGHT}px)`,
+            maxWidth: contentWidth == -1 ? '' : `${contentWidth}px`,
           }}
         >
           <div

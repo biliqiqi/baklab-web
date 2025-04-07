@@ -32,7 +32,7 @@ const BTopDrawer = () => {
 
   return (
     <div
-      className="bg-gray-300 border-b-[1px] border-gray-300 shadow-inner transition-all opacity-0 h-0 overflow-hidden"
+      className="bg-gray-200 border-b-[1px] border-gray-300 dark:border-slate-600 shadow-inner transition-all opacity-0 h-0 overflow-hidden"
       style={
         showTopDrawer
           ? {

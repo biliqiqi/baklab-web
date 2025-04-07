@@ -1,10 +1,8 @@
-import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 
 import { timeAgo } from '@/lib/dayjs-custom'
 
-import { useCategoryStore } from '@/state/global'
-import { ArticleLog, Category, JSONMap } from '@/types/types'
+import { ArticleLog, JSONMap } from '@/types/types'
 
 import {
   Collapsible,
@@ -26,7 +24,7 @@ const ArticleHistory: React.FC<ArticleHistoryProps> = ({ data, isReply }) => {
     <div>
       <Collapsible>
         <CollapsibleTrigger asChild>
-          <div className="flex justify-between items-center mt-4 p-2 bg-gray-50 cursor-pointer">
+          <div className="flex justify-between items-center mt-4 p-2 bg-gray-50 dark:bg-slate-900 cursor-pointer">
             <span className="font-bold">版本：{data.version}</span>
             <span className="text-sm">
               由{' '}

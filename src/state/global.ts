@@ -27,6 +27,7 @@ import {
   Site,
   SiteListMode,
   SiteUIMode,
+  Theme,
   UserData,
 } from '@/types/types'
 
@@ -790,10 +791,17 @@ export const useSiteUIStore = create<SiteUIState>((set) => ({
 export interface UserUIState {
   siteListMode: SiteListMode
   setSiteListMode: (mode: SiteListMode) => void
-  setState: (state: UserUIStateData) => void
+  theme?: Theme
+  fontSize?: number
+  contentWidth?: number
+  setState: (state: Partial<UserUIStateData>) => void
 }
 
-export interface UserUIStateData extends Pick<UserUIState, 'siteListMode'> {
+export interface UserUIStateData
+  extends Pick<
+    UserUIState,
+    'siteListMode' | 'theme' | 'fontSize' | 'contentWidth'
+  > {
   updatedAt: number
 }
 

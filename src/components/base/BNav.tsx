@@ -198,7 +198,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
     return (
       <div
         className={cn(
-          'flex justify-between items-center py-2 bg-white sticky top-0 z-10',
+          'flex justify-between items-center py-2 bg-white dark:bg-slate-900 sticky top-0 z-10',
           siteMode == 'sidebar' && 'px-4 border-b-2 shadow-sm',
           className
         )}
@@ -396,7 +396,10 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                         </Link>
                       ))}
                   </div>
-                  <div className="flex flex-wrap pt-4 mt-4 items-center border-t-2 border-gray-300">
+                  {siteList && siteList.length > 0 && (
+                    <div className="my-4 border-t-2 border-gray-300 dark:border-slate-600"></div>
+                  )}
+                  <div className="flex flex-wrap  items-center">
                     <Link
                       to={`/`}
                       className={cn(

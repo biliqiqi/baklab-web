@@ -90,6 +90,10 @@
     .bg-gray-300 {
       @apply bg-slate-600;
     }
+
+    .b-article-content pre {
+      @apply bg-slate-800;
+    }
   }
 }
 @layer base {

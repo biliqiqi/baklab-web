@@ -49,8 +49,8 @@ import NotFound from '../NotFound'
 import SigninForm from '../SigninForm'
 import SignupForm from '../SignupForm'
 import SiteForm from '../SiteForm'
-import SiteUIForm from '../SiteUIForm'
-import UserUIForm from '../UserUIForm'
+import SiteUIForm, { SiteUIFormRef } from '../SiteUIForm'
+import UserUIForm, { UserUIFormRef } from '../UserUIForm'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -87,11 +87,16 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
   ({ children, category, goBack = false, loading = false, ...props }, ref) => {
     const [regEmail, setRegEmail] = useState('')
     const [siteFormDirty, setSiteFormDirty] = useState(false)
+    const [userUIFormDirty, setUserUIFormDirty] = useState(false)
+    const [siteUIFormDirty, setSiteUIFormDirty] = useState(false)
 
     const { open: showTopDrawer, update: setShowTopDrawer } =
       useTopDrawerStore()
     const { signin, signup, updateSignin, updateSignup } = useDialogStore()
     const { showNotFound, updateNotFound } = useNotFoundStore()
+
+    const userUIFormRef = useRef<UserUIFormRef | null>(null)
+    const siteUIFormRef = useRef<SiteUIFormRef | null>(null)
 
     const {
       sidebarOpen,
@@ -391,6 +396,41 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       ]
     )
 
+    const onRightSidebarClose = useCallback(async () => {
+      if (userUIFormDirty) {
+        const confirm = await alertDialog.confirm(
+          '确认',
+          '改动未保存，确定舍弃？',
+          'normal',
+          { confirmBtnText: '确定舍弃', cancelBtnText: '继续设置' }
+        )
+        if (!confirm) {
+          return
+        }
+      }
+
+      if (userUIFormRef.current) {
+        userUIFormRef.current.form.reset()
+      }
+
+      if (siteUIFormDirty) {
+        const confirm = await alertDialog.confirm(
+          '确认',
+          '改动未保存，确定舍弃？',
+          'normal',
+          { confirmBtnText: '确定舍弃', cancelBtnText: '继续设置' }
+        )
+        if (!confirm) {
+          return
+        }
+      }
+
+      if (siteUIFormRef.current) {
+        siteUIFormRef.current.form.reset()
+      }
+      setOpenRightSidebar(false)
+    }, [alertDialog, setOpenRightSidebar, userUIFormDirty, siteUIFormDirty])
+
     useEffect(() => {
       if (siteFrontId) {
         toSync(async () =>
@@ -572,13 +612,23 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                       size={'sm'}
                       title="关闭"
                       className="text-gray-500"
-                      onClick={() => setOpenRightSidebar(false)}
+                      onClick={onRightSidebarClose}
                     >
                       <XIcon size={20} />
                     </Button>
                   </div>
-                  {settingsType == 'site_ui' && <SiteUIForm />}
-                  {settingsType == 'user_ui' && <UserUIForm />}
+                  {settingsType == 'site_ui' && (
+                    <SiteUIForm
+                      onChange={setSiteUIFormDirty}
+                      ref={siteUIFormRef}
+                    />
+                  )}
+                  {settingsType == 'user_ui' && (
+                    <UserUIForm
+                      onChange={setUserUIFormDirty}
+                      ref={userUIFormRef}
+                    />
+                  )}
                 </SidebarContent>
               </Sidebar>
             </div>

@@ -18,14 +18,12 @@ import {
   RIGHT_SIDEBAR_SETTINGS_TYPE_KEY,
   RIGHT_SIDEBAR_STATE_KEY,
   TOP_DRAWER_STATE_KEY,
-  USER_UI_SETTINGS_KEY,
 } from './constants/constants.ts'
 import { useIsMobile } from './hooks/use-mobile.tsx'
 import { toSync } from './lib/fire-and-forget.ts'
 import { refreshAuthState, refreshToken } from './lib/request.ts'
 import { setRootFontSize } from './lib/utils.ts'
 import {
-  UserUIStateData,
   getLocalUserUISettings,
   useAuthedUserStore,
   useForceUpdate,
@@ -196,7 +194,7 @@ const App = () => {
 
       const userUISettings = getLocalUserUISettings()
 
-      console.log('local ui settings: ', userUISettings)
+      /* console.log('local ui settings: ', userUISettings) */
 
       if (userUISettings) {
         setUserUIState(userUISettings)

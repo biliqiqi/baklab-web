@@ -42,9 +42,9 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
   .dark {
-    --background: 20 14.3% 4.1%;
+    --background: 60 14.3% 4.1%;
     --foreground: 60 9.1% 97.8%;
-    --card: 20 14.3% 4.1%;
+    --card: 60 14.3% 8.1%;
     --card-foreground: 60 9.1% 97.8%;
     --popover: 20 14.3% 4.1%;
     --popover-foreground: 60 9.1% 97.8%;
@@ -94,6 +94,14 @@
     .b-article-content pre {
       @apply bg-slate-800;
     }
+
+    .b-history-content ins {
+      @apply bg-green-800 !important;
+    }
+
+    .b-history-content del {
+      @apply bg-red-800 !important;
+    }
   }
 }
 @layer base {
@@ -103,6 +111,11 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+a[target='_blank'],
+.b-article-content a {
+  color: hsl(var(--primary));
 }
 
 a:hover {

@@ -18,6 +18,7 @@ import {
 
 import { getArticle } from './api/article'
 import { ArticleContext } from './contexts/ArticleContext'
+import useDocumentTitle from './hooks/use-page-title'
 import { toSync } from './lib/fire-and-forget'
 import { bus } from './lib/utils'
 import {
@@ -196,6 +197,8 @@ export default function ArticlePage() {
   if (!editHandlerRef.current) {
     editHandlerRef.current = onEditClick
   }
+
+  useDocumentTitle(article?.displayTitle || '')
 
   useEffect(() => {
     if (articleId) {

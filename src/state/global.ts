@@ -508,7 +508,10 @@ export const useSidebarStore = create<SidebarState>((set) => ({
 }))
 
 export interface RightSidebarState
-  extends Pick<SidebarState, 'open' | 'setOpen'> {
+  extends Pick<
+    SidebarState,
+    'open' | 'setOpen' | 'openMobile' | 'setOpenMobile'
+  > {
   settingsType: SettingsType
   setSettingsType: (sType: SettingsType) => void
 }
@@ -519,6 +522,11 @@ export const useRightSidebarStore = create(
     setOpen(open) {
       set((state) => ({ ...state, open }))
       localStorage.setItem(RIGHT_SIDEBAR_STATE_KEY, String(open))
+    },
+    openMobile: false,
+    setOpenMobile(openMobile) {
+      set((state) => ({ ...state, openMobile }))
+      localStorage.setItem(RIGHT_SIDEBAR_STATE_KEY, String(openMobile))
     },
     settingsType: 'site_ui',
     setSettingsType(t) {

@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 import { inviteToSite, quitSite } from '@/api/site'
+import { useIsMobile } from '@/hooks/use-mobile'
 import {
   useAlertDialogStore,
   useAuthedUserStore,
@@ -87,11 +88,14 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
     [currSite, currUserId]
   )
 
-  const { openRightSidebar, setOpenRightSidebar, setSettingsType } =
+  const isMobile = useIsMobile()
+
+  const { setOpenRightSidebar, setSettingsType, setOpenRightSidebarMobile } =
     useRightSidebarStore(
-      useShallow(({ open, setOpen, setSettingsType }) => ({
+      useShallow(({ open, setOpen, setSettingsType, setOpenMobile }) => ({
         openRightSidebar: open,
         setOpenRightSidebar: setOpen,
+        setOpenRightSidebarMobile: setOpenMobile,
         setSettingsType,
       }))
     )
@@ -119,10 +123,15 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
       ev.preventDefault()
 
       setSettingsType('site_ui')
-      setOpenRightSidebar(true)
+      if (isMobile) {
+        setOpenRightSidebarMobile(true)
+      } else {
+        setOpenRightSidebar(true)
+      }
+
       setOpenSiteMenu(false)
     },
-    [openRightSidebar, setOpenRightSidebar, setSettingsType]
+    [setOpenRightSidebar, setSettingsType, isMobile, setOpenRightSidebarMobile]
   )
 
   const { setInviteCodeGeneratting, setShowInviteDialog, setInviteCode } =

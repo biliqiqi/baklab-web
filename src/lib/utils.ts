@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from 'clsx'
 import EventEmitter from 'events'
 import MarkdownIt from 'markdown-it'
+import { KeyboardEvent, KeyboardEventHandler } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import {
@@ -161,4 +162,15 @@ export const getFirstChar = (str: string) => {
 export const setRootFontSize = (size: string) => {
   const sizeNum = Number(size) || DEFAULT_FONT_SIZE
   document.documentElement.style.fontSize = `${sizeNum}px`
+}
+
+export const handleWithKeyName = (
+  keyName: string,
+  fn: KeyboardEventHandler
+) => {
+  return (ev: KeyboardEvent<HTMLElement>) => {
+    if (ev.key.toLowerCase() == keyName.toLowerCase()) {
+      fn(ev)
+    }
+  }
 }

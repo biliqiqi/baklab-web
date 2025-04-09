@@ -38,7 +38,7 @@ const ArticleHistory: React.FC<ArticleHistoryProps> = ({ data, isReply }) => {
             </span>
           </div>
         </CollapsibleTrigger>
-        <CollapsibleContent>
+        <CollapsibleContent className="b-history-content">
           {!isReply && (
             <div className="flex mt-2 text-sm" key="title">
               <div className="w-[80px] font-bold mr-1 pt-2">标题：</div>

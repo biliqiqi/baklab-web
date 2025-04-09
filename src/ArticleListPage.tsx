@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/card'
 import BContainer from './components/base/BContainer'
 
 import ArticleControls from './components/ArticleControls'
+import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 
 import {
@@ -221,69 +222,77 @@ export default function ArticleListPage() {
         </div>
       </div>
       <div className="mt-4" key={categoryFrontId}>
-        {list.map((item) => (
-          <Card
-            key={item.id}
-            className="p-3 my-2 hover:bg-slate-50 dark:hover:bg-slate-900"
-          >
-            <div className="mb-3">
-              <div className="mb-1 ">
-                <Link className="mr-2" to={genArticlePath(item)}>
-                  {item.title}
-                </Link>
-                {item.link && (
-                  <span className="text-gray-500 text-sm">
-                    (来源&nbsp;
-                    <a
-                      href={item.link}
-                      target="_blank"
-                      title={item.link}
-                      className="break-all"
-                    >
-                      <SquareArrowOutUpRightIcon size={14} className="inline" />
-                      &nbsp;
-                      {extractDomain(item.link)}...
-                    </a>
-                    )
-                  </span>
+        {list.length == 0 ? (
+          <Empty />
+        ) : (
+          list.map((item) => (
+            <Card
+              key={item.id}
+              className="p-3 my-2 hover:bg-slate-50 dark:hover:bg-slate-900"
+            >
+              <div className="mb-3">
+                <div className="mb-1 ">
+                  <Link className="mr-2" to={genArticlePath(item)}>
+                    {item.title}
+                  </Link>
+                  {item.link && (
+                    <span className="text-sm">
+                      (<span className="text-gray-500">来源</span>&nbsp;
+                      <a
+                        href={item.link}
+                        target="_blank"
+                        title={item.link}
+                        className="break-all"
+                      >
+                        <SquareArrowOutUpRightIcon
+                          size={14}
+                          className="inline"
+                        />
+                        &nbsp;
+                        {extractDomain(item.link)}...
+                      </a>
+                      )
+                    </span>
+                  )}
+                </div>
+                <div>{isMySelf(item.authorId)}</div>
+                {(isMySelf(item.authorId) ||
+                  checkPermit('article', 'manage')) &&
+                  item.status != 'published' && (
+                    <div className="py-1">
+                      <Badge variant={'secondary'}>
+                        {ARTICLE_STATUS_NAME_MAP[item.status]}
+                      </Badge>
+                    </div>
+                  )}
+                {showSummary && (
+                  <div
+                    className="mb-1 break-words"
+                    dangerouslySetInnerHTML={{ __html: renderMD(item.summary) }}
+                  ></div>
                 )}
-              </div>
-              <div>{isMySelf(item.authorId)}</div>
-              {(isMySelf(item.authorId) || checkPermit('article', 'manage')) &&
-                item.status != 'published' && (
-                  <div className="py-1">
-                    <Badge variant={'secondary'}>
-                      {ARTICLE_STATUS_NAME_MAP[item.status]}
-                    </Badge>
+                {item.picURL && (
+                  <div className="w-[120px] h-[120px] rounded mr-4 bg-gray-200 shrink-0 overflow-hidden">
+                    <a href="#">
+                      <img
+                        alt={item.title}
+                        src={item.picURL}
+                        className="max-w-full"
+                      />
+                    </a>
                   </div>
                 )}
-              {showSummary && (
-                <div
-                  className="mb-1 break-words"
-                  dangerouslySetInnerHTML={{ __html: renderMD(item.summary) }}
-                ></div>
-              )}
-              {item.picURL && (
-                <div className="w-[120px] h-[120px] rounded mr-4 bg-gray-200 shrink-0 overflow-hidden">
-                  <a href="#">
-                    <img
-                      alt={item.title}
-                      src={item.picURL}
-                      className="max-w-full"
-                    />
-                  </a>
-                </div>
-              )}
-            </div>
-            <ArticleControls
-              article={item}
-              ctype="list"
-              bookmark={false}
-              notify={false}
-              onSuccess={() => fetchArticles()}
-            />
-          </Card>
-        ))}
+              </div>
+              <ArticleControls
+                article={item}
+                ctype="list"
+                bookmark={false}
+                notify={false}
+                onSuccess={() => fetchArticles()}
+              />
+            </Card>
+          ))
+        )}
       </div>
 
       {pageState.totalPage > 1 && (

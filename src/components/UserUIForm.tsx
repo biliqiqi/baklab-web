@@ -1,11 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import React, {
+import {
   forwardRef,
   useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
-  useState,
 } from 'react'
 import { UseFormReturn, useForm } from 'react-hook-form'
 import z from 'zod'
@@ -18,7 +17,7 @@ import {
   DEFAULT_THEME,
 } from '@/constants/constants'
 import { setLocalUserUISettings, useUserUIStore } from '@/state/global'
-import { SITE_LIST_MODE, SiteListMode } from '@/types/types'
+import { SITE_LIST_MODE } from '@/types/types'
 
 import { useTheme } from './ThemeProvider'
 import { Button } from './ui/button'
@@ -152,7 +151,10 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
         mode: currSiteListMode,
         theme,
         fontSize: fontSizeGlobalVal,
+        customFontSize: fontSizeGlobalVal == 'custom' ? userUIFontSize : '',
         contentWidth: contentWidthGlobalVal,
+        customContentWidth:
+          contentWidthGlobalVal == 'custom' ? userUIContentWidth : '',
       },
     })
 
@@ -240,13 +242,6 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
     }, [formVals.fontSize, formVals.customFontSize])
 
     useEffect(() => {
-      if (fontSizeGlobalVal == 'custom') {
-        /* setCustomFontSize(userUIFontSize) */
-        form.setValue('customFontSize', userUIFontSize)
-      }
-    }, [fontSizeGlobalVal, userUIFontSize, form])
-
-    useEffect(() => {
       if (formVals.contentWidth == 'custom') {
         setUserUIState({
           contentWidth:
@@ -259,12 +254,6 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
         })
       }
     }, [formVals, setUserUIState])
-
-    useEffect(() => {
-      if (contentWidthGlobalVal == 'custom') {
-        form.setValue('customContentWidth', userUIContentWidth)
-      }
-    }, [contentWidthGlobalVal, userUIContentWidth, form])
 
     useEffect(() => {
       onChange(form.formState.isDirty)
@@ -303,7 +292,11 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                               type="number"
                               className="inline-block w-[100px] h-6"
                               min={MIN_FONT_SIZE}
-                              defaultValue={formVals.customFontSize}
+                              defaultValue={
+                                fontSizeGlobalVal == 'custom'
+                                  ? userUIFontSize
+                                  : ''
+                              }
                               onFocus={() => field.onChange(item)}
                               onBlur={(e) => {
                                 const val = Number(e.currentTarget.value)
@@ -406,7 +399,11 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                               type="number"
                               className="inline-block w-[100px] h-6"
                               min={MIN_CONTENT_WIDTH}
-                              defaultValue={formVals.customContentWidth}
+                              defaultValue={
+                                contentWidthGlobalVal == 'custom'
+                                  ? userUIContentWidth
+                                  : ''
+                              }
                               onFocus={() => field.onChange(item)}
                               onBlur={(e) => {
                                 const val = Number(e.currentTarget.value)

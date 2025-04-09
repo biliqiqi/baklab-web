@@ -12,7 +12,7 @@ import { useShallow } from 'zustand/react/shallow'
 
 import { timeFmt } from '@/lib/dayjs-custom'
 import { toSync } from '@/lib/fire-and-forget'
-import { cn } from '@/lib/utils'
+import { cn, isInnerURL } from '@/lib/utils'
 
 import { getSiteList, joinSite } from '@/api/site'
 import {
@@ -123,14 +123,23 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       }))
     )
 
-    const { openRightSidebar, setOpenRightSidebar, settingsType } =
-      useRightSidebarStore(
-        useShallow(({ open, setOpen, settingsType }) => ({
+    const {
+      openRightSidebar,
+      setOpenRightSidebar,
+      settingsType,
+      openRightSidebarMobile,
+      setOpenRightSidebarMobile,
+    } = useRightSidebarStore(
+      useShallow(
+        ({ open, setOpen, openMobile, setOpenMobile, settingsType }) => ({
           openRightSidebar: open,
           setOpenRightSidebar: setOpen,
+          openRightSidebarMobile: openMobile,
+          setOpenRightSidebarMobile: setOpenMobile,
           settingsType,
-        }))
+        })
       )
+    )
     /* const [openRightSidebar, setOpenRightSidebar] = useState(false) */
     /* const [sidebarOpenMobile, setSidebarOpenMobile] = useState(false) */
 
@@ -428,8 +437,43 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       if (siteUIFormRef.current) {
         siteUIFormRef.current.form.reset()
       }
-      setOpenRightSidebar(false)
-    }, [alertDialog, setOpenRightSidebar, userUIFormDirty, siteUIFormDirty])
+
+      if (isMobile) {
+        setOpenRightSidebarMobile(false)
+      } else {
+        setOpenRightSidebar(false)
+      }
+    }, [
+      alertDialog,
+      setOpenRightSidebar,
+      userUIFormDirty,
+      siteUIFormDirty,
+      isMobile,
+      setOpenRightSidebarMobile,
+    ])
+
+    const handleLinkClick: EventListener = (e) => {
+      const targetElList = document.querySelectorAll('.b-article-content a')
+      const targetEl = e.target as HTMLElement
+
+      if (
+        targetElList.length == 0 ||
+        !Array.from(targetElList).includes(targetEl)
+      ) {
+        return
+      }
+
+      if (targetEl.tagName.toLowerCase() == 'a') {
+        const linkEl = targetEl as HTMLAnchorElement
+        if (isInnerURL(linkEl.href)) {
+          e.preventDefault()
+          const url = new URL(linkEl.href)
+          navigate(linkEl.href.replace(url.origin, ''))
+        } else {
+          linkEl.target = '_blank'
+        }
+      }
+    }
 
     useEffect(() => {
       if (siteFrontId) {
@@ -469,6 +513,13 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       setShowSiteAbout,
       setSidebarOpenMobile,
     ])
+
+    useEffect(() => {
+      document.addEventListener('click', handleLinkClick)
+      return () => {
+        document.removeEventListener('click', handleLinkClick)
+      }
+    })
 
     return (
       <div>
@@ -518,7 +569,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           </div>
           <main
             className={cn(
-              'flex-grow border-l-[1px] b-bg-main w-full',
+              'flex-grow w-full',
               !isMobile && 'duration-200 transition-[width] ease-linear',
               !isMobile &&
                 sidebarOpen &&
@@ -576,7 +627,21 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           <SidebarProvider
             defaultOpen={false}
             open={openRightSidebar}
-            onOpenChange={setOpenRightSidebar}
+            onOpenChange={(open) => {
+              if (open) {
+                setOpenRightSidebar(true)
+              } else {
+                toSync(onRightSidebarClose)()
+              }
+            }}
+            openMobile={openRightSidebarMobile}
+            onOpenMobileChange={(open) => {
+              if (open) {
+                setOpenRightSidebar(true)
+              } else {
+                toSync(onRightSidebarClose)()
+              }
+            }}
             className="w-auto"
             statePersistKey={RIGHT_SIDEBAR_STATE_KEY}
             style={{

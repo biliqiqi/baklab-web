@@ -89,11 +89,12 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
       }))
     )
 
-    const { openRightSidebar, setOpenRightSidebar, setSettingsType } =
+    const { setOpenRightSidebar, setSettingsType, setOpenRightSidebarMobile } =
       useRightSidebarStore(
-        useShallow(({ open, setOpen, setSettingsType }) => ({
+        useShallow(({ open, setOpen, setSettingsType, setOpenMobile }) => ({
           openRightSidebar: open,
           setOpenRightSidebar: setOpen,
+          setOpenRightSidebarMobile: setOpenMobile,
           setSettingsType,
         }))
       )
@@ -190,8 +191,17 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
 
     const onUserUISettingClick = useCallback(() => {
       setSettingsType('user_ui')
-      setOpenRightSidebar(true)
-    }, [setOpenRightSidebar, setSettingsType])
+      if (isMobile) {
+        setOpenRightSidebarMobile(true)
+      } else {
+        setOpenRightSidebar(true)
+      }
+    }, [
+      setOpenRightSidebar,
+      setSettingsType,
+      setOpenRightSidebarMobile,
+      isMobile,
+    ])
 
     /* console.log('msgListRef: ', msgListRef.current?.pageState.totalCount) */
 
@@ -200,6 +210,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
         className={cn(
           'flex justify-between items-center py-2 bg-white dark:bg-slate-900 sticky top-0 z-10',
           siteMode == 'sidebar' && 'px-4 border-b-2 shadow-sm',
+          isMobile && 'px-2',
           className
         )}
         style={{
@@ -220,7 +231,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
               variant="ghost"
               size="sm"
               onClick={() => navigate(-1)}
-              className="w-[36px] h-[36px] p-0 rounded-full mr-2"
+              className="flex-shrink-0 w-[36px] h-[36px] p-0 rounded-full mr-2"
             >
               <ChevronLeftIcon size={20} />
             </Button>
@@ -230,13 +241,13 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                 variant="ghost"
                 size="sm"
                 onClick={onMenuClick}
-                className="w-[36px] h-[36px] p-0 rounded-full mr-2 text-gray-500"
+                className="flex-shrink-0 w-[36px] h-[36px] p-0 rounded-full mr-2 text-gray-500"
               >
                 <MenuIcon size={20} />
               </Button>
               {(!sidebarExpanded || siteMode == 'top_nav') && (
                 <Link
-                  className="font-bold text-2xl leading-3 mr-2"
+                  className="flex-shrink-0 font-bold text-2xl leading-3 mr-2"
                   to={siteFrontId && currSite ? `/${siteFrontId}` : `/`}
                 >
                   {siteFrontId && currSite ? (
@@ -247,7 +258,10 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                         }}
                         className="logo-brand"
                         style={{
-                          height: `${NAV_HEIGHT - 8}px`,
+                          height: isMobile
+                            ? `${NAV_HEIGHT - 20}px`
+                            : `${NAV_HEIGHT - 8}px`,
+                          width: isMobile ? `60px` : '',
                           maxWidth: `calc(${SIDEBAR_WIDTH} - 60px)`,
                           minWidth: `50px`,
                         }}
@@ -276,10 +290,13 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
           )}
 
           {loading ? (
-            <BLoader
-              className="inline-block ml-6 b-loader--gray"
-              style={{ fontSize: '4px' }}
-            />
+            <>
+              <BLoader
+                className="inline-block ml-6 b-loader--gray"
+                style={{ fontSize: '4px' }}
+              />
+              <span></span>
+            </>
           ) : (
             category != undefined && (
               <>
@@ -311,7 +328,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
             )
           )}
         </div>
-        <div className="flex items-center">
+        <div className="flex flex-wrap items-center">
           {!isOneOfPath(location, ['/signin', '/submit']) && (
             <>
               {/* <Button
@@ -331,7 +348,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
             </>
           )}
           {siteMode == 'top_nav' && <SiteMenuButton className="mr-2" />}
-          {siteListMode == 'top_drawer' && (
+          {!isMobile && siteListMode == 'top_drawer' && (
             <Button
               variant="ghost"
               size="sm"
@@ -346,7 +363,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
               <GripIcon size={20} />
             </Button>
           )}
-          {siteListMode == 'dropdown_menu' && (
+          {!isMobile && siteListMode == 'dropdown_menu' && (
             <DropdownMenu
               open={showSiteListDropdown}
               onOpenChange={setShowSiteListDropdown}
@@ -448,23 +465,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
 
           {isLogined() ? (
             <>
-              {isMobile ? (
-                <Link to={'/message'}>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="relative w-[36px] h-[36px] p-0 rounded-full mr-2"
-                    title="通知"
-                  >
-                    <BellIcon size={20} />
-                    {notiStore.unreadCount > 0 && (
-                      <Badge className="absolute bg-pink-600 hover:bg-pink-600 right-[2px] top-[3px] text-xs px-[4px] py-[0px]">
-                        {notiStore.unreadCount}
-                      </Badge>
-                    )}
-                  </Button>
-                </Link>
-              ) : (
+              {!isMobile && (
                 <DropdownMenu onOpenChange={onNotiClick}>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -506,13 +507,19 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="w-[36px] h-[36px] p-0 rounded-full"
+                    className="relative w-[36px] h-[36px] p-0 rounded-full"
                   >
                     <BAvatar
                       username={currUsername}
                       className="cursor-pointer"
                       size={32}
                     />
+
+                    {isMobile && notiStore.unreadCount > 0 && (
+                      <Badge className="absolute bg-pink-600 hover:bg-pink-600 right-[0px] top-[0px] text-xs px-[4px] py-[0px]">
+                        {notiStore.unreadCount}
+                      </Badge>
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
@@ -520,6 +527,21 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                   align="end"
                   sideOffset={6}
                 >
+                  {isMobile && (
+                    <DropdownMenuItem
+                      className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                      asChild
+                    >
+                      <Link to={'/messages'}>
+                        通知{' '}
+                        {notiStore.unreadCount > 0 && (
+                          <Badge className="inline-block bg-pink-600 hover:bg-pink-600 text-xs px-[4px] py-[0px]">
+                            {notiStore.unreadCount}
+                          </Badge>
+                        )}
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem
                     className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                     asChild

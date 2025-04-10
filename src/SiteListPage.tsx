@@ -46,7 +46,6 @@ import {
 } from '@/components/ui/table'
 
 import BContainer from './components/base/BContainer'
-import BLoader from './components/base/BLoader'
 import BSiteIcon from './components/base/BSiteIcon'
 
 import { Empty } from './components/Empty'
@@ -112,7 +111,7 @@ export default function SiteListPage() {
     creatorName: params.get('creator_name') || '',
   })
 
-  const { loading, setLoading } = useLoading()
+  const { setLoading } = useLoading()
 
   const currSite = useMemo(() => editSite.site, [editSite])
 

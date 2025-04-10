@@ -16,6 +16,7 @@ import { z } from '@/lib/zod-custom'
 import { getPermissionList } from '@/api'
 import { deleteRole, submitRole, updateRole } from '@/api/role'
 import { getUserList } from '@/api/user'
+import { defaultRole } from '@/constants/defaults'
 import { PermissionModule } from '@/constants/types'
 import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
 import {
@@ -54,6 +55,7 @@ const roleSchema = z.object({
   level: z.string().min(1, '请填写权限级别'),
   permissionFrontIds: z.string().array().optional(),
   siteNumLimit: z.string().min(1, '请填写可创建站点数量上限'),
+  showRoleName: z.boolean(),
 })
 
 type RoleSchema = z.infer<typeof roleSchema>
@@ -63,11 +65,12 @@ const defaultRoleData: RoleSchema = {
   level: '3',
   permissionFrontIds: [],
   siteNumLimit: '0',
+  showRoleName: false,
 }
 
 const RoleForm: React.FC<RoleFormProps> = ({
   type = 'create',
-  role,
+  role = { ...defaultRole },
   onCancel = noop,
   onSuccess = noop,
   onChange = noop,
@@ -82,8 +85,8 @@ const RoleForm: React.FC<RoleFormProps> = ({
 
   const { siteFrontId } = useParams()
 
-  const edittingPermissionIds = useMemo(() => {
-    return role?.permissions ? role.permissions.map((item) => item.frontId) : []
+  const edittingPermissionFrontIds = useMemo(() => {
+    return (role.permissions || []).map((item) => item.frontId)
   }, [role])
 
   const isEdit = useMemo(() => formType == 'edit', [formType])
@@ -94,11 +97,6 @@ const RoleForm: React.FC<RoleFormProps> = ({
     [currRole]
   )
 
-  const currPermissionFrontIds = useMemo(
-    () => (role ? (role.permissions || []).map((item) => item.frontId) : []),
-    [role]
-  )
-
   const systemRole = useMemo(
     () => Boolean(isEdit && role && role.isSystem),
     [isEdit, role]
@@ -107,12 +105,13 @@ const RoleForm: React.FC<RoleFormProps> = ({
   const form = useForm<RoleSchema>({
     resolver: zodResolver(roleSchema),
     defaultValues: isEdit
-      ? ({
-          name: role?.name || '',
-          level: role ? String(role.level) : String(minLevel),
-          permissionFrontIds: edittingPermissionIds,
-          siteNumLimit: role ? String(role.siteNumLimit) : '0',
-        } as RoleSchema)
+      ? {
+          name: role.name,
+          level: String(role.level),
+          permissionFrontIds: edittingPermissionFrontIds,
+          siteNumLimit: String(role.siteNumLimit) || '0',
+          showRoleName: role.showRoleName,
+        }
       : { ...defaultRoleData, level: String(minLevel) },
   })
 
@@ -134,13 +133,10 @@ const RoleForm: React.FC<RoleFormProps> = ({
 
   const onSubmit = useCallback(
     async (vals: RoleSchema) => {
-      /* console.log('vals: ', vals) */
-      if (systemRole) return
-
       let resp: ResponseData<ResponseID> | undefined
 
       const level = parseInt(vals.level, 10) || 0
-      if (level < minLevel) {
+      if (!systemRole && level < minLevel) {
         form.setError('level', {
           message: `权限级别不能小于 ${minLevel}`,
         })
@@ -157,6 +153,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
           level,
           vals.permissionFrontIds || [],
           siteNumLimit,
+          vals.showRoleName,
           { siteFrontId }
         )
       } else {
@@ -165,6 +162,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
           level,
           vals.permissionFrontIds || [],
           siteNumLimit,
+          vals.showRoleName,
           { siteFrontId }
         )
       }
@@ -221,21 +219,27 @@ const RoleForm: React.FC<RoleFormProps> = ({
 
   useEffect(() => {
     if (!isDetail && role) {
-      form.setValue('name', role.name)
-      form.setValue('level', String(role.level))
-      form.setValue('siteNumLimit', String(role.siteNumLimit))
-      form.setValue(
-        'permissionFrontIds',
-        (role.permissions || []).map((item) => item.frontId)
-      )
+      form.reset({
+        name: role.name,
+        level: String(role.level),
+        siteNumLimit: String(role.siteNumLimit),
+        permissionFrontIds: edittingPermissionFrontIds,
+        showRoleName: role.showRoleName,
+      })
     }
-  }, [formType, form, role, isDetail])
+  }, [formType, form, role, isDetail, edittingPermissionFrontIds])
 
   if ((isEdit || isDetail) && !role) return null
 
   return (
     <Form {...form} key={formType}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
+        {systemRole && formType == 'edit' && (
+          <div className="mb-8 mt-4 text-gray-500">
+            <CircleAlertIcon size={16} className="inline-block" />{' '}
+            系统角色只允许修改部分数据
+          </div>
+        )}
         <FormField
           control={form.control}
           name="name"
@@ -262,6 +266,49 @@ const RoleForm: React.FC<RoleFormProps> = ({
             </FormItem>
           )}
         />
+        <div className="text-sm mb-8">
+          <div className="font-bold mb-4">角色类型</div>
+          <div>{role.isSystem ? '系统' : '用户创建'}</div>
+        </div>
+        {siteFrontId && (
+          <FormField
+            control={form.control}
+            name="showRoleName"
+            key="showRoleName"
+            render={({ field }) => (
+              <FormItem className="mb-8">
+                <FormLabel>展示角色名</FormLabel>
+                <FormDescription>
+                  {isDetail ? '在用户名旁边展示角色名称' : ''}
+                </FormDescription>
+                {isDetail ? (
+                  <div>
+                    <span className="talbe-cell text-sm">
+                      {role?.showRoleName ? '展示' : '不展示'}
+                    </span>
+                  </div>
+                ) : (
+                  <FormControl>
+                    <div className="flex items-center">
+                      <Switch
+                        id="show-role-name"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                      <label
+                        htmlFor="show-role-name"
+                        className="inline-block pl-2 leading-[24px] text-sm"
+                      >
+                        在用户名旁边展示角色名称
+                      </label>
+                    </div>
+                  </FormControl>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <FormField
           control={form.control}
           name="level"
@@ -338,7 +385,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
                     .filter((item) => {
                       if (isDetail) {
                         return item.list.some((item) =>
-                          currPermissionFrontIds.includes(item.frontId)
+                          edittingPermissionFrontIds.includes(item.frontId)
                         )
                       }
                       return true
@@ -358,7 +405,9 @@ const RoleForm: React.FC<RoleFormProps> = ({
                         >
                           {fItem.list.map((item) =>
                             isDetail ? (
-                              currPermissionFrontIds.includes(item.frontId) && (
+                              edittingPermissionFrontIds.includes(
+                                item.frontId
+                              ) && (
                                 <Badge
                                   variant="outline"
                                   key={item.frontId}
@@ -430,22 +479,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
             )}
           </div>
           <div>
-            {systemRole ? (
-              <>
-                <span className="inline-block mr-4 text-gray-500 text-sm">
-                  <CircleAlertIcon size={16} className="inline-block" />{' '}
-                  系统角色无法修改
-                </span>
-                <Button
-                  onClick={(e) => {
-                    e.preventDefault()
-                    onCancel()
-                  }}
-                >
-                  确定
-                </Button>
-              </>
-            ) : isDetail ? (
+            {isDetail ? (
               <>
                 <Button
                   onClick={(e) => {
@@ -468,10 +502,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
                 >
                   取消
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={systemRole || !form.formState.isDirty}
-                >
+                <Button type="submit" disabled={!form.formState.isDirty}>
                   提交
                 </Button>
               </>

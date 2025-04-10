@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 
-import { cn } from '@/lib/utils'
+import { cn, renderMD } from '@/lib/utils'
 
 import { Badge } from './components/ui/badge'
 import { Card } from './components/ui/card'
@@ -9,7 +9,6 @@ import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 
 import BAvatar from './components/base/BAvatar'
 import BContainer from './components/base/BContainer'
-import BLoader from './components/base/BLoader'
 
 import { ActivityList } from './components/ActivityList'
 import ArticleControls from './components/ArticleControls'
@@ -124,9 +123,10 @@ const ArticleList: React.FC<ArticleListProps> = ({
               )}
 
             {item.replyToId != '0' && (
-              <div className="max-h-5 mb-1 overflow-hidden text-sm text-gray-600 text-nowrap text-ellipsis">
-                {item.content}
-              </div>
+              <div
+                className="max-h-5 mb-1 overflow-hidden text-sm text-gray-600 text-nowrap text-ellipsis"
+                dangerouslySetInnerHTML={{ __html: renderMD(item.content) }}
+              ></div>
             )}
           </div>
           <ArticleControls
@@ -158,7 +158,7 @@ export default function UserPage() {
     totalPage: 0,
   })
 
-  const { loading, setLoading } = useLoading()
+  const { setLoading } = useLoading()
 
   const [actSubTabs, setActSubTabs] = useState<ActivityTab[]>([
     ...defaultActSubTabs,

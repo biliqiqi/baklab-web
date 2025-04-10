@@ -31,7 +31,6 @@ import {
 } from '@/components/ui/table'
 
 import BContainer from './components/base/BContainer'
-import BLoader from './components/base/BLoader'
 
 import BlockedWordForm from './components/BlockedWordForm'
 import { Empty } from './components/Empty'
@@ -70,7 +69,7 @@ export default function BlockedWordListPage() {
     totalPage: 0,
   })
 
-  const { loading, setLoading } = useLoading()
+  const { setLoading } = useLoading()
 
   const [params, setParams] = useSearchParams()
   const location = useLocation()

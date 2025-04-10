@@ -4,6 +4,7 @@ import {
   ContentForm,
   CurrUserState,
   ListPageState,
+  Role,
   SITE_STATUS,
   Site,
 } from '@/types/types'
@@ -84,6 +85,8 @@ export const defaultArticle: Article = {
   picURL: '',
   price: 0,
   authorName: '',
+  authorRoleName: '',
+  showAuthorRoleName: false,
   authorId: '',
   content: '',
   summary: '',
@@ -136,4 +139,19 @@ export const defaultPageState: ListPageState = {
   pageSize: DEFAULT_PAGE_SIZE,
   total: 0,
   totalPage: 0,
+}
+
+export const defaultRole: Role = {
+  id: '',
+  frontId: '',
+  name: '',
+  createdAt: '',
+  deleted: false,
+  isSystem: false,
+  permissions: null,
+  formattedPermissions: [],
+  level: 3,
+  relateUserCount: 0,
+  siteNumLimit: 0,
+  showRoleName: false,
 }

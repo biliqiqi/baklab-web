@@ -65,7 +65,7 @@ export default function TrashPage() {
     totalPage: 0,
   })
 
-  const { loading, setLoading } = useLoading()
+  const { setLoading } = useLoading()
 
   const { siteFrontId } = useParams()
 

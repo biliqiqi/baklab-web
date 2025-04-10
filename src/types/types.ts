@@ -118,6 +118,8 @@ export interface Article {
   price: number
   authorName: string
   authorId: string
+  authorRoleName: string
+  showAuthorRoleName: boolean
   content: string
   summary: string
   createdAt: string
@@ -268,6 +270,7 @@ export interface UserData {
   bannedMinutes: number
   bannedCount: number
   uiSettings: JSONMap | null
+  showRoleName: boolean
 }
 
 export interface CustomRequestOptions {
@@ -486,6 +489,7 @@ export interface Role {
   level: number
   relateUserCount: number
   siteNumLimit: number
+  showRoleName: boolean
 }
 
 export interface RoleListResponse extends ListPageState {

@@ -20,7 +20,6 @@ import { Input } from './components/ui/input'
 import { Textarea } from './components/ui/textarea'
 
 import BContainer from './components/base/BContainer'
-import BLoader from './components/base/BLoader'
 
 import { Empty } from './components/Empty'
 import ModerationForm, { ReasonScheme } from './components/ModerationForm'
@@ -275,7 +274,7 @@ export function ArticleReviewPage() {
   const usernameRef = useRef<HTMLInputElement | null>(null)
   const [params, setParams] = useSearchParams()
 
-  const { loading, setLoading } = useLoading()
+  const { setLoading } = useLoading()
 
   const [searchData, setSearchData] = useState<SearchFields>({
     ...defaultSearchData,

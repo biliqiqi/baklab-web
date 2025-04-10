@@ -1,4 +1,4 @@
-import { PanelRightClose, XIcon } from 'lucide-react'
+import { XIcon } from 'lucide-react'
 import React, {
   MouseEvent,
   useCallback,

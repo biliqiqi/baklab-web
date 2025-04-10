@@ -36,6 +36,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from './ui/alert-dialog'
+import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
 
@@ -234,10 +235,19 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           {article.deleted && !authStore.permit('article', 'delete_others') ? (
             <span>未知用户</span>
           ) : (
-            <Link to={`/users/${article.authorName}`}>
-              <BAvatar username={article.authorName} size={24} />{' '}
-              {article.authorName}
-            </Link>
+            <>
+              <Link to={`/users/${article.authorName}`}>
+                <BAvatar username={article.authorName} size={24} showUsername />
+              </Link>
+              {article.showAuthorRoleName && (
+                <Badge
+                  variant={'secondary'}
+                  className="ml-2 font-normal text-gray-500"
+                >
+                  {article.authorRoleName}
+                </Badge>
+              )}
+            </>
           )}
           &nbsp;·&nbsp;
           <span title={timeFmt(article.createdAt, 'YYYY年M月D日 H时m分s秒')}>

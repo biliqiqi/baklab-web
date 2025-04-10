@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 import BContainer from './components/base/BContainer'
 
-import { Permission } from './types/types'
+/* import { Permission } from './types/types' */
 
 export default function PermissionPage() {
-  const [tabs, setTabs] = useState<Permission[]>([])
+  /* const [tabs, setTabs] = useState<Permission[]>([]) */
   useEffect(() => {}, [])
   return (
     <BContainer

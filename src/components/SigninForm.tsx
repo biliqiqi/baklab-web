@@ -14,7 +14,6 @@ import useDocumentTitle from '@/hooks/use-page-title'
 import {
   useAuthedUserStore,
   useDialogStore,
-  useForceUpdate,
   useSiteStore,
 } from '@/state/global'
 

@@ -40,6 +40,7 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --dialog-background: 0 0% 98%;
   }
   .dark {
     --background: 60 14.3% 4.1%;
@@ -74,6 +75,7 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --dialog-background: 240 5.9% 10%;
 
     .bg-white {
       @apply bg-slate-950;
@@ -111,6 +113,10 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.bg-dialog {
+  background-color: hsl(var(--dialog-background));
 }
 
 a[target='_blank'],

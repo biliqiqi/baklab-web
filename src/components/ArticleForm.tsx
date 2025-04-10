@@ -412,7 +412,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                   </FormItem>
                 )}
               />
-              <div className="flex flex-wrap justify-between items-center">
+              <div className="flex flex-wrap justify-between items-start">
                 <FormField
                   control={form.control}
                   name="category"
@@ -441,6 +441,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                                   (isEdit &&
                                     !checkPermit('article', 'edit_others'))
                                 }
+                                size={'sm'}
                               >
                                 {categoryVal()
                                   ? cateList.find(

@@ -70,7 +70,7 @@ export default function RoleManagePage() {
 
   const [defaultRoles, setDefaultRoles] = useState<DefaultRoles | null>(null)
 
-  const { loading, setLoading } = useLoading()
+  const { setLoading } = useLoading()
 
   const { siteFrontId } = useParams()
 
@@ -109,6 +109,14 @@ export default function RoleManagePage() {
       id: 'name',
       accessorKey: 'name',
       header: '名称',
+    },
+    {
+      id: 'isSystem',
+      accessorKey: 'isSystem',
+      header: '角色类型',
+      cell: ({ row }) => {
+        return row.original.isSystem ? <span>系统</span> : <span>用户创建</span>
+      },
     },
     {
       id: 'level',

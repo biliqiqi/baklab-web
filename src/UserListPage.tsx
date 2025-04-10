@@ -77,7 +77,7 @@ export default function UserListPage() {
   const [list, setList] = useState<UserData[]>([])
   const [currUser, setCurrUser] = useState<UserData | null>(null)
 
-  const { loading, setLoading } = useLoading()
+  const { setLoading } = useLoading()
 
   const [params, setParams] = useSearchParams()
   const location = useLocation()

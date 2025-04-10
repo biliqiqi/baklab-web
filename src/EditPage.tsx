@@ -25,7 +25,7 @@ export default function EditPage() {
 
   /* console.log('article id: ', articleId) */
 
-  const { loading, setLoading } = useLoading()
+  const { setLoading } = useLoading()
 
   const fetchArticle = useCallback(
     async (showLoading = true) => {

@@ -16,7 +16,12 @@ import {
   DEFAULT_FONT_SIZE,
   DEFAULT_THEME,
 } from '@/constants/constants'
-import { setLocalUserUISettings, useUserUIStore } from '@/state/global'
+import {
+  setLocalUserUISettings,
+  useSiteStore,
+  useTopDrawerStore,
+  useUserUIStore,
+} from '@/state/global'
 import { SITE_LIST_MODE } from '@/types/types'
 
 import { useTheme } from './ThemeProvider'
@@ -123,6 +128,10 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
       String(state.contentWidth || Number(DEFAULT_CONTENT_WIDTH))
     )
     const setUserUIState = useUserUIStore((state) => state.setState)
+    const setOpenTopDrawer = useTopDrawerStore((state) => state.update)
+    const setShowSiteListDropdown = useSiteStore(
+      (state) => state.setShowSiteListDropdown
+    )
 
     // const userUISettings = useAuthedUserStore((state) => state.user?.uiSettings)
 
@@ -227,7 +236,23 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
 
     useEffect(() => {
       setSiteListMode(formVals.mode)
-    }, [formVals.mode, setSiteListMode])
+
+      if (form.formState.isDirty) {
+        if (formVals.mode == 'top_drawer') {
+          setShowSiteListDropdown(false)
+          setOpenTopDrawer(true)
+        } else {
+          setOpenTopDrawer(false)
+          setShowSiteListDropdown(true)
+        }
+      }
+    }, [
+      form,
+      formVals.mode,
+      setSiteListMode,
+      setOpenTopDrawer,
+      setShowSiteListDropdown,
+    ])
 
     useEffect(() => {
       setTheme(formVals.theme)

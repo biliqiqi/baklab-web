@@ -23,7 +23,6 @@ import {
   EV_ON_REPLY_CLICK,
   NAV_HEIGHT,
 } from '@/constants/constants'
-import { useAuthedUserStore } from '@/state/global'
 import { Article, ArticleSubmitResponse, ResponseData } from '@/types/types'
 
 import TipTap, { TipTapRef } from './TipTap'

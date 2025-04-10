@@ -170,3 +170,8 @@ export const saveUserUISettings = (settings: JSONMap) =>
   authRequest.post<ResponseData<null>>(`save_ui_settings`, {
     json: settings,
   })
+
+export const showUserRoleName = (username: string, show: boolean) =>
+  authRequest.post<ResponseData<null>>(`users/${username}/show_role_name`, {
+    json: { show },
+  })

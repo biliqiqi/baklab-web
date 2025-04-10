@@ -5,7 +5,6 @@ import {
   ActivityListResponse,
   ArticleHistoryResponse,
   ArticleLogStatus,
-  ArticleStatus,
   AuthedDataResponse,
   CustomRequestOptions,
   PermissionListResponse,

@@ -14,7 +14,6 @@ import {
 } from './components/ui/select'
 
 import BContainer from './components/base/BContainer'
-import BLoader from './components/base/BLoader'
 
 import { ActivityList } from './components/ActivityList'
 
@@ -54,7 +53,7 @@ export default function ActivityPage() {
   })
   const usernameRef = useRef<HTMLInputElement | null>(null)
 
-  const { loading, setLoading } = useLoading()
+  const { setLoading } = useLoading()
 
   const { siteFrontId } = useParams()
   const [params, setParams] = useSearchParams()

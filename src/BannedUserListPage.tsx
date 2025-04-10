@@ -31,7 +31,6 @@ import {
 
 import BAvatar from './components/base/BAvatar'
 import BContainer from './components/base/BContainer'
-import BLoader from './components/base/BLoader'
 
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
@@ -69,7 +68,7 @@ export default function BannedUserListPage() {
   const location = useLocation()
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
-  const { loading, setLoading } = useLoading()
+  const { setLoading } = useLoading()
 
   const authStore = useAuthedUserStore()
   const alertDialog = useAlertDialogStore()

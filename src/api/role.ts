@@ -45,6 +45,7 @@ export const submitRole = (
   level: number,
   permissionFrontIDs: string[],
   siteNumLimit: number,
+  showRoleName: boolean,
   custom?: CustomRequestOptions
 ) => {
   return authRequest.post<ResponseData<ResponseID>>(
@@ -55,6 +56,7 @@ export const submitRole = (
         level,
         permissionFrontIDs,
         siteNumLimit,
+        showRoleName,
         extra: { roleName: name },
       },
     },
@@ -68,6 +70,7 @@ export const updateRole = (
   level: number,
   permissionFrontIDs: string[],
   siteNumLimit: number,
+  showRoleName: boolean,
   custom?: CustomRequestOptions
 ) => {
   return authRequest.patch<ResponseData<ResponseID>>(
@@ -78,6 +81,7 @@ export const updateRole = (
         level,
         permissionFrontIDs,
         siteNumLimit,
+        showRoleName,
         extra: { roleName: name },
       },
     },

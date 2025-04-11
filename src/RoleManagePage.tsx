@@ -167,6 +167,20 @@ export default function RoleManagePage() {
           >
             详细
           </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="m-1"
+            onClick={() => {
+              setEditRole({
+                editting: false,
+                role: { ...row.original, name: '' },
+              })
+              setShowRoleForm(true)
+            }}
+          >
+            复制
+          </Button>
         </>
       ),
     },

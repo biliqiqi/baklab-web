@@ -235,9 +235,9 @@ const RoleForm: React.FC<RoleFormProps> = ({
     <Form {...form} key={formType}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         {systemRole && formType == 'edit' && (
-          <div className="mb-8 mt-4 text-gray-500">
+          <div className="flex items-center mb-8 mt-4 text-gray-500">
             <CircleAlertIcon size={16} className="inline-block" />{' '}
-            系统角色只允许修改部分数据
+            系统角色只允许修改部分字段
           </div>
         )}
         <FormField

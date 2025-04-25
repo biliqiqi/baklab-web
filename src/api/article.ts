@@ -256,12 +256,11 @@ export const deleteArticle = (
   id: string,
   title?: string,
   reason?: string,
+  deletedBy?: string,
   custom?: CustomRequestOptions
 ) => {
   const params = new URLSearchParams()
-  if (reason) {
-    params.set('extra', JSON.stringify({ reason, title }))
-  }
+  params.set('extra', JSON.stringify({ reason, title, deletedBy }))
 
   return authRequest.delete<ResponseData<ArticleDeleteResponse>>(
     `articles/${id}`,

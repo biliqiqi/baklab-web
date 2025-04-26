@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { GlobeIcon } from 'lucide-react'
 import {
   forwardRef,
   useCallback,
@@ -16,6 +17,7 @@ import {
   DEFAULT_FONT_SIZE,
   DEFAULT_THEME,
 } from '@/constants/constants'
+import i18n from '@/i18n'
 import {
   setLocalUserUISettings,
   useSiteStore,
@@ -37,6 +39,14 @@ import {
 } from './ui/form'
 import { Input } from './ui/input'
 import { RadioGroup, RadioGroupItem } from './ui/radio-group'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select'
 
 /* const modeList = [SITE_LIST_MODE.TopDrawer, SITE_LIST_MODE.DropdownMenu] */
 
@@ -79,24 +89,32 @@ const contentWidthSchema = z.union([
   z.literal('-1'),
   z.literal('custom'),
 ])
-
+const themeSchema = z.union([
+  z.literal('light'),
+  z.literal('dark'),
+  z.literal('system'),
+])
+const languageSchema = z.union([z.literal('zh-CN'), z.literal('en-US')])
 const userUISchema = z.object({
   mode: z.union([
     z.literal(SITE_LIST_MODE.TopDrawer),
     z.literal(SITE_LIST_MODE.DropdownMenu),
   ]),
-  theme: z.union([z.literal('light'), z.literal('dark'), z.literal('system')]),
+  theme: themeSchema,
   fontSize: fontSizeSchema,
   customFontSize: z.string(),
   contentWidth: contentWidthSchema,
   customContentWidth: z.string(),
+  lang: languageSchema,
 })
 
 type FontSizeSchema = z.infer<typeof fontSizeSchema>
-
 type ContentWidthSchema = z.infer<typeof contentWidthSchema>
-
 type UserUISchema = z.infer<typeof userUISchema>
+type ThemeSchema = z.infer<typeof themeSchema>
+type LanguageSchema = z.infer<typeof languageSchema>
+
+console.log('i18n lang: ', i18n.language)
 
 const defaultUserUIData: UserUISchema = {
   mode: SITE_LIST_MODE.TopDrawer,
@@ -105,6 +123,7 @@ const defaultUserUIData: UserUISchema = {
   customFontSize: '',
   contentWidth: DEFAULT_CONTENT_WIDTH,
   customContentWidth: '',
+  lang: i18n.language as LanguageSchema,
 }
 
 export interface UserUIFormProps {
@@ -158,7 +177,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
       defaultValues: {
         ...defaultUserUIData,
         mode: currSiteListMode,
-        theme,
+        theme: theme as ThemeSchema,
         fontSize: fontSizeGlobalVal,
         customFontSize: fontSizeGlobalVal == 'custom' ? userUIFontSize : '',
         contentWidth: contentWidthGlobalVal,
@@ -172,13 +191,14 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
     const formVals = form.watch()
 
     const onSubmit = useCallback(
-      ({
+      async ({
         mode,
         theme,
         fontSize,
         customFontSize,
         contentWidth,
         customContentWidth,
+        lang,
       }: UserUISchema) => {
         /* console.log('font size: ', fontSize) */
 
@@ -200,6 +220,12 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
           updatedAt: Date.now(),
         })
 
+        try {
+          await i18n.changeLanguage(lang)
+        } catch (err) {
+          console.error('switch language error: ', err)
+        }
+
         // if (syncDevices == true) {
         // const { code } = await saveUserUISettings({
         // mode,
@@ -217,6 +243,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
           customFontSize,
           contentWidth,
           customContentWidth,
+          lang,
         })
       },
       [form]
@@ -287,6 +314,36 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
     return (
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
+          <FormField
+            control={form.control}
+            name="lang"
+            key="lang"
+            render={({ field }) => (
+              <FormItem className="mb-8">
+                <FormLabel>
+                  <GlobeIcon
+                    size={14}
+                    className="inline-block align-[-1px] mr-1"
+                  />
+                  语言
+                </FormLabel>
+                <FormDescription></FormDescription>
+                <FormControl>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-[180px] bg-white">
+                      <SelectValue placeholder="选择语言" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="zh-CN">中文</SelectItem>
+                        <SelectItem value="en-US">English</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="fontSize"

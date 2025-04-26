@@ -1,4 +1,5 @@
 import js from '@eslint/js'
+import json from '@eslint/json'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import globals from 'globals'
@@ -46,6 +47,16 @@ export default tseslint.config(
           },
         },
       ],
+    },
+  },
+  {
+    files: ['**/*.json'],
+    plugins: {
+      json,
+    },
+    language: 'json/json',
+    rules: {
+      'json/no-duplicate-keys': 'error',
     },
   }
 )

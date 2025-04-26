@@ -20,6 +20,7 @@ import {
   TOP_DRAWER_STATE_KEY,
 } from './constants/constants.ts'
 import { useIsMobile } from './hooks/use-mobile.tsx'
+import './i18n'
 import { toSync } from './lib/fire-and-forget.ts'
 import { refreshAuthState, refreshToken } from './lib/request.ts'
 import { setRootFontSize } from './lib/utils.ts'

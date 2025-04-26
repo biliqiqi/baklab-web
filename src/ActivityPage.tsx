@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLocation, useParams, useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -53,6 +54,7 @@ export default function ActivityPage() {
   })
   const usernameRef = useRef<HTMLInputElement | null>(null)
 
+  const { t } = useTranslation()
   const { setLoading } = useLoading()
 
   const { siteFrontId } = useParams()
@@ -136,7 +138,7 @@ export default function ActivityPage() {
           setLoading(false)
         }
       },
-      [params, siteFrontId, checkPermit]
+      [params, siteFrontId, checkPermit, setLoading]
     )
   )
 
@@ -175,21 +177,21 @@ export default function ActivityPage() {
           ? {
               isFront: true,
               frontId: 'site_activites',
-              name: '管理日志',
-              describe: '站点内管理行为记录',
+              name: t('modLog'),
+              describe: t('modLogDescribe'),
             }
           : {
               isFront: true,
               frontId: 'activites',
-              name: '活动记录',
-              describe: '站点成员活动记录',
+              name: t('activityLog'),
+              describe: t('activityLogDescribe'),
             }
       }
     >
       <Card className="flex flex-wrap justify-between p-2">
         <div className="flex flex-wrap">
           <Input
-            placeholder="管理者用户名"
+            placeholder={t('moderatorName')}
             className="w-[140px] h-[36px] mr-3"
             ref={usernameRef}
             value={searchData.username}
@@ -218,16 +220,18 @@ export default function ActivityPage() {
                   !searchData.actType && 'text-gray-500'
                 )}
               >
-                <SelectValue placeholder="操作类别" />
+                <SelectValue placeholder={t('modAction')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="user">普通用户</SelectItem>
-                <SelectItem value="manage">管理</SelectItem>
+                <SelectItem value="user">{t('commonUser')}</SelectItem>
+                <SelectItem value="manage">{t('management')}</SelectItem>
                 {checkPermit('platform_manage', 'access') && (
                   <>
-                    <SelectItem value="platform_manage">平台管理</SelectItem>
-                    <SelectItem value="anonymous">匿名</SelectItem>
-                    <SelectItem value="dev">开发</SelectItem>
+                    <SelectItem value="platform_manage">
+                      {t('platformManagement')}
+                    </SelectItem>
+                    <SelectItem value="anonymous">{t('anonymous')}</SelectItem>
+                    <SelectItem value="dev">{t('dev')}</SelectItem>
                   </>
                 )}
               </SelectContent>
@@ -245,7 +249,7 @@ export default function ActivityPage() {
                 !searchData.action && 'text-gray-500'
               )}
             >
-              <SelectValue placeholder="操作名称" />
+              <SelectValue placeholder={t('actionName')} />
             </SelectTrigger>
             <SelectContent>
               {actionList.map((item) => (
@@ -258,10 +262,10 @@ export default function ActivityPage() {
         </div>
         <div>
           <Button size="sm" onClick={onResetClick} className="mr-3">
-            重置
+            {t('reset')}
           </Button>
           <Button size="sm" onClick={onSearchClick}>
-            搜索
+            {t('search')}
           </Button>
         </div>
       </Card>

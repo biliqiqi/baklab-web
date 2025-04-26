@@ -1,5 +1,6 @@
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -25,6 +26,8 @@ export default function InvitePage() {
   const [searchParams] = useSearchParams()
 
   const navigate = useNavigate()
+
+  const { t } = useTranslation()
 
   const { isLogined } = useAuthedUserStore(
     useShallow(({ isLogined }) => ({ isLogined }))
@@ -139,21 +142,22 @@ export default function InvitePage() {
               vertical
             />
             <div className="text-sm text-gray-500 mb-2">
-              {inviteData?.creatorName} 邀请你加入
+              {t('inviteDescribe', { name: inviteData?.creatorName })}
             </div>
             <div>{site.name}</div>
             <div className="mt-1 text-sm text-gray-500">
-              {site.onlineCount} 在线 / {site.memberCount} 成员
+              {t('onlineCount', { num: site.onlineCount })} /{' '}
+              {t('memberCount', { num: site.memberCount })}
             </div>
           </div>
         ) : expired ? (
-          <div className="mb-2">邀请已过期</div>
+          <div className="mb-2">{t('invitationExpired')}</div>
         ) : (
-          !loading && <div className="mb-2">缺少邀请数据</div>
+          !loading && <div className="mb-2">{t('invitationDataRequired')}</div>
         )}
         {site && !expired && (
           <Button onClick={onAcceptInviteClick} disabled={loading}>
-            {loading ? <BLoader /> : '接受邀请'}
+            {loading ? <BLoader /> : t('acceptInvitation')}
           </Button>
         )}
       </Card>

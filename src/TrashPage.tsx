@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 
 import { Button } from './components/ui/button'
@@ -21,6 +22,7 @@ import { ListPagination } from './components/ListPagination'
 
 import { getArticleTrash, recoverArticle } from './api/article'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
+import i18n from './i18n'
 import { timeAgo } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { cn, genArticlePath } from './lib/utils'
@@ -48,9 +50,9 @@ type UserTabMap = {
 }
 
 const TabMapData: UserTabMap = {
-  all: '全部',
-  reply: '回复',
-  article: '帖子',
+  all: i18n.t('all'),
+  reply: i18n.t('reply'),
+  article: i18n.t('post'),
 }
 
 const defaultTabs: ArticleTab[] = ['all', 'article', 'reply']
@@ -89,6 +91,8 @@ export default function TrashPage() {
 
   const cateStore = useCategoryStore()
   const alertDialog = useAlertDialogStore()
+
+  const { t } = useTranslation()
 
   const tab = (params.get('tab') as ArticleTab | null) || 'all'
 
@@ -149,7 +153,7 @@ export default function TrashPage() {
           setLoading(false)
         }
       },
-      [params, siteFrontId, tab]
+      [params, siteFrontId, tab, setLoading]
     )
   )
 
@@ -178,8 +182,8 @@ export default function TrashPage() {
     async (id: string, title: string, siteFrontId: string) => {
       try {
         const confirmed = await alertDialog.confirm(
-          '确认',
-          `确认恢复《${title}》？`,
+          t('confirm'),
+          t('confirmRecover', { title }),
           'normal'
         )
         if (!confirmed) return
@@ -194,7 +198,7 @@ export default function TrashPage() {
         console.error('recover article error: ', err)
       }
     },
-    [alertDialog, fetchList]
+    [alertDialog, fetchList, t]
   )
 
   const onTabChange = (tab: string) => {
@@ -214,7 +218,7 @@ export default function TrashPage() {
       category={{
         isFront: true,
         frontId: 'trash',
-        name: '回收站',
+        name: t('trash'),
         describe: '',
       }}
     >
@@ -228,7 +232,7 @@ export default function TrashPage() {
       >
         <div className="flex flex-wrap">
           <Input
-            placeholder="标题/作者名"
+            placeholder={`${t('title')}/${t('authorName')}`}
             className="w-[140px] h-[36px] mr-3"
             value={searchData.keywords}
             onChange={(e) =>
@@ -243,35 +247,37 @@ export default function TrashPage() {
               }
             }}
           />
-          <Select
-            value={searchData.category}
-            onValueChange={(category) =>
-              setSearchData((state) => ({ ...state, category }))
-            }
-          >
-            <SelectTrigger
-              className={cn(
-                'w-[140px] h-[36px] mr-3 bg-white',
-                !searchData.category && 'text-gray-500'
-              )}
+          {siteFrontId && (
+            <Select
+              value={searchData.category}
+              onValueChange={(category) =>
+                setSearchData((state) => ({ ...state, category }))
+              }
             >
-              <SelectValue placeholder="类别" />
-            </SelectTrigger>
-            <SelectContent>
-              {cateStore.categories.map((item) => (
-                <SelectItem value={item.frontId} key={item.frontId}>
-                  {item.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+              <SelectTrigger
+                className={cn(
+                  'w-[140px] h-[36px] mr-3 bg-white',
+                  !searchData.category && 'text-gray-500'
+                )}
+              >
+                <SelectValue placeholder={t('category')} />
+              </SelectTrigger>
+              <SelectContent>
+                {cateStore.categories.map((item) => (
+                  <SelectItem value={item.frontId} key={item.frontId}>
+                    {item.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
         <div>
           <Button size="sm" onClick={onResetClick} className="mr-3">
-            重置
+            {t('reset')}
           </Button>
           <Button size="sm" onClick={onSearchClick}>
-            搜索
+            {t('search')}
           </Button>
         </div>
       </Card>
@@ -319,22 +325,31 @@ export default function TrashPage() {
             />
             <div className="flex justify-between p-2 bg-gray-200 text-sm">
               <div>
-                {item.delLog?.details && (
-                  <>
-                    由&nbsp;
-                    <Link
-                      to={'/users/' + item.delLog.details['deletedBy']}
-                      className="text-primary"
-                    >
-                      {item.delLog.details['deletedBy']}
-                    </Link>{' '}
-                    删除于 {timeAgo(item.delLog.createdAt)}
-                    {item.delLog.type == 'manage' && (
-                      <div className="mt-2">
-                        原因：{item.delLog.details['reason']}
-                      </div>
-                    )}
-                  </>
+                {item.delLog?.extraInfo && (
+                  <Trans
+                    i18nKey={'deletedBy'}
+                    values={{
+                      deletedBy: item.delLog.extraInfo['deletedBy'] as string,
+                      createdAt: timeAgo(item.delLog.createdAt),
+                      reason: item.delLog.extraInfo['reason'] as string,
+                    }}
+                    components={{
+                      creatorLink: (
+                        <Link
+                          to={'/users/' + item.delLog.extraInfo['deletedBy']}
+                          className="text-primary"
+                        />
+                      ),
+                      reasonDiv: (
+                        <div
+                          className="mt-2"
+                          style={{
+                            display: item.delLog.type == 'manage' ? '' : 'none',
+                          }}
+                        />
+                      ),
+                    }}
+                  />
                 )}
               </div>
               <div>
@@ -345,7 +360,7 @@ export default function TrashPage() {
                   }
                   size="sm"
                 >
-                  恢复
+                  {t('recover')}
                 </Button>
               </div>
             </div>

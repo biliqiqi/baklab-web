@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-table'
 import { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 
 import { z } from '@/lib/zod-custom'
@@ -35,25 +36,34 @@ import BContainer from './components/base/BContainer'
 
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
-import RoleForm from './components/RoleForm'
+import RoleForm, { RoleFormType } from './components/RoleForm'
 import RoleSelector from './components/RoleSelector'
 
 import roleAPI, { getDefaultRole, getDefaultRoles, getRoles } from './api/role'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { defaultPageState } from './constants/defaults'
+import i18n from './i18n'
 import { toSync } from './lib/fire-and-forget'
 import { useAlertDialogStore, useLoading } from './state/global'
 import { DefaultRoles, ListPageState, Role } from './types/types'
 
 const defaultRoleSchema = z.object({
-  roleId: z.string().min(1, '请选择角色'),
+  roleId: z.string().min(1, i18n.t('selectRoleTip')),
 })
 
 type DefaultRoleSchema = z.infer<typeof defaultRoleSchema>
 
 interface EditRoleState {
-  editting: boolean
+  /* editting: boolean */
   role?: Role
+}
+
+const RoleFormTypeNameMap: {
+  [key in RoleFormType]: string
+} = {
+  create: i18n.t('createRole'),
+  edit: i18n.t('editRole'),
+  detail: i18n.t('roleDetail'),
 }
 
 export default function RoleManagePage() {
@@ -67,12 +77,15 @@ export default function RoleManagePage() {
   const [roleFormDirty, setRoleFormDirty] = useState(false)
   const [editDefaultRole, setEditDefaultRole] = useState(false)
   const [editSiteDefaultRole, setEditSiteDefaultRole] = useState(false)
+  const [roleFormType, setRoleFormType] = useState<RoleFormType>('create')
 
   const [defaultRoles, setDefaultRoles] = useState<DefaultRoles | null>(null)
 
   const { setLoading } = useLoading()
 
   const { siteFrontId } = useParams()
+
+  const { t } = useTranslation()
 
   /* const roleMap: JSONMap = useMemo(() => {
    *   return roleList.reduce((obj: JSONMap, item) => {
@@ -82,7 +95,7 @@ export default function RoleManagePage() {
    * }, [roleList]) */
 
   const [editRole, setEditRole] = useState<EditRoleState>({
-    editting: false,
+    /* editting: false, */
     role: undefined,
   })
 
@@ -108,30 +121,34 @@ export default function RoleManagePage() {
     {
       id: 'name',
       accessorKey: 'name',
-      header: '名称',
+      header: t('name'),
     },
     {
       id: 'isSystem',
       accessorKey: 'isSystem',
-      header: '角色类型',
+      header: t('roleType'),
       cell: ({ row }) => {
-        return row.original.isSystem ? <span>系统</span> : <span>用户创建</span>
+        return row.original.isSystem ? (
+          <span>{t('system')}</span>
+        ) : (
+          <span>{t('userCreated')}</span>
+        )
       },
     },
     {
       id: 'level',
       accessorKey: 'level',
-      header: '权限级别',
+      header: t('permissionLevel'),
     },
     {
       id: 'siteNumLimit',
       accessorKey: 'siteNumLimit',
-      header: '可创建站点数上限',
+      header: t('siteNumLimit'),
     },
     {
       id: 'relateUserCount',
       accessorKey: 'relateUserCount',
-      header: '关联用户',
+      header: t('relateUsers'),
       cell: ({ row }) =>
         row.original.relateUserCount > 0 ? (
           <Button variant="link" asChild>
@@ -150,7 +167,7 @@ export default function RoleManagePage() {
     {
       id: 'contorles',
       accessorKey: 'contorles',
-      header: '操作',
+      header: t('operations'),
       cell: ({ row }) => (
         <>
           <Button
@@ -158,28 +175,28 @@ export default function RoleManagePage() {
             size="sm"
             className="m-1"
             onClick={() => {
+              setRoleFormType('detail')
               setEditRole({
-                editting: true,
                 role: row.original,
               })
               setShowRoleForm(true)
             }}
           >
-            详细
+            {t('detail')}
           </Button>
           <Button
             variant="secondary"
             size="sm"
             className="m-1"
             onClick={() => {
+              setRoleFormType('create')
               setEditRole({
-                editting: false,
                 role: { ...row.original, name: '' },
               })
               setShowRoleForm(true)
             }}
           >
-            复制
+            {t('copy')}
           </Button>
         </>
       ),
@@ -221,7 +238,7 @@ export default function RoleManagePage() {
         }
         setLoading(false)
       },
-      [params, siteFrontId]
+      [params, siteFrontId, setLoading]
     )
   )
 
@@ -246,14 +263,18 @@ export default function RoleManagePage() {
 
   const onRoleFormClose = useCallback(async () => {
     if (roleFormDirty) {
-      const { editting } = editRole
       const confirmed = await alertDialog.confirm(
-        '确认',
-        editting ? '角色数据有改动，确认舍弃？' : '角色添加未完成，确认舍弃？',
+        t('confirm'),
+        roleFormType == 'create'
+          ? t('roleAddDropConfirm')
+          : t('roleEditDropConfirm'),
         'normal',
         {
-          confirmBtnText: '确定舍弃',
-          cancelBtnText: editting ? '继续设置' : '继续添加',
+          confirmBtnText: t('dropConfirm'),
+          cancelBtnText:
+            roleFormType == 'create'
+              ? t('continueAdding')
+              : t('continueSetting'),
         }
       )
       if (confirmed) {
@@ -262,7 +283,7 @@ export default function RoleManagePage() {
     } else {
       setShowRoleForm(false)
     }
-  }, [roleFormDirty, editRole, alertDialog])
+  }, [roleFormDirty, roleFormType, alertDialog, t])
 
   const onDefaultRoleSubmit = useCallback(
     async ({ roleId }: DefaultRoleSchema) => {
@@ -335,7 +356,7 @@ export default function RoleManagePage() {
       category={{
         isFront: true,
         frontId: 'role_manage',
-        name: '角色',
+        name: t('role'),
         describe: '',
       }}
     >
@@ -344,13 +365,13 @@ export default function RoleManagePage() {
           {!!defaultRoles.platform && (
             <div className="flex justify-between items-center mb-2">
               <div>
-                <b>平台用户默认角色</b>：{' '}
+                <b>{t('platformDefaultRole')}</b>：{' '}
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => {
+                    setRoleFormType('detail')
                     setEditRole({
-                      editting: true,
                       role: defaultRoles.platform,
                     })
                     setShowRoleForm(true)
@@ -378,7 +399,7 @@ export default function RoleManagePage() {
                               <RoleSelector
                                 valid={!fieldState.invalid}
                                 value={field.value}
-                                placeholder="选择默认角色"
+                                placeholder={t('selectDefaultRole')}
                                 onChange={(role) => {
                                   if (role) {
                                     defaultRoleForm.setValue(
@@ -403,10 +424,10 @@ export default function RoleManagePage() {
                         className="mr-2"
                         onClick={onCancelEditDefaultRole}
                       >
-                        取消
+                        {t('cancel')}
                       </Button>
                       <Button type="submit" size="sm">
-                        确认
+                        {t('confirm')}
                       </Button>
                     </form>
                   </Form>
@@ -418,7 +439,7 @@ export default function RoleManagePage() {
                     size="sm"
                     onClick={() => setEditDefaultRole(true)}
                   >
-                    设置
+                    {t('settings')}
                   </Button>
                 )}
               </div>
@@ -426,13 +447,13 @@ export default function RoleManagePage() {
           )}
           <div className="flex justify-between items-center">
             <div>
-              <b>站点用户默认角色</b>：{' '}
+              <b>{t('siteDefaultRole')}</b>：{' '}
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
+                  setRoleFormType('detail')
                   setEditRole({
-                    editting: true,
                     role: defaultRoles.site,
                   })
                   setShowRoleForm(true)
@@ -460,7 +481,7 @@ export default function RoleManagePage() {
                             <RoleSelector
                               valid={!fieldState.invalid}
                               value={field.value}
-                              placeholder="选择默认角色"
+                              placeholder={t('selectDefaultRole')}
                               onChange={(role) => {
                                 if (role) {
                                   siteDefaultRoleForm.setValue(
@@ -485,10 +506,10 @@ export default function RoleManagePage() {
                       className="mr-2"
                       onClick={onCancelEditSiteDefaultRole}
                     >
-                      取消
+                      {t('cancel')}
                     </Button>
                     <Button type="submit" size="sm">
-                      确认
+                      {t('confirm')}
                     </Button>
                   </form>
                 </Form>
@@ -500,7 +521,7 @@ export default function RoleManagePage() {
                   size="sm"
                   onClick={() => setEditSiteDefaultRole(true)}
                 >
-                  设置
+                  {t('settings')}
                 </Button>
               )}
             </div>
@@ -509,21 +530,23 @@ export default function RoleManagePage() {
       )}
       <div className="flex justify-between items-center">
         <div>
-          <Badge variant="secondary">{pageState.total} 个角色</Badge>
+          <Badge variant="secondary">
+            {t('roleCount', { num: pageState.total })}
+          </Badge>
         </div>
         <div>
           <Button
             variant="outline"
             size="sm"
             onClick={() => {
+              setRoleFormType('create')
               setEditRole({
-                editting: false,
                 role: undefined,
               })
               setShowRoleForm(true)
             }}
           >
-            + 添加
+            + {t('add')}
           </Button>
         </div>
       </div>
@@ -584,13 +607,12 @@ export default function RoleManagePage() {
       <Dialog open={showRoleForm} onOpenChange={onRoleFormClose}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {editRole.editting ? '角色详情' : '创建角色'}
-            </DialogTitle>
+            <DialogTitle>{RoleFormTypeNameMap[roleFormType]}</DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
           <RoleForm
-            type={editRole.editting ? 'detail' : 'create'}
+            key={`roleForm_${roleFormType}`}
+            type={roleFormType}
             role={editRole.role}
             onCancel={onRoleFormClose}
             onSuccess={() => {
@@ -598,6 +620,7 @@ export default function RoleManagePage() {
               fetchRoleList()
             }}
             onChange={setRoleFormDirty}
+            onFormTypeChange={setRoleFormType}
           />
         </DialogContent>
       </Dialog>

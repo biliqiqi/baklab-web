@@ -18,6 +18,7 @@ import { VariantProps, cva } from 'class-variance-authority'
 import { CodeIcon } from 'lucide-react'
 import { unescapeAll } from 'markdown-it/lib/common/utils.mjs'
 import * as React from 'react'
+import { useTranslation } from 'react-i18next'
 import { Markdown } from 'tiptap-markdown'
 
 import { cn, noop } from '@/lib/utils'
@@ -83,6 +84,7 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
     ref
   ) => {
     const elementRef = React.useRef<HTMLDivElement>(null)
+    const { t } = useTranslation()
 
     const editor = useEditor({
       content: value,
@@ -213,7 +215,7 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
               e.preventDefault()
               editor.commands.toggleBold()
             }}
-            title="加粗"
+            title={t('bold')}
           >
             <b>B</b>
           </Button>
@@ -225,7 +227,7 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
               e.preventDefault()
               editor.commands.toggleCodeBlock()
             }}
-            title="代码块"
+            title={t('codeBlock')}
           >
             <CodeIcon size={18} className="align-bottom" />
           </Button>
@@ -237,7 +239,7 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
               e.preventDefault()
               editor.commands.toggleStrike()
             }}
-            title="中横线"
+            title={t('middleLine')}
           >
             <del>S</del>
           </Button>

@@ -1,9 +1,10 @@
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import SigninForm from './components/SigninForm'
 
-import { SITE_NAME_CN } from './constants/constants'
+import { PLATFORM_NAME } from './constants/constants'
 import useDocumentTitle from './hooks/use-page-title'
 import { isInnerURL } from './lib/utils'
 
@@ -13,6 +14,8 @@ export default function SigninPage() {
 
   const navigate = useNavigate()
 
+  const { t } = useTranslation()
+
   const onSiginSuccess = useCallback(() => {
     if (returnURL && isInnerURL(returnURL)) {
       location.href = returnURL
@@ -21,12 +24,12 @@ export default function SigninPage() {
     }
   }, [returnURL, navigate])
 
-  useDocumentTitle('登录')
+  useDocumentTitle(t('signin'))
 
   return (
     <>
       <div className="flex justify-center py-8 text-xl font-bold text-primary">
-        <Link to="/">{SITE_NAME_CN}</Link>
+        <Link to="/">{PLATFORM_NAME}</Link>
       </div>
       <SigninForm onSuccess={onSiginSuccess} />
     </>

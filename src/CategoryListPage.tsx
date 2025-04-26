@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 
 import { Card } from './components/ui/card'
@@ -13,6 +14,8 @@ export default function CategoryListPage() {
   const cateStore = useCategoryStore()
   const { siteFrontId } = useParams()
 
+  const { t } = useTranslation()
+
   useEffect(() => {
     if (!siteFrontId) return
     toSync(cateStore.fetchCategoryList)(siteFrontId)
@@ -23,8 +26,8 @@ export default function CategoryListPage() {
       category={{
         isFront: true,
         frontId: 'bankuai',
-        name: '板块',
-        describe: '全部板块',
+        name: t('category'),
+        describe: t('categoryDescribe'),
       }}
       key={`category_list_${cateStore.categories.length}`}
     >

@@ -8,6 +8,7 @@ import {
   MenuIcon,
 } from 'lucide-react'
 import React, { useCallback, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useShallow } from 'zustand/react/shallow'
@@ -15,7 +16,11 @@ import { useShallow } from 'zustand/react/shallow'
 import { cn, summryText } from '@/lib/utils'
 
 import { logoutToken } from '@/api'
-import { NAV_HEIGHT, SITE_LOGO_IMAGE, SITE_NAME } from '@/constants/constants'
+import {
+  NAV_HEIGHT,
+  PLATFORM_NAME,
+  SITE_LOGO_IMAGE,
+} from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
   useAuthedUserStore,
@@ -116,6 +121,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
 
     const { updateSignin } = useDialogStore()
     const notiStore = useNotificationStore()
+    const { t } = useTranslation()
 
     const {
       currSite,
@@ -280,7 +286,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                     <BSiteIcon
                       className="max-w-[180px]"
                       logoUrl={SITE_LOGO_IMAGE}
-                      name={SITE_NAME}
+                      name={PLATFORM_NAME}
                       size={42}
                     />
                   )}
@@ -574,7 +580,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                 updateSignin(true)
               }}
             >
-              <Link to="/signin">登录</Link>
+              <Link to="/signin">{t('signin')}</Link>
             </Button>
           )}
         </div>

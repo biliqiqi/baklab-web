@@ -6,6 +6,7 @@ import React, {
   useMemo,
   useState,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -40,6 +41,8 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
   const [openSiteMenu, setOpenSiteMenu] = useState(false)
 
   const { siteFrontId } = useParams()
+
+  const { t } = useTranslation()
 
   const { authPermit, currUserId } = useAuthedUserStore(
     useShallow(({ permit, userID }) => ({
@@ -173,8 +176,10 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
       if (!siteFrontId || !currSite) return
       const { visible, allowNonMemberInteract } = currSite
       const confirmed = await alertConfirm(
-        '确认',
-        `${!visible || !allowNonMemberInteract ? '退出后将无法参与本站点互动，确定退出' : '确定退出站点'}？`,
+        t('confirm'),
+        !visible || !allowNonMemberInteract
+          ? t('quitSiteTipPrivate')
+          : t('quitSiteTipPublick'),
         'danger'
       )
       if (!confirmed) return
@@ -215,7 +220,7 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
           variant="ghost"
           size="sm"
           className={cn('h-[36px] w-[36px] p-0 text-gray-500', className)}
-          title="站点菜单"
+          title={t('siteMenu')}
         >
           <EllipsisVerticalIcon size={20} />
         </Button>
@@ -226,7 +231,7 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
             className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
             onClick={onEditSiteClick}
           >
-            站点设置
+            {t('siteSettings')}
           </DropdownMenuItem>
         )}
         {authPermit('site', 'manage') && (
@@ -234,7 +239,7 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
             className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
             onClick={onEditSiteUIClick}
           >
-            站点界面
+            {t('siteUI')}
           </DropdownMenuItem>
         )}
         {!currSite.visible && authPermit('site', 'invite') && (
@@ -242,21 +247,21 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
             className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
             onClick={onInviteClick}
           >
-            邀请加入
+            {t('invite')}
           </DropdownMenuItem>
         )}
         <DropdownMenuItem
           className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
           onClick={() => setShowSiteAbout(true)}
         >
-          关于
+          {t('about')}
         </DropdownMenuItem>
         {!isMySite && currSite.currUserState.isMember && (
           <DropdownMenuItem
             className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0 text-destructive"
             onClick={onQuitSiteClick}
           >
-            退出站点
+            {t('quitSite')}
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>

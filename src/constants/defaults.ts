@@ -80,7 +80,7 @@ export const defaultArticle: Article = {
   id: '0',
   title: '',
   displayTitle: '',
-  asMainArticle: false, // 是否在前端作为顶层文章
+  asMainArticle: false,
   link: '',
   picURL: '',
   price: 0,

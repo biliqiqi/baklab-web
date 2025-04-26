@@ -3,6 +3,7 @@ import { Collapsible } from '@radix-ui/react-collapsible'
 import { ChevronDownIcon } from 'lucide-react'
 import { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import sanitize from 'sanitize-html'
 import { toast } from 'sonner'
 import { useShallow } from 'zustand/react/shallow'
@@ -15,6 +16,7 @@ import { uploadFileBase64 } from '@/api/file'
 import { checkSiteExists, deleteSite, submitSite, updateSite } from '@/api/site'
 import { STATIC_HOST_NAME } from '@/constants/constants'
 import { defaultSite } from '@/constants/defaults'
+import i18n from '@/i18n'
 import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
 import { ResponseData, ResponseID, Site } from '@/types/types'
 
@@ -41,17 +43,26 @@ const MAX_SITE_NAME_LENGTH = 12
 
 const frontIDScheme = z
   .string()
-  .min(1, '请输入站点标识')
+  .min(1, i18n.t('siteFrontIdInputTip'))
   .max(
     MAX_SITE_FRONT_ID_LENGTH,
-    `站点标识不得超过${MAX_SITE_FRONT_ID_LENGTH}个字符`
+    i18n.t('charMaximum', {
+      field: i18n.t('siteFrontId'),
+      num: MAX_SITE_FRONT_ID_LENGTH,
+    })
   )
-  .regex(/^[a-zA-Z0-9_]+$/, '站点标识由数字、字母和下划线组成，不区分大小写')
+  .regex(/^[a-zA-Z0-9_]+$/, i18n.t('siteFrontIdRule'))
 
 const nameScheme = z
   .string()
-  .min(1, '请输入站点名称')
-  .max(MAX_SITE_NAME_LENGTH, `站点名称不得超过${MAX_SITE_NAME_LENGTH}个字符`)
+  .min(1, i18n.t('siteNameInputTip'))
+  .max(
+    MAX_SITE_NAME_LENGTH,
+    i18n.t('charMaximum', {
+      field: i18n.t('siteName'),
+      num: MAX_SITE_NAME_LENGTH,
+    })
+  )
 const descriptionScheme = z.string()
 
 const siteScheme = z.object({
@@ -59,7 +70,7 @@ const siteScheme = z.object({
   name: nameScheme,
   keywords: z.string(),
   description: descriptionScheme,
-  logoUrl: z.string().min(1, '请设置 LOGO'),
+  logoUrl: z.string().min(1, i18n.t('settingTip', { name: 'LOGO' })),
   logoBrandHTML: z.string(),
   nonMemberInteract: z.boolean(),
   visible: z.boolean(),
@@ -71,7 +82,7 @@ const siteEditScheme = z.object({
   name: nameScheme,
   keywords: z.string(),
   description: descriptionScheme,
-  logoUrl: z.string().min(1, '请设置 LOGO'),
+  logoUrl: z.string().min(1, i18n.t('settingTip', { name: 'LOGO' })),
   logoBrandHTML: z.string(),
   nonMemberInteract: z.boolean(),
   visible: z.boolean(),
@@ -121,6 +132,8 @@ const SiteForm: React.FC<SiteFormProps> = ({
   const [brandUploading, setBrandUploading] = useState(false)
   const [edittingLogo, setEdittingLogo] = useState(false)
   const [showMoreSettings, setShowMoreSettings] = useState(isEdit)
+
+  const { t } = useTranslation()
 
   const alertDialog = useAlertDialogStore()
   const { checkPermit, isLogined } = useAuthedUserStore(
@@ -196,7 +209,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
           if (exists) {
             form.setError(
               'frontID',
-              { message: '站点标识已存在' },
+              { message: t('dataExist', { field: t('siteFrontId') }) },
               { shouldFocus: true }
             )
             return
@@ -223,7 +236,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
         console.error('validate front id error: ', err)
       }
     },
-    [form, isEdit, onSuccess, site]
+    [form, isEdit, onSuccess, site, t]
   )
 
   const onDeleteClick = useCallback(
@@ -246,14 +259,14 @@ const SiteForm: React.FC<SiteFormProps> = ({
       )
       if (!resp.code) {
         if (resp.data.articleTotal > 0) {
-          alertDialog.alert('无法删除', '该站点下存在内容，无法删除')
+          alertDialog.alert(t('undeletable'), t('siteContentExist'))
           return
         }
       }
 
       const confirmed = await alertDialog.confirm(
-        '确认',
-        '删除之后无法撤回，确认删除？',
+        t('confirm'),
+        t('deleteConfirm'),
         'danger'
       )
 
@@ -264,14 +277,14 @@ const SiteForm: React.FC<SiteFormProps> = ({
         onSuccess('')
       }
     },
-    [isEdit, site, alertDialog, onSuccess]
+    [isEdit, site, alertDialog, onSuccess, t]
   )
 
   const onCropSuccess = useCallback(
     async (imgData: string, logoType: 'logo' | 'logoBrand') => {
       try {
         if (!isLogined()) {
-          toast.error('请认证或登录后再试')
+          toast.error(t('unAuthorizedError'))
           return
         }
 
@@ -308,7 +321,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
         }
       }
     },
-    [form, isLogined, formVals]
+    [form, isLogined, formVals, t]
   )
 
   const onLogoHtmlPreview = useCallback(
@@ -370,14 +383,12 @@ const SiteForm: React.FC<SiteFormProps> = ({
           key="logoUrl"
           render={() => (
             <FormItem className="mb-8">
-              <FormLabel>图标</FormLabel>
-              <FormDescription>
-                用于作为浏览器标签图标、应用安装图标、站点按钮标识等，图片限制为正方形
-              </FormDescription>
+              <FormLabel>{t('icon')}</FormLabel>
+              <FormDescription>{t('iconDescribe')}</FormDescription>
               <FormControl>
                 <div>
                   <BCropper
-                    btnText="上传站点图标"
+                    btnText={t('iconUploadTip')}
                     disabled={uploading}
                     loading={uploading}
                     onSuccess={(data) => onCropSuccess(data, 'logo')}
@@ -394,10 +405,10 @@ const SiteForm: React.FC<SiteFormProps> = ({
           key="name"
           render={({ field, fieldState }) => (
             <FormItem className="mb-8">
-              <FormLabel>名称</FormLabel>
+              <FormLabel>{t('name')}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="请输入站点名称"
+                  placeholder={t('siteNameInputTip')}
                   autoComplete="off"
                   state={fieldState.invalid ? 'invalid' : 'default'}
                   {...field}
@@ -414,10 +425,10 @@ const SiteForm: React.FC<SiteFormProps> = ({
             key="frontID"
             render={({ field, fieldState }) => (
               <FormItem className="mb-8">
-                <FormLabel>标识</FormLabel>
+                <FormLabel>{t('frontId')}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="请输入站点标识"
+                    placeholder={t('siteFrontIdInputTip')}
                     autoComplete="off"
                     state={fieldState.invalid ? 'invalid' : 'default'}
                     {...field}
@@ -442,7 +453,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
                   !showMoreSettings && '-rotate-90'
                 )}
               />
-              更多设置
+              {t('moreSettings')}
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="CollapsibleContent">
@@ -453,16 +464,13 @@ const SiteForm: React.FC<SiteFormProps> = ({
               render={({ field }) => (
                 <FormItem className="mb-8">
                   <FormLabel>LOGO</FormLabel>
-                  <FormDescription>
-                    用于顶部导航栏或其他地方，可以是图片或纯文本，如果没有设置
-                    LOGO 则默认使用站点图标和站点名称来代替
-                  </FormDescription>
+                  <FormDescription>{t('logoDescribe')}</FormDescription>
                   <FormControl>
                     <div>
                       <div className="flex items-center">
                         <BCropper
                           cropShape="rect"
-                          btnText="上传 LOGO 图片"
+                          btnText={t('logoUploadTip')}
                           settingAspect
                           disabled={brandUploading || edittingLogo}
                           loading={brandUploading}
@@ -476,7 +484,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
                             setEdittingLogo((state) => !state)
                           }}
                         >
-                          编辑 LOGO 源码
+                          {t('editLogoSourceCode')}
                         </Button>
                       </div>
                       <div
@@ -492,12 +500,10 @@ const SiteForm: React.FC<SiteFormProps> = ({
                           />
                           <div className="flex justify-between items-start mt-1">
                             <div className="text-gray-500 pr-2">
-                              仅支持 img、span、b 标签，可使用 style 和 title
-                              属性，img 标签额外支持 src、width、height、alt
-                              属性，其他未提及的标签和属性均不支持，图片资源仅支持本站上传
+                              {t('logoSourceCodeTip')}
                             </div>
                             <Button size={'sm'} onClick={onLogoHtmlPreview}>
-                              预览
+                              {t('preview')}
                             </Button>
                           </div>
                         </div>
@@ -514,7 +520,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
               key="visible"
               render={({ field }) => (
                 <FormItem className="mb-8">
-                  <FormLabel>可见性</FormLabel>
+                  <FormLabel>{t('visibility')}</FormLabel>
                   <FormControl>
                     <RadioGroup
                       onValueChange={(val) => {
@@ -538,7 +544,9 @@ const SiteForm: React.FC<SiteFormProps> = ({
                         <FormControl>
                           <RadioGroupItem value="1" className="mr-1" />
                         </FormControl>
-                        <FormLabel className="font-normal">公开</FormLabel>
+                        <FormLabel className="font-normal">
+                          {t('public')}
+                        </FormLabel>
                       </FormItem>
                       <FormItem
                         className="flex items-center space-y-0 mr-4 mb-4"
@@ -547,7 +555,9 @@ const SiteForm: React.FC<SiteFormProps> = ({
                         <FormControl>
                           <RadioGroupItem value="0" className="mr-1" />
                         </FormControl>
-                        <FormLabel className="font-normal">私有</FormLabel>
+                        <FormLabel className="font-normal">
+                          {t('private')}
+                        </FormLabel>
                       </FormItem>
                     </RadioGroup>
                   </FormControl>
@@ -562,16 +572,16 @@ const SiteForm: React.FC<SiteFormProps> = ({
                 key="nonMemberInteract"
                 render={({ field }) => (
                   <FormItem className="mb-8">
-                    <FormLabel>是否允许非成员交互</FormLabel>
+                    <FormLabel>{t('nonMemberInteract')}</FormLabel>
                     <FormDescription>
-                      是否允许未加入的用户进行投票、订阅、收藏、评论等操作，若不允许，则只能浏览内容
+                      {t('nonMemberInteractDescribe')}
                     </FormDescription>
                     <FormControl>
                       <div className="flex items-center">
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
-                          aria-label="允许"
+                          aria-label={t('allow')}
                           className="mr-1"
                           id="allowNonMemberInteract"
                         />{' '}
@@ -579,7 +589,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
                           htmlFor="allowNonMemberInteract"
                           className="text-sm"
                         >
-                          允许
+                          {t('allow')}
                         </label>
                       </div>
                     </FormControl>
@@ -594,19 +604,21 @@ const SiteForm: React.FC<SiteFormProps> = ({
               key="reviewBeforePublish"
               render={({ field }) => (
                 <FormItem className="mb-8">
-                  <FormLabel>内容审核</FormLabel>
-                  <FormDescription>是否在发布内容之前进行审核</FormDescription>
+                  <FormLabel>{t('contentReview')}</FormLabel>
+                  <FormDescription>
+                    {t('contentReviewDescribe')}
+                  </FormDescription>
                   <FormControl>
                     <div className="flex items-center">
                       <Checkbox
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        aria-label="开启先审后发"
+                        aria-label={t('reviewBeforePublish')}
                         className="mr-1"
                         id="reviewBeforePublish"
                       />{' '}
                       <label htmlFor="reviewBeforePublish" className="text-sm">
-                        开启先审后发
+                        {t('reviewBeforePublish')}
                       </label>
                     </div>
                   </FormControl>
@@ -621,10 +633,8 @@ const SiteForm: React.FC<SiteFormProps> = ({
                 key="homePage"
                 render={({ field }) => (
                   <FormItem className="mb-8">
-                    <FormLabel>首页</FormLabel>
-                    <FormDescription>
-                      从以下页面中选择一个作为首页
-                    </FormDescription>
+                    <FormLabel>{t('homePage')}</FormLabel>
+                    <FormDescription>{t('homePageDescribe')}</FormDescription>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
@@ -640,7 +650,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
                             <RadioGroupItem value="/feed" className="mr-1" />
                           </FormControl>
                           <FormLabel className="font-normal">
-                            信息流 (&nbsp;
+                            {t('feed')} (&nbsp;
                             <span className="text-sm text-gray-500">
                               {`/${site.frontId}/feed`}
                             </span>
@@ -655,7 +665,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
                             <RadioGroupItem value="/bankuai" className="mr-1" />
                           </FormControl>
                           <FormLabel className="font-normal">
-                            板块 (&nbsp;
+                            {t('category')} (&nbsp;
                             <span className="text-sm text-gray-500">
                               {`/${site.frontId}/bankuai`}
                             </span>
@@ -675,10 +685,10 @@ const SiteForm: React.FC<SiteFormProps> = ({
               key="keywords"
               render={({ field, fieldState }) => (
                 <FormItem className="mb-8">
-                  <FormLabel>关键词</FormLabel>
+                  <FormLabel>{t('keywords')}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="请输入站点关键字词，用逗号 ( , ) 隔开"
+                      placeholder={t('keywordDescribe')}
                       autoComplete="off"
                       state={fieldState.invalid ? 'invalid' : 'default'}
                       {...field}
@@ -696,10 +706,12 @@ const SiteForm: React.FC<SiteFormProps> = ({
                 <FormItem className="mb-8">
                   <FormControl>
                     <FormItem className="mb-8">
-                      <FormLabel>描述</FormLabel>
+                      <FormLabel>{t('description')}</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="请输入站点描述"
+                          placeholder={t('inputTip', {
+                            field: t('description'),
+                          })}
                           autoComplete="off"
                           state={fieldState.invalid ? 'invalid' : 'default'}
                           {...field}
@@ -723,12 +735,12 @@ const SiteForm: React.FC<SiteFormProps> = ({
                 size="sm"
                 onClick={onDeleteClick}
               >
-                删除
+                {t('delete')}
               </Button>
             )}
           </span>
           <Button type="submit" size="sm" disabled={!form.formState.isDirty}>
-            提交
+            {t('submit')}
           </Button>
         </div>
       </form>

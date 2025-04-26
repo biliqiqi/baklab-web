@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 
 import { cn, renderMD } from '@/lib/utils'
@@ -16,14 +17,15 @@ import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 import UserDetailCard from './components/UserDetailCard'
 
-import {
-  ARTICLE_STATUS_COLOR_MAP,
-  ARTICLE_STATUS_NAME_MAP,
-  DEFAULT_PAGE_SIZE,
-} from '@/constants/constants'
+import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 
 import { getArticleList } from './api/article'
 import { getUser, getUserActivityList, getUserPunishedList } from './api/user'
+import {
+  ARTICLE_STATUS_COLOR_MAP,
+  ARTICLE_STATUS_NAME_MAP,
+} from './constants/maps'
+import i18n from './i18n'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { genArticlePath, noop } from './lib/utils'
@@ -51,14 +53,14 @@ type UserTabMap = {
 }
 
 const tabMapData: UserTabMap = {
-  all: '全部',
-  reply: '回复',
-  article: '帖子',
-  saved: '已保存',
-  subscribed: '已订阅',
-  vote_up: '已投票',
-  activity: '操作记录',
-  violation: '违规记录',
+  all: i18n.t('all'),
+  reply: i18n.t('reply'),
+  article: i18n.t('post'),
+  saved: i18n.t('saved'),
+  subscribed: i18n.t('subscribed'),
+  vote_up: i18n.t('voted'),
+  activity: i18n.t('operationLog'),
+  violation: i18n.t('violationLog'),
 }
 
 const defaultTabs: UserTab[] = ['all', 'article', 'reply']
@@ -73,9 +75,9 @@ type ActivityTabMap = {
 
 const defaultActSubTabs: ActivityTab[] = ['user']
 const activityTabMap: ActivityTabMap = {
-  all: '全部',
-  manage: '管理行为',
-  user: '用户行为',
+  all: i18n.t('all'),
+  manage: i18n.t('managementLog'),
+  user: i18n.t('userActivityLog'),
 }
 
 interface ArticleListProps {
@@ -167,6 +169,7 @@ export default function UserPage() {
   const authStore = useAuthedUserStore()
 
   const { updateNotFound } = useNotFoundStore()
+  const { t } = useTranslation()
 
   const [params, setParams] = useSearchParams()
   const { username, siteFrontId } = useParams()
@@ -372,7 +375,7 @@ export default function UserPage() {
         category={{
           isFront: true,
           frontId: 'userpage',
-          name: `${username} 的个人主页`,
+          name: `${username}`,
           describe: '',
         }}
       >
@@ -390,7 +393,9 @@ export default function UserPage() {
                 <div className="pt-5">
                   <div className="text-lg font-bold mb-2">{user.name}</div>
                   <div className="text-gray-500 text-sm">
-                    加入于 {timeFmt(user.registeredAt, 'YYYY-M')}
+                    {t('joinedAtTime', {
+                      time: timeFmt(user.registeredAt, 'YYYY-M'),
+                    })}
                   </div>
                 </div>
               </div>

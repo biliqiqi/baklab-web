@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ChangeEvent, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -70,6 +71,8 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
   const autheState = useAuthedUserStore()
   const navigate = useNavigate()
+
+  const { t } = useTranslation()
 
   const email = useRef('')
 
@@ -257,7 +260,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
                 className="w-full text-center mb-4"
                 disabled={loading}
               >
-                {loading ? <BLoader /> : '提交'}
+                {loading ? <BLoader /> : t('submit')}
               </Button>
               <Button
                 type="button"

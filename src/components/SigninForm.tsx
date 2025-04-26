@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ChangeEvent, memo, useCallback, useState } from 'react'
 import { Control, Controller, Path, useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
@@ -87,6 +88,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
   const account = searchParams.get('account') || email
 
   const siteStore = useSiteStore()
+  const { t } = useTranslation()
   /* const { forceUpdate } = useForceUpdate() */
 
   /* const navigate = useNavigate() */
@@ -166,7 +168,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
     }
   }
 
-  useDocumentTitle('登录')
+  useDocumentTitle(t('signin'))
 
   /* console.log('render signin page') */
 
@@ -191,7 +193,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
               className="w-full text-center"
               disabled={loading}
             >
-              {loading ? <BLoader /> : '登录'}
+              {loading ? <BLoader /> : t('signin')}
             </Button>
           </form>
         </Form>

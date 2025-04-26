@@ -6,6 +6,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLocation, useParams, useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -68,6 +69,8 @@ export default function BlockedWordListPage() {
     total: 0,
     totalPage: 0,
   })
+
+  const { t } = useTranslation()
 
   const { setLoading } = useLoading()
 
@@ -155,14 +158,14 @@ export default function BlockedWordListPage() {
             (table.getIsSomePageRowsSelected() && 'indeterminate')
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="全选"
+          aria-label={t('selectAll')}
         />
       ),
       cell: ({ row }) => (
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="选中该行"
+          aria-label={t('selectRow')}
           disabled={!row.getCanSelect()}
         />
       ),
@@ -170,19 +173,19 @@ export default function BlockedWordListPage() {
     {
       id: 'word',
       accessorKey: 'word',
-      header: '内容',
+      header: t('content'),
       cell: ({ row }) => row.original.word.content,
     },
     {
       id: 'creatorName',
       accessorKey: 'creatorName',
-      header: '添加人',
+      header: t('creator'),
       cell: ({ row }) => row.original.creatorName,
     },
     {
       id: 'createdAt',
       accessorKey: 'createdAt',
-      header: '添加时间',
+      header: t('createdAt'),
       cell: ({ row }) => timeFmt(row.original.createdAt, 'YYYY-M-D'),
     },
     {
@@ -199,7 +202,7 @@ export default function BlockedWordListPage() {
               await onRemoveClick(row.original)
             }}
           >
-            移除
+            {t('remove')}
           </Button>
         </>
       ),
@@ -226,8 +229,8 @@ export default function BlockedWordListPage() {
       if (!siteFrontId) return
 
       const confirmed = await alertDialog.confirm(
-        `确认`,
-        `确定把屏蔽词 "${word.word.content}" 从本站移除？`,
+        t('confirm'),
+        t('removeBlockedWordsConfirm', { word: word.word.content }),
         'danger'
       )
       if (!confirmed) return
@@ -249,8 +252,8 @@ export default function BlockedWordListPage() {
     const words = selectedRows.map((item) => item.original.word.content)
 
     const confirmed = await alertDialog.confirm(
-      `确认`,
-      `确定把屏蔽词 "${words.join(', ')}" 从本站移除？`,
+      t('confirm'),
+      t('removeBlockedWordsConfirm', { word: words.join(', ') }),
       'danger'
     )
     if (!confirmed) return
@@ -290,12 +293,12 @@ export default function BlockedWordListPage() {
   const onWordFormClose = useCallback(async () => {
     if (wordFormDirty) {
       const confirmed = await dialogConfirm(
-        '确认',
-        '有未提交数据，确认舍弃？',
+        t('confirm'),
+        t('unsubmitDropConfirm'),
         'normal',
         {
-          confirmBtnText: '确定舍弃',
-          cancelBtnText: '继续添加',
+          confirmBtnText: t('dropConfirm'),
+          cancelBtnText: t('continueAdding'),
         }
       )
 
@@ -321,14 +324,14 @@ export default function BlockedWordListPage() {
       category={{
         isFront: true,
         frontId: 'blockedWords',
-        name: '屏蔽词列表',
+        name: t('blockedWordList'),
         describe: '',
       }}
     >
       <Card className="flex flex-wrap justify-between p-2">
         <div className="flex flex-wrap">
           <Input
-            placeholder="关键词"
+            placeholder={t('keywords')}
             className="w-[140px] h-[36px] mr-3"
             value={searchData.keywords}
             onChange={(e) =>
@@ -346,16 +349,18 @@ export default function BlockedWordListPage() {
         </div>
         <div>
           <Button size="sm" onClick={onResetClick} className="mr-3">
-            重置
+            {t('reset')}
           </Button>
           <Button size="sm" onClick={onSearchClick}>
-            搜索
+            {t('search')}
           </Button>
         </div>
       </Card>
 
       <div className="flex justify-between items-center my-4">
-        <Badge variant="secondary">{pageState.total} 个屏蔽词</Badge>
+        <Badge variant="secondary">
+          {t('blockedWordCount', { num: pageState.total })}
+        </Badge>
         <Button
           variant="outline"
           size="sm"
@@ -363,7 +368,7 @@ export default function BlockedWordListPage() {
             setShowBlockedWordForm(true)
           }}
         >
-          + 添加
+          + {t('add')}
         </Button>
       </div>
 
@@ -428,7 +433,7 @@ export default function BlockedWordListPage() {
             <Card className="sticky bottom-0 mt-4 p-2">
               <div className="flex justify-between items-center">
                 <div className="text-sm">
-                  已选中 {selectedRows.length} 个词汇
+                  {t('selectedWordCount', { num: selectedRows.length })}
                 </div>
                 <div>
                   {checkPermit('site', 'manage') && (
@@ -438,7 +443,7 @@ export default function BlockedWordListPage() {
                       className="ml-1"
                       variant={'destructive'}
                     >
-                      移除 {selectedRows.length} 个已选词汇
+                      {t('removeWordCount', { num: selectedRows.length })}
                     </Button>
                   )}
                 </div>
@@ -451,7 +456,7 @@ export default function BlockedWordListPage() {
       <Dialog open={showBlockedWordForm} onOpenChange={onWordFormClose}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>添加屏蔽词</DialogTitle>
+            <DialogTitle>{t('addBlockedWords')}</DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
           <BlockedWordForm

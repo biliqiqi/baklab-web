@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -22,6 +23,8 @@ export default function EditPage() {
   const { updateNotFound } = useNotFoundStore()
   const authState = useAuthedUserStore()
   const navigate = useNavigate()
+
+  const { t } = useTranslation()
 
   /* console.log('article id: ', articleId) */
 
@@ -51,12 +54,12 @@ export default function EditPage() {
 
             if (authState.isMySelf(article.authorId)) {
               if (!authState.permit('article', 'edit_mine')) {
-                toast.error('禁止访问')
+                toast.error(t('forbidden'))
                 navigate('/', { replace: true, flushSync: true })
               }
             } else {
               if (!authState.permit('article', 'edit_others')) {
-                toast.error('禁止访问')
+                toast.error(t('forbidden'))
                 navigate('/', { replace: true, flushSync: true })
               }
             }
@@ -85,10 +88,10 @@ export default function EditPage() {
   return (
     <BContainer
       key="edit_article"
-      title="提交"
+      title={t('submit')}
       category={{
         frontId: 'edit',
-        name: '编辑帖子',
+        name: t('editPost'),
         describe: '',
         isFront: true,
       }}

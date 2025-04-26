@@ -14,6 +14,7 @@ import {
   useContext,
   useMemo,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
@@ -95,6 +96,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   const articleHistory = useArticleHistoryStore()
   const checkPermit = useAuthedUserStore((state) => state.permit)
   const isMyself = useAuthedUserStore((state) => state.isMySelf)
+  const { t } = useTranslation()
 
   /* console.log('curr article history: ', articleHistory) */
 
@@ -444,7 +446,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             {cornerLink && (
               <Button size="sm" variant="link">
                 <a href={article.link} target="_blank">
-                  来源 {article.link}
+                  {t('source')} {article.link}
                 </a>
               </Button>
             )}

@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 
 import { Badge } from './components/ui/badge'
@@ -60,10 +61,12 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
   const [content, setContent] = useState('')
   const [errMessage, setErrMessage] = useState('')
 
+  const { t } = useTranslation()
+
   const onConfirmClick = useCallback(
     (data?: ReasonScheme) => {
       if (!reviewAciton) {
-        setErrMessage('未指定操作类型')
+        setErrMessage(t('actionTypeRequired'))
         return
       }
       setErrMessage('')
@@ -83,7 +86,7 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
 
       onConfirm(reviewAciton, con)
     },
-    [reviewAciton, content, onConfirm]
+    [reviewAciton, content, onConfirm, t]
   )
 
   const onContentChange = useCallback(
@@ -102,32 +105,48 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
       <Collapsible>
         <CollapsibleTrigger asChild>
           <div className="cursor-pointer">
-            <Link to={`/users/${item.operator.name}`} className="text-primary">
-              {item.operator.name}
-            </Link>
-            &nbsp;{item.prevHistoryId == '0' ? '创建了' : '更新了'}
-            {!isReply(item) ? '文章' : '回复'}
-            &nbsp;
-            <Link
-              to={`/${siteFrontId}/articles/${item.currArticle.id}`}
-              className="text-primary"
-            >
-              {item.currArticle.displayTitle}
-            </Link>
-            &nbsp;于&nbsp;
-            <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+            <Trans
+              i18nKey={'articleCreateDescribe'}
+              values={{
+                authorName: item.operator.name,
+                actionName:
+                  item.prevHistoryId == '0' ? t('created') : t('updated'),
+                objName: !isReply(item) ? t('post') : t('reply'),
+                title: item.currArticle.displayTitle,
+                time: timeAgo(item.createdAt),
+              }}
+              components={{
+                authorLink: (
+                  <Link
+                    to={`/users/${item.operator.name}`}
+                    className="text-primary"
+                  />
+                ),
+                titleLink: (
+                  <Link
+                    to={`/${siteFrontId}/articles/${item.currArticle.id}`}
+                    className="text-primary"
+                  />
+                ),
+                timeTag: <time title={item.createdAt} />,
+              }}
+            />
           </div>
         </CollapsibleTrigger>
         <CollapsibleContent>
           <div className="text-sm bg-gray-100 p-2 mt-2">
             <div key={item.id}>
               <div className="flex justify-between items-center mt-4">
-                <span className="font-bold">版本：{item.version}</span>
+                <span className="font-bold">
+                  {t('version')}：{item.version}
+                </span>
                 <span className="text-sm"></span>
               </div>
               {!isReply(item) && (
                 <div className="flex mt-2 text-sm">
-                  <div className="w-[50px] font-bold mr-1 pt-2">标题：</div>
+                  <div className="w-[50px] font-bold mr-1 pt-2">
+                    {t('title')}：
+                  </div>
                   <div
                     className="flex-shrink-0 flex-grow bg-gray-100 p-2"
                     style={{
@@ -141,7 +160,9 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
               )}
               {!isReply(item) && (
                 <div className="flex mt-2 text-sm">
-                  <div className="w-[50px] font-bold mr-1 pt-2">板块：</div>
+                  <div className="w-[50px] font-bold mr-1 pt-2">
+                    {t('category')}：
+                  </div>
                   <div
                     className="flex-shrink-0 flex-grow bg-gray-100 p-2"
                     style={{
@@ -155,7 +176,9 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
               )}
               {!isReply(item) && (
                 <div className="flex mt-2 text-sm">
-                  <div className="w-[50px] font-bold mr-1 pt-2">链接：</div>
+                  <div className="w-[50px] font-bold mr-1 pt-2">
+                    {t('link')}：
+                  </div>
                   <div
                     className="flex-shrink-0 flex-grow bg-gray-100 p-2"
                     style={{
@@ -168,7 +191,9 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
                 </div>
               )}
               <div className="flex mt-2 text-sm">
-                <div className="w-[50px] font-bold mr-1 pt-2">内容：</div>
+                <div className="w-[50px] font-bold mr-1 pt-2">
+                  {t('content')}：
+                </div>
                 <div
                   className="flex-shrink-0 flex-grow bg-gray-100 p-2 whitespace-break-spaces"
                   style={{
@@ -190,7 +215,7 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
                   size={'sm'}
                   onClick={() => setReviewAction('rejected')}
                 >
-                  驳回
+                  {t('reject')}
                 </Button>
                 <Button
                   variant={'default'}
@@ -198,7 +223,7 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
                   className="ml-1"
                   onClick={() => setReviewAction('approved')}
                 >
-                  通过
+                  {t('pass')}
                 </Button>
               </div>
             </div>
@@ -206,12 +231,12 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
           {reviewAciton && (
             <div className="justify-between mt-4 pt-2">
               <div className="mb-1">
-                {isApproved ? '确定通过？' : '确定驳回？请填写驳回原因'}
+                {isApproved ? t('passConfirm') : t('rejectConfirm')}
               </div>
               {reviewAciton == 'approved' ? (
                 <>
                   <Textarea
-                    placeholder={'备注（选填）'}
+                    placeholder={`${t('remark')} (${t('optional')})`}
                     value={content}
                     onChange={onContentChange}
                   />
@@ -229,7 +254,7 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
                         className="ml-1"
                         onClick={() => setReviewAction(null)}
                       >
-                        取消
+                        {t('cancel')}
                       </Button>
                       <Button
                         variant={isApproved ? 'default' : 'destructive'}
@@ -237,7 +262,7 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
                         className="ml-1"
                         onClick={() => onConfirmClick()}
                       >
-                        确定
+                        {t('confirm')}
                       </Button>
                     </span>
                   </div>
@@ -269,6 +294,8 @@ export function ArticleReviewPage() {
     total: 0,
     totalPage: 0,
   })
+
+  const { t } = useTranslation()
 
   const [updates, setUpdates] = useState<ArticleLog[]>([])
   const usernameRef = useRef<HTMLInputElement | null>(null)
@@ -385,14 +412,14 @@ export function ArticleReviewPage() {
       category={{
         isFront: true,
         frontId: 'article_review',
-        name: '人工审核',
-        describe: '审核当前站点所有提交和更新',
+        name: t('reviewByHuman'),
+        describe: t('reviewByHumanDescribe'),
       }}
     >
       <Card className="flex flex-wrap justify-between p-2">
         <div className="flex flex-wrap">
           <Input
-            placeholder="作者"
+            placeholder={t('author')}
             className="w-[140px] h-[36px] mr-3"
             ref={usernameRef}
             value={searchData.username}
@@ -411,10 +438,10 @@ export function ArticleReviewPage() {
         </div>
         <div>
           <Button size="sm" onClick={onResetClick} className="mr-3">
-            重置
+            {t('reset')}
           </Button>
           <Button size="sm" onClick={onSearchClick}>
-            搜索
+            {t('search')}
           </Button>
         </div>
       </Card>
@@ -425,7 +452,9 @@ export function ArticleReviewPage() {
         <>
           <div className="flex justify-between items-center my-4">
             <div>
-              <Badge variant="secondary">{pageState.total} 条记录</Badge>
+              <Badge variant="secondary">
+                {t('recordCount', { num: pageState.total })}
+              </Badge>
             </div>
             <div></div>
           </div>

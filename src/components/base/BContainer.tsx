@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -94,6 +95,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       useTopDrawerStore()
     const { signin, signup, updateSignin, updateSignup } = useDialogStore()
     const { showNotFound, updateNotFound } = useNotFoundStore()
+    const { t } = useTranslation()
 
     const userUIFormRef = useRef<UserUIFormRef | null>(null)
     const siteUIFormRef = useRef<SiteUIFormRef | null>(null)
@@ -616,7 +618,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                           updateSignin(true)
                         }}
                       >
-                        <Link to="/signin">登录</Link>
+                        <Link to="/signin">{t('signin')}</Link>
                       </Button>
                     </Card>
                   )}
@@ -703,7 +705,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         <Dialog open={signin} onOpenChange={updateSignin}>
           <DialogContent className="w-[500px]">
             <DialogHeader>
-              <DialogTitle>登录</DialogTitle>
+              <DialogTitle>{t('signin')}</DialogTitle>
               <DialogDescription></DialogDescription>
             </DialogHeader>
             <SigninForm
@@ -719,7 +721,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         <Dialog open={signup} onOpenChange={updateSignup}>
           <DialogContent className="w-[500px]">
             <DialogHeader>
-              <DialogTitle>注册</DialogTitle>
+              <DialogTitle>{t('signup')}</DialogTitle>
               <DialogDescription></DialogDescription>
             </DialogHeader>
 

@@ -15,12 +15,17 @@ import {
   UserRoundXIcon,
 } from 'lucide-react'
 import React, { MouseEvent, useCallback, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useMatch, useNavigate, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { cn, getSiteStatusColor, getSiteStatusName } from '@/lib/utils'
 
-import { NAV_HEIGHT, SITE_LOGO_IMAGE, SITE_NAME } from '@/constants/constants'
+import {
+  NAV_HEIGHT,
+  PLATFORM_NAME,
+  SITE_LOGO_IMAGE,
+} from '@/constants/constants'
 import { PermissionAction, PermissionModule } from '@/constants/types'
 import {
   useAlertDialogStore,
@@ -152,6 +157,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
   const alertDialog = useAlertDialogStore()
 
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const { authPermit, currUserId } = useAuthedUserStore(
     useShallow(({ permit, userID, isLogined }) => ({
@@ -352,7 +358,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                       key="home"
                       className="max-w-[180px]"
                       logoUrl={SITE_LOGO_IMAGE}
-                      name={SITE_NAME}
+                      name={PLATFORM_NAME}
                       size={42}
                       showSiteName
                     />
@@ -408,7 +414,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                         <BIconCircle id="categories" size={32}>
                           <ChartBarStackedIcon size={18} />
                         </BIconCircle>
-                        全部板块
+                        {t('allCategories')}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -472,7 +478,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                           !groupsOpen.category && '-rotate-90'
                         )}
                       />
-                      <span>板块</span>
+                      <span>{t('category')}</span>
                     </span>
 
                     {authPermit('category', 'create') && (

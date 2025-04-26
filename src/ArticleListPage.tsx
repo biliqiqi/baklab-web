@@ -1,5 +1,6 @@
 import { SquareArrowOutUpRightIcon } from 'lucide-react'
 import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 /* import mockArticleList from '@/mock/articles.json' */
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -15,13 +16,11 @@ import ArticleControls from './components/ArticleControls'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 
-import {
-  ARTICLE_STATUS_NAME_MAP,
-  DEFAULT_PAGE_SIZE,
-} from '@/constants/constants'
+import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 
 import { getArticleList } from './api/article'
 import { getCategoryWithFrontId } from './api/category'
+import { ARTICLE_STATUS_NAME_MAP } from './constants/maps'
 import { toSync } from './lib/fire-and-forget'
 import { extractDomain, genArticlePath, renderMD } from './lib/utils'
 import { isLogined, useAuthedUserStore, useLoading } from './state/global'
@@ -65,6 +64,7 @@ export default function ArticleListPage() {
 
   const navigate = useNavigate()
   /* const siteStore = useSiteStore() */
+  const { t } = useTranslation()
 
   const sort = (params.get('sort') as ArticleListSort | null) || 'best'
 
@@ -206,9 +206,9 @@ export default function ArticleListPage() {
           {list.length > 0 && (
             <Tabs defaultValue="best" value={sort} onValueChange={onSwitchTab}>
               <TabsList>
-                <TabsTrigger value="best">最佳</TabsTrigger>
-                <TabsTrigger value="latest">最新</TabsTrigger>
-                <TabsTrigger value="list_hot">热门</TabsTrigger>
+                <TabsTrigger value="best">{t('best')}</TabsTrigger>
+                <TabsTrigger value="latest">{t('latest')}</TabsTrigger>
+                <TabsTrigger value="list_hot">{t('hot')}</TabsTrigger>
               </TabsList>
             </Tabs>
           )}
@@ -216,7 +216,7 @@ export default function ArticleListPage() {
         <div>
           {siteFrontId && checkPermit('article', 'create') && (
             <Button variant="outline" size="sm" asChild onClick={onSubmitClick}>
-              <Link to={submitPath}>+ 提交</Link>
+              <Link to={submitPath}>+ {t('submit')}</Link>
             </Button>
           )}
         </div>
@@ -237,7 +237,8 @@ export default function ArticleListPage() {
                   </Link>
                   {item.link && (
                     <span className="text-sm">
-                      (<span className="text-gray-500">来源</span>&nbsp;
+                      (<span className="text-gray-500">{t('source')}</span>
+                      &nbsp;
                       <a
                         href={item.link}
                         target="_blank"

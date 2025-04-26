@@ -3,6 +3,7 @@ import emojiRegex from 'emoji-regex'
 import { ChevronDownIcon } from 'lucide-react'
 import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import stc from 'string-to-color'
 
@@ -147,6 +148,8 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
   const authStore = useAuthedUserStore()
   const siteStore = useSiteStore()
   const { siteFrontId } = useParams()
+
+  const { t } = useTranslation()
 
   const form = useForm<CategorySchema>({
     resolver: zodResolver(
@@ -509,7 +512,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
             )}
           </span>
           <Button type="submit" size="sm" disabled={!form.formState.isDirty}>
-            提交
+            {t('submit')}
           </Button>
         </div>
       </form>

@@ -4,11 +4,8 @@ import MarkdownIt from 'markdown-it'
 import { KeyboardEvent, KeyboardEventHandler } from 'react'
 import { twMerge } from 'tailwind-merge'
 
-import {
-  DEFAULT_FONT_SIZE,
-  SITE_STATUS_COLOR_MAP,
-  SITE_STATUS_NAME_MAP,
-} from '@/constants/constants'
+import { DEFAULT_FONT_SIZE } from '@/constants/constants'
+import { SITE_STATUS_COLOR_MAP, SITE_STATUS_NAME_MAP } from '@/constants/maps'
 import {
   PERMISSION_DATA,
   PERMISSION_MODULE_DATA,
@@ -18,6 +15,7 @@ import {
   PermissionItem,
   PermissionModule,
 } from '@/constants/types'
+import i18n from '@/i18n'
 import { Article, SiteStatus } from '@/types/types'
 
 export function cn(...inputs: ClassValue[]) {
@@ -86,30 +84,29 @@ export const getPermissionName = <K extends PermissionModule>(
 }
 
 export const getPermissionModuleName = (moduleId: PermissionModule) =>
-  PERMISSION_MODULE_DATA[moduleId] || '未知模块'
+  PERMISSION_MODULE_DATA[moduleId] || i18n.t('unknowPermissionModule')
 
 export const formatMinutes = (totalMinutes: number): string => {
   if (totalMinutes < 0) {
-    return '无效时间'
+    return i18n.t('invalidTime')
   }
 
   const days = Math.floor(totalMinutes / (24 * 60))
   const hours = Math.floor((totalMinutes % (24 * 60)) / 60)
   const minutes = totalMinutes % 60
 
-  // 构建输出字符串
   const parts: string[] = []
 
   if (days > 0) {
-    parts.push(`${days} 天`)
+    parts.push(i18n.t('dayCount', { num: days }))
   }
 
   if (hours > 0) {
-    parts.push(`${hours} 小时`)
+    parts.push(i18n.t('hourCount', { num: hours }))
   }
 
   if (minutes > 0 || parts.length === 0) {
-    parts.push(`${minutes} 分钟`)
+    parts.push(i18n.t('minuteCount', { num: minutes }))
   }
 
   return parts.join(' ')

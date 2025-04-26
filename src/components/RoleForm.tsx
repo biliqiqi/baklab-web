@@ -48,6 +48,7 @@ export interface RoleFormProps {
   onCancel?: () => void
   onSuccess?: () => void
   onChange?: (isDirty: boolean) => void
+  onFormTypeChange?: (formType: RoleFormType) => void
 }
 
 const roleSchema = z.object({
@@ -74,6 +75,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
   onCancel = noop,
   onSuccess = noop,
   onChange = noop,
+  onFormTypeChange = noop,
 }) => {
   const [formType, setFormType] = useState<RoleFormType>(type)
   /* const [permissionOptions, setPermissionOptions] = useState<Permission[]>([]) */
@@ -87,7 +89,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
 
   const edittingPermissionFrontIds = useMemo(() => {
     return (role.permissions || []).map((item) => item.frontId)
-  }, [role])
+  }, [role.permissions])
 
   const isEdit = useMemo(() => formType == 'edit', [formType])
   const isDetail = useMemo(() => formType == 'detail', [formType])
@@ -218,16 +220,8 @@ const RoleForm: React.FC<RoleFormProps> = ({
   }, [form, formVals, onChange])
 
   useEffect(() => {
-    if (!isDetail && role) {
-      form.reset({
-        name: role.name,
-        level: String(role.level),
-        siteNumLimit: String(role.siteNumLimit),
-        permissionFrontIds: edittingPermissionFrontIds,
-        showRoleName: role.showRoleName,
-      })
-    }
-  }, [formType, form, role, isDetail, edittingPermissionFrontIds])
+    onFormTypeChange(formType)
+  }, [formType, onFormTypeChange])
 
   if ((isEdit || isDetail) && !role) return null
 

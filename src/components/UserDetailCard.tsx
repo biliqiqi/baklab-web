@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -29,6 +30,7 @@ import {
 import BanDialog, { BanDialogRef, BanSchema } from '@/components/BanDialog'
 
 import { banUser, setUserRole, unBanUser } from '@/api/user'
+import i18n from '@/i18n'
 import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
 import { Role, UserData } from '@/types/types'
 
@@ -45,7 +47,7 @@ interface UserDetailCardProps {
 }
 
 const roleEditScheme = z.object({
-  roleId: z.string().min(1, '请选择角色'),
+  roleId: z.string().min(1, i18n.t('selectRoleTip')),
   remark: z.string(),
   roleName: z.string(),
 })
@@ -59,7 +61,7 @@ const defaultRoleEditData: RoleEditScheme = {
 }
 
 const UserDetailCard: React.FC<UserDetailCardProps> = ({
-  title = '用户管理',
+  title = i18n.t('userManagement'),
   className,
   user,
   onSuccess = noop,
@@ -73,6 +75,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
 
   const banDialogRef = useRef<BanDialogRef | null>(null)
   const alertDialog = useAlertDialogStore()
+  const { t } = useTranslation()
 
   const selectedPermissions = useMemo(
     () => selectedRole?.permissions || [],
@@ -132,7 +135,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
           /* const {data} */
           form.reset({ ...defaultRoleEditData })
           setAlertOpen(false)
-          toast.success('用户角色已更新')
+          toast.success(t('userRoleUpdateTip'))
           /* fetchUserData(false) */
           onSuccess()
         }
@@ -140,14 +143,14 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
         console.error('confirm delete error: ', err)
       }
     },
-    [user, form, onSuccess, siteFrontId]
+    [user, form, onSuccess, siteFrontId, t]
   )
 
   const onUnbanClick = useCallback(async () => {
     try {
       const confirmed = await alertDialog.confirm(
-        '确认',
-        `确定解封 ${user.name} ？`
+        t('confirm'),
+        t('unbanUserConfirm', { username: user.name })
       )
       if (confirmed) {
         const resp = await unBanUser(user.name)
@@ -159,7 +162,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
     } catch (err) {
       console.error('unban user error: ', err)
     }
-  }, [user, alertDialog, onSuccess])
+  }, [user, alertDialog, onSuccess, t])
 
   useEffect(() => {
     if (selectedRole) {
@@ -183,12 +186,12 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
         <div className="table mt-4 w-full">
           {user.email && (
             <div className="table-row">
-              <b className="table-cell py-2 w-24">邮箱：</b>
+              <b className="table-cell py-2 w-24">{t('email')}：</b>
               <span className="table-cell py-2">{user.email}</span>
             </div>
           )}
           <div className="table-row">
-            <b className="table-cell py-2 w-24">角色：</b>
+            <b className="table-cell py-2 w-24">{t('role')}：</b>
             <div className="table-cell py-2">
               <Badge
                 variant="outline"
@@ -201,26 +204,28 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
               </Badge>
               {user.banned && (
                 <div className="bg-gray-100 text-sm mt-2 p-2 leading-6">
-                  封禁于 {timeFmt(user.bannedStartAt, 'YYYY-M-D h:m:s')}
+                  {t('bannedAt1')}{' '}
+                  {timeFmt(user.bannedStartAt, 'YYYY-M-D h:m:s')}
                   <br />
-                  封禁时长：
+                  {t('bannedDuration')}：
                   {user.bannedMinutes == -1
-                    ? '永久'
+                    ? t('forever')
                     : formatMinutes(user.bannedMinutes)}
                   <br />
-                  总封禁次数：
-                  {user.bannedCount} 次 <br />
+                  {t('bannedCount')}：
+                  {t('timesCount', { num: user.bannedCount })} <br />
                 </div>
               )}
             </div>
           </div>
           <div className="table-row">
-            <b className="table-cell py-2 w-24">权限级别：</b> {user.role.level}
+            <b className="table-cell py-2 w-24">{t('permissionLevel')}：</b>{' '}
+            {user.role.level}
           </div>
           <div className="table-row">
             {authStore.levelCompare(user.role) < 1 && (
               <>
-                <b className="table-cell py-2">拥有权限：</b>
+                <b className="table-cell py-2">{t('havePermissions')}：</b>
                 <div className="table-cell py-2 bg-white p-1 rounded-sm">
                   {user.permissions
                     ? user.permissions.map((item) => (
@@ -245,7 +250,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
             <div>
               {!user.banned && (
                 <Button variant="outline" onClick={() => setAlertOpen(true)}>
-                  更新角色
+                  {t('updateRoleBtn')}
                 </Button>
               )}
 
@@ -257,7 +262,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
                       className="ml-2"
                       onClick={onUnbanClick}
                     >
-                      解封
+                      {t('unban')}
                     </Button>
                   ) : (
                     <Button
@@ -265,7 +270,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
                       className="ml-2"
                       onClick={() => setBanOpen(true)}
                     >
-                      封禁
+                      {t('ban')}
                     </Button>
                   )}
                 </>
@@ -278,7 +283,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
       <Dialog defaultOpen={false} open={alertOpen} onOpenChange={setAlertOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>更新角色</DialogTitle>
+            <DialogTitle>{t('updateRoleBtn')}</DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -292,7 +297,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      将用户 {user?.name} 的角色更新为 &nbsp;
+                      {t('updateRoleLabel', { username: user.name })} &nbsp;
                     </FormLabel>
                     <FormControl>
                       <RoleSelector
@@ -310,7 +315,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
               <div className="p-2 mb-2 border-[1px] rounded-sm bg-white text-sm text-gray-500">
                 {selectedPermissions.length > 0 ? (
                   <>
-                    <div className="mb-4">角色拥有权限：</div>
+                    <div className="mb-4">{t('permissionsInRole')}：</div>
                     {selectedPermissions.map((item) => (
                       <Badge
                         variant="outline"
@@ -322,7 +327,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
                     ))}
                   </>
                 ) : (
-                  '所选角色没有任何权限'
+                  t('noPermissionInRole')
                 )}
               </div>
               <FormField
@@ -331,7 +336,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input placeholder="备注" {...field} />
+                      <Input placeholder={t('remark')} {...field} />
                     </FormControl>
                   </FormItem>
                 )}
@@ -340,9 +345,11 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
           </Form>
           <DialogFooter>
             <Button variant={'secondary'} onClick={onCancelRoleUpdate}>
-              取消
+              {t('cancel')}
             </Button>
-            <Button onClick={form.handleSubmit(onUpdateRole)}>确认</Button>
+            <Button onClick={form.handleSubmit(onUpdateRole)}>
+              {t('confirm')}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

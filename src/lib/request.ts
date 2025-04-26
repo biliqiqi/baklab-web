@@ -4,6 +4,7 @@ import { mergeAll } from 'remeda'
 import { toast } from 'sonner'
 
 import { API_HOST, API_PATH_PREFIX } from '@/constants/constants'
+import i18n from '@/i18n'
 import {
   useAuthedUserStore,
   useNotFoundStore,
@@ -67,35 +68,25 @@ const defaultOptions: Options = {
               if (data?.message) {
                 toast.error(data.message)
               } else {
-                toast.error('提交数据有误')
+                toast.error(i18n.t('badRequestError'))
               }
 
               break
             case status == 401:
-              // console.log(
-              //   'is refresh token in base request:',
-              //   isRefreshRequest(req)
-              // )
-              // 如果refresh失败说明登录授权过期，直接退出登录，要求重新授权
+              // if refresh request failed, then is refresh token expired, log out directly for re-signin
               if (isRefreshRequest(req)) {
                 useAuthedUserStore.getState().logout()
-              } else {
-                // const logined = isLogined(useAuthedUserStore.getState())
-                // console.log('logined:', logined)
-                // if (!logined) {
-                //   toast.error('请认证或登录后再试')
-                // }
               }
               break
             case status == 403:
               if (data?.message) {
                 toast.error(data.message)
               } else {
-                toast.error('缺少权限')
+                toast.error(i18n.t('forbiddenError'))
               }
               break
             case status >= 500 && status <= 599:
-              toast.error('应用程序出现了问题')
+              toast.error(i18n.t('internalServerError'))
               break
             default:
               if (data && data.code > 1) {
@@ -130,7 +121,7 @@ const refreshTokenHook: AfterResponseHook = async (req, _opt, resp) => {
 const authToastHook: AfterResponseHook = (_req, _opt, resp) => {
   if (resp.status == 401) {
     if (!useToastStore.getState().silence) {
-      toast.error('请认证或登录后再试')
+      toast.error(i18n.t('unAuthorizedError'))
     }
   }
 }
@@ -291,9 +282,9 @@ request.delete = <T = any>(
 ): Promise<T> => request(url, { method: 'delete', ...kyOptions }, custom)
 
 /**
-   刷新 access token
-   避免循环引用，refreshToken 放在 request.ts 里面
-   @param refreshUser 是否同时从数据库刷新用户数据
+   refresh access token
+   to prevent cycle import, put refreshToken in request.ts
+   @param refreshUser whether to read data from database
  */
 export const refreshToken = async (refresUser = false) => {
   const params = new URLSearchParams()
@@ -310,7 +301,7 @@ export const refreshToken = async (refresUser = false) => {
 
 export const refreshAuthState = async (refreshUser = false) => {
   try {
-    // 确保 store 成功响应了更新再返回
+    // to ensure resolving after succesfully responsing
     const ps = new Promise((resolve) => {
       const unsub = useAuthedUserStore.subscribe(
         (state) => state.user,

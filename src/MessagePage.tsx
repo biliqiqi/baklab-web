@@ -1,14 +1,18 @@
+import { useTranslation } from 'react-i18next'
+
 import BContainer from './components/base/BContainer'
 
 import MessageList from './components/MessageList'
 
 export default function MessagePage() {
+  const { t } = useTranslation()
+
   return (
     <BContainer
       category={{
         isFront: true,
         frontId: 'messages',
-        name: '消息',
+        name: t('message'),
         describe: '',
       }}
     >

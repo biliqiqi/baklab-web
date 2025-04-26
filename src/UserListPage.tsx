@@ -13,6 +13,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -79,6 +80,8 @@ export default function UserListPage() {
 
   const { setLoading } = useLoading()
 
+  const { t } = useTranslation()
+
   const [params, setParams] = useSearchParams()
   const location = useLocation()
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
@@ -139,14 +142,14 @@ export default function UserListPage() {
             (table.getIsSomePageRowsSelected() && 'indeterminate')
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="全选"
+          aria-label={t('selectAll')}
         />
       ),
       cell: ({ row }) => (
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="选中该行"
+          aria-label={t('selectRow')}
           disabled={!row.getCanSelect()}
         />
       ),
@@ -163,7 +166,7 @@ export default function UserListPage() {
               variant={'outline'}
               className="text-xs text-gray-500 border-primary font-normal m-1"
             >
-              站点创建人
+              {t('siteCreator')}
             </Badge>
           )}
         </Link>
@@ -172,18 +175,18 @@ export default function UserListPage() {
     {
       id: 'roleName',
       accessorKey: 'roleName',
-      header: '角色',
+      header: t('role'),
     },
     {
       id: 'roleLevel',
       accessorKey: 'roleLevel',
-      header: '权限级别',
+      header: t('permission'),
       cell: ({ row }) => <span>{row.original?.role?.level || '-'}</span>,
     },
     {
       id: 'registeredAt',
       accessorKey: 'registeredAt',
-      header: '加入时间',
+      header: t('joinedAt'),
       cell: ({ cell }) => (
         <span>{timeFmt(cell.getValue<string>(), 'YYYY-M-D')}</span>
       ),
@@ -202,7 +205,7 @@ export default function UserListPage() {
               onShowDetailClick(row.original)
             }}
           >
-            详细
+            {t('detail')}
           </Button>
 
           {siteFrontId && levelCompare(row.original.role) < 0 && (
@@ -215,7 +218,7 @@ export default function UserListPage() {
                   await onRemoveClick(row.original)
                 }}
               >
-                除名
+                {t('removeName')}
               </Button>
               <Button
                 variant="secondary"
@@ -225,7 +228,7 @@ export default function UserListPage() {
                   await onBlockClick(row.original)
                 }}
               >
-                屏蔽
+                {t('block')}
               </Button>
             </>
           )}
@@ -318,7 +321,7 @@ export default function UserListPage() {
           setLoading(false)
         }
       },
-      [params, siteFrontId]
+      [params, siteFrontId, setLoading]
     )
   )
 
@@ -410,8 +413,8 @@ export default function UserListPage() {
       const usernames = selectedRows.map((item) => item.original.name)
 
       const confirmed = await alertDialog.confirm(
-        '确认',
-        `确定屏蔽已选中的${userIds.length}个用户？`,
+        t('confirm'),
+        t('blockConfirm', { num: userIds.length }),
         'danger'
       )
       if (!confirmed) return
@@ -421,7 +424,7 @@ export default function UserListPage() {
         fetchUserList()
       }
     },
-    [siteFrontId, selectedRows, alertDialog, fetchUserList]
+    [siteFrontId, selectedRows, alertDialog, fetchUserList, t]
   )
 
   const onRemoveSelectedClick = useCallback(
@@ -438,8 +441,8 @@ export default function UserListPage() {
       const usernames = selectedRows.map((item) => item.original.name)
 
       const confirmed = await alertDialog.confirm(
-        '确认',
-        `确定将已选中的${userIds.length}个用户除名？`,
+        t('confirm'),
+        t('removeNameConfirm', { num: userIds.length }),
         'danger'
       )
       if (!confirmed) return
@@ -449,15 +452,15 @@ export default function UserListPage() {
         fetchUserList()
       }
     },
-    [siteFrontId, selectedRows, alertDialog, fetchUserList]
+    [siteFrontId, selectedRows, alertDialog, fetchUserList, t]
   )
 
   const onBlockClick = useCallback(
     async (user: UserData) => {
       if (!siteFrontId) return
       const confirmed = await alertDialog.confirm(
-        `确认`,
-        `屏蔽之后对方将无法参与互动，但仍能查看公开内容，确定从本站屏蔽 ${user.name} ？`,
+        t('confirm'),
+        t('blockSingleConfirm', { username: user.name }),
         'danger'
       )
       if (!confirmed) return
@@ -467,15 +470,15 @@ export default function UserListPage() {
         fetchUserList()
       }
     },
-    [siteFrontId, alertDialog, fetchUserList]
+    [siteFrontId, alertDialog, fetchUserList, t]
   )
 
   const onRemoveClick = useCallback(
     async (user: UserData) => {
       if (!siteFrontId) return
       const confirmed = await alertDialog.confirm(
-        `确认`,
-        `确定把成员 ${user.name} 从本站除名？`,
+        t('confirm'),
+        t('removeSingleConfirm', { username: user.name }),
         'danger'
       )
       if (!confirmed) return
@@ -485,7 +488,7 @@ export default function UserListPage() {
         fetchUserList()
       }
     },
-    [siteFrontId, alertDialog, fetchUserList]
+    [siteFrontId, alertDialog, fetchUserList, t]
   )
 
   const onRoleSelectChange = useCallback((role: Role | undefined) => {
@@ -508,21 +511,21 @@ export default function UserListPage() {
           ? {
               isFront: true,
               frontId: 'siteUsers',
-              name: '成员列表',
-              describe: '本站点成员',
+              name: t('memberList'),
+              describe: t('memberListDescribe'),
             }
           : {
               isFront: true,
               frontId: 'users',
-              name: '用户列表',
-              describe: '全部用户',
+              name: t('userList'),
+              describe: t('userListDescribe'),
             }
       }
     >
       <Card className="flex flex-wrap justify-between p-2">
         <div className="flex flex-wrap">
           <Input
-            placeholder="用户名"
+            placeholder={t('username')}
             className="w-[140px] h-[36px] mr-3"
             value={searchData.keywords}
             onChange={(e) =>
@@ -539,22 +542,24 @@ export default function UserListPage() {
           />
           <RoleSelector
             value={searchData.roleId || ''}
-            placeholder="选择角色"
+            placeholder={t('selectRole')}
             onChange={onRoleSelectChange}
           />
         </div>
         <div>
           <Button size="sm" onClick={onResetClick} className="mr-3">
-            重置
+            {t('reset')}
           </Button>
           <Button size="sm" onClick={onSearchClick}>
-            搜索
+            {t('search')}
           </Button>
         </div>
       </Card>
       <div className="my-4">
         <Badge variant="secondary">
-          {pageState.total} 个{siteFrontId ? '成员' : '用户'}
+          {siteFrontId
+            ? t('countMember', { num: pageState.total })
+            : t('countUser', { num: pageState.total })}
         </Badge>
       </div>
       {list.length == 0 ? (
@@ -617,7 +622,7 @@ export default function UserListPage() {
             <Card className="sticky bottom-0 mt-4 p-2">
               <div className="flex justify-between items-center">
                 <div className="text-sm">
-                  已选中 {selectedRows.length} 个用户
+                  {t('countSelectedUsers', { num: selectedRows.length })}
                 </div>
                 <div>
                   {bannableUsers.length > 0 && (
@@ -629,7 +634,9 @@ export default function UserListPage() {
                             variant="destructive"
                             onClick={onRemoveSelectedClick}
                           >
-                            除名 {bannableUsers.length} 个已选用户
+                            {t('removeSelectedUsers', {
+                              num: bannableUsers.length,
+                            })}
                           </Button>
                         )}
 
@@ -641,7 +648,9 @@ export default function UserListPage() {
                               onClick={onBlockSelectedClick}
                               className="ml-1"
                             >
-                              屏蔽 {bannableUsers.length} 个已选用户
+                              {t('blockSelectedUsers', {
+                                num: bannableUsers.length,
+                              })}
                             </Button>
                           )}
                       </>
@@ -653,7 +662,9 @@ export default function UserListPage() {
                             onClick={onBanSelectedClick}
                             className="ml-1"
                           >
-                            封禁 {bannableUsers.length} 个已选用户
+                            {t('banSelectedUsers', {
+                              num: bannableUsers.length,
+                            })}
                           </Button>
                         )}
                       </>
@@ -681,7 +692,9 @@ export default function UserListPage() {
         {currUser && (
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{currUser.name} 的详细信息</DialogTitle>
+              <DialogTitle>
+                {t('userDetail', { username: currUser.name })}
+              </DialogTitle>
               <DialogDescription></DialogDescription>
             </DialogHeader>
             <UserDetailCard

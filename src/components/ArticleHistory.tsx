@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { timeAgo } from '@/lib/dayjs-custom'
@@ -20,6 +21,8 @@ const fieldNameMap: JSONMap<string> = {
 }
 
 const ArticleHistory: React.FC<ArticleHistoryProps> = ({ data, isReply }) => {
+  const { t } = useTranslation()
+
   return (
     <div>
       <Collapsible>
@@ -55,7 +58,9 @@ const ArticleHistory: React.FC<ArticleHistoryProps> = ({ data, isReply }) => {
           )}
           {!isReply && (
             <div className="flex mt-2 text-sm" key="category">
-              <div className="w-[80px] font-bold mr-1 pt-2">板块：</div>
+              <div className="w-[80px] font-bold mr-1 pt-2">
+                {t('category')}：
+              </div>
               <div
                 className="flex-shrink-0 flex-grow bg-gray-100 p-2"
                 style={{
@@ -99,7 +104,7 @@ const ArticleHistory: React.FC<ArticleHistoryProps> = ({ data, isReply }) => {
               </div>
             ))}
           <div className="flex mt-2 text-sm">
-            <div className="w-[80px] font-bold mr-1 pt-2">内容：</div>
+            <div className="w-[80px] font-bold mr-1 pt-2">{t('content')}：</div>
             <div
               className="flex-shrink-0 flex-grow bg-gray-100 p-2 whitespace-break-spaces"
               style={{

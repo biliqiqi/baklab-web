@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams, useSearchParams } from 'react-router-dom'
 
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
@@ -49,6 +50,7 @@ export default function ArticlePage() {
   const [articleCategory, setArticleCategory] = useState<Category | null>(null)
 
   const { loading, setLoading } = useLoading()
+  const { t } = useTranslation()
 
   const [pageState, setPageState] = useState<ArticleListState>({
     currPage: 1,
@@ -272,9 +274,9 @@ export default function ArticlePage() {
                   onValueChange={onSwitchTab}
                 >
                   <TabsList>
-                    <TabsTrigger value="oldest">时间顺序</TabsTrigger>
-                    <TabsTrigger value="latest">最新</TabsTrigger>
-                    <TabsTrigger value="best">最佳</TabsTrigger>
+                    <TabsTrigger value="oldest">{t('timeOrder')}</TabsTrigger>
+                    <TabsTrigger value="latest">{t('latest')}</TabsTrigger>
+                    <TabsTrigger value="best">{t('best')}</TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>

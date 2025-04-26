@@ -1,10 +1,13 @@
-/**
- * 将异步函数转换为同步函数
- * @param asyncFn 要转换的异步函数
- * @returns 返回一个同步函数，该函数接收与原异步函数相同的参数
- */
 import { noop } from './utils'
 
+/**
+ * Convert async function to sync
+ * @param asyncFn Function to be convert
+ * @param thenHandler Handler to register to original .then()
+ * @param finallyHandler Handler to register to original .finally()
+ * @param errorHandler Handler to register to original .catch()
+ * @returns The converted sync function, recieve same args as the original function
+ */
 // eslint-disable-next-line
 export function toSync<T extends (...args: any[]) => Promise<any>>(
   asyncFn: T,

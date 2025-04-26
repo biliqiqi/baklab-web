@@ -12,6 +12,7 @@ import {
   useMemo,
   useState,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
@@ -92,6 +93,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
   const authStore = useAuthedUserStore()
   const permit = useAuthedUserStore((state) => state.permit)
+  const { t } = useTranslation()
 
   const isMyself = useMemo(
     () => authStore.isMySelf(article.authorId),
@@ -129,9 +131,15 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
         /* console.log('confirmed: ', confirmed) */
         if (confirmed) {
-          const resp = await deleteArticle(article.id, '', '', {
-            siteFrontId: article.siteFrontId,
-          })
+          const resp = await deleteArticle(
+            article.id,
+            '',
+            '',
+            authStore.username,
+            {
+              siteFrontId: article.siteFrontId,
+            }
+          )
           if (!resp.code) {
             /* navigate(-1) */
             onSuccess('delete')
@@ -175,6 +183,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           article.id,
           article.displayTitle,
           `${reason}\n\n${extra}`,
+          authStore.username,
           {
             siteFrontId: article.siteFrontId,
           }
@@ -187,7 +196,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         console.error('confirm delete error: ', err)
       }
     },
-    [article, onSuccess]
+    [article, onSuccess, authStore.username]
   )
 
   return (
@@ -214,7 +223,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
               {article.link && (
                 <span className="text-gray-500 text-base font-normal">
-                  &nbsp; (来源&nbsp;
+                  &nbsp; ({t('source')}&nbsp;
                   <a
                     href={article.link}
                     target="_blank"
@@ -265,7 +274,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                 asChild
                 className="mx-1"
                 onClick={onEditClick}
-                title="编辑"
+                title={t('edit')}
               >
                 <Link
                   to={`/${article.siteFrontId}/articles/${article.id}/edit`}

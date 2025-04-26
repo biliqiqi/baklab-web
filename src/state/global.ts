@@ -14,6 +14,7 @@ import {
   USER_UI_SETTINGS_KEY,
 } from '@/constants/constants'
 import { PermitFn, PermitUnderSiteFn } from '@/constants/types'
+import i18n from '@/i18n'
 import {
   Article,
   ArticleLog,
@@ -80,9 +81,9 @@ export interface AuthedUserState {
   isLogined: () => boolean
   isMySelf: (targetUserId: string) => boolean
   /**
-     层级比较
-     @paramm targetLevel 被比较的目标层级
-     @reuturns 0 - 对方为同级, 1 - 对方为上级, -1 - 对方为下级
+     Compare permission level with signined user
+     @paramm targetRole Target role to compare with
+     @reuturns 0 - same level, 1 - target is uppper level, -1 - target is lower level
    */
   levelCompare: (targetRole: Role) => number
   permit: PermitFn
@@ -362,7 +363,7 @@ const defaultAlertState: Pick<
 > = {
   title: '',
   description: '',
-  confirmBtnText: '确定',
+  confirmBtnText: i18n.t('confirm'),
 }
 
 const defaultConfirmState: Pick<
@@ -375,7 +376,7 @@ const defaultConfirmState: Pick<
   | 'confirmType'
 > = {
   ...defaultAlertState,
-  cancelBtnText: '取消',
+  cancelBtnText: i18n.t('cancel'),
   confirmed: false,
   confirmType: 'normal',
 }

@@ -6,6 +6,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 
 import { Badge } from './components/ui/badge'
@@ -61,6 +62,7 @@ export default function BlockedUserListPage() {
 
   const authStore = useAuthedUserStore()
   const alertDialog = useAlertDialogStore()
+  const { t } = useTranslation()
 
   const { siteFrontId } = useParams()
 
@@ -109,7 +111,7 @@ export default function BlockedUserListPage() {
     },
     {
       accessorKey: 'blockedAt',
-      header: '屏蔽时间',
+      header: t('blockedAt'),
       cell: ({ row }) => (
         <span title={new Date(row.original.registeredAt).toLocaleString()}>
           {timeFmt(row.original.registeredAt, 'YYYY-M-D')}
@@ -118,7 +120,7 @@ export default function BlockedUserListPage() {
     },
     {
       accessorKey: 'contorles',
-      header: '操作',
+      header: t('operations'),
       cell: ({ row }) => (
         <>
           <Button
@@ -129,7 +131,7 @@ export default function BlockedUserListPage() {
               onUnblockClick(row.original)
             }}
           >
-            解除屏蔽
+            {t('unblock')}
           </Button>
         </>
       ),
@@ -257,8 +259,8 @@ export default function BlockedUserListPage() {
       const usernames = selectedRows.map((item) => item.original.name)
 
       const confirmed = await alertDialog.confirm(
-        '确认',
-        `确认解除对已选中的 ${userIds.length} 个用户的屏蔽？`
+        t('confirm'),
+        t('unblockUsersConfirm', { num: userIds.length })
       )
       if (confirmed) {
         const { code } = await unblockUsers(siteFrontId, userIds, usernames)
@@ -282,8 +284,8 @@ export default function BlockedUserListPage() {
         if (!siteFrontId) return
 
         const confirmed = await alertDialog.confirm(
-          '确认',
-          `确定解除对 ${user.name} 的屏蔽？`
+          t('confirm'),
+          t('unblockSingleUserConfirm', { name: user.name })
         )
         if (!confirmed) return
 
@@ -305,14 +307,14 @@ export default function BlockedUserListPage() {
       category={{
         isFront: true,
         frontId: 'banned_users',
-        name: '已屏蔽',
-        describe: '已屏蔽用户',
+        name: t('blocked'),
+        describe: t('blockedDescribe'),
       }}
     >
       <Card className="flex flex-wrap justify-between p-2">
         <div className="flex flex-wrap">
           <Input
-            placeholder="用户名"
+            placeholder={t('username')}
             className="w-[140px] h-[36px] mr-3"
             value={searchData.keywords}
             onChange={(e) =>
@@ -330,15 +332,17 @@ export default function BlockedUserListPage() {
         </div>
         <div>
           <Button size="sm" onClick={onResetClick} className="mr-3">
-            重置
+            {t('reset')}
           </Button>
           <Button size="sm" onClick={onSearchClick}>
-            搜索
+            {t('search')}
           </Button>
         </div>
       </Card>
       <div className="my-4">
-        <Badge variant="secondary">{pageState.total} 个用户</Badge>
+        <Badge variant="secondary">
+          {t('userCount', { num: pageState.total })}
+        </Badge>
       </div>
       {list.length == 0 ? (
         <Empty />
@@ -400,7 +404,7 @@ export default function BlockedUserListPage() {
             <Card className="sticky bottom-0 mt-4 p-2">
               <div className="flex justify-between items-center">
                 <div className="text-sm">
-                  已选中 {selectedRows.length} 个用户
+                  {t('selectedUserCount', { num: selectedRows.length })}
                 </div>
                 <div>
                   {unbannableUsers.length > 0 && (
@@ -409,7 +413,9 @@ export default function BlockedUserListPage() {
                       variant="destructive"
                       onClick={onUnblockSelectedClick}
                     >
-                      解除对 {unbannableUsers.length} 个已选用户的屏蔽
+                      {t('selectedUnblockCount', {
+                        num: unbannableUsers.length,
+                      })}
                     </Button>
                   )}
                 </div>

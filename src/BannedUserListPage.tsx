@@ -6,6 +6,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 
 import { Badge } from './components/ui/badge'
@@ -70,6 +71,8 @@ export default function BannedUserListPage() {
 
   const { setLoading } = useLoading()
 
+  const { t } = useTranslation()
+
   const authStore = useAuthedUserStore()
   const alertDialog = useAlertDialogStore()
 
@@ -120,16 +123,16 @@ export default function BannedUserListPage() {
     },
     /* {
      *   accessorKey: 'roleName',
-     *   header: '角色',
+     *   header: t('role'),
      * }, */
     /* {
      *   accessorKey: 'roleLevel',
-     *   header: '权限级别',
+     *   header: t('permissionLevel'),
      *   cell: ({ row }) => <span>{row.original?.role?.level || '-'}</span>,
      * }, */
     {
       accessorKey: 'registeredAt',
-      header: '加入时间',
+      header: t('joinedAt'),
       cell: ({ row }) => (
         <span title={new Date(row.original.registeredAt).toLocaleString()}>
           {timeFmt(row.original.registeredAt, 'YYYY-M-D')}
@@ -138,7 +141,7 @@ export default function BannedUserListPage() {
     },
     {
       accessorKey: 'bannedStartAt',
-      header: '封禁时间',
+      header: t('bannedAt'),
       cell: ({ row }) => (
         <span title={new Date(row.original.bannedStartAt).toLocaleString()}>
           {timeFmt(row.original.bannedStartAt, 'YYYY-M-D h:m:s')}
@@ -146,15 +149,15 @@ export default function BannedUserListPage() {
       ),
     },
     {
-      accessorKey: 'bannedMinutes',
-      header: '封禁时长',
+      accessorKey: t('bannedDuration'),
+      header: t('bannedDuration'),
       cell: ({ row }) => (
         <span>{formatMinutes(row.original.bannedMinutes)}</span>
       ),
     },
     {
       accessorKey: 'contorles',
-      header: '操作',
+      header: t('operations'),
       cell: ({ row }) => (
         <>
           <Button
@@ -165,7 +168,7 @@ export default function BannedUserListPage() {
               onShowDetailClick(row.original)
             }}
           >
-            详细
+            {t('detail')}
           </Button>
         </>
       ),
@@ -289,8 +292,8 @@ export default function BannedUserListPage() {
       if (usernames.length == 0) return
 
       const confirmed = await alertDialog.confirm(
-        '确认',
-        `确认解封已选中的 ${usernames.length} 个用户？`
+        t('confirm'),
+        t('unbanConfirm', { num: usernames.length })
       )
       if (confirmed) {
         const { code } = await unbanManyUsers(usernames)
@@ -333,14 +336,14 @@ export default function BannedUserListPage() {
       category={{
         isFront: true,
         frontId: 'banned_users',
-        name: '已封锁',
-        describe: '已封锁用户',
+        name: t('banned'),
+        describe: t('bannedUser'),
       }}
     >
       <Card className="flex flex-wrap justify-between p-2">
         <div className="flex flex-wrap">
           <Input
-            placeholder="用户名"
+            placeholder={t('username')}
             className="w-[140px] h-[36px] mr-3"
             value={searchData.keywords}
             onChange={(e) =>
@@ -358,15 +361,17 @@ export default function BannedUserListPage() {
         </div>
         <div>
           <Button size="sm" onClick={onResetClick} className="mr-3">
-            重置
+            {t('reset')}
           </Button>
           <Button size="sm" onClick={onSearchClick}>
-            搜索
+            {t('search')}
           </Button>
         </div>
       </Card>
       <div className="my-4">
-        <Badge variant="secondary">{pageState.total} 个用户</Badge>
+        <Badge variant="secondary">
+          {t('userCount', { num: pageState.total })}
+        </Badge>
       </div>
       {list.length == 0 ? (
         <Empty />
@@ -428,7 +433,7 @@ export default function BannedUserListPage() {
             <Card className="sticky bottom-0 mt-4 p-2">
               <div className="flex justify-between items-center">
                 <div className="text-sm">
-                  已选中 {selectedRows.length} 个用户
+                  {t('selectedUserCount', { num: selectedRows.length })}
                 </div>
                 <div>
                   {unbannableUsers.length > 0 && (
@@ -437,7 +442,7 @@ export default function BannedUserListPage() {
                       variant="destructive"
                       onClick={onUnbanSelectedClick}
                     >
-                      解封 {unbannableUsers.length} 个已选用户
+                      {t('selectedUnbanCount', { num: unbannableUsers.length })}
                     </Button>
                   )}
                 </div>
@@ -451,7 +456,9 @@ export default function BannedUserListPage() {
         {currUser && (
           <DialogContent className="max-sm:max-w-[90%]">
             <DialogHeader>
-              <DialogTitle>{currUser.name} 的详细信息</DialogTitle>
+              <DialogTitle>
+                {t('userDetail', { username: currUser.name })}
+              </DialogTitle>
               <DialogDescription></DialogDescription>
             </DialogHeader>
             <UserDetailCard

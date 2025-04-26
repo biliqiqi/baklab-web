@@ -1,15 +1,19 @@
+import { useTranslation } from 'react-i18next'
+
 import BContainer from './components/base/BContainer'
 
 import ArticleForm from './components/ArticleForm'
 
 export default function SubmitPage() {
+  const { t } = useTranslation()
+
   return (
     <>
       <BContainer
-        title="提交"
+        title={t('submit')}
         category={{
           frontId: 'submit',
-          name: '提交新内容',
+          name: t('submitDescribe'),
           describe: '',
           isFront: true,
         }}

@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { forwardRef, useCallback, useEffect, useImperativeHandle } from 'react'
 import { UseFormReturn, useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import z from 'zod'
@@ -51,6 +52,8 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
     const fetchSiteData = useSiteStore((state) => state.fetchSiteData)
     const siteUISettings = useSiteStore((state) => state.site?.uiSettings)
 
+    const { t } = useTranslation()
+
     const { siteFrontId } = useParams()
 
     const form = useForm({
@@ -70,13 +73,13 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
           mode,
         })
         if (!code) {
-          toast.success('站点界面设置保存成功')
+          toast.success(t('siteUISaveTip'))
           await fetchSiteData(siteFrontId)
 
           form.reset({ mode })
         }
       },
-      [siteFrontId, fetchSiteData, form]
+      [siteFrontId, fetchSiteData, form, t]
     )
 
     useEffect(() => {
@@ -105,7 +108,7 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
             key="mode"
             render={({ field }) => (
               <FormItem className="mb-8">
-                <FormLabel>站点模式</FormLabel>
+                <FormLabel>{t('siteMode')}</FormLabel>
                 <FormDescription></FormDescription>
                 <FormControl>
                   <RadioGroup
@@ -123,7 +126,9 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
                           className="mr-1"
                         />
                       </FormControl>
-                      <FormLabel className="font-normal">侧边栏</FormLabel>
+                      <FormLabel className="font-normal">
+                        {t('sidebar')}
+                      </FormLabel>
                     </FormItem>
                     <FormItem
                       className="flex items-center space-y-0 mr-4 mb-4"
@@ -135,7 +140,9 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
                           className="mr-1"
                         />
                       </FormControl>
-                      <FormLabel className="font-normal">顶部导航栏</FormLabel>
+                      <FormLabel className="font-normal">
+                        {t('topNav')}
+                      </FormLabel>
                     </FormItem>
                   </RadioGroup>
                 </FormControl>
@@ -147,7 +154,7 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
           <div className="flex justify-between">
             <span></span>
             <Button type="submit" size="sm" disabled={!form.formState.isDirty}>
-              保存
+              {t('save')}
             </Button>
           </div>
         </form>

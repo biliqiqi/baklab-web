@@ -1,15 +1,18 @@
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 
 import SignupForm from './components/SignupForm'
 
-import { SINGUP_RETURN_COOKIE_NAME, SITE_NAME_CN } from './constants/constants'
+import { PLATFORM_NAME, SINGUP_RETURN_COOKIE_NAME } from './constants/constants'
 import useDocumentTitle from './hooks/use-page-title'
 import { deleteCookie, getCookie } from './lib/utils'
 
 export default function SignupPage() {
   const navigate = useNavigate()
-  useDocumentTitle('注册')
+  const { t } = useTranslation()
+
+  useDocumentTitle(t('signup'))
 
   const onSignupSuccess = useCallback(() => {
     const returnUrl = decodeURIComponent(
@@ -27,7 +30,7 @@ export default function SignupPage() {
   return (
     <>
       <div className="flex justify-center py-8 text-xl font-bold text-primary">
-        <Link to="/">{SITE_NAME_CN}</Link>
+        <Link to="/">{PLATFORM_NAME}</Link>
       </div>
       <SignupForm onSuccess={onSignupSuccess} />
     </>

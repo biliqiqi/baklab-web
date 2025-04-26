@@ -10,6 +10,7 @@ import {
   useState,
 } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -135,6 +136,8 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const notFound = useNotFoundStore()
+
+  const { t } = useTranslation()
 
   const categoryNameMap: CategoryNameMap = useMemo(() => {
     return cateList.reduce((obj: CategoryNameMap, item) => {
@@ -350,7 +353,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
     draggingRef.current.dragging = false
   }
 
-  useDocumentTitle(isEdit ? '编辑帖子' : '创建帖子')
+  useDocumentTitle(isEdit ? t('editPost') : t('createPost'))
 
   useEffect(() => {
     document.addEventListener('mouseup', onMouseUp)
@@ -645,7 +648,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                 size="sm"
                 className="ml-2"
               >
-                {loading ? <BLoader /> : '提交'}
+                {loading ? <BLoader /> : t('submit')}
               </Button>
             </div>
           </div>

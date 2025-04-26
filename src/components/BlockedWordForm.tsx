@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import React, { useCallback, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 
 import { noop } from '@/lib/utils'
@@ -39,6 +40,8 @@ const BlockedWordForm: React.FC<BlockedWordFormProps> = ({
   onChange = noop,
 }) => {
   const { siteFrontId } = useParams()
+
+  const { t } = useTranslation()
 
   const form = useForm<WordSchema>({
     resolver: zodResolver(wordSchema),
@@ -127,7 +130,7 @@ const BlockedWordForm: React.FC<BlockedWordFormProps> = ({
               disabled={!form.formState.isDirty}
               className="ml-2"
             >
-              提交
+              {t('submit')}
             </Button>
           </div>
         </div>

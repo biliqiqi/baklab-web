@@ -8,6 +8,7 @@ import {
   useMemo,
 } from 'react'
 import { UseFormReturn, useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import z from 'zod'
 
 import { noop, setRootFontSize } from '@/lib/utils'
@@ -52,19 +53,19 @@ import {
 
 const themeList = ['light', 'dark', 'system'] as const
 const themeLabelMap = {
-  light: '亮色',
-  dark: '暗色',
-  system: '跟随系统',
+  light: i18n.t('light'),
+  dark: i18n.t('dark'),
+  system: i18n.t('syncWithSystem'),
 }
 
 const fontSizeList = ['12', '14', '16', '18', '20', 'custom'] as const
 const fontSizeLabelMap = {
-  '12': '极小',
-  '14': '小',
-  '16': '普通',
-  '18': '大',
-  '20': '极大',
-  custom: '自定义',
+  '12': i18n.t('xsmall'),
+  '14': i18n.t('small'),
+  '16': i18n.t('regular'),
+  '18': i18n.t('large'),
+  '20': i18n.t('xlarge'),
+  custom: i18n.t('custom'),
 }
 
 const MIN_FONT_SIZE = 10
@@ -80,8 +81,8 @@ const fontSizeSchema = z.union([
 const contentWidthList = ['1200', '-1', 'custom'] as const
 const contentWidthLabelMap = {
   '1200': '1200px',
-  '-1': '铺满',
-  custom: '自定义',
+  '-1': i18n.t('full'),
+  custom: i18n.t('custom'),
 }
 const MIN_CONTENT_WIDTH = 1000
 const contentWidthSchema = z.union([
@@ -113,8 +114,6 @@ type ContentWidthSchema = z.infer<typeof contentWidthSchema>
 type UserUISchema = z.infer<typeof userUISchema>
 type ThemeSchema = z.infer<typeof themeSchema>
 type LanguageSchema = z.infer<typeof languageSchema>
-
-console.log('i18n lang: ', i18n.language)
 
 const defaultUserUIData: UserUISchema = {
   mode: SITE_LIST_MODE.TopDrawer,
@@ -151,6 +150,8 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
     const setShowSiteListDropdown = useSiteStore(
       (state) => state.setShowSiteListDropdown
     )
+
+    const { t } = useTranslation()
 
     // const userUISettings = useAuthedUserStore((state) => state.user?.uiSettings)
 
@@ -226,16 +227,6 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
           console.error('switch language error: ', err)
         }
 
-        // if (syncDevices == true) {
-        // const { code } = await saveUserUISettings({
-        // mode,
-        // })
-        // if (!code) {
-        // toast.success('个性化界面设置保存成功')
-        // await refreshAuthState(true)
-        // }
-        // }
-
         form.reset({
           mode,
           theme,
@@ -248,18 +239,6 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
       },
       [form]
     )
-
-    //useEffect(() => {
-    //const localUISettings = localStorage.getItem(USER_UI_SETTINGS_KEY)
-    //
-    //if (!localUISettings) {
-    //form.reset({
-    //mode:
-    //(userUISettings?.mode as SiteListMode | null | undefined) ||
-    //SITE_LIST_MODE.TopDrawer,
-    //})
-    //}
-    //}, [userUISettings, form])
 
     useEffect(() => {
       setSiteListMode(formVals.mode)
@@ -325,13 +304,13 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                     size={14}
                     className="inline-block align-[-1px] mr-1"
                   />
-                  语言
+                  {t('language')}
                 </FormLabel>
                 <FormDescription></FormDescription>
                 <FormControl>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger className="w-[180px] bg-white">
-                      <SelectValue placeholder="选择语言" />
+                      <SelectValue placeholder={t('readonly')} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -350,7 +329,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
             key="fontSize"
             render={({ field }) => (
               <FormItem className="mb-8">
-                <FormLabel>字号大小</FormLabel>
+                <FormLabel>{t('fontSize')}</FormLabel>
                 <FormDescription></FormDescription>
                 <FormControl>
                   <RadioGroup
@@ -423,7 +402,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
             key="theme"
             render={({ field }) => (
               <FormItem className="mb-8">
-                <FormLabel>主题颜色</FormLabel>
+                <FormLabel>{t('themeColor')}</FormLabel>
                 <FormDescription></FormDescription>
                 <FormControl>
                   <RadioGroup
@@ -457,7 +436,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
             key="contentWidth"
             render={({ field }) => (
               <FormItem className="mb-8">
-                <FormLabel>内容宽度</FormLabel>
+                <FormLabel>{t('contentWidth')}</FormLabel>
                 <FormDescription></FormDescription>
                 <FormControl>
                   <RadioGroup
@@ -530,7 +509,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
             key="mode"
             render={({ field }) => (
               <FormItem className="mb-8">
-                <FormLabel>站点列表模式</FormLabel>
+                <FormLabel>{t('siteListMode')}</FormLabel>
                 <FormDescription></FormDescription>
                 <FormControl>
                   <RadioGroup
@@ -548,7 +527,9 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                           className="mr-1"
                         />
                       </FormControl>
-                      <FormLabel className="font-normal">顶部抽屉</FormLabel>
+                      <FormLabel className="font-normal">
+                        {t('topDrawer')}
+                      </FormLabel>
                     </FormItem>
                     <FormItem
                       className="flex items-center space-y-0 mr-4 mb-4"
@@ -560,7 +541,9 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                           className="mr-1"
                         />
                       </FormControl>
-                      <FormLabel className="font-normal">下拉框</FormLabel>
+                      <FormLabel className="font-normal">
+                        {t('dropdown')}
+                      </FormLabel>
                     </FormItem>
                   </RadioGroup>
                 </FormControl>
@@ -572,25 +555,12 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
           <div className="flex justify-between">
             <span></span>
             <div className="flex items-center">
-              {/* <div className="inline-flex items-center space-x-2 mr-2">
-              <Checkbox
-                id="sync-devices"
-                checked={syncDevices}
-                onCheckedChange={setSyncDevices}
-              />
-              <label
-                htmlFor="sync-devices"
-                className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-500"
-              >
-                同步到其他设备
-              </label>
-            </div> */}
               <Button
                 type="submit"
                 size="sm"
                 disabled={!form.formState.isDirty}
               >
-                保存
+                {t('save')}
               </Button>
             </div>
           </div>

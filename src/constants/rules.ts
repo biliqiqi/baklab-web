@@ -1,19 +1,20 @@
 import { z } from 'zod'
 
+import i18n from '@/i18n'
+
 export const emailRule = z.string().email()
-export const phoneRule = z.string().regex(/^1\d{10}$/, '错误的手机号格式')
+export const phoneRule = z
+  .string()
+  .regex(/^1\d{10}$/, i18n.t('formatError', { field: i18n.t('phoneNumber') }))
 export const usernameRule = z
   .string()
-  .min(4, '用户名不得小于4个字符')
-  .max(20, '用户名不得小于20个字符')
+  .min(4, i18n.t('charMinimum', { field: i18n.t('username'), num: 4 }))
+  .max(20, i18n.t('charMaximum', { field: i18n.t('username'), num: 20 }))
   .transform((str) => str.toLowerCase())
   .pipe(
     z.string().refine(
       (value) => {
-        // 检查是否只包含允许的字符
         const validCharsRegex = /^[a-z0-9._-]+$/
-
-        // 检查首尾是否是标点符号
         const startsWithPunctuation = /^[._-]/.test(value)
         const endsWithPunctuation = /[._-]$/.test(value)
 
@@ -24,18 +25,17 @@ export const usernameRule = z
         )
       },
       {
-        message:
-          '用户名只能包含字母、数字、下划线(_)、中横线(-)和英文句号(.)，且首尾不能是标点符号',
+        message: i18n.t('usernameFormatMsg'),
       }
     )
   )
 
 export const passwordRule = z
   .string()
-  .min(12, '密码长度不得小于12个字符')
-  .max(18, '密码长度不得超过18个字符')
-  .regex(/[a-z]/, '密码必须至少包含一个小写字母')
-  .regex(/[A-Z]/, '密码必须至少包含一个大写字母')
-  .regex(/\d/, '密码必须包含数字')
+  .min(12, i18n.t('charMinimum', { field: i18n.t('password'), num: 12 }))
+  .max(18, i18n.t('charMaximum', { field: i18n.t('password'), num: 18 }))
+  .regex(/[a-z]/, i18n.t('passRule1'))
+  .regex(/[A-Z]/, i18n.t('passRule2'))
+  .regex(/\d/, i18n.t('passRule3'))
   /* eslint-disable-next-line */
-  .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/, '密码必须包含特殊符号')
+  .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/, i18n.t('passRule4'))

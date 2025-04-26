@@ -1,14 +1,3 @@
-import {
-  ArticleStatusColorMap,
-  ArticleStatusNameMap,
-  SITE_STATUS,
-  SiteStatusColorMap,
-  SiteStatusNameMap,
-} from '@/types/types'
-
-export const SITE_NAME = 'BiliQiqi'
-export const SITE_NAME_CN = '必利淇淇'
-
 export const PLATFORM_NAME = 'BiliQiqi'
 
 // blue
@@ -54,37 +43,5 @@ export const URL_PATTERN =
   /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g
 
 export const DOCK_HEIGHT = 80
-
-export const SITE_STATUS_NAME_MAP: SiteStatusNameMap = {
-  [SITE_STATUS.ReadOnly]: '只读',
-  [SITE_STATUS.Normal]: '正常',
-  [SITE_STATUS.Pending]: '审核中',
-  [SITE_STATUS.Reject]: '被驳回',
-  [SITE_STATUS.Banned]: '已封禁',
-  [SITE_STATUS.All]: '全部',
-}
-
-export const SITE_STATUS_COLOR_MAP: SiteStatusColorMap = {
-  [SITE_STATUS.ReadOnly]: 'text-gray-500',
-  [SITE_STATUS.Normal]: '',
-  [SITE_STATUS.Pending]: 'text-yellow-500',
-  [SITE_STATUS.Reject]: 'text-red-500',
-  [SITE_STATUS.Banned]: 'text-red-500',
-  [SITE_STATUS.All]: '',
-}
-
-export const ARTICLE_STATUS_NAME_MAP: ArticleStatusNameMap = {
-  pending: '审核中',
-  published: '已发布',
-  rejected: '已驳回',
-  draft: '草稿',
-}
-
-export const ARTICLE_STATUS_COLOR_MAP: ArticleStatusColorMap = {
-  pending: 'text-yellow-500',
-  published: '',
-  rejected: 'text-red-500',
-  draft: '',
-}
 
 export const MAX_BLOCKED_WORD_LEN = 20

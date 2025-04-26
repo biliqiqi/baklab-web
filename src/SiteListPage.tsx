@@ -8,6 +8,7 @@ import {
 } from '@tanstack/react-table'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
 import { z } from '@/lib/zod-custom'
@@ -52,7 +53,9 @@ import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 
 import { getSiteList, setSiteStatus } from './api/site'
-import { DEFAULT_PAGE_SIZE, SITE_STATUS_NAME_MAP } from './constants/constants'
+import { DEFAULT_PAGE_SIZE } from './constants/constants'
+import { SITE_STATUS_NAME_MAP } from './constants/maps'
+import i18n from './i18n'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { getSiteStatusColor, getSiteStatusName } from './lib/utils'
@@ -91,7 +94,7 @@ interface EditSiteData {
 }
 
 const rejecttingSchema = z.object({
-  reason: z.string().min(1, '请输入驳回原因'),
+  reason: z.string().min(1, i18n.t('reasonInputTip')),
 })
 
 type RejecttingSchema = z.infer<typeof rejecttingSchema>
@@ -124,286 +127,13 @@ export default function SiteListPage() {
     totalPage: 0,
   })
 
+  const { t } = useTranslation()
+
   const location = useLocation()
 
   const alertDialog = useAlertDialogStore()
 
   const tab = params.get('status') || String(defaultStatus)
-
-  const rejecttingForm = useForm<RejecttingSchema>({
-    resolver: zodResolver(rejecttingSchema),
-    defaultValues: {
-      reason: '',
-    },
-  })
-
-  const resetParams = useCallback(() => {
-    setParams((params) => {
-      params.delete('page')
-      params.delete('page_size')
-      params.delete('keywords')
-      params.delete('creator_name')
-      return params
-    })
-  }, [setParams])
-
-  const onResetClick = useCallback(() => {
-    setSearchData({ ...defaultSearchData })
-    resetParams()
-  }, [resetParams])
-
-  const onSearchClick = useCallback(() => {
-    resetParams()
-    setParams((params) => {
-      const { keywords, creatorName } = searchData
-
-      if (keywords) {
-        params.set('keywords', keywords)
-      }
-
-      if (creatorName) {
-        params.set('creator_name', creatorName)
-      }
-
-      return params
-    })
-  }, [setParams, resetParams, searchData])
-
-  const onPassSiteClick = async (site: Site) => {
-    const confirmed = await alertDialog.confirm(
-      '确认',
-      `确定审核通过站点 "${site.name}" ？`
-    )
-    if (confirmed) {
-      const { code } = await setSiteStatus(
-        site.frontId,
-        SITE_STATUS.Normal,
-        '',
-        site.status
-      )
-      if (!code) {
-        fetchSiteList(false)
-      }
-    }
-  }
-
-  const onBanSiteClick = async (site: Site) => {
-    const confirmed = await alertDialog.confirm(
-      '确认',
-      `确定封禁站点 "${site.name}" ？`,
-      'danger'
-    )
-    if (confirmed) {
-      const { code } = await setSiteStatus(
-        site.frontId,
-        SITE_STATUS.Banned,
-        '',
-        site.status
-      )
-      if (!code) {
-        fetchSiteList(false)
-      }
-    }
-  }
-
-  const onSetSiteReadonlyClick = async (site: Site) => {
-    const confirmed = await alertDialog.confirm(
-      '确认',
-      `确定设置站点 "${site.name}" 为只读？`
-    )
-    if (confirmed) {
-      const { code } = await setSiteStatus(
-        site.frontId,
-        SITE_STATUS.ReadOnly,
-        '',
-        site.status
-      )
-      if (!code) {
-        fetchSiteList(false)
-      }
-    }
-  }
-
-  const onRecoverSiteClick = async (site: Site) => {
-    const confirmed = await alertDialog.confirm(
-      '确认',
-      `确定恢复/解封站点 "${site.name}" ？`
-    )
-    if (confirmed) {
-      const { code } = await setSiteStatus(
-        site.frontId,
-        SITE_STATUS.Normal,
-        '',
-        site.status
-      )
-      if (!code) {
-        fetchSiteList(false)
-      }
-    }
-  }
-
-  const columns: ColumnDef<Site>[] = [
-    {
-      id: 'select',
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && 'indeterminate')
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-          disabled={!row.getCanSelect()}
-        />
-      ),
-    },
-    {
-      accessorKey: 'name',
-      header: '站点名称',
-      cell: ({ row }) => (
-        <Link to={'/' + row.original.frontId}>
-          <BSiteIcon
-            logoUrl={row.original.logoUrl}
-            name={row.original.name}
-            size={36}
-            showSiteName
-            className="w-[100px]"
-          />
-        </Link>
-      ),
-    },
-    {
-      accessorKey: 'visible',
-      header: '可见性',
-      cell: ({ row }) => <span>{row.original.visible ? '公开' : '私有'}</span>,
-    },
-    {
-      accessorKey: 'creatorName',
-      header: '创建人',
-      cell: ({ row }) => (
-        <Link to={'/users/' + row.original.creatorName}>
-          {row.original.creatorName}
-        </Link>
-      ),
-    },
-    {
-      accessorKey: 'memberCount',
-      header: '成员数',
-      cell: ({ row }) => <span>{row.original.memberCount}</span>,
-    },
-    {
-      accessorKey: 'createdAt',
-      header: '创建时间',
-      cell: ({ cell }) => (
-        <span>{timeFmt(cell.getValue<string>(), 'YYYY-M-D')}</span>
-      ),
-    },
-    {
-      accessorKey: 'status',
-      header: '状态',
-      cell: ({ row }) => (
-        <>
-          <span className={getSiteStatusColor(row.original.status)}>
-            {SITE_STATUS_NAME_MAP[row.original.status] || '-'}
-          </span>
-          {row.original.deleted && (
-            <span className="text-gray-500">&nbsp;(已删除)</span>
-          )}
-        </>
-      ),
-    },
-    {
-      accessorKey: 'contorles',
-      header: '操作',
-      cell: ({ row: { original } }) => (
-        <>
-          {original.status == SITE_STATUS.Pending && (
-            <>
-              <Button
-                variant="secondary"
-                className="mr-1"
-                size="sm"
-                onClick={() => onPassSiteClick(original)}
-              >
-                通过
-              </Button>
-              <Button
-                variant="secondary"
-                className="mr-1"
-                size="sm"
-                onClick={() =>
-                  setEditSite({ rejectting: true, site: original })
-                }
-              >
-                驳回
-              </Button>
-            </>
-          )}
-          {original.status == SITE_STATUS.Normal && (
-            <>
-              <Button
-                variant="secondary"
-                className="mr-1"
-                size="sm"
-                onClick={() => onBanSiteClick(original)}
-              >
-                封禁
-              </Button>
-              <Button
-                variant="secondary"
-                className="mr-1"
-                size="sm"
-                onClick={() => onSetSiteReadonlyClick(original)}
-              >
-                设置为只读
-              </Button>
-            </>
-          )}
-          {original.status == SITE_STATUS.Banned && (
-            <Button
-              variant="secondary"
-              className="mr-1"
-              size="sm"
-              onClick={() => onRecoverSiteClick(original)}
-            >
-              解封
-            </Button>
-          )}
-          {(original.status == SITE_STATUS.ReadOnly ||
-            original.status == SITE_STATUS.Reject) && (
-            <Button
-              variant="secondary"
-              className="mr-1"
-              size="sm"
-              onClick={() => onRecoverSiteClick(original)}
-            >
-              恢复
-            </Button>
-          )}
-        </>
-      ),
-    },
-  ]
-
-  const table = useReactTable({
-    data: list,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    onRowSelectionChange: setRowSelection,
-    state: {
-      rowSelection,
-    },
-    getRowId: (row) => row.name,
-  })
-
-  const selectedRows = table.getSelectedRowModel().rows
 
   const fetchSiteList = toSync(
     useCallback(
@@ -473,6 +203,295 @@ export default function SiteListPage() {
     )
   )
 
+  const rejecttingForm = useForm<RejecttingSchema>({
+    resolver: zodResolver(rejecttingSchema),
+    defaultValues: {
+      reason: '',
+    },
+  })
+
+  const resetParams = useCallback(() => {
+    setParams((params) => {
+      params.delete('page')
+      params.delete('page_size')
+      params.delete('keywords')
+      params.delete('creator_name')
+      return params
+    })
+  }, [setParams])
+
+  const onResetClick = useCallback(() => {
+    setSearchData({ ...defaultSearchData })
+    resetParams()
+  }, [resetParams])
+
+  const onSearchClick = useCallback(() => {
+    resetParams()
+    setParams((params) => {
+      const { keywords, creatorName } = searchData
+
+      if (keywords) {
+        params.set('keywords', keywords)
+      }
+
+      if (creatorName) {
+        params.set('creator_name', creatorName)
+      }
+
+      return params
+    })
+  }, [setParams, resetParams, searchData])
+
+  const onPassSiteClick = useCallback(
+    async (site: Site) => {
+      const confirmed = await alertDialog.confirm(
+        t('confirm'),
+        t('siteReviewPassConfirm', { siteName: site.name })
+      )
+      if (confirmed) {
+        const { code } = await setSiteStatus(
+          site.frontId,
+          SITE_STATUS.Normal,
+          '',
+          site.status
+        )
+        if (!code) {
+          fetchSiteList(false)
+        }
+      }
+    },
+    [t, alertDialog, fetchSiteList]
+  )
+
+  const onBanSiteClick = useCallback(
+    async (site: Site) => {
+      const confirmed = await alertDialog.confirm(
+        t('confirm'),
+        t('siteBanConfirm', { siteName: site.name }),
+        'danger'
+      )
+      if (confirmed) {
+        const { code } = await setSiteStatus(
+          site.frontId,
+          SITE_STATUS.Banned,
+          '',
+          site.status
+        )
+        if (!code) {
+          fetchSiteList(false)
+        }
+      }
+    },
+    [t, alertDialog, fetchSiteList]
+  )
+
+  const onSetSiteReadonlyClick = useCallback(
+    async (site: Site) => {
+      const confirmed = await alertDialog.confirm(
+        t('confirm'),
+        t('siteReadOnlyConfirm', { siteName: site.name })
+      )
+      if (confirmed) {
+        const { code } = await setSiteStatus(
+          site.frontId,
+          SITE_STATUS.ReadOnly,
+          '',
+          site.status
+        )
+        if (!code) {
+          fetchSiteList(false)
+        }
+      }
+    },
+    [t, alertDialog, fetchSiteList]
+  )
+
+  const onRecoverSiteClick = useCallback(
+    async (site: Site) => {
+      const confirmed = await alertDialog.confirm(
+        t('confirm'),
+        t('siteRecoverConfirm', { siteName: site.name })
+      )
+      if (confirmed) {
+        const { code } = await setSiteStatus(
+          site.frontId,
+          SITE_STATUS.Normal,
+          '',
+          site.status
+        )
+        if (!code) {
+          fetchSiteList(false)
+        }
+      }
+    },
+    [t, alertDialog, fetchSiteList]
+  )
+
+  const columns: ColumnDef<Site>[] = [
+    {
+      id: 'select',
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+          disabled={!row.getCanSelect()}
+        />
+      ),
+    },
+    {
+      accessorKey: 'name',
+      header: t('siteName'),
+      cell: ({ row }) => (
+        <Link to={'/' + row.original.frontId}>
+          <BSiteIcon
+            logoUrl={row.original.logoUrl}
+            name={row.original.name}
+            size={36}
+            showSiteName
+            className="w-[100px]"
+          />
+        </Link>
+      ),
+    },
+    {
+      accessorKey: 'visible',
+      header: t('visibility'),
+      cell: ({ row }) => (
+        <span>{row.original.visible ? t('public') : t('private')}</span>
+      ),
+    },
+    {
+      accessorKey: 'creatorName',
+      header: t('creator'),
+      cell: ({ row }) => (
+        <Link to={'/users/' + row.original.creatorName}>
+          {row.original.creatorName}
+        </Link>
+      ),
+    },
+    {
+      accessorKey: 'memberCount',
+      header: t('memberNum'),
+      cell: ({ row }) => <span>{row.original.memberCount}</span>,
+    },
+    {
+      accessorKey: 'createdAt',
+      header: t('createdAt'),
+      cell: ({ cell }) => (
+        <span>{timeFmt(cell.getValue<string>(), 'YYYY-M-D')}</span>
+      ),
+    },
+    {
+      accessorKey: 'status',
+      header: t('status'),
+      cell: ({ row }) => (
+        <>
+          <span className={getSiteStatusColor(row.original.status)}>
+            {SITE_STATUS_NAME_MAP[row.original.status] || '-'}
+          </span>
+          {row.original.deleted && (
+            <span className="text-gray-500">&nbsp;({t('deleted')})</span>
+          )}
+        </>
+      ),
+    },
+    {
+      accessorKey: 'contorles',
+      header: t('operations'),
+      cell: ({ row: { original } }) => (
+        <>
+          {original.status == SITE_STATUS.Pending && (
+            <>
+              <Button
+                variant="secondary"
+                className="mr-1"
+                size="sm"
+                onClick={() => onPassSiteClick(original)}
+              >
+                {t('pass')}
+              </Button>
+              <Button
+                variant="secondary"
+                className="mr-1"
+                size="sm"
+                onClick={() =>
+                  setEditSite({ rejectting: true, site: original })
+                }
+              >
+                {t('reject')}
+              </Button>
+            </>
+          )}
+          {original.status == SITE_STATUS.Normal && (
+            <>
+              <Button
+                variant="secondary"
+                className="mr-1"
+                size="sm"
+                onClick={() => onBanSiteClick(original)}
+              >
+                {t('ban')}
+              </Button>
+              <Button
+                variant="secondary"
+                className="mr-1"
+                size="sm"
+                onClick={() => onSetSiteReadonlyClick(original)}
+              >
+                {t('setReadOnly')}
+              </Button>
+            </>
+          )}
+          {original.status == SITE_STATUS.Banned && (
+            <Button
+              variant="secondary"
+              className="mr-1"
+              size="sm"
+              onClick={() => onRecoverSiteClick(original)}
+            >
+              {t('unban')}
+            </Button>
+          )}
+          {(original.status == SITE_STATUS.ReadOnly ||
+            original.status == SITE_STATUS.Reject) && (
+            <Button
+              variant="secondary"
+              className="mr-1"
+              size="sm"
+              onClick={() => onRecoverSiteClick(original)}
+            >
+              {t('recover')}
+            </Button>
+          )}
+        </>
+      ),
+    },
+  ]
+
+  const table = useReactTable({
+    data: list,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    onRowSelectionChange: setRowSelection,
+    state: {
+      rowSelection,
+    },
+    getRowId: (row) => row.name,
+  })
+
+  const selectedRows = table.getSelectedRowModel().rows
+
   const onTabChange = (tab: string) => {
     setParams((prevParams) => {
       prevParams.delete('page')
@@ -513,14 +532,14 @@ export default function SiteListPage() {
       category={{
         isFront: true,
         frontId: 'site_list',
-        name: '站点管理',
-        describe: '全部站点',
+        name: t('siteManagement'),
+        describe: t('allSites'),
       }}
     >
       <Card className="flex flex-wrap justify-between p-2">
         <div className="flex flex-wrap">
           <Input
-            placeholder="站点名称"
+            placeholder={t('siteName')}
             className="w-[140px] h-[36px] mr-3"
             value={searchData.keywords}
             onChange={(e) =>
@@ -536,7 +555,7 @@ export default function SiteListPage() {
             }}
           />
           <Input
-            placeholder="创建人"
+            placeholder={t('creator')}
             className="w-[140px] h-[36px] mr-3"
             value={searchData.creatorName}
             onChange={(e) =>
@@ -554,10 +573,10 @@ export default function SiteListPage() {
         </div>
         <div>
           <Button size="sm" onClick={onResetClick} className="mr-3">
-            重置
+            {t('reset')}
           </Button>
           <Button size="sm" onClick={onSearchClick}>
-            搜索
+            {t('search')}
           </Button>
         </div>
       </Card>
@@ -574,12 +593,14 @@ export default function SiteListPage() {
             </TabsTrigger>
           ))}
           <TabsTrigger value={`deleted`} key={`deleted`}>
-            已删除
+            {t('deleted')}
           </TabsTrigger>
         </TabsList>
       </Tabs>
       <div className="my-4">
-        <Badge variant="secondary">{pageState.total} 个站点</Badge>
+        <Badge variant="secondary">
+          {t('siteCount', { num: pageState.total })}
+        </Badge>
       </div>
 
       {list.length == 0 ? (
@@ -642,7 +663,7 @@ export default function SiteListPage() {
             <Card className="sticky bottom-0 mt-4 p-2">
               <div className="flex justify-between items-center">
                 <div className="text-sm">
-                  已选中 {selectedRows.length} 个站点
+                  {t('selectedSiteCouont', { num: selectedRows.length })}
                 </div>
                 <div></div>
               </div>
@@ -660,9 +681,9 @@ export default function SiteListPage() {
           {currSite && (
             <>
               <AlertDialogHeader>
-                <AlertDialogTitle>驳回</AlertDialogTitle>
+                <AlertDialogTitle>{t('rejectSite')}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  驳回站点 "{currSite.name}"
+                  {t('rejectSite', { siteName: currSite.name })}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <Form {...rejecttingForm}>
@@ -675,10 +696,10 @@ export default function SiteListPage() {
                     name="reason"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>驳回原因</FormLabel>
+                        <FormLabel>{t('rejectReason')}</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="请填写驳回原因"
+                            placeholder={t('reasonInputTip')}
                             className="mt-4"
                             value={field.value}
                             onChange={field.onChange}
@@ -694,12 +715,12 @@ export default function SiteListPage() {
                 <AlertDialogCancel
                   onClick={() => setEditSite({ rejectting: false, site: null })}
                 >
-                  取消
+                  {t('cancel')}
                 </AlertDialogCancel>
                 <AlertDialogAction
                   onClick={rejecttingForm.handleSubmit(handleSubmit)}
                 >
-                  确认
+                  {t('confirm')}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </>

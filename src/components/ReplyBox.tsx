@@ -10,6 +10,7 @@ import {
   useState,
 } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
@@ -87,6 +88,8 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   const { siteFrontId } = useParams()
 
   /* const authStore = useAuthedUserStore() */
+
+  const { t } = useTranslation()
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const tiptapRef = useRef<TipTapRef | null>(null)
@@ -541,7 +544,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
                 className="mt-2 ml-2"
                 size="sm"
               >
-                {loading ? <BLoader /> : '提交'}
+                {loading ? <BLoader /> : t('submit')}
               </Button>
             </div>
           </div>

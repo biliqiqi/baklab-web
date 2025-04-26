@@ -112,7 +112,7 @@ export interface Article {
   id: string
   title: string
   displayTitle: string
-  asMainArticle: boolean // 是否在前端作为顶层文章
+  asMainArticle: boolean // on the top of page as main content
   link: string
   picURL: string
   price: number
@@ -276,19 +276,19 @@ export interface UserData {
 export interface CustomRequestOptions {
   showNotFound?: boolean
   showAuthToast?: boolean
-  siteFrontId?: string // 接口所在站点
+  siteFrontId?: string
 }
 
 export type FrontCategory = Pick<Category, 'frontId' | 'name' | 'describe'> & {
-  isFront: boolean // 是否由前端定义
+  isFront: boolean // defined at frontend
   siteFrontId?: string
 }
 
 export interface ListPageState {
   currPage: number
   pageSize: number
-  total: number // 数据总量
-  totalPage: number // 总页数
+  total: number
+  totalPage: number
 }
 
 export interface ArticleListState extends ListPageState {

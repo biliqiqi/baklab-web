@@ -24,6 +24,7 @@ import {
   EV_ON_REPLY_CLICK,
   NAV_HEIGHT,
 } from '@/constants/constants'
+import i18n from '@/i18n'
 import { Article, ArticleSubmitResponse, ResponseData } from '@/types/types'
 
 import TipTap, { TipTapRef } from './TipTap'
@@ -33,7 +34,11 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form'
 import { Textarea } from './ui/textarea'
 
 const articleScheme = z.object({
-  content: z.string().trim().min(1, '请输入内容').max(ARTICLE_MAX_CONTENT_LEN),
+  content: z
+    .string()
+    .trim()
+    .min(1, i18n.t('inputTip', { field: i18n.t('content') }))
+    .max(ARTICLE_MAX_CONTENT_LEN),
 })
 
 type ArticleScheme = z.infer<typeof articleScheme>
@@ -149,7 +154,6 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
 
         /* const data = await submitReply(replyToArticle.id, content) */
         if (!resp.code) {
-          /* toast.info('提交成功') */
           reset()
           form.reset({ content: '' })
 
@@ -399,7 +403,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   if (disabled) {
     return (
       <div className="max-w-[800px] -mx-2 mt-[10px] sticky bottom-0 bg-white p-3 rounded-lg border-[1px] text-gray-500 text-sm">
-        目前缺少此功能权限
+        {t('lackPermission')}
       </div>
     )
   }
@@ -427,7 +431,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
           <div className="flex items-center justify-between bg-gray-100 rounded-sm py-1 px-2 mb-2 text-gray-500 text-sm">
             <span>
               {targetArticle.deleted ? (
-                <i className="text-gray-500 text-sm">&lt;已删除&gt;</i>
+                <i className="text-gray-500 text-sm">&lt;{t('deleted')}&gt;</i>
               ) : (
                 <span>
                   {targetArticle.authorName}:{' '}
@@ -511,16 +515,16 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
                     variant="link"
                     size="sm"
                     onClick={() => setIsActive(false)}
-                    title="收起"
+                    title={t('collape')}
                     className="h-[24px] text-gray-500 px-0 align-middle"
                   >
-                    <ArrowDownToLineIcon size={18} /> 收起
+                    <ArrowDownToLineIcon size={18} /> {t('collape')}
                   </Button>
                   <Button
                     variant={markdownMode ? 'default' : 'ghost'}
                     size="icon"
                     onClick={onMarkdownModeClick}
-                    title="Markdown模式"
+                    title={t('xMode', { name: 'Markdown' })}
                     className="mx-2 w-8 h-[24px] align-middle"
                   >
                     M
@@ -536,7 +540,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
                 size="sm"
                 onClick={onPreviewClick}
               >
-                {isPreview ? '继续' : '预览'}
+                {isPreview ? t('continue') : t('preview')}
               </Button>
               <Button
                 type="submit"

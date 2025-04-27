@@ -18,6 +18,7 @@ import {
   updateCategory,
 } from '@/api/category'
 import { defaultCategory } from '@/constants/defaults'
+import i18n from '@/i18n'
 import {
   useAlertDialogStore,
   useAuthedUserStore,
@@ -50,26 +51,32 @@ const MAX_CATEGORY_NAME_LENGTH = 12
 
 const frontIDSchema = z
   .string()
-  .min(1, '请输入板块标识')
+  .min(1, i18n.t('inputTip', { field: i18n.t('categoryFrontId') }))
   .max(
     MAX_CATEGORY_FRONT_ID_LENGTH,
-    `板块标识不得超过${MAX_CATEGORY_FRONT_ID_LENGTH}个字符`
+    i18n.t('charMaximum', {
+      field: i18n.t('categoryFrontId'),
+      num: MAX_CATEGORY_FRONT_ID_LENGTH,
+    })
   )
-  .regex(/^[a-zA-Z0-9_]+$/, '板块标识由数字、字母和下划线组成，不区分大小写')
+  .regex(/^[a-zA-Z0-9_]+$/, i18n.t('categoryFrontIdFormatTip'))
 
 const nameSchema = z
   .string()
-  .min(1, '请输入板块名称')
+  .min(1, i18n.t('inputTip', { field: i18n.t('categoryName') }))
   .max(
     MAX_CATEGORY_NAME_LENGTH,
-    `板块名称不得超过${MAX_CATEGORY_NAME_LENGTH}个字符`
+    i18n.t('charMaximum', {
+      field: i18n.t('categoryName'),
+      num: MAX_CATEGORY_NAME_LENGTH,
+    })
   )
 
 const iconBgColorSchema = z
   .string()
   .regex(
     /^$|^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$|^rgb\(\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*\)$/i,
-    '颜色格式错误'
+    i18n.t('colorFormatError')
   )
 
 const contentFormIdSchema = z.string()
@@ -83,7 +90,7 @@ const iconContentSchema = z.string().transform((val, ctx) => {
   if (/\p{L}+$/u.test(val)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: '限制为一个字符',
+      message: i18n.t('limitOneChar'),
     })
     return z.NEVER
   }
@@ -92,7 +99,7 @@ const iconContentSchema = z.string().transform((val, ctx) => {
 
   ctx.addIssue({
     code: z.ZodIssueCode.custom,
-    message: '限制为一个字符',
+    message: i18n.t('limitOneChar'),
   })
 
   return z.NEVER
@@ -212,7 +219,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
           if (exists) {
             form.setError(
               'frontID',
-              { message: '板块标识已存在' },
+              { message: t('categoryFrontIdExists') },
               { shouldFocus: true }
             )
             return
@@ -239,7 +246,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
         console.error('validate front id error: ', err)
       }
     },
-    [form, isEdit, onSuccess, category, siteStore, siteFrontId]
+    [form, isEdit, onSuccess, category, siteStore, siteFrontId, t]
   )
 
   const onDeleteClick = useCallback(
@@ -260,14 +267,14 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
       )
       if (!resp.code) {
         if (resp.data.articleTotal > 0) {
-          alertDialog.alert('无法删除', '该板块下存在内容，无法删除')
+          alertDialog.alert(t('undeletable'), t('categoryContentExists'))
           return
         }
       }
 
       const confirmed = await alertDialog.confirm(
-        '确认',
-        '确认删除？',
+        t('confirm'),
+        t('deleteConfirm1'),
         'danger'
       )
 
@@ -285,7 +292,15 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
         onSuccess()
       }
     },
-    [isEdit, category, siteFrontId, alertDialog, authStore.username, onSuccess]
+    [
+      isEdit,
+      category,
+      siteFrontId,
+      alertDialog,
+      authStore.username,
+      onSuccess,
+      t,
+    ]
   )
 
   useEffect(() => {
@@ -329,10 +344,10 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
           key="name"
           render={({ field, fieldState }) => (
             <FormItem className="mb-8">
-              <FormLabel>名称</FormLabel>
+              <FormLabel>{t('name')}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="请输入板块名称"
+                  placeholder={t('inputTip', { field: t('categoryName') })}
                   autoComplete="off"
                   state={fieldState.invalid ? 'invalid' : 'default'}
                   {...field}
@@ -355,13 +370,13 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
             key="frontID"
             render={({ field, fieldState }) => (
               <FormItem className="mb-8">
-                <FormLabel>标识</FormLabel>
+                <FormLabel>{t('frontId')}</FormLabel>
                 <FormDescription>
-                  板块的唯一标识，由字母、数字和下划线组成
+                  {t('categoryFrontIdDescribe')}
                 </FormDescription>
                 <FormControl>
                   <Input
-                    placeholder="请输入板块标识"
+                    placeholder={t('inputTip', { field: t('categoryFrontId') })}
                     autoComplete="off"
                     state={fieldState.invalid ? 'invalid' : 'default'}
                     {...field}
@@ -384,7 +399,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
           key="contentFormId"
           render={({ field }) => (
             <FormItem className="mb-8">
-              <FormLabel>内容形式</FormLabel>
+              <FormLabel>{t('contentForm')}</FormLabel>
               <FormControl>
                 <FormItem className="mb-8">
                   <FormControl>
@@ -415,7 +430,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
                   !showMoreSettings && '-rotate-90'
                 )}
               />
-              更多设置
+              {t('moreSettings')}
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="CollapsibleContent">
@@ -425,11 +440,11 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
               key="iconContent"
               render={({ field, fieldState }) => (
                 <FormItem className="mb-8">
-                  <FormLabel>图标内容</FormLabel>
-                  <FormDescription>限制为一个字符</FormDescription>
+                  <FormLabel>{t('iconContent')}</FormLabel>
+                  <FormDescription>{t('limitOneChar')}</FormDescription>
                   <FormControl>
                     <Input
-                      placeholder="请输入图标内容"
+                      placeholder={t('inputTip', { field: t('iconContent') })}
                       autoComplete="off"
                       state={fieldState.invalid ? 'invalid' : 'default'}
                       {...field}
@@ -445,16 +460,13 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
               key="iconBgColor"
               render={({ field, fieldState }) => (
                 <FormItem className="mb-8">
-                  <FormLabel>图标背景色</FormLabel>
-                  <FormDescription>
-                    支持十六进制和RGB格式，例如 #fafafa 或 rgb(255 20 30)，
-                    默认颜色基于板块标识字符串生成
-                  </FormDescription>
+                  <FormLabel>{t('iconBgColor')}</FormLabel>
+                  <FormDescription>{t('iconBgColorDescribe')}</FormDescription>
                   <FormControl>
                     <div className="flex">
                       <Input
                         key={'iconBgColor'}
-                        placeholder="请输入图标背景颜色"
+                        placeholder={t('inputTip', { field: t('iconBgColor') })}
                         autoComplete="off"
                         state={fieldState.invalid ? 'invalid' : 'default'}
                         {...field}
@@ -478,12 +490,14 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
               key="description"
               render={({ field, fieldState }) => (
                 <FormItem className="mb-8">
-                  <FormLabel>描述</FormLabel>
+                  <FormLabel>{t('description')}</FormLabel>
                   <FormControl>
                     <FormItem className="mb-8">
                       <FormControl>
                         <Textarea
-                          placeholder="请输入板块描述"
+                          placeholder={t('inputTip', {
+                            field: t('categoryDescription'),
+                          })}
                           autoComplete="off"
                           state={fieldState.invalid ? 'invalid' : 'default'}
                           {...field}
@@ -507,7 +521,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
                 size="sm"
                 onClick={onDeleteClick}
               >
-                删除
+                {t('delete')}
               </Button>
             )}
           </span>

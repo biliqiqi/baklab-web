@@ -1,9 +1,13 @@
+import { useTranslation } from 'react-i18next'
+
 import useDocumentTitle from '@/hooks/use-page-title'
 
 import { Empty } from './Empty'
 
 const NotFound = () => {
-  useDocumentTitle('空空如也')
+  const { t } = useTranslation()
+
+  useDocumentTitle(t('empty'))
 
   return <Empty />
 }

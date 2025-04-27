@@ -1,6 +1,7 @@
 import ClipboardJS from 'clipboard'
 import { CheckIcon } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { timeAgo } from '@/lib/dayjs-custom'
 import { cn } from '@/lib/utils'
@@ -22,6 +23,8 @@ const Invite: React.FC<InviteProps> = ({ data, loading, container }) => {
 
   const copyInviteBtnRef = useRef<HTMLButtonElement | null>(null)
   const clipboardRef = useRef<ClipboardJS | null>(null)
+
+  const { t } = useTranslation()
 
   useEffect(() => {
     let timer: number | undefined
@@ -65,14 +68,14 @@ const Invite: React.FC<InviteProps> = ({ data, loading, container }) => {
           readOnly
           value={
             loading || !data
-              ? `正在生成邀请链接...`
+              ? t('generattingInviteLink')
               : `${FRONT_END_HOST}/invite/${data.code}`
           }
           className={cn('pr-[54px]', loading && 'text-gray-500')}
         />
         {data && (
           <div className="my-2 text-sm text-gray-500">
-            该邀请链接将在 {timeAgo(data.expiredAt)}失效
+            {t('inviteLinkExpiration', { timeAgo: timeAgo(data.expiredAt) })}
           </div>
         )}
         <Button
@@ -82,14 +85,14 @@ const Invite: React.FC<InviteProps> = ({ data, loading, container }) => {
           ref={copyInviteBtnRef}
           disabled={!data}
         >
-          复制
+          {t('copy')}
         </Button>
       </div>
       <div className="flex justify-center py-4">
         {copyInviteSuccess && (
           <span className="inline-block h-[26px]">
             <CheckIcon className="inline-block mr-2 text-primary" />
-            <span>复制成功！</span>
+            <span>{t('copySuccess')}</span>
           </span>
         )}
       </div>

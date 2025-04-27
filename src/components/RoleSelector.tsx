@@ -1,5 +1,6 @@
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
@@ -21,6 +22,7 @@ import {
 
 import { getRole, getRoles } from '@/api/role'
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
+import i18n from '@/i18n'
 import { Role } from '@/types/types'
 
 import { BLoaderBlock } from './base/BLoader'
@@ -36,7 +38,7 @@ export interface RoleSelectorProps {
 const RoleSelector = ({
   valid = true,
   value = '',
-  placeholder = '请选择',
+  placeholder = i18n.t('pleaseSelect'),
   onChange = noop,
 }: RoleSelectorProps) => {
   const [searchLoading, setSearchLoading] = useState(false)
@@ -48,6 +50,7 @@ const RoleSelector = ({
   const [defaultRole, setDefaultRole] = useState<Role | null>(null)
 
   const { siteFrontId } = useParams()
+  const { t } = useTranslation()
 
   const selectedRole = useMemo(() => {
     if (defaultRole) {
@@ -141,12 +144,12 @@ const RoleSelector = ({
       <PopoverContent className="w-[200px] p-0">
         <Command shouldFilter={false}>
           <CommandInput
-            placeholder="搜索角色.."
+            placeholder={t('searchRole')}
             onValueChange={searchRoleList}
           />
           <CommandList>
             <CommandEmpty>
-              {searchLoading ? <BLoaderBlock /> : '未找到角色'}
+              {searchLoading ? <BLoaderBlock /> : t('noRoleFound')}
             </CommandEmpty>
             <CommandGroup>
               {roleOptions.map((role) => (

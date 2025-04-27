@@ -20,6 +20,7 @@ import {
 
 import { getContentForms } from '@/api/site'
 import { defaultContentForm } from '@/constants/defaults'
+import i18n from '@/i18n'
 import { ContentForm } from '@/types/types'
 
 import { BLoaderBlock } from './base/BLoader'
@@ -36,14 +37,14 @@ export interface ContentFormSelectorProps {
 const defaultOption: ContentForm = {
   ...defaultContentForm,
   id: '0',
-  name: '常规帖子',
+  name: i18n.t('regularPost'),
 }
 
 const ContentFormSelector = ({
   valid = true,
   value = '0',
   disabled = false,
-  placeholder = '请选择',
+  placeholder = i18n.t('pleaseSelect'),
   onChange = noop,
 }: ContentFormSelectorProps) => {
   const [searchLoading, setSearchLoading] = useState(false)

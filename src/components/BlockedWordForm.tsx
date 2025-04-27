@@ -9,6 +9,7 @@ import { z } from '@/lib/zod-custom'
 
 import { submitSiteBlockedWords } from '@/api/site'
 import { MAX_BLOCKED_WORD_LEN } from '@/constants/constants'
+import i18n from '@/i18n'
 
 import { Button } from './ui/button'
 import {
@@ -23,7 +24,9 @@ import {
 import { Textarea } from './ui/textarea'
 
 const wordSchema = z.object({
-  words: z.string().min(1, '请输入屏蔽词'),
+  words: z
+    .string()
+    .min(1, i18n.t('inputTip', { field: i18n.t('blockedWord') })),
 })
 
 type WordSchema = z.infer<typeof wordSchema>
@@ -63,7 +66,9 @@ const BlockedWordForm: React.FC<BlockedWordFormProps> = ({
         .filter((word) => word != '')
 
       if (wordArr.length == 0) {
-        form.setError('words', { message: '请输入屏蔽词' })
+        form.setError('words', {
+          message: t('inputTip', { field: t('blockedWord') }),
+        })
         return
       }
 
@@ -73,7 +78,10 @@ const BlockedWordForm: React.FC<BlockedWordFormProps> = ({
 
       if (tooLongWords.length > 0) {
         form.setError('words', {
-          message: `以下词汇超过了 ${MAX_BLOCKED_WORD_LEN} 个字符，请调整后重新提交：\n\n${tooLongWords.join('\n')}`,
+          message: t('blockedWordsMaxChar', {
+            num: MAX_BLOCKED_WORD_LEN,
+            wordList: tooLongWords.join('\n'),
+          }),
         })
         return
       }
@@ -83,7 +91,7 @@ const BlockedWordForm: React.FC<BlockedWordFormProps> = ({
         onSuccess()
       }
     },
-    [siteFrontId, form, onSuccess]
+    [siteFrontId, form, onSuccess, t]
   )
 
   useEffect(() => {
@@ -99,11 +107,11 @@ const BlockedWordForm: React.FC<BlockedWordFormProps> = ({
           key={`words`}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>屏蔽词</FormLabel>
+              <FormLabel>{t('blockedWord')}</FormLabel>
               <FormDescription>
-                请输入需要屏蔽的词汇，多个词语请使用逗号、空格、顿号或换行符隔开。
+                {t('blockedWordDescribe1')}
                 <br />
-                单个词汇不得超过 {MAX_BLOCKED_WORD_LEN} 个字符。
+                {t('blockedWordDescribe2', { num: MAX_BLOCKED_WORD_LEN })}
               </FormDescription>
               <FormControl>
                 <Textarea {...field} />
@@ -123,7 +131,7 @@ const BlockedWordForm: React.FC<BlockedWordFormProps> = ({
                 onCancel()
               }}
             >
-              取消
+              {t('cancel')}
             </Button>
             <Button
               size="sm"

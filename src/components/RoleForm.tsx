@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { CircleAlertIcon } from 'lucide-react'
 import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
@@ -18,6 +19,7 @@ import { deleteRole, submitRole, updateRole } from '@/api/role'
 import { getUserList } from '@/api/user'
 import { defaultRole } from '@/constants/defaults'
 import { PermissionModule } from '@/constants/types'
+import i18n from '@/i18n'
 import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
 import {
   PermissionListItem,
@@ -52,10 +54,14 @@ export interface RoleFormProps {
 }
 
 const roleSchema = z.object({
-  name: z.string().min(1, '请填写角色名称'),
-  level: z.string().min(1, '请填写权限级别'),
+  name: z.string().min(1, i18n.t('inputTip', { field: i18n.t('roleName') })),
+  level: z
+    .string()
+    .min(1, i18n.t('inputTip', { field: i18n.t('permissionLevel') })),
   permissionFrontIds: z.string().array().optional(),
-  siteNumLimit: z.string().min(1, '请填写可创建站点数量上限'),
+  siteNumLimit: z
+    .string()
+    .min(1, i18n.t('inputTip', { field: i18n.t('siteNumLimit') })),
   showRoleName: z.boolean(),
 })
 
@@ -86,6 +92,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
   const alertDialog = useAlertDialogStore()
 
   const { siteFrontId } = useParams()
+  const { t } = useTranslation()
 
   const edittingPermissionFrontIds = useMemo(() => {
     return (role.permissions || []).map((item) => item.frontId)
@@ -140,7 +147,10 @@ const RoleForm: React.FC<RoleFormProps> = ({
       const level = parseInt(vals.level, 10) || 0
       if (!systemRole && level < minLevel) {
         form.setError('level', {
-          message: `权限级别不能小于 ${minLevel}`,
+          message: t('minimumNum', {
+            field: t('permissionLevel'),
+            num: minLevel,
+          }),
         })
         return
       }
@@ -173,7 +183,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
         onSuccess()
       }
     },
-    [form, isEdit, role, systemRole, minLevel, siteFrontId, onSuccess]
+    [form, isEdit, role, systemRole, minLevel, siteFrontId, onSuccess, t]
   )
 
   const onDeleteClick = useCallback(
@@ -188,14 +198,14 @@ const RoleForm: React.FC<RoleFormProps> = ({
 
       if (!code) {
         if (data.total > 0) {
-          alertDialog.alert('无法删除', '该角色有关联用户，无法删除')
+          alertDialog.alert(t('undeletable'), t('roleUndeletableTip'))
           return
         }
       }
 
       const confirmed = await alertDialog.confirm(
-        '确认',
-        '删除之后无法撤回，确认删除？',
+        t('confirm'),
+        t('roleDeleteConfirm'),
         'danger'
       )
 
@@ -208,7 +218,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
         onSuccess()
       }
     },
-    [isEdit, role, alertDialog, onSuccess, siteFrontId]
+    [isEdit, role, alertDialog, onSuccess, siteFrontId, t]
   )
 
   useEffect(() => {
@@ -231,7 +241,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
         {systemRole && formType == 'edit' && (
           <div className="flex items-center mb-8 mt-4 text-gray-500">
             <CircleAlertIcon size={16} className="inline-block" />{' '}
-            系统角色只允许修改部分字段
+            {t('systemRoleEditTip')}
           </div>
         )}
         <FormField
@@ -240,7 +250,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
           key="name"
           render={({ field, fieldState }) => (
             <FormItem className="mb-8">
-              <FormLabel>角色名称</FormLabel>
+              <FormLabel>{t('roleName')}</FormLabel>
               {isDetail ? (
                 <div>
                   <span className="talbe-cell text-sm">{role?.name}</span>
@@ -248,7 +258,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
               ) : (
                 <FormControl>
                   <Input
-                    placeholder="请输入角色名称"
+                    placeholder={t('inputTip', { field: t('roleName') })}
                     autoComplete="off"
                     state={fieldState.invalid ? 'invalid' : 'default'}
                     disabled={systemRole}
@@ -261,8 +271,8 @@ const RoleForm: React.FC<RoleFormProps> = ({
           )}
         />
         <div className="text-sm mb-8">
-          <div className="font-bold mb-4">角色类型</div>
-          <div>{role.isSystem ? '系统' : '用户创建'}</div>
+          <div className="font-bold mb-4">{t('roleType')}</div>
+          <div>{role.isSystem ? t('system') : t('userCreated')}</div>
         </div>
         {siteFrontId && (
           <FormField
@@ -271,14 +281,14 @@ const RoleForm: React.FC<RoleFormProps> = ({
             key="showRoleName"
             render={({ field }) => (
               <FormItem className="mb-8">
-                <FormLabel>展示角色名</FormLabel>
+                <FormLabel>{t('displayRoleName')}</FormLabel>
                 <FormDescription>
-                  {isDetail ? '在用户名旁边展示角色名称' : ''}
+                  {isDetail ? t('displayRoleNameDescribe') : ''}
                 </FormDescription>
                 {isDetail ? (
                   <div>
                     <span className="talbe-cell text-sm">
-                      {role?.showRoleName ? '展示' : '不展示'}
+                      {role?.showRoleName ? t('display') : t('displayNone')}
                     </span>
                   </div>
                 ) : (
@@ -293,7 +303,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
                         htmlFor="show-role-name"
                         className="inline-block pl-2 leading-[24px] text-sm"
                       >
-                        在用户名旁边展示角色名称
+                        {t('displayRoleNameDescribe')}
                       </label>
                     </div>
                   </FormControl>
@@ -310,9 +320,9 @@ const RoleForm: React.FC<RoleFormProps> = ({
           render={({ field, fieldState }) => (
             <FormItem className="mb-8">
               <FormLabel>
-                权限级别{' '}
+                {t('permissionLevel')}{' '}
                 <FormDescription className="inline font-normal">
-                  (数值越大，级别越低)
+                  ({t('permissionLevelDescribe')})
                 </FormDescription>
               </FormLabel>
               <FormControl>
@@ -320,7 +330,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
                   <div>{role?.level}</div>
                 ) : (
                   <Input
-                    placeholder="请输入权限级别"
+                    placeholder={t('inputTip', { field: t('permissionLevel') })}
                     autoComplete="off"
                     pattern="^\d+$"
                     state={fieldState.invalid ? 'invalid' : 'default'}
@@ -340,13 +350,13 @@ const RoleForm: React.FC<RoleFormProps> = ({
             key="siteNumLimit"
             render={({ field, fieldState }) => (
               <FormItem className="mb-8">
-                <FormLabel>站点数量上限</FormLabel>
+                <FormLabel>{t('siteNumLimit')}</FormLabel>
                 <FormControl>
                   {isDetail ? (
                     <div>{role?.siteNumLimit}</div>
                   ) : (
                     <Input
-                      placeholder="请输入站点数量上限"
+                      placeholder={t('inputTip', { field: t('siteNumLimit') })}
                       autoComplete="off"
                       pattern="^\d+$"
                       state={fieldState.invalid ? 'invalid' : 'default'}
@@ -366,14 +376,16 @@ const RoleForm: React.FC<RoleFormProps> = ({
           key="permissionFrontIds"
           render={({ field }) => (
             <>
-              <FormLabel>拥有权限</FormLabel>
+              <FormLabel>{t('havePermissions')}</FormLabel>
               <div
                 className="overflow-y-auto pb-4"
                 style={{ maxHeight: 'calc(100vh - 600px)', minHeight: '200px' }}
               >
                 {isDetail &&
                 (!role?.permissions || role.permissions.length == 0) ? (
-                  <span className="text-sm text-gray-500">没有权限</span>
+                  <span className="text-sm text-gray-500">
+                    {t('noPermission')}
+                  </span>
                 ) : (
                   formattedPermissions
                     .filter((item) => {
@@ -457,7 +469,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
                 disabled={systemRole}
                 onClick={onDeleteClick}
               >
-                删除
+                {t('delete')}
               </Button>
             )}
             {isDetail && (
@@ -468,7 +480,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
                   setFormType('edit')
                 }}
               >
-                设置
+                {t('settings')}
               </Button>
             )}
           </div>
@@ -481,7 +493,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
                     onCancel()
                   }}
                 >
-                  确定
+                  {t('confirm')}
                 </Button>
               </>
             ) : (
@@ -494,10 +506,10 @@ const RoleForm: React.FC<RoleFormProps> = ({
                   }}
                   className="mr-2"
                 >
-                  取消
+                  {t('cancel')}
                 </Button>
                 <Button type="submit" disabled={!form.formState.isDirty}>
-                  提交
+                  {t('submit')}
                 </Button>
               </>
             )}

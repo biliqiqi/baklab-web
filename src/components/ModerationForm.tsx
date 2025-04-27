@@ -1,9 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { MouseEvent, useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
 import { noop } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
+
+import i18n from '@/i18n'
 
 import { Button } from './ui/button'
 import {
@@ -19,8 +22,10 @@ import { RadioGroup, RadioGroupItem } from './ui/radio-group'
 import { Textarea } from './ui/textarea'
 
 const reasonScheme = z.object({
-  reason: z.string().min(1, '请选择删除原因'),
-  extra: z.string().max(500, '不要超过500各字符'),
+  reason: z
+    .string()
+    .min(1, i18n.t('selectTip', { field: i18n.t('deleteReason') })),
+  extra: z.string().max(500, i18n.t('charMaximum', { num: 500 })),
 })
 
 export type ReasonScheme = z.infer<typeof reasonScheme>
@@ -33,17 +38,17 @@ interface ModerationFormProps {
 }
 
 const REASONS = [
-  '广告营销',
-  '不友善',
-  '虚假信息或谣言',
-  '色情暴力',
-  '激进意识形态',
-  '歧视性言论',
-  '隐私侵犯',
-  '刻意煽动对立',
-  '盗版侵权',
-  '自残或危险行为引导',
-  '未注明是AI生成',
+  i18n.t('ads'),
+  i18n.t('unfriendly'),
+  i18n.t('rumors'),
+  i18n.t('sexViolence'),
+  i18n.t('politics'),
+  i18n.t('racist'),
+  i18n.t('privacy'),
+  i18n.t('troll'),
+  i18n.t('pirate'),
+  i18n.t('selfHarm'),
+  i18n.t('lackAIGenNote'),
 ]
 
 const ModerationForm: React.FC<ModerationFormProps> = ({
@@ -53,6 +58,7 @@ const ModerationForm: React.FC<ModerationFormProps> = ({
   onCancel = noop,
 }) => {
   const [otherReason, setOtherReason] = useState('')
+  const { t } = useTranslation()
 
   const form = useForm<ReasonScheme>({
     resolver: zodResolver(reasonScheme),
@@ -78,7 +84,9 @@ const ModerationForm: React.FC<ModerationFormProps> = ({
     (data: ReasonScheme) => {
       if (data.reason == 'other') {
         if (!otherReason.trim()) {
-          form.setError('reason', { message: '请填写其他原因' })
+          form.setError('reason', {
+            message: t('inputTip', { field: t('otherReason') }),
+          })
           return
         } else {
           data.reason = otherReason
@@ -86,7 +94,7 @@ const ModerationForm: React.FC<ModerationFormProps> = ({
       }
       onSubmit(data)
     },
-    [otherReason, form, onSubmit]
+    [otherReason, form, onSubmit, t]
   )
 
   return (
@@ -123,7 +131,7 @@ const ModerationForm: React.FC<ModerationFormProps> = ({
                       <RadioGroupItem value={'other'} className="mr-1" />
                     </FormControl>
                     <FormLabel className="font-normal">
-                      其他：
+                      {t('others')}：
                       <Input
                         className="inline-block w-[120px]"
                         onFocus={() =>
@@ -146,7 +154,7 @@ const ModerationForm: React.FC<ModerationFormProps> = ({
           name="extra"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>补充说明</FormLabel>
+              <FormLabel>{t('additions')}</FormLabel>
               <FormControl>
                 <Textarea {...field} />
               </FormControl>
@@ -158,7 +166,7 @@ const ModerationForm: React.FC<ModerationFormProps> = ({
           <div></div>
           <div>
             <Button size="sm" variant={'secondary'} onClick={onCancelClick}>
-              取消
+              {i18n.t('cancel')}
             </Button>
             <Button
               type="submit"
@@ -166,7 +174,7 @@ const ModerationForm: React.FC<ModerationFormProps> = ({
               variant={destructive ? 'destructive' : 'default'}
               className="ml-2"
             >
-              确认
+              {i18n.t('confirm')}
             </Button>
           </div>
         </div>

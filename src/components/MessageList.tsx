@@ -7,6 +7,7 @@ import {
   useImperativeHandle,
   useState,
 } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
@@ -73,6 +74,8 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
       total: 0,
     })
 
+    const { t } = useTranslation()
+
     const [params] = useSearchParams()
     const location = useLocation()
 
@@ -130,8 +133,8 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
 
     const onReadAllClick = async () => {
       const confirmed = await alertDialog.confirm(
-        '确认',
-        '确定把全部未读消息标记为已读？'
+        t('confirm'),
+        t('readAllMsgConfirm')
       )
       if (!confirmed) return
 
@@ -202,7 +205,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
                   listType == 'default' && 'bg-transparent'
                 )}
               >
-                {notiStore.unreadCount} 条未读消息
+                {t('unreadCount', { num: notiStore.unreadCount })}
               </Badge>
             )}
           </div>
@@ -214,7 +217,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
                 className="text-sm"
                 onClick={onReadAllClick}
               >
-                全部标称为已读
+                {t('markAllRead')}
               </Button>
             )}
           </div>
@@ -222,7 +225,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
 
         {loading && <BLoaderBlock />}
         {notiList.length == 0 ? (
-          <Empty text={listType == 'default' ? '暂无未读消息' : ''} />
+          <Empty text={listType == 'default' ? t('noUnread') : ''} />
         ) : (
           notiList.map((item) => (
             <Link
@@ -239,21 +242,57 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
                       listType == 'list_page' && !item.isRead && 'font-bold'
                     )}
                   >
-                    <BAvatar
-                      size={listType == 'list_page' ? 22 : 20}
-                      fontSize={12}
-                      username={item.senderUserName}
-                      showUsername
-                    />
                     &nbsp;
                     {item.targetData.authorId == authState.userID ? (
                       item.targetData.title ? (
-                        <>在帖子《{item.targetData.title}》中回复了你</>
+                        <Trans
+                          i18nKey={'replyUnderPost'}
+                          values={{
+                            title: item.targetData.title,
+                          }}
+                          components={{
+                            userAvartar: (
+                              <BAvatar
+                                size={listType == 'list_page' ? 22 : 20}
+                                fontSize={12}
+                                username={item.senderUserName}
+                                showUsername
+                              />
+                            ),
+                          }}
+                        />
                       ) : (
-                        '回复了你'
+                        <Trans
+                          i18nKey={'replyToYou'}
+                          components={{
+                            userAvartar: (
+                              <BAvatar
+                                size={listType == 'list_page' ? 22 : 20}
+                                fontSize={12}
+                                username={item.senderUserName}
+                                showUsername
+                              />
+                            ),
+                          }}
+                        />
                       )
                     ) : (
-                      <>回复了帖子《{item.targetData.title}》</>
+                      <Trans
+                        i18nKey={'replyToPost'}
+                        values={{
+                          title: item.targetData.title,
+                        }}
+                        components={{
+                          userAvartar: (
+                            <BAvatar
+                              size={listType == 'list_page' ? 22 : 20}
+                              fontSize={12}
+                              username={item.senderUserName}
+                              showUsername
+                            />
+                          ),
+                        }}
+                      />
                     )}
                   </div>
                   <div className="flex pl-2">
@@ -262,7 +301,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
                         size="sm"
                         variant="ghost"
                         className="py-0 px-0 w-[24px] h-[24px]"
-                        title="标记为已读"
+                        title={t('markAsRead')}
                         onClick={(e) =>
                           onReadMessageClick(e, item.contentArticle.id)
                         }
@@ -276,7 +315,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
                           size="sm"
                           variant="ghost"
                           className="py-0 px-0 w-[24px] h-[24px] ml-1"
-                          title="设置"
+                          title={t('settings')}
                         >
                           <EllipsisVerticalIcon size={18} />
                         </Button>
@@ -296,7 +335,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
                             )
                           }
                         >
-                          不再提醒
+                          {t('noReminders')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

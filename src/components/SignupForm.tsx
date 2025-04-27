@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ChangeEvent, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -87,14 +87,12 @@ const SignupForm: React.FC<SignupFormProps> = ({
   const emailForm = useForm<EmailScheme>({
     resolver: zodResolver(emailScheme),
     defaultValues: {
-      /* email: 'test@example.com', */
       email: propEmail,
     },
   })
 
   emailForm.register('email', {
     onChange: (e: ChangeEvent<HTMLInputElement>) => {
-      /* console.log('email: ', e.target.value) */
       setEmail(e.target.value)
     },
   })
@@ -102,7 +100,6 @@ const SignupForm: React.FC<SignupFormProps> = ({
   const phoneForm = useForm<PhoneScheme>({
     resolver: zodResolver(phoneScheme),
     defaultValues: {
-      /* phone: '13599887798', */
       phone: '',
     },
   })
@@ -110,8 +107,6 @@ const SignupForm: React.FC<SignupFormProps> = ({
   const form = useForm<SignupScheme>({
     resolver: zodResolver(signupScheme),
     defaultValues: {
-      /* username: 'abcd',
-       * password: 'sdfsdfDFDF$#23423', */
       username: '',
       password: '',
     },
@@ -164,7 +159,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
         autheState.update(data.data.token, '', '', null)
       } else {
         if (data.code == SERVER_ERR_ACCOUNT_EXIST) {
-          toast.info('邮箱已注册，请直接登录')
+          toast.info(t('emailExistsTip'))
           navigate(`/signin?account=${email.current}`)
         }
       }
@@ -206,7 +201,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
     }
   }
 
-  useDocumentTitle('注册新账户')
+  useDocumentTitle(t('signupTitle'))
 
   return (
     <>
@@ -214,18 +209,15 @@ const SignupForm: React.FC<SignupFormProps> = ({
         {codeVerified ? (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
-              <div className="mb-8 text-gray-800">
-                验证成功，请填写以下信息以完成注册。
-              </div>
+              <div className="mb-8 text-gray-800">{t('verifySuccessTip')}</div>
               <FormField
                 control={form.control}
                 name="username"
                 render={({ field, fieldState }) => (
                   <FormItem className="mb-8">
-                    {/* <FormLabel errorHighlight={false}>用户名</FormLabel> */}
                     <FormControl>
                       <Input
-                        placeholder="请输入用户名"
+                        placeholder={t('inputTip', { field: t('username') })}
                         autoComplete="off"
                         state={fieldState.invalid ? 'invalid' : 'default'}
                         {...field}
@@ -241,11 +233,10 @@ const SignupForm: React.FC<SignupFormProps> = ({
                 name="password"
                 render={({ field, fieldState }) => (
                   <FormItem className="mb-8">
-                    {/* <FormLabel errorHighlight={false}>密码</FormLabel> */}
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="请输入密码"
+                        placeholder={t('inputTip', { field: t('password') })}
                         autoComplete="off"
                         {...field}
                         state={fieldState.invalid ? 'invalid' : 'default'}
@@ -268,7 +259,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
                 className="w-full text-center"
                 onClick={reset}
               >
-                重新注册
+                {t('reSignup')}
               </Button>
             </form>
           </Form>
@@ -287,15 +278,16 @@ const SignupForm: React.FC<SignupFormProps> = ({
                   value={SignupType.email}
                   onClick={() => setCurrTab(SignupType.email)}
                 >
-                  邮箱注册
+                  {t('emailSignup')}
                 </TabsTrigger>
                 <TabsTrigger
                   value={SignupType.phone}
                   onClick={() => setCurrTab(SignupType.phone)}
                 >
-                  手机号注册
+                  {t('phoneSignup')}
                 </TabsTrigger>
               </TabsList> */}
+
             <TabsContent value={SignupType.email}>
               <Form {...emailForm}>
                 <form onSubmit={emailForm.handleSubmit(onEmailSubmit)}>
@@ -307,7 +299,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
                         <FormControl>
                           <Input
                             type="email"
-                            placeholder="请输入邮箱"
+                            placeholder={t('inputTip', { field: t('email') })}
                             autoComplete="off"
                             {...field}
                             state={fieldState.invalid ? 'invalid' : 'default'}
@@ -322,26 +314,30 @@ const SignupForm: React.FC<SignupFormProps> = ({
                     className="w-full text-center"
                     disabled={loading}
                   >
-                    {loading ? <BLoader /> : '下一步'}
+                    {loading ? <BLoader /> : t('nextStep')}
                   </Button>
                 </form>
               </Form>
               <div className="text-sm mt-8">
-                已有账号或手机号账户请
-                <Link
-                  to="/signin"
-                  className="b-text-link"
-                  onClick={(e) => {
-                    if (dialog) {
-                      e.preventDefault()
-                      updateSignup(false)
-                      updateSignin(true)
-                      return
-                    }
+                <Trans
+                  i18nKey={'directlySigninTip'}
+                  components={{
+                    loginLink: (
+                      <Link
+                        to="/signin"
+                        className="b-text-link"
+                        onClick={(e) => {
+                          if (dialog) {
+                            e.preventDefault()
+                            updateSignup(false)
+                            updateSignin(true)
+                            return
+                          }
+                        }}
+                      />
+                    ),
                   }}
-                >
-                  直接登录
-                </Link>
+                />
               </div>
             </TabsContent>
             <TabsContent value={SignupType.phone}>
@@ -354,7 +350,9 @@ const SignupForm: React.FC<SignupFormProps> = ({
                       <FormItem className="mb-8">
                         <FormControl>
                           <Input
-                            placeholder="请输入手机号码"
+                            placeholder={t('inputTip', {
+                              field: t('phoneNumber'),
+                            })}
                             autoComplete="off"
                             {...field}
                             state={fieldState.invalid ? 'invalid' : 'default'}
@@ -365,7 +363,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
                     )}
                   />
                   <Button type="submit" className="w-full text-center">
-                    下一步
+                    {t('nextStep')}
                   </Button>
                 </form>
               </Form>

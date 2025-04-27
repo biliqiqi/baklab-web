@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ChangeEvent, memo, useCallback, useState } from 'react'
 import { Control, Controller, Path, useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
@@ -64,8 +64,6 @@ const FormInput = memo(
   )
 )
 
-/* const isInnerURL = (url: string) => new URL(url).origin == location.origin */
-
 export interface SigninFromProps {
   dialog?: boolean
   email?: string
@@ -89,9 +87,6 @@ const SigninForm: React.FC<SigninFromProps> = ({
 
   const siteStore = useSiteStore()
   const { t } = useTranslation()
-  /* const { forceUpdate } = useForceUpdate() */
-
-  /* const navigate = useNavigate() */
 
   const signinForm = useForm<SigninScheme>({
     resolver: zodResolver(signinScheme),
@@ -103,7 +98,6 @@ const SigninForm: React.FC<SigninFromProps> = ({
 
   signinForm.register('account', {
     onChange: (e: ChangeEvent<HTMLInputElement>) => {
-      /* console.log('email: ', e.target.value) */
       try {
         const email = emailRule.parse(e.target.value)
         setEmail(email)
@@ -133,33 +127,21 @@ const SigninForm: React.FC<SigninFromProps> = ({
 
   const onSigninSubmit = async (values: SigninScheme) => {
     try {
-      /* console.log('values: ', values) */
-
       if (loading) return
 
       setLoading(true)
 
       const data = await postSignin(values.account, values.password)
-      /* console.log('sign in resp data:', data) */
 
       if (!data.code) {
         const { token, userID, username, user } = data.data
         updateAuthState(token, username, userID, user)
         fetchSiteData()
         toSync(siteStore.fetchSiteList)()
-        /* console.log('is inner url: ', isInnerURL(returnURL)) */
 
         if (onSuccess && typeof onSuccess == 'function') {
           onSuccess()
         }
-
-        /* let targetURL = '/'
-         * if (returnURL && isInnerURL(returnURL)) {
-         *   targetURL = returnURL.replace(location.origin, '')
-         *   console.log('to return url: ', targetURL)
-         * }
-         * console.log('targetURL: ', targetURL)
-         * navigate(targetURL) */
       }
     } catch (e) {
       console.error('signin error: ', e)
@@ -170,8 +152,6 @@ const SigninForm: React.FC<SigninFromProps> = ({
 
   useDocumentTitle(t('signin'))
 
-  /* console.log('render signin page') */
-
   return (
     <>
       <div className="w-[400px] max-sm:w-full space-y-8 mx-auto py-4">
@@ -180,13 +160,13 @@ const SigninForm: React.FC<SigninFromProps> = ({
             <FormInput
               control={signinForm.control}
               name="account"
-              placeholder="请输入邮箱"
+              placeholder={t('inputTip', { field: t('email') })}
             />
             <FormInput
               control={signinForm.control}
               name="password"
               type="password"
-              placeholder="请输入密码"
+              placeholder={t('inputTip', { field: t('password') })}
             />
             <Button
               type="submit"
@@ -198,21 +178,25 @@ const SigninForm: React.FC<SigninFromProps> = ({
           </form>
         </Form>
         <div className="text-sm">
-          还没有账号？
-          <Link
-            to="/signup"
-            className="b-text-link"
-            onClick={(e) => {
-              if (dialog) {
-                e.preventDefault()
-                updateSignin(false)
-                updateSignup(true)
-                return
-              }
+          <Trans
+            i18nKey={'directlySignupTip'}
+            components={{
+              signupLink: (
+                <Link
+                  to="/signup"
+                  className="b-text-link"
+                  onClick={(e) => {
+                    if (dialog) {
+                      e.preventDefault()
+                      updateSignin(false)
+                      updateSignup(true)
+                      return
+                    }
+                  }}
+                />
+              ),
             }}
-          >
-            新建一个
-          </Link>
+          />
         </div>
       </div>
     </>

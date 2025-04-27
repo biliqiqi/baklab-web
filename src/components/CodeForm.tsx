@@ -1,23 +1,28 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { MouseEvent, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
 import { z } from '@/lib/zod-custom'
 
 import { Button } from '@/components/ui/button'
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+
+import i18n from '@/i18n'
 
 const REGEXP_CODE = /^\d{6}$/
 
 const codeScheme = z.object({
-  code: z.string().regex(REGEXP_CODE, '验证码格式错误'),
+  code: z
+    .string()
+    .regex(REGEXP_CODE, i18n.t('formatError', { field: i18n.t('verifyCode') })),
 })
 
 export type CodeScheme = z.infer<typeof codeScheme>
@@ -37,9 +42,11 @@ const CodeForm: React.FC<CodeFormProps> = ({
   onBackClick = () => {},
   onResendClick = () => {},
 }) => {
+  const { t } = useTranslation()
   const codeForm = useForm<CodeScheme>({
     resolver: zodResolver(codeScheme),
     defaultValues: {
+      // TODO for debug
       code: '686868',
     },
   })
@@ -57,7 +64,7 @@ const CodeForm: React.FC<CodeFormProps> = ({
     <Form {...codeForm}>
       <form onSubmit={codeForm.handleSubmit(onSubmit)}>
         <div className="mb-8 text-gray-800">
-          验证码已发送到你的{isPhone ? '手机' : '邮箱'}，5分钟内有效。
+          {t('verifyCodeSent', { name: isPhone ? t('phone') : t('email') })}
         </div>
         <FormField
           control={codeForm.control}
@@ -66,7 +73,7 @@ const CodeForm: React.FC<CodeFormProps> = ({
             <FormItem className="mb-8">
               <FormControl>
                 <Input
-                  placeholder="请输入验证码"
+                  placeholder={t('inputTip', { field: t('verifyCode') })}
                   autoComplete="off"
                   {...field}
                   state={fieldState.invalid ? 'invalid' : 'default'}
@@ -81,7 +88,7 @@ const CodeForm: React.FC<CodeFormProps> = ({
           className="w-full text-center mb-4"
           disabled={loading}
         >
-          下一步
+          {t('nextStep')}
         </Button>
         <Button
           type="button"
@@ -89,17 +96,17 @@ const CodeForm: React.FC<CodeFormProps> = ({
           className="w-full text-center"
           onClick={onBackClick}
         >
-          返回
+          {t('goBack')}
         </Button>
         <div className="my-4 py-2 text-sm">
-          未收到验证码？
+          {t('noVerifyCodeRecieved')}
           <Button
             onClick={reSendCode}
             variant="link"
             className="m-0 p-0"
             disabled={disableResend}
           >
-            {disableResend ? '已发送' : '点击重新发送'}
+            {disableResend ? t('sent') : t('reSent')}
           </Button>
         </div>
       </form>

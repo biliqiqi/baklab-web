@@ -102,6 +102,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
   }, [role.permissions])
 
   const isEdit = useMemo(() => formType == 'edit', [formType])
+  const isCreate = useMemo(() => formType == 'create', [formType])
   const isDetail = useMemo(() => formType == 'detail', [formType])
   const currRole = useMemo(() => authStore.user?.role, [authStore])
   const minLevel = useMemo(
@@ -122,15 +123,16 @@ const RoleForm: React.FC<RoleFormProps> = ({
         siteNumLimit: siteNumLimitSchema(i18n),
       })
     ),
-    defaultValues: isEdit
-      ? {
-          name: role.name,
-          level: String(role.level),
-          permissionFrontIds: edittingPermissionFrontIds,
-          siteNumLimit: String(role.siteNumLimit) || '0',
-          showRoleName: role.showRoleName,
-        }
-      : { ...defaultRoleData, level: String(minLevel) },
+    defaultValues:
+      isEdit || isCreate
+        ? {
+            name: role.name,
+            level: String(role.level),
+            permissionFrontIds: edittingPermissionFrontIds,
+            siteNumLimit: String(role.siteNumLimit) || '0',
+            showRoleName: role.showRoleName,
+          }
+        : { ...defaultRoleData, level: String(minLevel) },
   })
 
   const formVals = form.watch()

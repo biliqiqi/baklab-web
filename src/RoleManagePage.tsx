@@ -196,10 +196,10 @@ export default function RoleManagePage() {
             size="sm"
             className="m-1"
             onClick={() => {
-              setRoleFormType('create')
               setEditRole({
-                role: { ...row.original, name: '' },
+                role: { ...row.original, name: '', isSystem: false },
               })
+              setRoleFormType('create')
               setShowRoleForm(true)
             }}
           >

@@ -10,7 +10,6 @@ import { z } from '@/lib/zod-custom'
 
 import { postSignin } from '@/api'
 import { getSiteWithFrontId } from '@/api/site'
-import { emailRule, passwordRule } from '@/constants/rules'
 import useDocumentTitle from '@/hooks/use-page-title'
 import {
   useAuthedUserStore,
@@ -23,14 +22,15 @@ import { Button } from './ui/button'
 import { Form, FormControl, FormItem } from './ui/form'
 import { Input } from './ui/input'
 
-const signinScheme = z.object({
+const emailRule = z.string().email()
+const signinSchema = z.object({
   account: emailRule,
-  password: passwordRule,
+  password: z.string(),
 })
 
-type SigninScheme = z.infer<typeof signinScheme>
+type SigninSchema = z.infer<typeof signinSchema>
 
-interface FormInputProps<T extends SigninScheme> {
+interface FormInputProps<T extends SigninSchema> {
   control: Control<T>
   name: Path<T>
   type?: 'text' | 'password' | 'email' | 'number'
@@ -38,7 +38,7 @@ interface FormInputProps<T extends SigninScheme> {
 }
 
 const FormInput = memo(
-  <T extends SigninScheme>({
+  <T extends SigninSchema>({
     control,
     name,
     type = 'text',
@@ -88,8 +88,20 @@ const SigninForm: React.FC<SigninFromProps> = ({
   const siteStore = useSiteStore()
   const { t } = useTranslation()
 
-  const signinForm = useForm<SigninScheme>({
-    resolver: zodResolver(signinScheme),
+  const signinForm = useForm<SigninSchema>({
+    resolver: zodResolver(
+      signinSchema.extend({
+        password: z
+          .string()
+          .min(12, t('charMinimum', { field: t('password'), num: 12 }))
+          .max(18, t('charMaximum', { field: t('password'), num: 18 }))
+          .regex(/[a-z]/, t('passRule1'))
+          .regex(/[A-Z]/, t('passRule2'))
+          .regex(/\d/, t('passRule3'))
+          /* eslint-disable-next-line */
+          .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/, t('passRule4')),
+      })
+    ),
     defaultValues: {
       account: account || '',
       password: '',
@@ -125,7 +137,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
     }, [siteFrontId, siteStore])
   )
 
-  const onSigninSubmit = async (values: SigninScheme) => {
+  const onSigninSubmit = async (values: SigninSchema) => {
     try {
       if (loading) return
 

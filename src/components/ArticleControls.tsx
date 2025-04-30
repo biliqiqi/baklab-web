@@ -14,7 +14,7 @@ import {
   useContext,
   useMemo,
 } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
@@ -48,11 +48,11 @@ interface ArticleControlsProps extends HTMLAttributes<HTMLDivElement> {
   article: Article
   ctype: ArticleCardType
   upVote?: boolean
-  downVote?: boolean // 是否显示踩按钮
-  bookmark?: boolean // 是否显示书签（收藏）按钮
+  downVote?: boolean
+  bookmark?: boolean
   author?: boolean
-  cornerLink?: boolean // 右下角链接
-  linkQrCode?: boolean // 是否显示直达链接二维码
+  cornerLink?: boolean
+  linkQrCode?: boolean
   notify?: boolean
   comment?: boolean
   history?: boolean
@@ -295,7 +295,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
         )}
         {article.locked && (
           <i className="inline-block mr-2 text-sm text-gray-500">
-            &lt;已锁定&gt;
+            &lt;{t('locked')}&gt;
           </i>
         )}
         {history && checkPermit('article', 'manage') && (
@@ -324,7 +324,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
               <CheckIcon size={20} className="mr-1" />
               &nbsp;
               <span className="text-sm text-gray-500 font-normal">
-                标记为已答案
+                {t('markAsSolution')}
               </span>
             </Button>
           )}
@@ -335,7 +335,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           articleCtx.root.acceptAnswerId == article.id && (
             <span className="inline-flex items-center mr-2 text-green-500 text-sm whitespace-nowrap">
               <CheckIcon size={20} className="mr-1 inline" />
-              &nbsp;<span>标记为答案</span>
+              &nbsp;<span>{t('markedAsSolution')}</span>
             </span>
           )}
 
@@ -350,89 +350,93 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             size="sm"
             className="mr-1 text-green-500"
             asChild
-            title="查看答案"
+            title={t('viewAnswer')}
           >
             <Link
               to={`/${siteFrontId}/articles/${(articleCtx.root || article).acceptAnswerId}`}
             >
               <CheckIcon size={20} className="mr-1" />
               &nbsp;
-              <span className="text-sm font-normal">已解决</span>
+              <span className="text-sm font-normal">{t('solved')}</span>
             </Link>
           </Button>
         )}
 
         {ctype == 'list' && (
           <>
-            {author && (
-              <span>
-                {article.replyToId == '0' || !article.replyToArticle ? (
-                  <>
-                    <Link
-                      to={'/users/' + article.authorName}
-                      className="text-gray-700"
-                    >
-                      {article.authorName}
-                    </Link>
-                    &nbsp;发布于
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      to={'/users/' + article.authorName}
-                      className="text-gray-700"
-                    >
-                      {article.authorName}
-                    </Link>
-                    &nbsp;回复&nbsp;
-                    <Link
-                      to={'/users/' + article.authorName}
-                      className="text-gray-700"
-                    >
-                      {article.replyToArticle.authorName}
-                    </Link>
-                    于
-                  </>
-                )}
-              </span>
-            )}
-            <span className="whitespace-nowrap">
-              {siteFrontId ? (
-                <Link
-                  to={`/${article.siteFrontId}/bankuai/${article.category.frontId}`}
-                >
-                  <BIconColorChar
-                    iconId={article.categoryFrontId}
-                    char={article.category.iconContent}
-                    color={article.category.iconBgColor}
-                    size={20}
-                    fontSize={12}
-                    className="align-[-5px] mx-1"
-                  />
-                  {article.category.name}
-                </Link>
-              ) : (
-                <Link to={`/${article.siteFrontId}`} className="leading-3 mx-1">
-                  <BSiteIcon
-                    logoUrl={article.site.logoUrl}
-                    name={article.site.name}
-                    size={20}
-                    fontSize={12}
-                    showSiteName
-                  />
-                </Link>
-              )}
-              &nbsp;·&nbsp;
-              <span
-                title={timeFmt(article.createdAt, 'YYYY年M月D日 H时m分s秒')}
-              >
-                {timeAgo(article.createdAt)}
-              </span>
-            </span>
+            <Trans
+              i18nKey={'userPublishInfo'}
+              components={{
+                userLink: (
+                  <Link
+                    to={'/users/' + article.authorName}
+                    className="text-gray-700"
+                  >
+                    {article.authorName}&nbsp;
+                  </Link>
+                ),
+                actionTag:
+                  article.replyToId == '0' || !article.replyToArticle ? (
+                    <span>{t('publish')}</span>
+                  ) : (
+                    <Trans
+                      i18nKey={'replyToUser'}
+                      components={{
+                        userLink: (
+                          <Link
+                            to={'/users/' + article.replyToArticle.authorName}
+                            className="text-gray-700"
+                          >
+                            {article.replyToArticle.authorName}
+                          </Link>
+                        ),
+                      }}
+                    />
+                  ),
+                placeLink: (
+                  <span className="whitespace-nowrap">
+                    {siteFrontId ? (
+                      <Link
+                        to={`/${article.siteFrontId}/bankuai/${article.category.frontId}`}
+                      >
+                        <BIconColorChar
+                          iconId={article.categoryFrontId}
+                          char={article.category.iconContent}
+                          color={article.category.iconBgColor}
+                          size={20}
+                          fontSize={12}
+                          className="align-[-5px] mx-1"
+                        />
+                        {article.category.name}
+                      </Link>
+                    ) : (
+                      <Link
+                        to={`/${article.siteFrontId}`}
+                        className="leading-3 mx-1"
+                      >
+                        <BSiteIcon
+                          logoUrl={article.site.logoUrl}
+                          name={article.site.name}
+                          size={20}
+                          fontSize={12}
+                          showSiteName
+                        />
+                      </Link>
+                    )}
+                    &nbsp;·&nbsp;
+                    <span title={timeFmt(article.createdAt, 'YYYY-M-D H:m:s')}>
+                      {timeAgo(article.createdAt)}
+                    </span>
+                  </span>
+                ),
+              }}
+            />
           </>
         )}
         {isTopArticle && (
-          <span className="text-gray-500">{article.totalReplyCount} 回复</span>
+          <span className="text-gray-500">
+            {t('replyCount', { num: article.totalReplyCount })}
+          </span>
         )}
       </div>
       <div className="flex items-center">

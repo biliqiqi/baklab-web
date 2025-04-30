@@ -54,8 +54,6 @@ import { ListPagination } from './components/ListPagination'
 
 import { getSiteList, setSiteStatus } from './api/site'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
-import { SITE_STATUS_NAME_MAP } from './constants/maps'
-import i18n from './i18n'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { getSiteStatusColor, getSiteStatusName } from './lib/utils'
@@ -94,7 +92,7 @@ interface EditSiteData {
 }
 
 const rejecttingSchema = z.object({
-  reason: z.string().min(1, i18n.t('reasonInputTip')),
+  reason: z.string(),
 })
 
 type RejecttingSchema = z.infer<typeof rejecttingSchema>
@@ -204,7 +202,11 @@ export default function SiteListPage() {
   )
 
   const rejecttingForm = useForm<RejecttingSchema>({
-    resolver: zodResolver(rejecttingSchema),
+    resolver: zodResolver(
+      rejecttingSchema.extend({
+        reason: z.string().min(1, t('reasonInputTip')),
+      })
+    ),
     defaultValues: {
       reason: '',
     },
@@ -398,7 +400,7 @@ export default function SiteListPage() {
       cell: ({ row }) => (
         <>
           <span className={getSiteStatusColor(row.original.status)}>
-            {SITE_STATUS_NAME_MAP[row.original.status] || '-'}
+            {getSiteStatusName(row.original.status) || '-'}
           </span>
           {row.original.deleted && (
             <span className="text-gray-500">&nbsp;({t('deleted')})</span>

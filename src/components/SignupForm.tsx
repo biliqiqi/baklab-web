@@ -10,39 +10,33 @@ import { z } from '@/lib/zod-custom'
 
 import { completeEmailSign, postEmailSinup, postEmailVerify } from '@/api'
 import { SERVER_ERR_ACCOUNT_EXIST } from '@/constants/constants'
-import {
-  emailRule,
-  passwordRule,
-  phoneRule,
-  usernameRule,
-} from '@/constants/rules'
 import useDocumentTitle from '@/hooks/use-page-title'
 import { useAuthedUserStore, useDialogStore } from '@/state/global'
 
-import CodeForm, { CodeScheme } from './CodeForm'
+import CodeForm, { CodeSchema } from './CodeForm'
 import BLoader from './base/BLoader'
 import { Button } from './ui/button'
 import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form'
 import { Input } from './ui/input'
 import { Tabs, TabsContent } from './ui/tabs'
 
-const emailScheme = z.object({
-  email: emailRule,
+const emailSchema = z.object({
+  email: z.string().email(),
 })
 
-const phoneScheme = z.object({
-  phone: phoneRule,
+const phoneSchema = z.object({
+  phone: z.string(),
 })
 
-const signupScheme = z.object({
-  username: usernameRule,
-  password: passwordRule,
+const signupSchema = z.object({
+  username: z.string(),
+  password: z.string(),
 })
 
-type EmailScheme = z.infer<typeof emailScheme>
-type PhoneScheme = z.infer<typeof phoneScheme>
+type EmailSchema = z.infer<typeof emailSchema>
+type PhoneSchema = z.infer<typeof phoneSchema>
 
-type SignupScheme = z.infer<typeof signupScheme>
+type SignupSchema = z.infer<typeof signupSchema>
 
 enum SignupType {
   email = 'email',
@@ -84,8 +78,8 @@ const SignupForm: React.FC<SignupFormProps> = ({
     setLoading(false)
   }
 
-  const emailForm = useForm<EmailScheme>({
-    resolver: zodResolver(emailScheme),
+  const emailForm = useForm<EmailSchema>({
+    resolver: zodResolver(emailSchema),
     defaultValues: {
       email: propEmail,
     },
@@ -97,15 +91,56 @@ const SignupForm: React.FC<SignupFormProps> = ({
     },
   })
 
-  const phoneForm = useForm<PhoneScheme>({
-    resolver: zodResolver(phoneScheme),
+  const phoneForm = useForm<PhoneSchema>({
+    resolver: zodResolver(
+      phoneSchema.extend({
+        phone: z
+          .string()
+          .regex(/^1\d{10}$/, t('formatError', { field: t('phoneNumber') })),
+      })
+    ),
     defaultValues: {
       phone: '',
     },
   })
 
-  const form = useForm<SignupScheme>({
-    resolver: zodResolver(signupScheme),
+  const form = useForm<SignupSchema>({
+    resolver: zodResolver(
+      signupSchema.extend({
+        username: z
+          .string()
+          .min(4, t('charMinimum', { field: t('username'), num: 4 }))
+          .max(20, t('charMaximum', { field: t('username'), num: 20 }))
+          .transform((str) => str.toLowerCase())
+          .pipe(
+            z.string().refine(
+              (value) => {
+                const validCharsRegex = /^[a-z0-9._-]+$/
+                const startsWithPunctuation = /^[._-]/.test(value)
+                const endsWithPunctuation = /[._-]$/.test(value)
+
+                return (
+                  validCharsRegex.test(value) &&
+                  !startsWithPunctuation &&
+                  !endsWithPunctuation
+                )
+              },
+              {
+                message: t('usernameFormatMsg'),
+              }
+            )
+          ),
+        password: z
+          .string()
+          .min(12, t('charMinimum', { field: t('password'), num: 12 }))
+          .max(18, t('charMaximum', { field: t('password'), num: 18 }))
+          .regex(/[a-z]/, t('passRule1'))
+          .regex(/[A-Z]/, t('passRule2'))
+          .regex(/\d/, t('passRule3'))
+          /* eslint-disable-next-line */
+          .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/, t('passRule4')),
+      })
+    ),
     defaultValues: {
       username: '',
       password: '',
@@ -129,7 +164,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
     }
   }
 
-  const onEmailSubmit = (values: EmailScheme) => {
+  const onEmailSubmit = (values: EmailSchema) => {
     /* console.log('values: ', values) */
     email.current = values.email
 
@@ -137,16 +172,13 @@ const SignupForm: React.FC<SignupFormProps> = ({
     signWithEmail(values.email)
   }
 
-  const onPhoneSubmit = (_values: PhoneScheme) => {
+  const onPhoneSubmit = (_values: PhoneSchema) => {
     /* console.log('values: ', values) */
     setIsPhone(true)
     setCodeSent(true)
   }
 
-  const onCodeSubmit = async (values: CodeScheme) => {
-    /* console.log('email: ', email.current)
-     * console.log('code values: ', values) */
-    /* console.log('code type: ', currTab) */
+  const onCodeSubmit = async (values: CodeSchema) => {
     if (loading) return
 
     setLoading(true)
@@ -170,7 +202,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
     }
   }
 
-  const onSubmit = async (values: SignupScheme) => {
+  const onSubmit = async (values: SignupSchema) => {
     try {
       /* console.log('values: ', values) */
 

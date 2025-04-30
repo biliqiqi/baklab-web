@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 
-import { cn, renderMD } from '@/lib/utils'
+import { cn, getArticleStatusName, renderMD } from '@/lib/utils'
 
 import { Badge } from './components/ui/badge'
 import { Card } from './components/ui/card'
@@ -21,10 +21,7 @@ import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 
 import { getArticleList } from './api/article'
 import { getUser, getUserActivityList, getUserPunishedList } from './api/user'
-import {
-  ARTICLE_STATUS_COLOR_MAP,
-  ARTICLE_STATUS_NAME_MAP,
-} from './constants/maps'
+import { ARTICLE_STATUS_COLOR_MAP } from './constants/maps'
 import i18n from './i18n'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
@@ -48,19 +45,25 @@ import {
 
 type UserTab = Exclude<ArticleListType, 'deleted'> | 'activity' | 'violation'
 
-type UserTabMap = {
-  [key in UserTab]: string
-}
-
-const tabMapData: UserTabMap = {
-  all: i18n.t('all'),
-  reply: i18n.t('reply'),
-  article: i18n.t('post'),
-  saved: i18n.t('saved'),
-  subscribed: i18n.t('subscribed'),
-  vote_up: i18n.t('voted'),
-  activity: i18n.t('operationLog'),
-  violation: i18n.t('violationLog'),
+const tabMapData = (tab: UserTab) => {
+  switch (tab) {
+    case 'all':
+      return i18n.t('all')
+    case 'reply':
+      return i18n.t('reply')
+    case 'article':
+      return i18n.t('post')
+    case 'saved':
+      return i18n.t('saved')
+    case 'subscribed':
+      return i18n.t('subscribed')
+    case 'vote_up':
+      return i18n.t('voted')
+    case 'activity':
+      return i18n.t('operationLog')
+    case 'violation':
+      return i18n.t('violationLog')
+  }
 }
 
 const defaultTabs: UserTab[] = ['all', 'article', 'reply']
@@ -119,7 +122,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
                     variant={'secondary'}
                     className={cn(ARTICLE_STATUS_COLOR_MAP[item.status] || '')}
                   >
-                    {ARTICLE_STATUS_NAME_MAP[item.status]}
+                    {getArticleStatusName(item.status) || '-'}
                   </Badge>
                 </div>
               )}
@@ -325,7 +328,7 @@ export default function UserPage() {
       } finally {
         setLoading(false)
       }
-    }, [params, tab, username, siteFrontId, actType])
+    }, [params, tab, username, siteFrontId, actType, setLoading])
   )
 
   const onTabChange = (tab: string) => {
@@ -405,7 +408,7 @@ export default function UserPage() {
               <TabsList className="overflow-x-auto overflow-y-hidden max-w-full">
                 {tabs.map((item) => (
                   <TabsTrigger value={item} key={item}>
-                    {tabMapData[item]}
+                    {tabMapData(item)}
                   </TabsTrigger>
                 ))}
               </TabsList>

@@ -23,7 +23,7 @@ import { Textarea } from './components/ui/textarea'
 import BContainer from './components/base/BContainer'
 
 import { Empty } from './components/Empty'
-import ModerationForm, { ReasonScheme } from './components/ModerationForm'
+import ModerationForm, { ReasonSchema } from './components/ModerationForm'
 
 import { getSiteUpdates, reviewSiteUpdates } from './api/main'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
@@ -64,7 +64,7 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
   const { t } = useTranslation()
 
   const onConfirmClick = useCallback(
-    (data?: ReasonScheme) => {
+    (data?: ReasonSchema) => {
       if (!reviewAciton) {
         setErrMessage(t('actionTypeRequired'))
         return

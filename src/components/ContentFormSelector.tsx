@@ -1,5 +1,6 @@
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
@@ -21,7 +22,7 @@ import {
 import { getContentForms } from '@/api/site'
 import { defaultContentForm } from '@/constants/defaults'
 import i18n from '@/i18n'
-import { ContentForm } from '@/types/types'
+import { ContentForm, StringFn } from '@/types/types'
 
 import { BLoaderBlock } from './base/BLoader'
 import { Button } from './ui/button'
@@ -29,22 +30,16 @@ import { Button } from './ui/button'
 export interface ContentFormSelectorProps {
   valid?: boolean
   value: string
-  placeholder?: string
+  placeholder?: string | StringFn
   disabled?: boolean
   onChange?: (id: string) => void
-}
-
-const defaultOption: ContentForm = {
-  ...defaultContentForm,
-  id: '0',
-  name: i18n.t('regularPost'),
 }
 
 const ContentFormSelector = ({
   valid = true,
   value = '0',
   disabled = false,
-  placeholder = i18n.t('pleaseSelect'),
+  placeholder = () => i18n.t('pleaseSelect'),
   onChange = noop,
 }: ContentFormSelectorProps) => {
   const [searchLoading, setSearchLoading] = useState(false)
@@ -54,6 +49,14 @@ const ContentFormSelector = ({
   const [openContentFormOptions, setOpenContentFormOptions] = useState(false)
   const [selectedContentFormId, setSelectedContentFormId] = useState(value)
   const searchTimer = useRef<number | null>(null)
+
+  const { t } = useTranslation()
+
+  const defaultOption: ContentForm = {
+    ...defaultContentForm,
+    id: '0',
+    name: t('regularPost'),
+  }
 
   /* const [defaultContentForm, setDefaultContentForm] =
    *   useState<ContentForm | null>(null) */
@@ -89,7 +92,7 @@ const ContentFormSelector = ({
       }),
       200
     ) as unknown as number
-  }, [siteFrontId])
+  }, [siteFrontId, defaultOption])
 
   const onSelect = useCallback(
     (val: string) => {
@@ -123,7 +126,11 @@ const ContentFormSelector = ({
           size="sm"
           disabled={disabled}
         >
-          {value ? selectedContentFormName : placeholder}
+          {value
+            ? selectedContentFormName
+            : typeof placeholder == 'function'
+              ? placeholder()
+              : placeholder}
           <ChevronsUpDownIcon className="opacity-50" />
         </Button>
       </PopoverTrigger>

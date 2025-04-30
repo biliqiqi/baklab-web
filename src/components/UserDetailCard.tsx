@@ -32,7 +32,7 @@ import BanDialog, { BanDialogRef, BanSchema } from '@/components/BanDialog'
 import { banUser, setUserRole, unBanUser } from '@/api/user'
 import i18n from '@/i18n'
 import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
-import { Role, UserData } from '@/types/types'
+import { Role, StringFn, UserData } from '@/types/types'
 
 import RoleSelector from './RoleSelector'
 import { Badge } from './ui/badge'
@@ -40,28 +40,28 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 
 interface UserDetailCardProps {
-  title?: string
+  title?: string | StringFn
   user: UserData
   className?: string
   onSuccess?: () => void
 }
 
-const roleEditScheme = z.object({
-  roleId: z.string().min(1, i18n.t('selectRoleTip')),
+const roleEditSchema = z.object({
+  roleId: z.string(),
   remark: z.string(),
   roleName: z.string(),
 })
 
-type RoleEditScheme = z.infer<typeof roleEditScheme>
+type RoleEditSchema = z.infer<typeof roleEditSchema>
 
-const defaultRoleEditData: RoleEditScheme = {
+const defaultRoleEditData: RoleEditSchema = {
   roleId: '',
   remark: '',
   roleName: '',
 }
 
 const UserDetailCard: React.FC<UserDetailCardProps> = ({
-  title = i18n.t('userManagement'),
+  title = () => i18n.t('userManagement'),
   className,
   user,
   onSuccess = noop,
@@ -82,8 +82,12 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
     [selectedRole]
   )
 
-  const form = useForm<RoleEditScheme>({
-    resolver: zodResolver(roleEditScheme),
+  const form = useForm<RoleEditSchema>({
+    resolver: zodResolver(
+      roleEditSchema.extend({
+        roleId: z.string().min(1, t('selectRoleTip')),
+      })
+    ),
     defaultValues: {
       ...defaultRoleEditData,
       roleId: user.role.id,
@@ -123,7 +127,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
   }
 
   const onUpdateRole = useCallback(
-    async ({ roleId, remark, roleName }: RoleEditScheme) => {
+    async ({ roleId, remark, roleName }: RoleEditSchema) => {
       try {
         /* console.log('roleId: ', roleId)
          * console.log('roleName: ', roleName) */
@@ -182,7 +186,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
   return (
     <>
       <Card className={cn('p-3 mb-4 rounded-0', className)}>
-        <CardTitle>{title}</CardTitle>
+        <CardTitle>{typeof title == 'function' ? title() : title}</CardTitle>
         <div className="table mt-4 w-full">
           {user.email && (
             <div className="table-row">

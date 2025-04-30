@@ -3,10 +3,8 @@ import { MouseEvent, useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
-import { noop } from '@/lib/utils'
+import { getModeReasons, noop } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
-
-import i18n from '@/i18n'
 
 import { Button } from './ui/button'
 import {
@@ -21,35 +19,19 @@ import { Input } from './ui/input'
 import { RadioGroup, RadioGroupItem } from './ui/radio-group'
 import { Textarea } from './ui/textarea'
 
-const reasonScheme = z.object({
-  reason: z
-    .string()
-    .min(1, i18n.t('selectTip', { field: i18n.t('deleteReason') })),
-  extra: z.string().max(500, i18n.t('charMaximum', { num: 500 })),
+const reasonSchema = z.object({
+  reason: z.string(),
+  extra: z.string(),
 })
 
-export type ReasonScheme = z.infer<typeof reasonScheme>
+export type ReasonSchema = z.infer<typeof reasonSchema>
 
 interface ModerationFormProps {
   reasonLable: string
   destructive: boolean
-  onSubmit: (data: ReasonScheme) => void
+  onSubmit: (data: ReasonSchema) => void
   onCancel: () => void
 }
-
-const REASONS = [
-  i18n.t('ads'),
-  i18n.t('unfriendly'),
-  i18n.t('rumors'),
-  i18n.t('sexViolence'),
-  i18n.t('politics'),
-  i18n.t('racist'),
-  i18n.t('privacy'),
-  i18n.t('troll'),
-  i18n.t('pirate'),
-  i18n.t('selfHarm'),
-  i18n.t('lackAIGenNote'),
-]
 
 const ModerationForm: React.FC<ModerationFormProps> = ({
   reasonLable,
@@ -60,8 +42,13 @@ const ModerationForm: React.FC<ModerationFormProps> = ({
   const [otherReason, setOtherReason] = useState('')
   const { t } = useTranslation()
 
-  const form = useForm<ReasonScheme>({
-    resolver: zodResolver(reasonScheme),
+  const form = useForm<ReasonSchema>({
+    resolver: zodResolver(
+      reasonSchema.extend({
+        reason: z.string().min(1, t('selectTip', { field: t('deleteReason') })),
+        extra: z.string().max(500, t('charMaximum', { num: 500 })),
+      })
+    ),
     defaultValues: {
       reason: '',
       extra: '',
@@ -81,7 +68,7 @@ const ModerationForm: React.FC<ModerationFormProps> = ({
   )
 
   const onInnerSubmit = useCallback(
-    (data: ReasonScheme) => {
+    (data: ReasonSchema) => {
       if (data.reason == 'other') {
         if (!otherReason.trim()) {
           form.setError('reason', {
@@ -112,7 +99,7 @@ const ModerationForm: React.FC<ModerationFormProps> = ({
                   className="flex flex-wrap"
                   value={field.value}
                 >
-                  {REASONS.map((item) => (
+                  {getModeReasons().map((item) => (
                     <FormItem
                       key={item}
                       className="flex items-center space-y-0 mr-4 mb-2"
@@ -166,7 +153,7 @@ const ModerationForm: React.FC<ModerationFormProps> = ({
           <div></div>
           <div>
             <Button size="sm" variant={'secondary'} onClick={onCancelClick}>
-              {i18n.t('cancel')}
+              {t('cancel')}
             </Button>
             <Button
               type="submit"
@@ -174,7 +161,7 @@ const ModerationForm: React.FC<ModerationFormProps> = ({
               variant={destructive ? 'destructive' : 'default'}
               className="ml-2"
             >
-              {i18n.t('confirm')}
+              {t('confirm')}
             </Button>
           </div>
         </div>

@@ -24,6 +24,7 @@ import {
   EV_ON_REPLY_CLICK,
   NAV_HEIGHT,
 } from '@/constants/constants'
+import { I18n } from '@/constants/types'
 import i18n from '@/i18n'
 import { Article, ArticleSubmitResponse, ResponseData } from '@/types/types'
 
@@ -33,15 +34,18 @@ import { Button } from './ui/button'
 import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form'
 import { Textarea } from './ui/textarea'
 
-const articleScheme = z.object({
-  content: z
+const contentSchema = (i: I18n) =>
+  z
     .string()
     .trim()
-    .min(1, i18n.t('inputTip', { field: i18n.t('content') }))
-    .max(ARTICLE_MAX_CONTENT_LEN),
+    .min(1, i.t('inputTip', { field: i.t('content') }))
+    .max(ARTICLE_MAX_CONTENT_LEN)
+
+const articleSchema = z.object({
+  content: contentSchema(i18n),
 })
 
-type ArticleScheme = z.infer<typeof articleScheme>
+type ArticleSchema = z.infer<typeof articleSchema>
 
 export interface ReplyBoxProps {
   replyToArticle: Article | null
@@ -94,7 +98,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
 
   /* const authStore = useAuthedUserStore() */
 
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const tiptapRef = useRef<TipTapRef | null>(null)
@@ -117,8 +121,12 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   /* console.log('isEditting: ', isEditting) */
   /* console.log('edittingArticle: ', edittingArticle) */
 
-  const form = useForm<ArticleScheme>({
-    resolver: zodResolver(articleScheme),
+  const form = useForm<ArticleSchema>({
+    resolver: zodResolver(
+      articleSchema.extend({
+        content: contentSchema(i18n),
+      })
+    ),
     defaultValues: {
       content: '',
     },
@@ -127,7 +135,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   /* const isReplyToRoot = () => replyToArticle && replyToArticle.replyToId == '0' */
 
   const onSubmit = useCallback(
-    async ({ content }: ArticleScheme) => {
+    async ({ content }: ArticleSchema) => {
       /* console.log('values: ', values) */
       try {
         setLoading(true)

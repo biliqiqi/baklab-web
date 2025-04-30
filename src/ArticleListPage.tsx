@@ -20,9 +20,13 @@ import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 
 import { getArticleList } from './api/article'
 import { getCategoryWithFrontId } from './api/category'
-import { ARTICLE_STATUS_NAME_MAP } from './constants/maps'
 import { toSync } from './lib/fire-and-forget'
-import { extractDomain, genArticlePath, renderMD } from './lib/utils'
+import {
+  extractDomain,
+  genArticlePath,
+  getArticleStatusName,
+  renderMD,
+} from './lib/utils'
 import { isLogined, useAuthedUserStore, useLoading } from './state/global'
 import {
   Article,
@@ -262,7 +266,7 @@ export default function ArticleListPage() {
                   item.status != 'published' && (
                     <div className="py-1">
                       <Badge variant={'secondary'}>
-                        {ARTICLE_STATUS_NAME_MAP[item.status]}
+                        {getArticleStatusName(item.status)}
                       </Badge>
                     </div>
                   )}

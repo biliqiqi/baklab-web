@@ -751,7 +751,9 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             <AlertDialogFooter>
               {alertType != 'alert' && (
                 <AlertDialogCancel onClick={onAlertDialogCancel}>
-                  {alertCancelBtnText}
+                  {typeof alertCancelBtnText == 'function'
+                    ? alertCancelBtnText()
+                    : alertCancelBtnText}
                 </AlertDialogCancel>
               )}
               <AlertDialogAction
@@ -762,7 +764,9 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     : ''
                 }
               >
-                {alertConfirmBtnText}
+                {typeof alertConfirmBtnText == 'function'
+                  ? alertConfirmBtnText()
+                  : alertConfirmBtnText}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

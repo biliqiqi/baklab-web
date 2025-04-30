@@ -29,7 +29,7 @@ import {
 } from '@/types/types'
 
 import ArticleControls from './ArticleControls'
-import ModerationForm, { ReasonScheme } from './ModerationForm'
+import ModerationForm, { ReasonSchema } from './ModerationForm'
 import BAvatar from './base/BAvatar'
 import {
   AlertDialog,
@@ -177,7 +177,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   }, [])
 
   const onDelConfirm = useCallback(
-    async ({ reason, extra }: ReasonScheme) => {
+    async ({ reason, extra }: ReasonSchema) => {
       try {
         const resp = await deleteArticle(
           article.id,

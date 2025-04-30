@@ -45,14 +45,15 @@ const defaultSearchData: SearchFields = {
 
 type ArticleTab = 'all' | 'article' | 'reply'
 
-type UserTabMap = {
-  [key in ArticleTab]: string
-}
-
-const TabMapData: UserTabMap = {
-  all: i18n.t('all'),
-  reply: i18n.t('reply'),
-  article: i18n.t('post'),
+const TabMapData = (tab: ArticleTab) => {
+  switch (tab) {
+    case 'all':
+      return i18n.t('all')
+    case 'reply':
+      return i18n.t('reply')
+    case 'article':
+      return i18n.t('post')
+  }
 }
 
 const defaultTabs: ArticleTab[] = ['all', 'article', 'reply']
@@ -291,7 +292,7 @@ export default function TrashPage() {
         <TabsList className="overflow-x-auto overflow-y-hidden max-w-full">
           {defaultTabs.map((item) => (
             <TabsTrigger value={item} key={item}>
-              {TabMapData[item]}
+              {TabMapData(item)}
             </TabsTrigger>
           ))}
         </TabsList>

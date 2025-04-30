@@ -18,7 +18,7 @@ import { getPermissionList } from '@/api'
 import { deleteRole, submitRole, updateRole } from '@/api/role'
 import { getUserList } from '@/api/user'
 import { defaultRole } from '@/constants/defaults'
-import { PermissionModule } from '@/constants/types'
+import { I18n, PermissionModule } from '@/constants/types'
 import i18n from '@/i18n'
 import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
 import {
@@ -53,15 +53,18 @@ export interface RoleFormProps {
   onFormTypeChange?: (formType: RoleFormType) => void
 }
 
+const nameSchema = (i: I18n) =>
+  z.string().min(1, i.t('inputTip', { field: i.t('roleName') }))
+const levelSchema = (i: I18n) =>
+  z.string().min(1, i.t('inputTip', { field: i.t('permissionLevel') }))
+const siteNumLimitSchema = (i: I18n) =>
+  z.string().min(1, i.t('inputTip', { field: i.t('siteNumLimit') }))
+
 const roleSchema = z.object({
-  name: z.string().min(1, i18n.t('inputTip', { field: i18n.t('roleName') })),
-  level: z
-    .string()
-    .min(1, i18n.t('inputTip', { field: i18n.t('permissionLevel') })),
+  name: nameSchema(i18n),
+  level: levelSchema(i18n),
   permissionFrontIds: z.string().array().optional(),
-  siteNumLimit: z
-    .string()
-    .min(1, i18n.t('inputTip', { field: i18n.t('siteNumLimit') })),
+  siteNumLimit: siteNumLimitSchema(i18n),
   showRoleName: z.boolean(),
 })
 
@@ -92,7 +95,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
   const alertDialog = useAlertDialogStore()
 
   const { siteFrontId } = useParams()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   const edittingPermissionFrontIds = useMemo(() => {
     return (role.permissions || []).map((item) => item.frontId)
@@ -112,7 +115,13 @@ const RoleForm: React.FC<RoleFormProps> = ({
   )
 
   const form = useForm<RoleSchema>({
-    resolver: zodResolver(roleSchema),
+    resolver: zodResolver(
+      roleSchema.extend({
+        name: nameSchema(i18n),
+        level: levelSchema(i18n),
+        siteNumLimit: siteNumLimitSchema(i18n),
+      })
+    ),
     defaultValues: isEdit
       ? {
           name: role.name,

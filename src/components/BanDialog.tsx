@@ -7,8 +7,9 @@ import {
   useState,
 } from 'react'
 import { UseFormReturn, useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
-import { noop } from '@/lib/utils'
+import { getModeReasons, noop } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import {
@@ -28,6 +29,8 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 
+import { I18n } from '@/constants/types'
+import i18n from '@/i18n'
 import { UserData } from '@/types/types'
 
 import { Button } from './ui/button'
@@ -35,11 +38,15 @@ import { Input } from './ui/input'
 import { RadioGroup, RadioGroupItem } from './ui/radio-group'
 
 const banDays = [1, 2, 3, 4, 5, 6, 7, -1]
-const banReasons = ['广告营销', '不友善', '违反法律法规', 'others']
+
+const reasonSchema = (i: I18n) =>
+  z.string().min(1, i.t('inputTip', { field: i.t('banReason') }))
+const durationSchema = (i: I18n) =>
+  z.string().min(1, i.t('inputTip', { field: i.t('bannedDuration') }))
 
 const banSchema = z.object({
-  reason: z.string().min(1, '请输入封禁原因'),
-  duration: z.string().min(1, '请输入封禁时长'), // seconds
+  reason: reasonSchema(i18n),
+  duration: durationSchema(i18n),
 })
 
 export type BanSchema = z.infer<typeof banSchema>
@@ -90,8 +97,15 @@ const BanDialog = forwardRef<BanDialogRef, BanDialogProps>(
 
     const [otherReason, setOtherReason] = useState('')
 
+    const { t, i18n } = useTranslation()
+
     const banForm = useForm<BanSchema>({
-      resolver: zodResolver(banSchema),
+      resolver: zodResolver(
+        banSchema.extend({
+          reason: reasonSchema(i18n),
+          duration: durationSchema(i18n),
+        })
+      ),
       defaultValues: {
         ...defaultBanData,
       },
@@ -114,7 +128,7 @@ const BanDialog = forwardRef<BanDialogRef, BanDialogProps>(
           const val = parseInt(e.target.value, 10)
           if (!val || val < 1) {
             banForm.setError('duration', {
-              message: '数据有误',
+              message: t('wrongData'),
             })
             return
           }
@@ -124,7 +138,7 @@ const BanDialog = forwardRef<BanDialogRef, BanDialogProps>(
           banForm.setValue('duration', 'custom', { shouldDirty: true })
         }
       },
-      [banForm]
+      [banForm, t]
     )
 
     const handleSubmit = useCallback(
@@ -139,27 +153,31 @@ const BanDialog = forwardRef<BanDialogRef, BanDialogProps>(
         const reasonVal = reason == 'others' ? otherReason : reason
 
         if (!durationVal || durationVal < -1) {
-          banForm.setError('duration', { message: '数据有误' })
+          banForm.setError('duration', { message: t('wrongData') })
           return
         }
 
         if (!reasonVal.trim()) {
-          banForm.setError('reason', { message: '请输入封禁原因' })
+          banForm.setError('reason', {
+            message: t('inputTip', { field: t('bannedDuration') }),
+          })
           return
         }
 
         onSubmit({ duration: String(durationVal), reason: reasonVal })
       },
-      [banCustom, otherReason]
+      [banCustom, otherReason, banForm, onSubmit, t]
     )
 
     return (
       <Dialog defaultOpen={false} open={open} onOpenChange={onOpenChange}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>封禁</DialogTitle>
+            <DialogTitle>{t('ban')}</DialogTitle>
             <DialogDescription>
-              封禁用户 {users.map((user) => user.name).join(', ')}
+              {t('banUser1', {
+                name: users.map((user) => user.name).join(', '),
+              })}
             </DialogDescription>
           </DialogHeader>
           <Form {...banForm}>
@@ -172,7 +190,7 @@ const BanDialog = forwardRef<BanDialogRef, BanDialogProps>(
                 name="duration"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>封禁时长</FormLabel>
+                    <FormLabel>{t('bannedDuration')}</FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
@@ -192,7 +210,9 @@ const BanDialog = forwardRef<BanDialogRef, BanDialogProps>(
                               />
                             </FormControl>
                             <FormLabel className="font-normal">
-                              {item == -1 ? '永久' : item + ' 天'}
+                              {item == -1
+                                ? t('forever')
+                                : t('dayCount', { num: item })}
                             </FormLabel>
                           </FormItem>
                         ))}
@@ -212,7 +232,7 @@ const BanDialog = forwardRef<BanDialogRef, BanDialogProps>(
                               onFocus={onBanInputFocus}
                               onChange={onBanInputChange('days')}
                             />{' '}
-                            天
+                            {t('days')}
                             <Input
                               type="number"
                               pattern="/\d+/"
@@ -221,7 +241,7 @@ const BanDialog = forwardRef<BanDialogRef, BanDialogProps>(
                               onFocus={onBanInputFocus}
                               onChange={onBanInputChange('hours')}
                             />{' '}
-                            小时
+                            {t('hours')}
                             <Input
                               type="number"
                               pattern="/\d+/"
@@ -230,7 +250,7 @@ const BanDialog = forwardRef<BanDialogRef, BanDialogProps>(
                               onFocus={onBanInputFocus}
                               onChange={onBanInputChange('minutes')}
                             />{' '}
-                            分
+                            {t('minutes')}
                           </FormLabel>
                         </FormItem>
                       </RadioGroup>
@@ -244,15 +264,14 @@ const BanDialog = forwardRef<BanDialogRef, BanDialogProps>(
                 name="reason"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>封禁原因</FormLabel>
+                    <FormLabel>{t('banReason')}</FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
-                        defaultValue="广告营销"
                         className="flex flex-wrap"
                         value={banForm.getValues('reason')}
                       >
-                        {banReasons.map((item) => (
+                        {getModeReasons().map((item) => (
                           <FormItem
                             className="flex items-center space-x-3 space-y-0 mr-4"
                             key={item}
@@ -261,13 +280,15 @@ const BanDialog = forwardRef<BanDialogRef, BanDialogProps>(
                               <RadioGroupItem value={item} />
                             </FormControl>
                             <FormLabel className="font-normal">
-                              {item == 'others' ? '其他' : item}
+                              {item == 'others' ? t('others') : item}
                             </FormLabel>
                           </FormItem>
                         ))}
                         {banForm.getValues('reason') == 'others' && (
                           <Input
-                            placeholder="请填写其他原因"
+                            placeholder={t('inputTip', {
+                              field: t('otherReason'),
+                            })}
                             className="mt-4"
                             onChange={(e) => setOtherReason(e.target.value)}
                           />
@@ -282,13 +303,13 @@ const BanDialog = forwardRef<BanDialogRef, BanDialogProps>(
           </Form>
           <DialogFooter>
             <Button variant={'secondary'} onClick={onCancel}>
-              取消
+              {t('cancel')}
             </Button>
             <Button
               variant={'destructive'}
               onClick={banForm.handleSubmit(handleSubmit)}
             >
-              确认
+              {t('confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>

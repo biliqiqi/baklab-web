@@ -18,6 +18,7 @@ import {
   updateCategory,
 } from '@/api/category'
 import { defaultCategory } from '@/constants/defaults'
+import { I18n } from '@/constants/types'
 import i18n from '@/i18n'
 import {
   useAlertDialogStore,
@@ -49,76 +50,81 @@ import { Textarea } from './ui/textarea'
 const MAX_CATEGORY_FRONT_ID_LENGTH = 20
 const MAX_CATEGORY_NAME_LENGTH = 12
 
-const frontIDSchema = z
-  .string()
-  .min(1, i18n.t('inputTip', { field: i18n.t('categoryFrontId') }))
-  .max(
-    MAX_CATEGORY_FRONT_ID_LENGTH,
-    i18n.t('charMaximum', {
-      field: i18n.t('categoryFrontId'),
-      num: MAX_CATEGORY_FRONT_ID_LENGTH,
-    })
-  )
-  .regex(/^[a-zA-Z0-9_]+$/, i18n.t('categoryFrontIdFormatTip'))
+const frontIDSchema = (i: I18n) =>
+  z
+    .string()
+    .min(1, i.t('inputTip', { field: i.t('categoryFrontId') }))
+    .max(
+      MAX_CATEGORY_FRONT_ID_LENGTH,
+      i.t('charMaximum', {
+        field: i.t('categoryFrontId'),
+        num: MAX_CATEGORY_FRONT_ID_LENGTH,
+      })
+    )
+    .regex(/^[a-zA-Z0-9_]+$/, i.t('categoryFrontIdFormatTip'))
 
-const nameSchema = z
-  .string()
-  .min(1, i18n.t('inputTip', { field: i18n.t('categoryName') }))
-  .max(
-    MAX_CATEGORY_NAME_LENGTH,
-    i18n.t('charMaximum', {
-      field: i18n.t('categoryName'),
-      num: MAX_CATEGORY_NAME_LENGTH,
-    })
-  )
+const nameSchema = (i: I18n) =>
+  z
+    .string()
+    .min(1, i.t('inputTip', { field: i.t('categoryName') }))
+    .max(
+      MAX_CATEGORY_NAME_LENGTH,
+      i.t('charMaximum', {
+        field: i.t('categoryName'),
+        num: MAX_CATEGORY_NAME_LENGTH,
+      })
+    )
 
-const iconBgColorSchema = z
-  .string()
-  .regex(
-    /^$|^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$|^rgb\(\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*\)$/i,
-    i18n.t('colorFormatError')
-  )
+const iconBgColorSchema = (i: I18n) =>
+  z
+    .string()
+    .regex(
+      /^$|^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$|^rgb\(\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*((?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))\s*\)$/i,
+      i.t('colorFormatError')
+    )
 
 const contentFormIdSchema = z.string()
 const descriptionSchema = z.string()
 
 const emojiRe = emojiRegex()
 
-const iconContentSchema = z.string().transform((val, ctx) => {
-  if (/^$|^\p{L}$/u.test(val)) return val
+const iconContentSchema = (i: I18n) =>
+  z.string().transform((val, ctx) => {
+    if (/^$|^\p{L}$/u.test(val)) return val
 
-  if (/\p{L}+$/u.test(val)) {
+    if (/\p{L}+$/u.test(val)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: i.t('limitOneChar'),
+      })
+      return z.NEVER
+    }
+
+    if (new RegExp(`^${emojiRe.source}{,1}$`, emojiRe.flags).test(val))
+      return val
+
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: i18n.t('limitOneChar'),
+      message: i.t('limitOneChar'),
     })
+
     return z.NEVER
-  }
-
-  if (new RegExp(`^${emojiRe.source}{,1}$`, emojiRe.flags).test(val)) return val
-
-  ctx.addIssue({
-    code: z.ZodIssueCode.custom,
-    message: i18n.t('limitOneChar'),
   })
-
-  return z.NEVER
-})
 
 /* const CATEGORY_ICON_CONTENT_PATTERN = /^$|^(\p{L}|\p{Emoji})$/u */
 const categorySchema = z.object({
-  frontID: frontIDSchema,
-  name: nameSchema,
-  iconBgColor: iconBgColorSchema,
-  iconContent: iconContentSchema,
+  frontID: frontIDSchema(i18n),
+  name: nameSchema(i18n),
+  iconBgColor: iconBgColorSchema(i18n),
+  iconContent: iconContentSchema(i18n),
   description: descriptionSchema,
   contentFormId: contentFormIdSchema,
 })
 
 const categoryEditSchema = z.object({
-  name: nameSchema,
-  iconBgColor: iconBgColorSchema,
-  iconContent: iconContentSchema,
+  name: nameSchema(i18n),
+  iconBgColor: iconBgColorSchema(i18n),
+  iconContent: iconContentSchema(i18n),
   description: descriptionSchema,
   contentFormId: contentFormIdSchema,
 })
@@ -156,11 +162,22 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
   const siteStore = useSiteStore()
   const { siteFrontId } = useParams()
 
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   const form = useForm<CategorySchema>({
     resolver: zodResolver(
-      isEdit ? categoryEditSchema : categorySchema,
+      isEdit
+        ? categoryEditSchema.extend({
+            name: nameSchema(i18n),
+            iconBgColor: iconBgColorSchema(i18n),
+            iconContent: iconContentSchema(i18n),
+          })
+        : categorySchema.extend({
+            frontID: frontIDSchema(i18n),
+            name: nameSchema(i18n),
+            iconBgColor: iconBgColorSchema(i18n),
+            iconContent: iconContentSchema(i18n),
+          }),
       {},
       { mode: 'async' }
     ),

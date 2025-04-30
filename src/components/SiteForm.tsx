@@ -16,7 +16,6 @@ import { uploadFileBase64 } from '@/api/file'
 import { checkSiteExists, deleteSite, submitSite, updateSite } from '@/api/site'
 import { STATIC_HOST_NAME } from '@/constants/constants'
 import { defaultSite } from '@/constants/defaults'
-import i18n from '@/i18n'
 import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
 import { ResponseData, ResponseID, Site } from '@/types/types'
 
@@ -41,36 +40,12 @@ import { Textarea } from './ui/textarea'
 const MAX_SITE_FRONT_ID_LENGTH = 20
 const MAX_SITE_NAME_LENGTH = 12
 
-const frontIDScheme = z
-  .string()
-  .min(1, i18n.t('siteFrontIdInputTip'))
-  .max(
-    MAX_SITE_FRONT_ID_LENGTH,
-    i18n.t('charMaximum', {
-      field: i18n.t('siteFrontId'),
-      num: MAX_SITE_FRONT_ID_LENGTH,
-    })
-  )
-  .regex(/^[a-zA-Z0-9_]+$/, i18n.t('siteFrontIdRule'))
-
-const nameScheme = z
-  .string()
-  .min(1, i18n.t('siteNameInputTip'))
-  .max(
-    MAX_SITE_NAME_LENGTH,
-    i18n.t('charMaximum', {
-      field: i18n.t('siteName'),
-      num: MAX_SITE_NAME_LENGTH,
-    })
-  )
-const descriptionScheme = z.string()
-
-const siteScheme = z.object({
-  frontID: frontIDScheme,
-  name: nameScheme,
+const siteSchema = z.object({
+  frontID: z.string(),
+  name: z.string(),
   keywords: z.string(),
-  description: descriptionScheme,
-  logoUrl: z.string().min(1, i18n.t('settingTip', { name: 'LOGO' })),
+  description: z.string(),
+  logoUrl: z.string(),
   logoBrandHTML: z.string(),
   nonMemberInteract: z.boolean(),
   visible: z.boolean(),
@@ -78,11 +53,11 @@ const siteScheme = z.object({
   reviewBeforePublish: z.boolean(),
 })
 
-const siteEditScheme = z.object({
-  name: nameScheme,
+const siteEditSchema = z.object({
+  name: z.string(),
   keywords: z.string(),
-  description: descriptionScheme,
-  logoUrl: z.string().min(1, i18n.t('settingTip', { name: 'LOGO' })),
+  description: z.string(),
+  logoUrl: z.string(),
   logoBrandHTML: z.string(),
   nonMemberInteract: z.boolean(),
   visible: z.boolean(),
@@ -100,7 +75,7 @@ const htmlSanitizeOpts: sanitize.IOptions = {
   disallowedTagsMode: 'discard',
 }
 
-type SiteScheme = z.infer<typeof siteScheme>
+type SiteSchema = z.infer<typeof siteSchema>
 
 interface SiteFormProps {
   isEdit?: boolean
@@ -109,7 +84,7 @@ interface SiteFormProps {
   onChange?: (isDirty: boolean) => void
 }
 
-const defaultSiteData: SiteScheme = {
+const defaultSiteData: SiteSchema = {
   frontID: '',
   name: '',
   keywords: '',
@@ -143,9 +118,36 @@ const SiteForm: React.FC<SiteFormProps> = ({
     }))
   )
 
-  const form = useForm<SiteScheme>({
+  const form = useForm<SiteSchema>({
     resolver: zodResolver(
-      isEdit ? siteEditScheme : siteScheme,
+      isEdit
+        ? siteEditSchema.extend({
+            logoUrl: z.string().min(1, t('settingTip', { name: 'LOGO' })),
+          })
+        : siteSchema.extend({
+            frontID: z
+              .string()
+              .min(1, t('siteFrontIdInputTip'))
+              .max(
+                MAX_SITE_FRONT_ID_LENGTH,
+                t('charMaximum', {
+                  field: t('siteFrontId'),
+                  num: MAX_SITE_FRONT_ID_LENGTH,
+                })
+              )
+              .regex(/^[a-zA-Z0-9_]+$/, t('siteFrontIdRule')),
+            name: z
+              .string()
+              .min(1, t('siteNameInputTip'))
+              .max(
+                MAX_SITE_NAME_LENGTH,
+                t('charMaximum', {
+                  field: t('siteName'),
+                  num: MAX_SITE_NAME_LENGTH,
+                })
+              ),
+            logoUrl: z.string().min(1, t('settingTip', { name: 'LOGO' })),
+          }),
       {},
       { mode: 'async' }
     ),
@@ -181,7 +183,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
       nonMemberInteract,
       homePage,
       reviewBeforePublish,
-    }: SiteScheme) => {
+    }: SiteSchema) => {
       /* console.log('site vals: ', frontID) */
       try {
         let resp: ResponseData<ResponseID> | undefined

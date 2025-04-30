@@ -67,30 +67,20 @@ import { Textarea } from './ui/textarea'
 
 const contentRule = z.string().max(ARTICLE_MAX_CONTENT_LEN)
 
-const contentScheme = z.object({
+const contentSchema = z.object({
   content: contentRule,
 })
 
-const articleScheme = z.object({
-  title: z.string().trim().min(1, '标题不能为空').max(ARTICLE_MAX_TITILE_LEN),
-  link: z
-    .string()
-    .optional()
-    .transform((val) => {
-      return val === undefined || val === '' ? undefined : val.trim()
-    })
-    .refine(
-      (val) =>
-        val === undefined || z.string().trim().url().safeParse(val).success,
-      '链接格式错误'
-    ),
-  category: z.string().min(1, '板块不能为空').trim(),
+const articleSchema = z.object({
+  title: z.string(),
+  link: z.string(),
+  category: z.string(),
   contentFormId: z.string().optional(),
   content: contentRule,
 })
 
-type ArticleScheme = z.infer<typeof articleScheme>
-/* type ContentScheme = z.infer<typeof contentScheme> */
+type ArticleSchema = z.infer<typeof articleSchema>
+/* type ContentSchema = z.infer<typeof contentSchema> */
 
 interface CategoryNameMap {
   [x: string]: string
@@ -167,7 +157,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
 
   const checkPermit = useAuthedUserStore((state) => state.permit)
 
-  const defaultArticleData: ArticleScheme =
+  const defaultArticleData: ArticleSchema =
     isEdit && article
       ? isReply
         ? {
@@ -193,8 +183,34 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
 
   /* console.log('default form data: ', defaultArticleData) */
 
-  const form = useForm<ArticleScheme>({
-    resolver: isReply ? zodResolver(contentScheme) : zodResolver(articleScheme),
+  const form = useForm<ArticleSchema>({
+    resolver: isReply
+      ? zodResolver(contentSchema)
+      : zodResolver(
+          articleSchema.extend({
+            title: z
+              .string()
+              .trim()
+              .min(1, t('inputTip', { field: t('title') }))
+              .max(ARTICLE_MAX_TITILE_LEN),
+            link: z
+              .string()
+              .optional()
+              .transform((val) => {
+                return val === undefined || val === '' ? undefined : val.trim()
+              })
+              .refine(
+                (val) =>
+                  val === undefined ||
+                  z.string().trim().url().safeParse(val).success,
+                t('formatError', { field: t('link') })
+              ),
+            category: z
+              .string()
+              .min(1, t('selectTip', { field: t('category') }))
+              .trim(),
+          })
+        ),
     defaultValues: defaultArticleData,
   })
 
@@ -209,7 +225,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
       category,
       content,
       contentFormId,
-    }: ArticleScheme) => {
+    }: ArticleSchema) => {
       /* console.log('values: ', content)
        * console.log('isEdit:', isEdit)
        * console.log('isReply:', isReply) */
@@ -265,7 +281,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
 
         if (!data.code) {
           if (site?.reviewBeforePublish && !checkPermit('article', 'review')) {
-            toast.info('提交成功！根据站点设置，内容将会在审核之后展示。')
+            toast.info(t('postReviewTip'))
           }
           navigate(`/${siteFrontId}/articles/${data.data.id}`, {
             replace: true,
@@ -379,7 +395,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
         <div className="py-2 mb-4 text-gray-500 text-sm">
           <BAvatar size={24} username={article.authorName} />{' '}
           <Link to={`/users/${article.authorName}`}>{article.authorName}</Link>{' '}
-          发布于 {timeAgo(article.createdAt)}
+          {t('publishedAt', { field: timeAgo(article.createdAt) })}
         </div>
       )}
       <Form {...form}>
@@ -405,7 +421,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                   <FormItem style={{ display: isPreview ? 'none' : '' }}>
                     <FormControl>
                       <Input
-                        placeholder="请输入标题"
+                        placeholder={t('inputTip', { field: t('title') })}
                         autoComplete="off"
                         state={fieldState.invalid ? 'invalid' : 'default'}
                         {...field}
@@ -424,7 +440,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                     <FormItem style={{ display: isPreview ? 'none' : '' }}>
                       <div>
                         <FormLabel className="text-gray-500 mr-2">
-                          发布到
+                          {t('publishTo')}
                         </FormLabel>
                         <FormControl>
                           <Popover
@@ -450,7 +466,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                                   ? cateList.find(
                                       (cate) => cate.id === categoryVal()
                                     )?.name
-                                  : '请选择'}
+                                  : t('pleaseSelect')}
                                 <ChevronsUpDown className="opacity-50" />
                               </Button>
                             </PopoverTrigger>
@@ -460,9 +476,13 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                                   categoryNameMap[val].includes(search) ? 1 : 0
                                 }
                               >
-                                <CommandInput placeholder="搜索板块..." />
+                                <CommandInput
+                                  placeholder={t('searchCategory')}
+                                />
                                 <CommandList>
-                                  <CommandEmpty>未找到板块</CommandEmpty>
+                                  <CommandEmpty>
+                                    {t('noCategoryFound')}
+                                  </CommandEmpty>
                                   <CommandGroup>
                                     {cateList.map((cate) => (
                                       <CommandItem
@@ -507,7 +527,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                   render={({ field }) => (
                     <FormItem style={{ display: isPreview ? 'none' : '' }}>
                       <FormLabel className="text-gray-500 mr-2">
-                        内容形式
+                        {t('contentForm')}
                       </FormLabel>
                       <FormControl>
                         <ContentFormSelector
@@ -533,7 +553,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                   <FormItem style={{ display: isPreview ? 'none' : '' }}>
                     <FormControl>
                       <Input
-                        placeholder="请输入来源链接"
+                        placeholder={t('inputTip', { field: t('sourceLink') })}
                         autoComplete="off"
                         type="url"
                         state={fieldState.invalid ? 'invalid' : 'default'}
@@ -557,7 +577,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                     <Textarea
                       {...field}
                       state={fieldState.invalid ? 'invalid' : 'default'}
-                      placeholder="请输入内容"
+                      placeholder={t('inputTip', { field: t('content') })}
                       style={{
                         display: !markdownMode ? 'none' : '',
                         height:
@@ -570,7 +590,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                     />
 
                     <TipTap
-                      placeholder="请输入内容"
+                      placeholder={t('inputTip', { field: t('content') })}
                       {...field}
                       state={fieldState.invalid ? 'invalid' : 'default'}
                       style={{
@@ -624,7 +644,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                     variant={markdownMode ? 'default' : 'ghost'}
                     size="icon"
                     onClick={onMarkdownModeClick}
-                    title="Markdown模式"
+                    title={t('markdownMode')}
                     className="w-8 h-[24px] align-middle"
                   >
                     M
@@ -640,7 +660,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                 size="sm"
                 onClick={onPreviewClick}
               >
-                {isPreview ? '继续' : '预览'}
+                {isPreview ? t('continue') : t('preview')}
               </Button>
               <Button
                 type="submit"

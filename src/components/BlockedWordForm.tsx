@@ -9,7 +9,6 @@ import { z } from '@/lib/zod-custom'
 
 import { submitSiteBlockedWords } from '@/api/site'
 import { MAX_BLOCKED_WORD_LEN } from '@/constants/constants'
-import i18n from '@/i18n'
 
 import { Button } from './ui/button'
 import {
@@ -24,9 +23,7 @@ import {
 import { Textarea } from './ui/textarea'
 
 const wordSchema = z.object({
-  words: z
-    .string()
-    .min(1, i18n.t('inputTip', { field: i18n.t('blockedWord') })),
+  words: z.string(),
 })
 
 type WordSchema = z.infer<typeof wordSchema>
@@ -47,7 +44,11 @@ const BlockedWordForm: React.FC<BlockedWordFormProps> = ({
   const { t } = useTranslation()
 
   const form = useForm<WordSchema>({
-    resolver: zodResolver(wordSchema),
+    resolver: zodResolver(
+      wordSchema.extend({
+        words: z.string().min(1, t('inputTip', { field: t('blockedWord') })),
+      })
+    ),
     defaultValues: {
       words: '',
     },

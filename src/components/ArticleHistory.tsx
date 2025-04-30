@@ -1,9 +1,10 @@
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { timeAgo } from '@/lib/dayjs-custom'
 
-import { ArticleLog, JSONMap } from '@/types/types'
+import i18n from '@/i18n'
+import { ArticleLog } from '@/types/types'
 
 import {
   Collapsible,
@@ -16,8 +17,13 @@ interface ArticleHistoryProps {
   isReply: boolean
 }
 
-const fieldNameMap: JSONMap<string> = {
-  contentForm: '内容形式',
+const fieldNameMap = (key: string) => {
+  switch (key) {
+    case 'contentForm':
+      return i18n.t('contentForm')
+    default:
+      return ''
+  }
 }
 
 const ArticleHistory: React.FC<ArticleHistoryProps> = ({ data, isReply }) => {
@@ -28,23 +34,32 @@ const ArticleHistory: React.FC<ArticleHistoryProps> = ({ data, isReply }) => {
       <Collapsible>
         <CollapsibleTrigger asChild>
           <div className="flex justify-between items-center mt-4 p-2 bg-gray-50 dark:bg-slate-900 cursor-pointer">
-            <span className="font-bold">版本：{data.version}</span>
+            <span className="font-bold">
+              {t('version')}：{data.version}
+            </span>
             <span className="text-sm">
-              由{' '}
-              <Link
-                to={`/users/${data.operator.name}`}
-                className="text-primary"
-              >
-                {data.operator.name}
-              </Link>{' '}
-              编辑于 {timeAgo(data.createdAt)}
+              <Trans
+                i18nKey={'editBy'}
+                values={{
+                  name: data.operator.name,
+                  time: timeAgo(data.createdAt),
+                }}
+                components={{
+                  userLink: (
+                    <Link
+                      to={`/users/${data.operator.name}`}
+                      className="text-primary"
+                    />
+                  ),
+                }}
+              />
             </span>
           </div>
         </CollapsibleTrigger>
         <CollapsibleContent className="b-history-content">
           {!isReply && (
             <div className="flex mt-2 text-sm" key="title">
-              <div className="w-[80px] font-bold mr-1 pt-2">标题：</div>
+              <div className="w-[80px] font-bold mr-1 pt-2">{t('title')}：</div>
               <div
                 className="flex-shrink-0 flex-grow bg-gray-100 p-2"
                 style={{
@@ -74,7 +89,7 @@ const ArticleHistory: React.FC<ArticleHistoryProps> = ({ data, isReply }) => {
           )}
           {!isReply && (
             <div className="flex mt-2 text-sm" key="link">
-              <div className="w-[80px] font-bold mr-1 pt-2">链接：</div>
+              <div className="w-[80px] font-bold mr-1 pt-2">{t('link')}：</div>
               <div
                 className="flex-shrink-0 flex-grow bg-gray-100 p-2"
                 style={{
@@ -90,7 +105,7 @@ const ArticleHistory: React.FC<ArticleHistoryProps> = ({ data, isReply }) => {
             Object.entries(data.extraDiffHTML || {}).map(([key, val]) => (
               <div className="flex mt-2 text-sm" key={key}>
                 <div className="w-[80px] font-bold mr-1 pt-2">
-                  {fieldNameMap[key] || '-'}：
+                  {fieldNameMap(key) || '-'}：
                 </div>
                 <div
                   className="flex-shrink-0 flex-grow bg-gray-100 p-2"

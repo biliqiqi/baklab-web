@@ -28,6 +28,7 @@ import {
   Site,
   SiteListMode,
   SiteUIMode,
+  StringFn,
   Theme,
   UserData,
 } from '@/types/types'
@@ -336,8 +337,8 @@ export interface AlertDialogState {
   open: boolean
   title?: string
   description?: string
-  confirmBtnText?: string
-  cancelBtnText?: string
+  confirmBtnText?: string | StringFn
+  cancelBtnText?: string | StringFn
   confirmed: boolean
   confirmType: AlertConfirmType
   setOpen: (open: boolean) => void
@@ -363,7 +364,7 @@ const defaultAlertState: Pick<
 > = {
   title: '',
   description: '',
-  confirmBtnText: i18n.t('confirm'),
+  confirmBtnText: () => i18n.t('confirm'),
 }
 
 const defaultConfirmState: Pick<
@@ -376,7 +377,7 @@ const defaultConfirmState: Pick<
   | 'confirmType'
 > = {
   ...defaultAlertState,
-  cancelBtnText: i18n.t('cancel'),
+  cancelBtnText: () => i18n.t('cancel'),
   confirmed: false,
   confirmType: 'normal',
 }

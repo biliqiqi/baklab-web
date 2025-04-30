@@ -1,3 +1,5 @@
+import i18next from 'i18next'
+
 import { PERMISSION_DATA } from '@/constants/permissions'
 import { Site } from '@/types/types'
 
@@ -31,3 +33,5 @@ export type PermitUnderSiteFn = <T extends PermissionModule>(
   module: T,
   action: PermissionAction<T>
 ) => boolean
+
+export type I18n = typeof i18next

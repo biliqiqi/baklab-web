@@ -23,7 +23,7 @@ import {
 import { getRole, getRoles } from '@/api/role'
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 import i18n from '@/i18n'
-import { Role } from '@/types/types'
+import { Role, StringFn } from '@/types/types'
 
 import { BLoaderBlock } from './base/BLoader'
 import { Button } from './ui/button'
@@ -31,14 +31,14 @@ import { Button } from './ui/button'
 export interface RoleSelectorProps {
   valid?: boolean
   value: string
-  placeholder?: string
+  placeholder?: string | StringFn
   onChange?: (role: Role | undefined) => void
 }
 
 const RoleSelector = ({
   valid = true,
   value = '',
-  placeholder = i18n.t('pleaseSelect'),
+  placeholder = () => i18n.t('pleaseSelect'),
   onChange = noop,
 }: RoleSelectorProps) => {
   const [searchLoading, setSearchLoading] = useState(false)
@@ -137,7 +137,11 @@ const RoleSelector = ({
           )}
           size="sm"
         >
-          {value ? selectedRoleName : placeholder}
+          {value
+            ? selectedRoleName
+            : typeof placeholder == 'function'
+              ? placeholder()
+              : placeholder}
           <ChevronsUpDownIcon className="opacity-50" />
         </Button>
       </PopoverTrigger>

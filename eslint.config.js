@@ -6,18 +6,18 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist', '.nvm'] },
+  { ignores: ['dist', '.nvm', 'node_modules', '.git', '*.min.js'] },
   {
     extends: [
       js.configs.recommended,
       ...tseslint.configs.recommendedTypeChecked,
     ],
-    files: ['**/*.{ts,tsx}'],
+    files: ['src/**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
       parserOptions: {
-        projectService: true,
+        project: './tsconfig.app.json',
         tsconfigRootDir: import.meta.dirname,
       },
     },

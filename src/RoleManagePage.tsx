@@ -48,7 +48,7 @@ import { useAlertDialogStore, useLoading } from './state/global'
 import { DefaultRoles, ListPageState, Role } from './types/types'
 
 const defaultRoleSchema = z.object({
-  roleId: z.string().min(1, i18n.t('selectRoleTip')),
+  roleId: z.string(),
 })
 
 type DefaultRoleSchema = z.infer<typeof defaultRoleSchema>
@@ -58,12 +58,15 @@ interface EditRoleState {
   role?: Role
 }
 
-const RoleFormTypeNameMap: {
-  [key in RoleFormType]: string
-} = {
-  create: i18n.t('createRole'),
-  edit: i18n.t('editRole'),
-  detail: i18n.t('roleDetail'),
+const RoleFormTypeNameMap = (rft: RoleFormType) => {
+  switch (rft) {
+    case 'create':
+      return i18n.t('createRole')
+    case 'edit':
+      return i18n.t('editRole')
+    case 'detail':
+      return i18n.t('roleDetail')
+  }
 }
 
 export default function RoleManagePage() {
@@ -104,7 +107,11 @@ export default function RoleManagePage() {
   const alertDialog = useAlertDialogStore()
 
   const defaultRoleForm = useForm<DefaultRoleSchema>({
-    resolver: zodResolver(defaultRoleSchema),
+    resolver: zodResolver(
+      defaultRoleSchema.extend({
+        roleId: z.string().min(1, t('selectRoleTip')),
+      })
+    ),
     defaultValues: {
       roleId: '',
     },
@@ -607,7 +614,7 @@ export default function RoleManagePage() {
       <Dialog open={showRoleForm} onOpenChange={onRoleFormClose}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{RoleFormTypeNameMap[roleFormType]}</DialogTitle>
+            <DialogTitle>{RoleFormTypeNameMap(roleFormType)}</DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
           <RoleForm

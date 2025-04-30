@@ -52,20 +52,33 @@ import {
 /* const modeList = [SITE_LIST_MODE.TopDrawer, SITE_LIST_MODE.DropdownMenu] */
 
 const themeList = ['light', 'dark', 'system'] as const
-const themeLabelMap = {
-  light: i18n.t('light'),
-  dark: i18n.t('dark'),
-  system: i18n.t('syncWithSystem'),
+const themeLabelMap = (theme: ThemeSchema) => {
+  switch (theme) {
+    case 'light':
+      return i18n.t('light')
+    case 'dark':
+      return i18n.t('dark')
+    case 'system':
+      return i18n.t('syncWithSystem')
+  }
 }
 
 const fontSizeList = ['12', '14', '16', '18', '20', 'custom'] as const
-const fontSizeLabelMap = {
-  '12': i18n.t('xsmall'),
-  '14': i18n.t('small'),
-  '16': i18n.t('regular'),
-  '18': i18n.t('large'),
-  '20': i18n.t('xlarge'),
-  custom: i18n.t('custom'),
+const fontSizeLabelMap = (fontSize: FontSizeSchema) => {
+  switch (fontSize) {
+    case '12':
+      return i18n.t('xsmall')
+    case '14':
+      return i18n.t('small')
+    case '16':
+      return i18n.t('regular')
+    case '18':
+      return i18n.t('large')
+    case '20':
+      return i18n.t('xlarge')
+    case 'custom':
+      return i18n.t('custom')
+  }
 }
 
 const MIN_FONT_SIZE = 10
@@ -79,10 +92,15 @@ const fontSizeSchema = z.union([
 ])
 
 const contentWidthList = ['1200', '-1', 'custom'] as const
-const contentWidthLabelMap = {
-  '1200': '1200px',
-  '-1': i18n.t('full'),
-  custom: i18n.t('custom'),
+const contentWidthLabelMap = (contentWidth: ContentWidthSchema) => {
+  switch (contentWidth) {
+    case '1200':
+      return '1200px'
+    case '-1':
+      return i18n.t('full')
+    case 'custom':
+      return i18n.t('custom')
+  }
 }
 const MIN_CONTENT_WIDTH = 1000
 const contentWidthSchema = z.union([
@@ -347,7 +365,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                             <RadioGroupItem value={item} className="mr-1" />
                           </FormControl>
                           <FormLabel className="font-normal whitespace-nowrap">
-                            <span>{fontSizeLabelMap[item]}</span>
+                            <span>{fontSizeLabelMap(item)}</span>
                             &nbsp;&nbsp;
                             <Input
                               type="number"
@@ -384,7 +402,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                             <RadioGroupItem value={item} className="mr-1" />
                           </FormControl>
                           <FormLabel className="font-normal">
-                            {fontSizeLabelMap[item]}
+                            {fontSizeLabelMap(item)}
                           </FormLabel>
                         </FormItem>
                       )
@@ -419,7 +437,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                           <RadioGroupItem value={item} className="mr-1" />
                         </FormControl>
                         <FormLabel className="font-normal">
-                          {themeLabelMap[item]}
+                          {themeLabelMap(item)}
                         </FormLabel>
                       </FormItem>
                     ))}
@@ -454,7 +472,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                             <RadioGroupItem value={item} className="mr-1" />
                           </FormControl>
                           <FormLabel className="font-normal whitespace-nowrap">
-                            <span>{contentWidthLabelMap[item]}</span>
+                            <span>{contentWidthLabelMap(item)}</span>
                             &nbsp;&nbsp;
                             <Input
                               type="number"
@@ -491,7 +509,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                             <RadioGroupItem value={item} className="mr-1" />
                           </FormControl>
                           <FormLabel className="font-normal">
-                            {contentWidthLabelMap[item]}
+                            {contentWidthLabelMap(item)}
                           </FormLabel>
                         </FormItem>
                       )

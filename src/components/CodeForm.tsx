@@ -15,23 +15,19 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 
-import i18n from '@/i18n'
-
 const REGEXP_CODE = /^\d{6}$/
 
-const codeScheme = z.object({
-  code: z
-    .string()
-    .regex(REGEXP_CODE, i18n.t('formatError', { field: i18n.t('verifyCode') })),
+const codeSchema = z.object({
+  code: z.string(),
 })
 
-export type CodeScheme = z.infer<typeof codeScheme>
+export type CodeSchema = z.infer<typeof codeSchema>
 
 interface CodeFormProps {
   isPhone: boolean
   loading: boolean
   onBackClick?: () => void
-  onSubmit?: SubmitHandler<CodeScheme>
+  onSubmit?: SubmitHandler<CodeSchema>
   onResendClick?: () => void
 }
 
@@ -43,8 +39,14 @@ const CodeForm: React.FC<CodeFormProps> = ({
   onResendClick = () => {},
 }) => {
   const { t } = useTranslation()
-  const codeForm = useForm<CodeScheme>({
-    resolver: zodResolver(codeScheme),
+  const codeForm = useForm<CodeSchema>({
+    resolver: zodResolver(
+      codeSchema.extend({
+        code: z
+          .string()
+          .regex(REGEXP_CODE, t('formatError', { field: t('verifyCode') })),
+      })
+    ),
     defaultValues: {
       // TODO for debug
       code: '686868',

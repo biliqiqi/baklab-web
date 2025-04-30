@@ -27,6 +27,7 @@ import {
   SITE_LOGO_IMAGE,
 } from '@/constants/constants'
 import { PermissionAction, PermissionModule } from '@/constants/types'
+import i18n from '@/i18n'
 import {
   useAlertDialogStore,
   useAuthedUserStore,
@@ -86,18 +87,18 @@ interface SidebarMenuItem<T extends PermissionModule> {
   icon: JSX.Element
 }
 
-const platformSidebarMenus: (
+const platformSidebarMenus: () => (
   | SidebarMenuItem<'user'>
   | SidebarMenuItem<'role'>
   | SidebarMenuItem<'site'>
   | SidebarMenuItem<'activity'>
   | SidebarMenuItem<'article'>
-)[] = [
+)[] = () => [
   {
     id: 'users',
     permitModule: 'user',
     permitAction: 'manage_platform',
-    name: '用户',
+    name: i18n.t('user'),
     link: '/manage/users',
     icon: <UserRoundIcon size={18} />,
   },
@@ -105,7 +106,7 @@ const platformSidebarMenus: (
     id: 'banned_users',
     permitModule: 'user',
     permitAction: 'manage_platform',
-    name: '已封锁',
+    name: i18n.t('banned'),
     link: '/manage/banned_users',
     icon: <UserRoundXIcon size={18} />,
   },
@@ -113,7 +114,7 @@ const platformSidebarMenus: (
     id: 'user_roles',
     permitModule: 'role',
     permitAction: 'manage_platform',
-    name: '角色',
+    name: i18n.t('role'),
     link: '/manage/roles',
     icon: <UserIcon size={18} />,
   },
@@ -121,7 +122,7 @@ const platformSidebarMenus: (
     id: 'sites',
     permitModule: 'site',
     permitAction: 'manage_platform',
-    name: '站点',
+    name: i18n.t('site'),
     link: '/manage/sites',
     icon: <GlobeIcon size={18} />,
   },
@@ -129,7 +130,7 @@ const platformSidebarMenus: (
     id: 'activities',
     permitModule: 'activity',
     permitAction: 'manage_platform',
-    name: '活动记录',
+    name: i18n.t('activityLog'),
     link: '/manage/activities',
     icon: <ActivityIcon size={18} />,
   },
@@ -137,7 +138,7 @@ const platformSidebarMenus: (
     id: 'trash',
     permitModule: 'article',
     permitAction: 'manage_platform',
-    name: '回收站',
+    name: i18n.t('trash'),
     link: '/manage/trash',
     icon: <TrashIcon size={18} />,
   },
@@ -202,18 +203,18 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
     [siteFrontId, navigate]
   )
 
-  const siteSidebarMenus: (
+  const siteSidebarMenus: () => (
     | SidebarMenuItem<'user'>
     | SidebarMenuItem<'role'>
     | SidebarMenuItem<'activity'>
     | SidebarMenuItem<'article'>
     | SidebarMenuItem<'site'>
-  )[] = [
+  )[] = () => [
     {
       id: 'users',
       permitModule: 'user',
       permitAction: 'manage',
-      name: '成员',
+      name: t('members'),
       link: `/${siteFrontId}/manage/users`,
       icon: <UserRoundIcon size={18} />,
     },
@@ -221,7 +222,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
       id: 'blocklist',
       permitModule: 'user',
       permitAction: 'manage',
-      name: '黑名单',
+      name: t('blockList'),
       link: `/${siteFrontId}/manage/blocklist`,
       icon: <UserRoundIcon size={18} />,
     },
@@ -229,7 +230,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
       id: 'roles',
       permitModule: 'role',
       permitAction: 'edit',
-      name: '角色',
+      name: t('role'),
       link: `/${siteFrontId}/manage/roles`,
       icon: <UserIcon size={18} />,
     },
@@ -237,7 +238,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
       id: 'article_review',
       permitModule: 'article',
       permitAction: 'review',
-      name: '人工审核',
+      name: t('reviewByHuman'),
       link: `/${siteFrontId}/manage/article_review`,
       icon: <ShieldCheckIcon size={18} />,
     },
@@ -245,7 +246,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
       id: 'blocked_words',
       permitModule: 'site',
       permitAction: 'manage',
-      name: '屏蔽词',
+      name: t('blockedWord'),
       link: `/${siteFrontId}/manage/blocked_words`,
       icon: <MessageSquareXIcon size={18} />,
     },
@@ -253,7 +254,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
       id: 'activities',
       permitModule: 'activity',
       permitAction: 'access',
-      name: '管理日志',
+      name: t('modLog'),
       link: `/${siteFrontId}/manage/activities`,
       icon: <ActivityIcon size={18} />,
     },
@@ -263,12 +264,14 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
     if (categoryFormDirty) {
       const { editting } = editCategory
       const confirmed = await alertDialog.confirm(
-        '确认',
-        editting ? '板块设置未完成，确认舍弃？' : '板块创建未完成，确认舍弃？',
+        t('confirm'),
+        editting
+          ? t('categoryEditDropConfirm')
+          : t('categoryCreateDropConfirm'),
         'normal',
         {
-          confirmBtnText: '确定舍弃',
-          cancelBtnText: editting ? '继续设置' : '继续创建',
+          confirmBtnText: t('dropConfirm'),
+          cancelBtnText: editting ? t('continueSetting') : t('continueAdding'),
         }
       )
       if (confirmed) {
@@ -284,7 +287,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
         data: undefined,
       }))
     }, 500)
-  }, [categoryFormDirty, editCategory, alertDialog])
+  }, [categoryFormDirty, editCategory, alertDialog, t])
 
   const onCategoryCreated = useCallback(async () => {
     setShowCategoryForm(false)
@@ -367,7 +370,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                 {currSite && !currSite.visible && (
                   <span
                     className="inline-block text-gray-500 ml-2"
-                    title={'私有站点'}
+                    title={t('privateSite')}
                   >
                     <LockIcon size={14} />
                   </span>
@@ -378,7 +381,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
           )}
           {currSite && currSite.status != SITE_STATUS.Normal && (
             <div className="bg-yellow-300 p-2 m-2 text-sm rounded-sm leading-6">
-              站点状态：
+              {t('siteStatus')}：
               <span className={getSiteStatusColor(currSite.status)}>
                 {getSiteStatusName(currSite.status)}
               </span>
@@ -386,7 +389,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
               {String(currSite.creatorId) == currUserId &&
                 currSite.status != SITE_STATUS.ReadOnly && (
                   <span className="text-sm text-gray-500">
-                    在当前状态下，站点内容仅自己可见
+                    {t('siteReadOnlyDescribe')}
                   </span>
                 )}
             </div>
@@ -400,7 +403,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                       <BIconCircle id="feed" size={32}>
                         <PackageIcon size={18} />
                       </BIconCircle>
-                      信息流
+                      {t('feed')}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -425,10 +428,10 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
 
           {!siteFrontId && authPermit('platform_manage', 'access') && (
             <SidebarGroup key={'platformManage'}>
-              <SidebarGroupLabel>平台管理</SidebarGroupLabel>
+              <SidebarGroupLabel>{t('platformManagement')}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {platformSidebarMenus.map(
+                  {platformSidebarMenus().map(
                     ({ id, permitModule, permitAction, link, icon, name }) =>
                       authPermit(
                         permitModule,
@@ -486,7 +489,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                         variant="ghost"
                         className="p-0 w-[24px] h-[24px] rounded-full"
                         onClick={onCreateCategoryClick}
-                        title="创建板块"
+                        title={t('createCategory')}
                       >
                         <PlusIcon size={18} className="text-gray-500" />
                       </Button>
@@ -568,7 +571,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                           !groupsOpen.siteManage && '-rotate-90'
                         )}
                       />
-                      <span>站点管理</span>
+                      <span>{t('siteManagement')}</span>
                     </span>
                     <span></span>
                   </SidebarGroupLabel>
@@ -576,7 +579,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                 <CollapsibleContent className="CollapsibleContent">
                   <SidebarGroupContent>
                     <SidebarMenu>
-                      {siteSidebarMenus.map(
+                      {siteSidebarMenus().map(
                         ({
                           id,
                           permitModule,
@@ -617,7 +620,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editCategory.editting ? '设置板块' : '创建板块'}
+              {editCategory.editting ? t('editCategory') : t('createCategory')}
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>

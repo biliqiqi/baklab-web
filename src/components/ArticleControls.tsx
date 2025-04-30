@@ -203,7 +203,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
       )}
       {...props}
     >
-      <div className="flex flex-wrap items-center">
+      <div className="flex flex-wrap items-center whitespace-pre-wrap">
         {!article.locked && (
           <>
             {checkPermit('article', 'vote_up') && isPublished && upVote && (
@@ -377,7 +377,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                 ),
                 actionTag:
                   article.replyToId == '0' || !article.replyToArticle ? (
-                    <span>{t('publish')}</span>
+                    <span>{t('lowerCase', { val: t('published') })}</span>
                   ) : (
                     <Trans
                       i18nKey={'replyToUser'}

@@ -189,11 +189,11 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
         }
       } catch (e) {
         console.error('logout error: ', e)
-        toast.error('退出登录失败，请重试')
+        toast.error(t('logoutFailed'))
       } finally {
         setLoading(false)
       }
-    }, [loading, navigate, setLoading, authLogout])
+    }, [loading, navigate, setLoading, authLogout, t])
 
     const onUserUISettingClick = useCallback(() => {
       setSettingsType('user_ui')
@@ -344,11 +344,11 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                 className="mr-4 max-sm:hidden"
                 onClick={onSubmitClick}
               >
-                <Link to={submitPath}>+ 提交</Link>
+                <Link to={submitPath}>+ {t('submit')}</Link>
               </Button> */}
               {/* <DrawerTrigger>
                 <Button variant="outline" size="sm" className="mr-4">
-                  + 提交
+                  + {t('submit')}
                 </Button>
               </DrawerTrigger> */}
             </>
@@ -359,7 +359,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
               variant="ghost"
               size="sm"
               className="w-[36px] h-[36px] p-0 rounded-full mr-2"
-              title="站点列表"
+              title={t('siteList')}
               onClick={() => {
                 if (onGripClick && typeof onGripClick == 'function') {
                   onGripClick()
@@ -379,7 +379,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                   variant="ghost"
                   size="sm"
                   className="w-[36px] h-[36px] p-0 rounded-full mr-2"
-                  title="站点列表"
+                  title={t('siteList')}
                 >
                   <GripIcon size={20} />
                 </Button>
@@ -432,7 +432,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                     >
                       <BSiteIcon
                         logoUrl={SITE_LOGO_IMAGE}
-                        name={`首页`}
+                        name={t('homePage')}
                         size={40}
                         fontSize={14}
                         showSiteName
@@ -454,12 +454,12 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                           variant="secondary"
                           className="rounded-full w-[40px] h-[40px] text-[24px] text-center text-gray-500 mb-1"
                           key="new-site"
-                          title="创建站点"
+                          title={t('createSite')}
                         >
                           +
                         </Button>
                         <span className="text-[14px] leading-[1.2]">
-                          创建站点
+                          {t('createSite')}
                         </span>
                       </span>
                     )}
@@ -478,7 +478,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                       variant="ghost"
                       size="sm"
                       className="relative w-[36px] h-[36px] p-0 rounded-full mr-2"
-                      title="通知"
+                      title={t('notifications')}
                     >
                       <BellIcon size={20} />
                       {notiStore.unreadCount > 0 && (
@@ -501,7 +501,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                     <MessageList ref={msgListRef} pageSize={10} />
                     <div className="flex justify-center mt-4">
                       <Button variant="secondary" size="sm" asChild>
-                        <Link to="/messages">查看全部</Link>
+                        <Link to="/messages">{t('viewAll')}</Link>
                       </Button>
                     </div>
                   </DropdownMenuContent>
@@ -539,7 +539,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                       asChild
                     >
                       <Link to={'/messages'}>
-                        通知{' '}
+                        {t('notifications')}{' '}
                         {notiStore.unreadCount > 0 && (
                           <Badge className="inline-block bg-pink-600 hover:bg-pink-600 text-xs px-[4px] py-[0px]">
                             {notiStore.unreadCount}
@@ -552,20 +552,22 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                     className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                     asChild
                   >
-                    <Link to={'/users/' + currUsername}>个人主页</Link>
+                    <Link to={'/users/' + currUsername}>
+                      {t('personalHomePage')}
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                     onClick={onUserUISettingClick}
                   >
-                    个性化界面
+                    {t('personalizationUI')}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                     onClick={logout}
                     disabled={loading}
                   >
-                    {loading ? <Loader /> : '退出'}
+                    {loading ? <Loader /> : t('logout')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

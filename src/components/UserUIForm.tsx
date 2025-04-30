@@ -21,6 +21,7 @@ import {
 import i18n from '@/i18n'
 import {
   setLocalUserUISettings,
+  useForceUpdate,
   useSiteStore,
   useTopDrawerStore,
   useUserUIStore,
@@ -168,8 +169,9 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
     const setShowSiteListDropdown = useSiteStore(
       (state) => state.setShowSiteListDropdown
     )
+    const forceUpdate = useForceUpdate((state) => state.forceUpdate)
 
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
 
     // const userUISettings = useAuthedUserStore((state) => state.user?.uiSettings)
 
@@ -202,6 +204,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
         contentWidth: contentWidthGlobalVal,
         customContentWidth:
           contentWidthGlobalVal == 'custom' ? userUIContentWidth : '',
+        lang: i18n.language as LanguageSchema,
       },
     })
 
@@ -254,8 +257,10 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
           customContentWidth,
           lang,
         })
+
+        forceUpdate()
       },
-      [form]
+      [form, i18n, forceUpdate]
     )
 
     useEffect(() => {

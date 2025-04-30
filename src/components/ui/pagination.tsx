@@ -6,6 +6,7 @@ import {
   MoreHorizontal,
 } from 'lucide-react'
 import * as React from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, LinkProps } from 'react-router-dom'
 
 import { cn } from '@/lib/utils'
@@ -71,78 +72,93 @@ PaginationLink.displayName = 'PaginationLink'
 const PaginationPrevious = ({
   className,
   ...props
-}: React.ComponentProps<typeof PaginationLink>) => (
-  <PaginationLink
-    aria-label="去前一页"
-    size="default"
-    className={cn('gap-1 pl-2.5', className)}
-    {...props}
-  >
-    <ChevronLeft className="h-4 w-4" />
-    <span>前一页</span>
-  </PaginationLink>
-)
+}: React.ComponentProps<typeof PaginationLink>) => {
+  const { t } = useTranslation()
+  return (
+    <PaginationLink
+      aria-label={t('goPrevPage')}
+      size="default"
+      className={cn('gap-1 pl-2.5', className)}
+      {...props}
+    >
+      <ChevronLeft className="h-4 w-4" />
+      <span>{t('prevPage')}</span>
+    </PaginationLink>
+  )
+}
 PaginationPrevious.displayName = 'PaginationPrevious'
 
 const PaginationNext = ({
   className,
   ...props
-}: React.ComponentProps<typeof PaginationLink>) => (
-  <PaginationLink
-    aria-label="去后一页"
-    size="default"
-    className={cn('gap-1 pr-2.5', className)}
-    {...props}
-  >
-    <span>后一页</span>
-    <ChevronRight className="h-4 w-4" />
-  </PaginationLink>
-)
+}: React.ComponentProps<typeof PaginationLink>) => {
+  const { t } = useTranslation()
+  return (
+    <PaginationLink
+      aria-label={t('goNextPage')}
+      size="default"
+      className={cn('gap-1 pr-2.5', className)}
+      {...props}
+    >
+      <span>{t('nextPage')}</span>
+      <ChevronRight className="h-4 w-4" />
+    </PaginationLink>
+  )
+}
 PaginationNext.displayName = 'PaginationNext'
 
 const PaginationEllipsis = ({
   className,
   ...props
-}: React.ComponentProps<'span'>) => (
-  <span
-    aria-hidden
-    className={cn('flex h-9 w-9 items-center justify-center', className)}
-    {...props}
-  >
-    <MoreHorizontal className="h-4 w-4" />
-    <span className="sr-only">更多页面</span>
-  </span>
-)
+}: React.ComponentProps<'span'>) => {
+  const { t } = useTranslation()
+  return (
+    <span
+      aria-hidden
+      className={cn('flex h-9 w-9 items-center justify-center', className)}
+      {...props}
+    >
+      <MoreHorizontal className="h-4 w-4" />
+      <span className="sr-only">{t('morePage')}</span>
+    </span>
+  )
+}
 PaginationEllipsis.displayName = 'PaginationEllipsis'
 
 const PaginationFirst = ({
   className,
   ...props
-}: React.ComponentProps<typeof PaginationLink>) => (
-  <PaginationLink
-    aria-label="第一页"
-    size="default"
-    className={cn('gap-1 pl-2.5', className)}
-    {...props}
-  >
-    <ChevronFirst className="h-4 w-4" />
-  </PaginationLink>
-)
+}: React.ComponentProps<typeof PaginationLink>) => {
+  const { t } = useTranslation()
+  return (
+    <PaginationLink
+      aria-label={t('firstPage')}
+      size="default"
+      className={cn('gap-1 pl-2.5', className)}
+      {...props}
+    >
+      <ChevronFirst className="h-4 w-4" />
+    </PaginationLink>
+  )
+}
 PaginationFirst.displayName = 'PaginationFirst'
 
 const PaginationLast = ({
   className,
   ...props
-}: React.ComponentProps<typeof PaginationLink>) => (
-  <PaginationLink
-    aria-label="最后一页"
-    size="default"
-    className={cn('gap-1 pl-2.5', className)}
-    {...props}
-  >
-    <ChevronLast className="h-4 w-4" />
-  </PaginationLink>
-)
+}: React.ComponentProps<typeof PaginationLink>) => {
+  const { t } = useTranslation()
+  return (
+    <PaginationLink
+      aria-label={t('lastPage')}
+      size="default"
+      className={cn('gap-1 pl-2.5', className)}
+      {...props}
+    >
+      <ChevronLast className="h-4 w-4" />
+    </PaginationLink>
+  )
+}
 PaginationLast.displayName = 'PaginationLast'
 
 export {

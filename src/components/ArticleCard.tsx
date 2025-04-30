@@ -122,10 +122,10 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         }
 
         const confirmed = await alertDialog.confirm(
-          '确认',
+          t('confirm'),
           authStore.permit('article', 'delete_others')
-            ? '确定删除？'
-            : '确定删除？删除后无法撤销',
+            ? t('deleteCofirm')
+            : t('irrevocableDeleteConfirm'),
           'danger'
         )
 
@@ -149,13 +149,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         console.error('delete article failed: ', err)
       }
     },
-    [article, alertDialog, authStore, onSuccess]
+    [article, alertDialog, authStore, onSuccess, t]
   )
 
   const onToggleLockClick = useCallback(async () => {
     const confirmed = await alertDialog.confirm(
-      '确认',
-      `确定${article.locked ? '解锁' : '锁定'}帖子？`
+      t('confirm'),
+      article.locked ? t('unlockPostConfirm') : t('lockPostConfirm')
     )
     if (confirmed) {
       const { code } = await toggleLockArticle(
@@ -170,7 +170,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         onSuccess('lock')
       }
     }
-  }, [alertDialog, article, onSuccess])
+  }, [alertDialog, article, onSuccess, t])
 
   const onDelConfirmCancel = useCallback(() => {
     setAlertOpen(false)
@@ -242,7 +242,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         )}
         <div className="flex items-center mb-4 text-sm text-gray-500">
           {article.deleted && !authStore.permit('article', 'delete_others') ? (
-            <span>未知用户</span>
+            <span>{t('unknowUser')}</span>
           ) : (
             <>
               <Link to={`/users/${article.authorName}`}>
@@ -259,7 +259,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             </>
           )}
           &nbsp;·&nbsp;
-          <span title={timeFmt(article.createdAt, 'YYYY年M月D日 H时m分s秒')}>
+          <span title={timeFmt(article.createdAt, 'YYYY-M-D H:m:s')}>
             {timeAgo(article.createdAt)}
           </span>
           {((isMyself && permit('article', 'edit_mine')) ||
@@ -292,7 +292,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                 size="sm"
                 className="mx-1"
                 onClick={onDelClick}
-                title="删除"
+                title={t('delete')}
               >
                 <Trash2Icon size={14} />
               </Button>
@@ -302,7 +302,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               variant={'ghost'}
               size={'sm'}
               className={cn('mx-1', article.locked && 'text-primary')}
-              title={article.locked ? '解锁' : '锁定'}
+              title={article.locked ? t('unlock') : t('lock')}
               onClick={onToggleLockClick}
             >
               {article.locked ? (
@@ -329,7 +329,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               }}
             >
               {parent.deleted ? (
-                <i className="text-gray-500 text-sm">&lt;已删除&gt;</i>
+                <i className="text-gray-500 text-sm">&lt;{t('deleted')}&gt;</i>
               ) : (
                 <span>
                   {parent.authorName}: {md2text(parent.summary)} ...
@@ -339,7 +339,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           )}
           {article.deleted ? (
             <>
-              <i className="text-gray-500 text-sm">&lt;已删除&gt;</i>
+              <i className="text-gray-500 text-sm">&lt;{t('deleted')}&gt;</i>
               {authStore.permit('article', 'delete_others') && (
                 <div
                   dangerouslySetInnerHTML={{
@@ -377,10 +377,10 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>确认</AlertDialogTitle>
+            <AlertDialogTitle>{t('confirm')}</AlertDialogTitle>
           </AlertDialogHeader>
           <ModerationForm
-            reasonLable="删除原因"
+            reasonLable={t('deleteReason')}
             destructive
             onSubmit={onDelConfirm}
             onCancel={onDelConfirmCancel}

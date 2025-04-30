@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -275,8 +275,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     if (isFeedPage) {
       category = {
         frontId: 'feed',
-        name: '信息流',
-        describe: '你订阅的信息合集',
+        name: t('feed'),
+        describe: t('contentOfSubscribtions'),
         isFront: true,
       }
     }
@@ -339,14 +339,14 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
       if (siteFormDirty) {
         const confirmed = await alertDialog.confirm(
-          '确认',
-          editting
-            ? '站点设置未完成，确认舍弃？'
-            : '站点创建未完成，确认舍弃？',
+          t('confirm'),
+          editting ? t('siteEditDropConfirm') : t('siteCreateDropConfirm'),
           'normal',
           {
-            confirmBtnText: '确定舍弃',
-            cancelBtnText: editting ? '继续设置' : '继续创建',
+            confirmBtnText: t('dropConfirm'),
+            cancelBtnText: editting
+              ? t('continueSetting')
+              : t('continueAdding'),
           }
         )
         if (confirmed) {
@@ -410,10 +410,13 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const onRightSidebarClose = useCallback(async () => {
       if (userUIFormDirty) {
         const confirm = await alertDialog.confirm(
-          '确认',
-          '改动未保存，确定舍弃？',
+          t('confirm'),
+          t('unsavedDropConfirm'),
           'normal',
-          { confirmBtnText: '确定舍弃', cancelBtnText: '继续设置' }
+          {
+            confirmBtnText: t('dropConfirm'),
+            cancelBtnText: t('continueSetting'),
+          }
         )
         if (!confirm) {
           return
@@ -426,10 +429,13 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
       if (siteUIFormDirty) {
         const confirm = await alertDialog.confirm(
-          '确认',
-          '改动未保存，确定舍弃？',
+          t('confirm'),
+          t('unsavedDropConfirm'),
           'normal',
-          { confirmBtnText: '确定舍弃', cancelBtnText: '继续设置' }
+          {
+            confirmBtnText: t('dropConfirm'),
+            cancelBtnText: t('continueSetting'),
+          }
         )
         if (!confirm) {
           return
@@ -596,19 +602,19 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     currSite.visible &&
                     !currSite.currUserState.isMember && (
                       <Card className="sticky bottom-0 p-2 px-4 -mx-2 text-sm mt-4 text-center">
-                        你还不是当前站点成员，加入后可订阅新内容或参与互动。
+                        {t('joinTip')}
                         <Button
                           size={'sm'}
                           className="ml-2"
                           onClick={onJoinSiteClick}
                         >
-                          加入
+                          {t('join')}
                         </Button>
                       </Card>
                     )
                   ) : (
                     <Card className="sticky bottom-0 p-2 -mx-2 text-sm mt-4 text-center">
-                      登录可后参与互动。
+                      {t('signinTip')}
                       <Button
                         variant="default"
                         size="sm"
@@ -669,15 +675,17 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     style={{ height: `${NAV_HEIGHT}px` }}
                   >
                     {settingsType == 'site_ui' && (
-                      <span className="font-bold">站点界面设置</span>
+                      <span className="font-bold">{t('siteUISettings')}</span>
                     )}
                     {settingsType == 'user_ui' && (
-                      <span className="font-bold">个性化界面设置</span>
+                      <span className="font-bold">
+                        {t('personalizationUISettings')}
+                      </span>
                     )}
                     <Button
                       variant={'ghost'}
                       size={'sm'}
-                      title="关闭"
+                      title={t('close')}
                       className="text-gray-500"
                       onClick={onRightSidebarClose}
                     >
@@ -782,7 +790,11 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             {articleHistory.article && (
               <>
                 <DialogHeader>
-                  <DialogTitle>{`"${articleHistory.article.displayTitle}" 的编辑历史`}</DialogTitle>
+                  <DialogTitle>
+                    {t('postEditHistory', {
+                      title: articleHistory.article.displayTitle,
+                    })}
+                  </DialogTitle>
                   <DialogDescription></DialogDescription>
                 </DialogHeader>
                 <div
@@ -808,18 +820,29 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               <>
                 <DialogHeader>
                   <DialogTitle className="font-bold">
-                    关于{currSite.name}{' '}
+                    {t('about1', { name: currSite.name })}
                   </DialogTitle>
                   <DialogDescription></DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div>{currSite.description}</div>
                   <div className="text-sm text-gray-500">
-                    由&nbsp;
-                    <Link to={`/users/${currSite.creatorName}`}>
-                      <BAvatar username={currSite.creatorName} showUsername />
-                    </Link>
-                    &nbsp;创建于{timeFmt(currSite.createdAt, 'YYYY-M-D')}
+                    <Trans
+                      i18nKey={'siteCreatedBy'}
+                      components={{
+                        userLink: (
+                          <Link to={`/users/${currSite.creatorName}`}>
+                            <BAvatar
+                              username={currSite.creatorName}
+                              showUsername
+                            />
+                          </Link>
+                        ),
+                        timeTag: (
+                          <time>{timeFmt(currSite.createdAt, 'YYYY-M-D')}</time>
+                        ),
+                      }}
+                    />
                   </div>
                 </div>
               </>
@@ -830,7 +853,9 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         <Dialog open={showSiteForm} onOpenChange={onSiteFormClose}>
           <DialogContent className="max-md:max-h-[90vh]">
             <DialogHeader>
-              <DialogTitle>{editting ? '设置站点' : '创建站点'}</DialogTitle>
+              <DialogTitle>
+                {editting ? t('editSite') : t('createSite')}
+              </DialogTitle>
               <DialogDescription></DialogDescription>
             </DialogHeader>
 
@@ -850,10 +875,10 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             {currSite && (
               <>
                 <DialogHeader>
-                  <DialogTitle className="font-bold">邀请加入站点</DialogTitle>
-                  <DialogDescription>
-                    请复制以下链接并分享给好友
-                  </DialogDescription>
+                  <DialogTitle className="font-bold">
+                    {t('inviteToSite')}
+                  </DialogTitle>
+                  <DialogDescription>{t('inviteTip')}</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <Invite

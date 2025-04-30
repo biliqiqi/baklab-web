@@ -9,6 +9,10 @@ import {
   useState,
 } from 'react'
 import Cropper, { Area, CropperProps } from 'react-easy-crop'
+import { useTranslation } from 'react-i18next'
+
+import i18n from '@/i18n'
+import { StringFn } from '@/types/types'
 
 import { Button } from '../ui/button'
 import {
@@ -24,7 +28,7 @@ import BLoader from './BLoader'
 export interface BCropperProps extends Partial<CropperProps> {
   disabled?: boolean
   loading?: boolean
-  btnText?: string
+  btnText?: string | StringFn
   targetWidth?: number
   targetHeight?: number
   settingAspect?: boolean
@@ -46,7 +50,7 @@ const BCropper = forwardRef<BCropperObj, BCropperProps>(
       disabled = false,
       loading = false,
       settingAspect = false,
-      btnText = '上传图片',
+      btnText = () => i18n.t('uploadImage'),
       targetWidth = 500,
       targetHeight = 500,
       onSuccess,
@@ -61,6 +65,8 @@ const BCropper = forwardRef<BCropperObj, BCropperProps>(
     const [crop, setCrop] = useState({ x: 0, y: 0 })
     const [zoom, setZoom] = useState(1)
     const [customAspect, setCustomAspect] = useState(aspect)
+
+    const { t } = useTranslation()
 
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [computedSize, setComputedSize] = useState<ImageSize>({
@@ -224,14 +230,20 @@ const BCropper = forwardRef<BCropperObj, BCropperProps>(
             disabled={disabled}
             className="min-w-[80px]"
           >
-            {loading ? <BLoader /> : btnText}
+            {loading ? (
+              <BLoader />
+            ) : typeof btnText == 'function' ? (
+              btnText()
+            ) : (
+              btnText
+            )}
           </Button>
           <Input
             disabled={disabled}
             type="file"
             onChange={onFileChange}
-            placeholder="选择图片"
-            title="选择图片"
+            placeholder={t('selectImage')}
+            title={t('selectImage')}
             className="absolute left-0 top-0 w-full h-full opacity-0 z-10"
             style={{ opacity: 0 }}
             ref={fileInputRef}
@@ -240,7 +252,7 @@ const BCropper = forwardRef<BCropperObj, BCropperProps>(
         <Dialog open={showCropperDialog} onOpenChange={onCropperClose}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>裁剪图片</DialogTitle>
+              <DialogTitle>{t('cropImage')}</DialogTitle>
               <DialogDescription></DialogDescription>
             </DialogHeader>
 
@@ -264,7 +276,7 @@ const BCropper = forwardRef<BCropperObj, BCropperProps>(
               )}
             </div>
             <div className="flex items-center text-sm text-gray-500">
-              <span>缩放：</span>
+              <span>{t('zoom')}：</span>
               <input
                 type="range"
                 value={zoom}
@@ -283,7 +295,7 @@ const BCropper = forwardRef<BCropperObj, BCropperProps>(
             </div>
             {settingAspect && (
               <div className="flex items-center text-sm text-gray-500">
-                <span>比例：</span>
+                <span>{t('aspect')}：</span>
                 <input
                   type="range"
                   value={customAspect}
@@ -304,7 +316,7 @@ const BCropper = forwardRef<BCropperObj, BCropperProps>(
             <div className="flex justify-between mt-2">
               <div></div>
               <div>
-                <Button onClick={onCropConfirm}>确定</Button>
+                <Button onClick={onCropConfirm}>{t('confirm')}</Button>
               </div>
             </div>
           </DialogContent>

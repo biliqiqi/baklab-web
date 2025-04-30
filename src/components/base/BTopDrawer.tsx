@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -14,6 +15,7 @@ import { Button } from '../ui/button'
 import BSiteIcon from './BSiteIcon'
 
 const BTopDrawer = () => {
+  const { t } = useTranslation()
   const { siteFrontId } = useParams()
   const { open: showTopDrawer } = useTopDrawerStore()
   const { siteList, setShowSiteForm } = useSiteStore(
@@ -80,7 +82,7 @@ const BTopDrawer = () => {
           >
             <BSiteIcon
               logoUrl={SITE_LOGO_IMAGE}
-              name={`首页`}
+              name={t('homePage')}
               size={40}
               fontSize={14}
               showSiteName
@@ -101,11 +103,13 @@ const BTopDrawer = () => {
                 variant="secondary"
                 className="rounded-full w-[40px] h-[40px] text-[24px] text-center text-gray-500 mb-1"
                 key="new-site"
-                title="创建站点"
+                title={t('createSite')}
               >
                 +
               </Button>
-              <span className="text-[14px] leading-[1.2]">创建站点</span>
+              <span className="text-[14px] leading-[1.2]">
+                {t('createSite')}
+              </span>
             </span>
           )}
         </div>

@@ -74,12 +74,8 @@ if (i18n.services.formatter) {
     return val
   })
 
-  i18n.services.formatter.add('lowerCase', (val: string, lng) => {
-    if (lng == 'en') {
-      return val.toLowerCase()
-    }
-
-    return val
+  i18n.services.formatter.add('lowerCase', (val: string) => {
+    return val.toLowerCase()
   })
 
   i18n.services.formatter.add('uppercaseWords', (val: string, lng) => {

@@ -1,7 +1,9 @@
+import { Trans, useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { timeAgo } from '@/lib/dayjs-custom'
 
+import i18n from '@/i18n'
 import {
   ARTICLE_LOCK_ACTION,
   Activity,
@@ -30,15 +32,19 @@ export interface ActivityListProps {
   isPlatfromManager?: boolean
 }
 
-type AcTypeMap = {
-  [key in ActivityActionType]: string
-}
-const acTypeMap: AcTypeMap = {
-  user: '用户',
-  manage: '管理',
-  anonymous: '匿名',
-  dev: '开发',
-  platform_manage: '平台管理',
+const acTypeMap = (acType: ActivityActionType) => {
+  switch (acType) {
+    case 'user':
+      return i18n.t('user')
+    case 'manage':
+      return i18n.t('management')
+    case 'anonymous':
+      return i18n.t('anonymous')
+    case 'dev':
+      return i18n.t('dev')
+    case 'platform_manage':
+      return i18n.t('platformManagement')
+  }
 }
 
 interface ActivityActionTextProps {
@@ -46,40 +52,48 @@ interface ActivityActionTextProps {
 }
 
 const SiteAction = ({ activity: item }: ActivityActionTextProps) => {
+  const { t } = useTranslation()
+
   if (
     !item.extraInfo ||
     item.extraInfo['status'] === undefined ||
     item.extraInfo['prevStatus'] === undefined
   ) {
     return (
-      <>
-        {'更新了站点'} <ActivityTargetLink activity={item} /> {'的状态'}
-      </>
+      <Trans
+        i18nKey={'updateSiteStatus'}
+        components={{
+          siteLink: <ActivityTargetLink activity={item} />,
+        }}
+      />
     )
   }
   const status = item.extraInfo['status'] as SiteStatus
   const prevStatus = item.extraInfo['prevStatus'] as SiteStatus
 
-  let actionText = '更新了站点状态'
+  let actionText = t('updateSiteStatus1')
   switch (status) {
     case SITE_STATUS.Normal:
       if (prevStatus == SITE_STATUS.Pending) {
-        actionText = '审核通过了站点'
+        actionText = t('reviewPassSite')
       } else {
-        actionText = '恢复了站点'
+        actionText = t('recoverSite')
       }
       break
     case SITE_STATUS.Reject:
-      actionText = '审核驳回了站点'
+      actionText = t('reviewRejectSite')
       break
     case SITE_STATUS.Banned:
-      actionText = '封禁了站点'
+      actionText = t('reviewRejectSite')
       break
     case SITE_STATUS.ReadOnly:
       return (
-        <>
-          {'设置了站点状态'} <ActivityTargetLink activity={item} /> {'为只读'}
-        </>
+        <Trans
+          i18nKey={'setSiteStatusReadonly'}
+          components={{
+            siteLink: <ActivityTargetLink activity={item} />,
+          }}
+        />
       )
     default:
   }
@@ -116,6 +130,7 @@ const ActivityTargetLink = ({ activity: item }: ActivityActionTextProps) => {
 }
 
 const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
+  const { t } = useTranslation()
   const removedUsers =
     (item.extraInfo.removedUsers as string[] | undefined) || []
   const blockedUsers =
@@ -135,164 +150,337 @@ const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
   switch (item.action) {
     case 'set_role':
       return (
-        <>
-          <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
-          设置用户&nbsp;
-          {item.extraInfo && <ActivityTargetLink activity={item} />}
-          &nbsp;角色为&nbsp;
-          <span className="inline-block border-[1px] border-gray-500 rounded-sm px-1">
-            {item.extraInfo.roleName}
-          </span>
-          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
-        </>
+        <Trans
+          i18nKey={'setUserRole'}
+          components={{
+            authorLink: (
+              <Link to={`/users/${item.userName}`}>{item.userName}</Link>
+            ),
+            userLink: item.extraInfo && <ActivityTargetLink activity={item} />,
+            roleTag: (
+              <span className="inline-block border-[1px] border-gray-500 rounded-sm px-1">
+                {item.extraInfo.roleName}
+              </span>
+            ),
+            timeTag: (
+              <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+            ),
+          }}
+        />
       )
     case 'set_site_status':
       return (
-        <>
-          <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
-          <SiteAction activity={item} />
-          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
-        </>
+        <Trans
+          i18nKey={'siteManageAction'}
+          components={{
+            authorLink: (
+              <Link to={`/users/${item.userName}`}>{item.userName}</Link>
+            ),
+            actionTag: <SiteAction activity={item} />,
+            timeTag: (
+              <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+            ),
+          }}
+        />
       )
     case 'create_role':
       return (
-        <>
-          <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
-          创建了角色&nbsp;
-          <span className="inline-block border-[1px] border-gray-500 rounded-sm px-1">
-            {item.extraInfo.roleName}
-          </span>
-          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
-        </>
+        <Trans
+          i18nKey={'acCreateRole'}
+          components={{
+            authorLink: (
+              <Link to={`/users/${item.userName}`}>{item.userName}</Link>
+            ),
+            roleTag: (
+              <span className="inline-block border-[1px] border-gray-500 rounded-sm px-1">
+                {item.extraInfo.roleName}
+              </span>
+            ),
+            timeTag: (
+              <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+            ),
+          }}
+        />
       )
     case 'edit_role':
       return (
-        <>
-          <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
-          更新了角色&nbsp;
-          <span className="inline-block border-[1px] border-gray-500 rounded-sm px-1">
-            {item.extraInfo.roleName}
-          </span>
-          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
-        </>
+        <Trans
+          i18nKey={'acUpdateRole'}
+          components={{
+            authorLink: (
+              <Link to={`/users/${item.userName}`}>{item.userName}</Link>
+            ),
+            roleTag: (
+              <span className="inline-block border-[1px] border-gray-500 rounded-sm px-1">
+                {item.extraInfo.roleName}
+              </span>
+            ),
+            timeTag: (
+              <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+            ),
+          }}
+        />
       )
     case 'delete_role':
       return (
-        <>
-          <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
-          删除了角色&nbsp;
-          <span className="inline-block border-[1px] border-gray-500 rounded-sm px-1">
-            {item.extraInfo.roleName}
-          </span>
-          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
-        </>
+        <Trans
+          i18nKey={'acDeleteRole'}
+          components={{
+            authorLink: (
+              <Link to={`/users/${item.userName}`}>{item.userName}</Link>
+            ),
+            roleTag: (
+              <span className="inline-block border-[1px] border-gray-500 rounded-sm px-1">
+                {item.extraInfo.roleName}
+              </span>
+            ),
+            timeTag: (
+              <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+            ),
+          }}
+        />
       )
     case 'remove_member':
     case 'remove_members':
       return (
         <>
-          <Link to={`/users/${item.userName}`}>{item.userName}</Link> 移除了
-          {removedUsers.length == 1 && '成员'}&nbsp;
-          {removedUsers
-            .map((name) => (
-              <Link key={name} to={`/users/${item.userName}`}>
-                {name}
-              </Link>
-            ))
-            .reduce((prev, curr, idx, _arr) => {
-              if (idx == 0) {
-                return [curr]
-              }
-              return [...prev, <span key={idx}>, </span>, curr]
-            }, [] as JSX.Element[])}
-          &nbsp;{removedUsers.length > 1 && `等 ${removedUsers.length} 名成员`}
-          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+          {removedUsers.length == 1 ? (
+            <Trans
+              i18nKey={'acRemoveMember'}
+              components={{
+                authorLink: (
+                  <Link to={`/users/${item.userName}`}>{item.userName}</Link>
+                ),
+                memberTag: (
+                  <Link key={removedUsers[0]} to={`/users/${item.userName}`}>
+                    {removedUsers[0]}
+                  </Link>
+                ),
+                timeTag: (
+                  <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+                ),
+              }}
+            />
+          ) : (
+            <Trans
+              i18nKey={'acRemoveMembers'}
+              values={{
+                num: removedUsers.length,
+              }}
+              components={{
+                authorLink: (
+                  <Link to={`/users/${item.userName}`}>{item.userName}</Link>
+                ),
+                memberTagList: (
+                  <>
+                    {removedUsers
+                      .map((name) => (
+                        <Link key={name} to={`/users/${item.userName}`}>
+                          {name}
+                        </Link>
+                      ))
+                      .reduce((prev, curr, idx, _arr) => {
+                        if (idx == 0) {
+                          return [curr]
+                        }
+                        return [...prev, <span key={idx}>, </span>, curr]
+                      }, [] as JSX.Element[])}
+                  </>
+                ),
+                timeTag: (
+                  <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+                ),
+              }}
+            />
+          )}
         </>
       )
     case 'block_user':
     case 'block_users':
       return (
         <>
-          <Link to={`/users/${item.userName}`}>{item.userName}</Link> 屏蔽了
-          {blockedUsers.length == 1 && '用户'}&nbsp;
-          {blockedUsers
-            .map((name) => (
-              <Link key={name} to={`/users/${item.userName}`}>
-                {name}
-              </Link>
-            ))
-            .reduce((prev, curr, idx, _arr) => {
-              if (idx == 0) {
-                return [curr]
-              }
-              return [...prev, <span key={idx}>, </span>, curr]
-            }, [] as JSX.Element[])}
-          &nbsp;{blockedUsers.length > 1 && `等 ${blockedUsers.length} 名用户`}
-          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+          {blockedUsers.length == 1 ? (
+            <Trans
+              i18nKey={'acBlockUser'}
+              components={{
+                authorLink: (
+                  <Link to={`/users/${item.userName}`}>{item.userName}</Link>
+                ),
+                memberTag: (
+                  <Link key={blockedUsers[0]} to={`/users/${item.userName}`}>
+                    {blockedUsers[0]}
+                  </Link>
+                ),
+                timeTag: (
+                  <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+                ),
+              }}
+            />
+          ) : (
+            <Trans
+              i18nKey={'acBlockUsers'}
+              values={{
+                num: blockedUsers.length,
+              }}
+              components={{
+                authorLink: (
+                  <Link to={`/users/${item.userName}`}>{item.userName}</Link>
+                ),
+                memberTagList: (
+                  <>
+                    {blockedUsers
+                      .map((name) => (
+                        <Link key={name} to={`/users/${item.userName}`}>
+                          {name}
+                        </Link>
+                      ))
+                      .reduce((prev, curr, idx, _arr) => {
+                        if (idx == 0) {
+                          return [curr]
+                        }
+                        return [...prev, <span key={idx}>, </span>, curr]
+                      }, [] as JSX.Element[])}
+                  </>
+                ),
+                timeTag: (
+                  <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+                ),
+              }}
+            />
+          )}
         </>
       )
     case 'unblock_user':
     case 'unblock_users':
       return (
         <>
-          <Link to={`/users/${item.userName}`}>{item.userName}</Link> 解除了对
-          {unblockedUsers.length == 1 && '用户'}&nbsp;
-          {unblockedUsers
-            .map((name) => (
-              <Link key={name} to={`/users/${item.userName}`}>
-                {name}
-              </Link>
-            ))
-            .reduce((prev, curr, idx, _arr) => {
-              if (idx == 0) {
-                return [curr]
-              }
-              return [...prev, <span key={idx}>, </span>, curr]
-            }, [] as JSX.Element[])}
-          &nbsp;
-          {unblockedUsers.length > 1
-            ? `等 ${unblockedUsers.length} 名用户的屏蔽`
-            : `的屏蔽`}
-          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+          {unblockedUsers.length == 1 ? (
+            <Trans
+              i18nKey={'acUnblockUser'}
+              components={{
+                authorLink: (
+                  <Link to={`/users/${item.userName}`}>{item.userName}</Link>
+                ),
+                memberTag: (
+                  <Link key={unblockedUsers[0]} to={`/users/${item.userName}`}>
+                    {unblockedUsers[0]}
+                  </Link>
+                ),
+                timeTag: (
+                  <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+                ),
+              }}
+            />
+          ) : (
+            <Trans
+              i18nKey={'acUnblockUsers'}
+              values={{
+                num: unblockedUsers.length,
+              }}
+              components={{
+                authorLink: (
+                  <Link to={`/users/${item.userName}`}>{item.userName}</Link>
+                ),
+                memberTagList: (
+                  <>
+                    {unblockedUsers
+                      .map((name) => (
+                        <Link key={name} to={`/users/${item.userName}`}>
+                          {name}
+                        </Link>
+                      ))
+                      .reduce((prev, curr, idx, _arr) => {
+                        if (idx == 0) {
+                          return [curr]
+                        }
+                        return [...prev, <span key={idx}>, </span>, curr]
+                      }, [] as JSX.Element[])}
+                  </>
+                ),
+                timeTag: (
+                  <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+                ),
+              }}
+            />
+          )}
         </>
       )
     case 'review_article':
       return (
         <>
-          <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
-          {reviewArticleResult == 'published'
-            ? '审核通过了'
-            : reviewArticleResult == 'rejected'
-              ? '驳回了'
-              : '更新了'}
-          {isReviewedReply ? '回复' : '文章'}&nbsp;
-          <Link to={`/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}>
-            {item.extraInfo.displayTitle ||
-              `/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}
-          </Link>
-          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+          <Trans
+            i18nKey={'acReviewPost'}
+            values={{
+              action:
+                reviewArticleResult == 'published'
+                  ? t('reviewPassed')
+                  : reviewArticleResult == 'rejected'
+                    ? t('rejectedVerb')
+                    : t('updatedVerb'),
+              postType: isReviewedReply
+                ? t('reply').toLowerCase()
+                : t('post').toLowerCase(),
+            }}
+            components={{
+              authorLink: (
+                <Link to={`/users/${item.userName}`}>{item.userName}</Link>
+              ),
+              postLink: (
+                <Link
+                  to={`/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}
+                >
+                  {item.extraInfo.displayTitle ||
+                    `/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}
+                </Link>
+              ),
+              timeTag: (
+                <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+              ),
+            }}
+          />
         </>
       )
     case 'lock_article':
       return (
-        <>
-          <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
-          {articleLockAction == ARTICLE_LOCK_ACTION.Unlock
-            ? '解锁了'
-            : '锁定了'}
-          {'文章 '}
-          {item.extraInfo && <ActivityTargetLink activity={item} />}
-          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
-        </>
+        <Trans
+          i18nKey={'acLockPost'}
+          values={{
+            action:
+              articleLockAction == ARTICLE_LOCK_ACTION.Unlock
+                ? t('unlockedVerb')
+                : t('lockedVerb'),
+            postType: t('post'),
+          }}
+          components={{
+            authorLink: (
+              <Link to={`/users/${item.userName}`}>{item.userName}</Link>
+            ),
+            postLink: item.extraInfo && <ActivityTargetLink activity={item} />,
+            timeTag: (
+              <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+            ),
+          }}
+        />
       )
     default:
       return (
-        <>
-          <Link to={`/users/${item.userName}`}>{item.userName}</Link>{' '}
-          {item.actionText}{' '}
-          {item.extraInfo && <ActivityTargetLink activity={item} />}
-          &nbsp;于 <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
-        </>
+        <Trans
+          i18nKey={'acCommonAction'}
+          values={{
+            action: item.actionText,
+          }}
+          components={{
+            authorLink: (
+              <Link to={`/users/${item.userName}`}>{item.userName}</Link>
+            ),
+            targetLink: item.extraInfo && (
+              <ActivityTargetLink activity={item} />
+            ),
+            timeTag: (
+              <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+            ),
+          }}
+        />
       )
   }
 }
@@ -305,11 +493,13 @@ const ActivityExtraDetail = ({ activity: item }: ActivityExtraDetailProps) => {
     item.action == 'review_article' &&
     (item.extraInfo.reviewArticleResult as ArticleStatus) == 'published'
 
+  const { t } = useTranslation()
+
   return (
     <div className="text-sm bg-gray-100 p-2 mt-2">
       <div className="flex">
         <div className="flex-shrink-0 w-[60px]">
-          <b>{isArticleApproved ? '说明' : '原因'}：</b>
+          <b>{isArticleApproved ? t('remark') : t('reason')}：</b>
         </div>
         <div className="whitespace-break-spaces">
           {item.extraInfo.reason || '-'}
@@ -324,20 +514,23 @@ export const ActivityList: React.FC<ActivityListProps> = ({
   pageState,
   isPlatfromManager = false,
 }) => {
+  const { t } = useTranslation()
   return list.length == 0 ? (
     <Empty />
   ) : (
     <>
       <div className="flex justify-between items-center my-4">
         <div>
-          <Badge variant="secondary">{pageState.total} 条记录</Badge>
+          <Badge variant="secondary">
+            {t('activityCount', { num: pageState.total })}
+          </Badge>
         </div>
         <div></div>
       </div>
       {list.map((item) => (
         <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
           <Collapsible>
-            <div className="flex justify-between items-center text-base activity-title">
+            <div className="flex justify-between items-center text-base activity-title whitespace-pre-wrap">
               {['delete_article', 'review_article'].includes(item.action) ? (
                 <>
                   <div>
@@ -345,7 +538,7 @@ export const ActivityList: React.FC<ActivityListProps> = ({
                   </div>
                   <CollapsibleTrigger asChild>
                     <Button variant={'secondary'} size="sm">
-                      详细
+                      {t('detail')}
                     </Button>
                   </CollapsibleTrigger>
                 </>
@@ -359,28 +552,28 @@ export const ActivityList: React.FC<ActivityListProps> = ({
               <div className="text-sm bg-gray-100 p-2 mt-2">
                 <div className="flex">
                   <div className="flex-shrink-0 w-[80px]">
-                    <b>类型：</b>
+                    <b>{t('acType')}：</b>
                   </div>
-                  <div>{acTypeMap[item.type]}</div>
+                  <div>{acTypeMap(item.type)}</div>
                 </div>
                 <div className="flex">
                   <div className="flex-shrink-0 w-[80px]">
-                    <b>IP地址：</b>
+                    <b>{t('ipAddress')}：</b>
                   </div>
                   <div>{item.ipAddr}</div>
                 </div>
                 <div className="flex">
                   <div className="flex-shrink-0 w-[80px]">
-                    <b>设备信息：</b>
+                    <b>{t('deviceInfo')}：</b>
                   </div>
                   <div>{item.deviceInfo}</div>
                 </div>
                 <div className="flex">
                   <div className="flex-shrink-0 w-[80px]">
-                    <b>其他数据：</b>
+                    <b>{t('otherInfo')}：</b>
                   </div>
                   <details>
-                    <summary>查看</summary>
+                    <summary>{t('view')}</summary>
                     <span className="font-bold">posts: </span>
                     <pre className="flex-grow align-top py-1 whitespace-break-spaces">
                       {JSON.stringify(item.details, null, '  ')}

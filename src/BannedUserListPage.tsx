@@ -254,7 +254,7 @@ export default function BannedUserListPage() {
           setLoading(false)
         }
       },
-      [params, siteFrontId]
+      [params, siteFrontId, setLoading]
     )
   )
 
@@ -303,7 +303,7 @@ export default function BannedUserListPage() {
         }
       }
     },
-    [alertDialog, table, fetchUserList]
+    [alertDialog, table, fetchUserList, t]
   )
 
   const fetchUserData = toSync(

@@ -205,6 +205,7 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
       fetchCategoryList,
       fetchSiteData,
       fetchSiteList,
+      t,
     ]
   )
 

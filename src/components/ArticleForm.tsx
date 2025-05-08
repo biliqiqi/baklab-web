@@ -216,8 +216,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
 
   const formVals = form.watch()
 
-  const categoryVal = () => form.getValues('category')
-
+  const categoryVal = useCallback(() => form.getValues('category'), [form])
   const onSubmit = useCallback(
     async ({
       title,
@@ -302,6 +301,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
       siteFrontId,
       site,
       checkPermit,
+      t,
     ]
   )
 
@@ -343,7 +343,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
       form.setValue('contentFormId', categoryMap[newVal]?.contentFormId || '0')
       setOpenCategoryList(false)
     },
-    [categoryVal, form]
+    [categoryVal, form, categoryMap]
   )
 
   const onMouseDown =

@@ -216,6 +216,7 @@ const App = () => {
     setRightSidebarOpen,
     setSettingsType,
     setUserUIState,
+    setTheme,
   ])
 
   useEffect(() => {

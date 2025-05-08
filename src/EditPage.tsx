@@ -76,7 +76,7 @@ export default function EditPage() {
         setLoading(false)
       }
     },
-    [articleId, navigate, siteFrontId]
+    [articleId, navigate, siteFrontId, authState, t, setLoading, updateNotFound]
   )
 
   const fetchArticleSync = toSync(fetchArticle)

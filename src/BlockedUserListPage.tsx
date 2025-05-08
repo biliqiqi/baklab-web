@@ -217,14 +217,14 @@ export default function BlockedUserListPage() {
           setLoading(false)
         }
       },
-      [params, siteFrontId]
+      [params, siteFrontId, setLoading]
     )
   )
 
   const onResetClick = useCallback(() => {
     setSearchData({ ...defaultSearchData })
     resetParams()
-  }, [params])
+  }, [params, resetParams])
 
   const onSearchClick = useCallback(() => {
     resetParams()
@@ -270,7 +270,7 @@ export default function BlockedUserListPage() {
         }
       }
     },
-    [alertDialog, table, siteFrontId, fetchUserList]
+    [alertDialog, table, siteFrontId, fetchUserList, t]
   )
 
   /* const onShowDetailClick = useCallback((user: BlockedUser) => {
@@ -294,7 +294,7 @@ export default function BlockedUserListPage() {
           fetchUserList()
         }
       },
-      [siteFrontId, alertDialog, fetchUserList]
+      [siteFrontId, alertDialog, fetchUserList, t]
     )
   )
 

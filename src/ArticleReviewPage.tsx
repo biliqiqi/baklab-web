@@ -368,7 +368,7 @@ export function ArticleReviewPage() {
     } finally {
       setLoading(false)
     }
-  }, [siteFrontId, params])
+  }, [siteFrontId, params, setLoading])
 
   const onReviewConfirmClick = useCallback(
     async (history: ArticleLog, action: ReviewAction, content: string) => {

@@ -197,7 +197,7 @@ export default function SiteListPage() {
           setLoading(false)
         }
       },
-      [params]
+      [params, setLoading]
     )
   )
 

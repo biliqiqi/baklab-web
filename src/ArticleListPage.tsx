@@ -138,7 +138,7 @@ export default function ArticleListPage() {
       } finally {
         setLoading(false)
       }
-    }, [params, list, siteFrontId, categoryFrontId])
+    }, [params, siteFrontId, categoryFrontId, setLoading])
   )
 
   const onSwitchTab = (tab: string) => {

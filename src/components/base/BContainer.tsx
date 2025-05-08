@@ -362,6 +362,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       setEdittingData,
       alertDialog,
       setShowSiteForm,
+      t,
     ])
 
     const onSiteCreated = useCallback(
@@ -404,6 +405,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         fetchSiteList,
         fetchSiteData,
         navigate,
+        setEditting,
+        setEdittingData,
       ]
     )
 
@@ -458,6 +461,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       siteUIFormDirty,
       isMobile,
       setOpenRightSidebarMobile,
+      t,
     ])
 
     const handleLinkClick: EventListener = (e) => {

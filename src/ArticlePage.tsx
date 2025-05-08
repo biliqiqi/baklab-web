@@ -159,7 +159,7 @@ export default function ArticlePage() {
         setLoading(false)
       }
     },
-    [params, siteFrontId, sort, updateNotFound, articleId]
+    [params, siteFrontId, sort, updateNotFound, articleId, setLoading]
   )
 
   const fetchArticleSync = toSync(fetchArticle)

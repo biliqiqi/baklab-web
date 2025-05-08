@@ -169,14 +169,7 @@ const BCropper = forwardRef<BCropperObj, BCropperProps>(
       }
 
       img.src = imgUrl
-    }, [
-      imgUrl,
-      cropperAreaPixels,
-      onSuccess,
-      targetWidth,
-      targetHeight,
-      computedSize,
-    ])
+    }, [imgUrl, cropperAreaPixels, onSuccess, computedSize, reset])
 
     useEffect(() => {
       if (imgUrl) {

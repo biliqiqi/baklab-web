@@ -217,7 +217,7 @@ export default function UserPage() {
           setLoading(false)
         }
       },
-      [username, siteFrontId, updateNotFound]
+      [username, siteFrontId, updateNotFound, setLoading]
     )
   )
 

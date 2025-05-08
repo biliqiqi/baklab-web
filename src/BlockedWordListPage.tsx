@@ -139,7 +139,7 @@ export default function BlockedWordListPage() {
           setLoading(false)
         }
       },
-      [params, siteFrontId]
+      [params, siteFrontId, setLoading]
     )
   )
 
@@ -240,7 +240,7 @@ export default function BlockedWordListPage() {
         fetchBlockedWordList()
       }
     },
-    [siteFrontId, alertDialog, fetchBlockedWordList]
+    [siteFrontId, alertDialog, fetchBlockedWordList, t]
   )
 
   const onRemoveSelectedClick = useCallback(async () => {
@@ -262,7 +262,7 @@ export default function BlockedWordListPage() {
     if (!code) {
       fetchBlockedWordList()
     }
-  }, [siteFrontId, alertDialog, fetchBlockedWordList, selectedRows])
+  }, [siteFrontId, alertDialog, fetchBlockedWordList, selectedRows, t])
 
   const resetParams = useCallback(() => {
     setParams((params) => {
@@ -308,7 +308,7 @@ export default function BlockedWordListPage() {
     }
 
     setShowBlockedWordForm(false)
-  }, [wordFormDirty, dialogConfirm])
+  }, [wordFormDirty, dialogConfirm, t])
 
   const onAddWordsSuccess = useCallback(() => {
     fetchBlockedWordList()

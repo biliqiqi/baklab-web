@@ -6,7 +6,17 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist', '.nvm', 'node_modules', '.git', '*.min.js'] },
+  {
+    ignores: [
+      'dist',
+      '.nvm',
+      'node_modules',
+      'public',
+      'ts_tracing_output',
+      '.git',
+      '*.min.js',
+    ],
+  },
   {
     extends: [
       js.configs.recommended,

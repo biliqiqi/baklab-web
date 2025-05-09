@@ -1,7 +1,8 @@
 import ClipboardJS from 'clipboard'
 import { CheckIcon } from 'lucide-react'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useParams } from 'react-router-dom'
 
 import { timeAgo } from '@/lib/dayjs-custom'
 import { cn } from '@/lib/utils'
@@ -16,10 +17,25 @@ interface InviteProps {
   data: InviteCode | null
   loading: boolean
   container: HTMLElement | null
+  publicSite: boolean
 }
 
-const Invite: React.FC<InviteProps> = ({ data, loading, container }) => {
+const Invite: React.FC<InviteProps> = ({
+  data,
+  loading,
+  container,
+  publicSite,
+}) => {
   const [copyInviteSuccess, setCopyInviteSuccess] = useState(false)
+
+  const { siteFrontId } = useParams()
+  const inviteLink = useMemo(() => {
+    if (publicSite) {
+      return `${FRONT_END_HOST}/${siteFrontId}`
+    } else {
+      return `${FRONT_END_HOST}/invite/${data?.code || ''}`
+    }
+  }, [publicSite, siteFrontId, data])
 
   const copyInviteBtnRef = useRef<HTMLButtonElement | null>(null)
   const clipboardRef = useRef<ClipboardJS | null>(null)
@@ -66,14 +82,10 @@ const Invite: React.FC<InviteProps> = ({ data, loading, container }) => {
       <div className="relative">
         <Input
           readOnly
-          value={
-            loading || !data
-              ? t('generattingInviteLink')
-              : `${FRONT_END_HOST}/invite/${data.code}`
-          }
+          value={loading || !data ? t('generattingInviteLink') : inviteLink}
           className={cn('pr-[54px]', loading && 'text-gray-500')}
         />
-        {data && (
+        {data && !publicSite && (
           <div className="my-2 text-sm text-gray-500">
             {t('inviteLinkExpiration', { timeAgo: timeAgo(data.expiredAt) })}
           </div>
@@ -81,7 +93,7 @@ const Invite: React.FC<InviteProps> = ({ data, loading, container }) => {
         <Button
           size={'sm'}
           className="absolute top-0 right-0 h-[40px] rounded-sm rounded-l-none"
-          data-clipboard-text={`${FRONT_END_HOST}/invite/${data?.code || ''}`}
+          data-clipboard-text={inviteLink}
           ref={copyInviteBtnRef}
           disabled={!data}
         >

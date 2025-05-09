@@ -889,6 +889,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     data={inviteCode}
                     loading={inviteCodeGeneratting}
                     container={inviteCodeDialogRef.current}
+                    publicSite={currSite.visible}
                   />
                 </div>
               </>

@@ -243,7 +243,7 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
             {t('siteUI')}
           </DropdownMenuItem>
         )}
-        {!currSite.visible && authPermit('site', 'invite') && (
+        {authPermit('site', 'invite') && (
           <DropdownMenuItem
             className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
             onClick={onInviteClick}

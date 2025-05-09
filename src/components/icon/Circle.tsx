@@ -14,12 +14,14 @@ const BIconCircle = React.forwardRef<HTMLSpanElement, BIconCircleProps>(
         style={{
           width: `${size}px`,
           height: `${size}px`,
-          backgroundColor: 'hsl(var(--primary))',
           borderRadius: '100%',
           color: 'white',
           fontSize: `${fontSize}px`,
         }}
-        className={cn('inline-flex items-center justify-center', className)}
+        className={cn(
+          'bg-primary dark:bg-blue-900 inline-flex items-center justify-center',
+          className
+        )}
         ref={ref}
         {...props}
       >

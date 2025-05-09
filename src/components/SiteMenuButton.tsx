@@ -30,11 +30,17 @@ import {
   useSiteStore,
 } from '@/state/global'
 
+import BIconCircle from './icon/Circle'
 import { Button } from './ui/button'
 
-type SiteMenuButtonProps = HTMLAttributes<HTMLButtonElement>
+type SiteMenuMode = 'radius' | 'block'
+
+interface SiteMenuButtonProps extends HTMLAttributes<HTMLButtonElement> {
+  mode?: SiteMenuMode
+}
 
 const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
+  mode = 'radius',
   className,
   ...props
 }) => {
@@ -216,17 +222,31 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
   return (
     <DropdownMenu open={openSiteMenu} onOpenChange={setOpenSiteMenu}>
       <DropdownMenuTrigger asChild>
-        <Button
-          {...props}
-          variant="ghost"
-          size="sm"
-          className={cn('h-[36px] w-[36px] p-0 text-gray-500', className)}
-          title={t('siteMenu')}
-        >
-          <EllipsisVerticalIcon size={20} />
-        </Button>
+        {mode == 'radius' ? (
+          <Button
+            {...props}
+            variant="ghost"
+            size="sm"
+            className={cn('h-[36px] w-[36px] p-0 text-gray-500', className)}
+            title={t('siteMenu')}
+          >
+            <EllipsisVerticalIcon size={20} />
+          </Button>
+        ) : (
+          <span className="flex items-center gap-2 flex-grow p-2 cursor-pointer">
+            <BIconCircle id="siteMenu" size={32}>
+              <EllipsisVerticalIcon size={18} />
+            </BIconCircle>
+            {t('siteMenu')}
+          </span>
+        )}
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="px-0" align="end" sideOffset={6}>
+      <DropdownMenuContent
+        className="px-0"
+        align="end"
+        alignOffset={mode == 'radius' ? 0 : -160}
+        sideOffset={mode == 'radius' ? 6 : -40}
+      >
         {authPermit('site', 'manage') && (
           <DropdownMenuItem
             className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"

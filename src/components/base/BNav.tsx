@@ -353,7 +353,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
               </DrawerTrigger> */}
             </>
           )}
-          {siteMode == 'top_nav' && <SiteMenuButton className="mr-2" />}
+          {/* {siteMode == 'top_nav' && <SiteMenuButton className="mr-2" />} */}
           {!isMobile && siteListMode == 'top_drawer' && (
             <Button
               variant="ghost"

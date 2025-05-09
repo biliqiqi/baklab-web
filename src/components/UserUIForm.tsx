@@ -28,7 +28,7 @@ import {
 } from '@/state/global'
 import { SITE_LIST_MODE } from '@/types/types'
 
-import { useTheme } from './ThemeProvider'
+import { useTheme } from './theme-provider'
 import { Button } from './ui/button'
 import {
   Form,
@@ -284,6 +284,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
     ])
 
     useEffect(() => {
+      /* console.log('set new theme in user ui form: ', formVals.theme) */
       setTheme(formVals.theme)
     }, [formVals.theme, setTheme])
 

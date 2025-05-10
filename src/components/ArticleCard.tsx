@@ -240,7 +240,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             </h1>
           </>
         )}
-        <div className="flex items-center mb-4 text-sm text-gray-500">
+        <div className="flex flex-wrap items-center mb-4 text-sm text-gray-500">
           {article.deleted && !authStore.permit('article', 'delete_others') ? (
             <span>{t('unknowUser')}</span>
           ) : (
@@ -251,7 +251,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               {article.showAuthorRoleName && (
                 <Badge
                   variant={'secondary'}
-                  className="ml-2 font-normal text-gray-500"
+                  className="ml-2 font-normal text-gray-500 whitespace-nowrap"
                 >
                   {article.authorRoleName}
                 </Badge>

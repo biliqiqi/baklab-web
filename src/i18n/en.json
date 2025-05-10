@@ -496,6 +496,7 @@
   "personalHomePage": "Personal Homepage",
   "personalizationUI": "Personalization UI",
   "logout": "Logout",
+  "logoutConfirm": "Confirm logout?",
   "uploadImage": "Upload Image",
   "selectImage": "Select Image",
   "cropImage": "Crop Image",

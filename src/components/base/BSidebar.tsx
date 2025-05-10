@@ -425,7 +425,10 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                 {siteMode == 'top_nav' && (
                   <SidebarMenuItem key="siteMenu">
                     <SidebarMenuButton asChild>
-                      <a href="#" style={{ padding: 0 }}>
+                      <a
+                        href="#"
+                        style={{ padding: 0, textDecoration: 'none' }}
+                      >
                         <SiteMenuButton mode="block" />
                       </a>
                     </SidebarMenuButton>

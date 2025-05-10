@@ -496,6 +496,7 @@
   "personalHomePage": "个人主页",
   "personalizationUI": "个性化界面",
   "logout": "退出",
+  "logoutConfirm": "确认退出登录？",
   "uploadImage": "上传图片",
   "selectImage": "选择图片",
   "cropImage": "裁剪图片",

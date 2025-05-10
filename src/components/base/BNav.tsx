@@ -23,6 +23,7 @@ import {
 } from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
+  useAlertDialogStore,
   useAuthedUserStore,
   useDialogStore,
   useLoading,
@@ -36,7 +37,6 @@ import {
 import { FrontCategory } from '@/types/types'
 
 import MessageList, { MessageListRef } from '../MessageList'
-import SiteMenuButton from '../SiteMenuButton'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { Dialog, DialogContent, DialogHeader } from '../ui/dialog'
@@ -70,6 +70,8 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
     /* const authState = useAuthedUserStore() */
     const navigate = useNavigate()
     const isMobile = useIsMobile()
+
+    const alertConfirm = useAlertDialogStore((state) => state.confirm)
     /* const sidebar = useSidebar() */
     const { checkPermit, isLogined, authLogout, currUsername } =
       useAuthedUserStore(
@@ -181,6 +183,9 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
     const logout = useCallback(async () => {
       if (loading) return
       try {
+        const confirmed = await alertConfirm(t('confirm'), t('logoutConfirm'))
+        if (!confirmed) return
+
         setLoading(true)
         const data = await logoutToken()
         if (!data.code) {
@@ -193,7 +198,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
       } finally {
         setLoading(false)
       }
-    }, [loading, navigate, setLoading, authLogout, t])
+    }, [loading, navigate, setLoading, authLogout, t, alertConfirm])
 
     const onUserUISettingClick = useCallback(() => {
       setSettingsType('user_ui')

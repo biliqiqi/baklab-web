@@ -7,7 +7,7 @@ import { Toaster } from './components/ui/sonner.tsx'
 
 import BLoader from './components/base/BLoader.tsx'
 
-import { useTheme } from './components/ThemeProvider.tsx'
+import { useTheme } from './components/theme-provider.ts'
 
 import {
   API_HOST,
@@ -118,7 +118,7 @@ const App = () => {
     }))
   )
 
-  const { setTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
 
   const setSidebarOpen = useSidebarStore((state) => state.setOpen)
   const setShowTopDrawer = useTopDrawerStore((state) => state.update)
@@ -216,7 +216,6 @@ const App = () => {
     setRightSidebarOpen,
     setSettingsType,
     setUserUIState,
-    setTheme,
   ])
 
   useEffect(() => {
@@ -238,18 +237,17 @@ const App = () => {
         </div>
       )}
       <Toaster
-        theme="system"
+        theme={theme}
         position="top-center"
-        invert
         visibleToasts={1}
         closeButton
         toastOptions={{
           classNames: {
-            error: 'bg-red-400',
-            success: 'bg-green-400',
-            warning: 'bg-yellow-400',
-            info: 'bg-blue-400',
-            loading: 'bg-blue-400',
+            error: 'bg-red-400 dark:bg-red-900',
+            success: 'bg-green-400 dark:bg-green-900',
+            warning: 'bg-yellow-400 dark:bg-yellow-900',
+            info: 'bg-blue-400 dark:bg-blue-900',
+            loading: 'bg-blue-400 dark:bg-blue-900',
             icon: 'text-white',
             content: 'text-white',
             closeButton: 'absolute left-auto right-[-10px] text-black',

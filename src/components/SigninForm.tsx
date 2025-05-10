@@ -126,7 +126,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
       try {
         const { code, data } = await getSiteWithFrontId(siteFrontId)
         if (!code) {
-          console.log('site data after login: ', data)
+          /* console.log('site data after login: ', data) */
           siteStore.update({ ...data })
         } else {
           siteStore.update(null)

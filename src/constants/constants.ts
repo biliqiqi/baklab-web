@@ -1,4 +1,4 @@
-export const PLATFORM_NAME = 'BiliQiqi'
+export const PLATFORM_NAME = 'BakLab'
 
 // blue
 export const SITE_LOGO_IMAGE =

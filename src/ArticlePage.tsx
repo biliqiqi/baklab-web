@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams, useSearchParams } from 'react-router-dom'
+import { useShallow } from 'zustand/react/shallow'
 
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 
@@ -9,7 +10,6 @@ import BLoader from './components/base/BLoader'
 
 import ArticleCard from './components/ArticleCard'
 import { ListPagination } from './components/ListPagination'
-import ReplyBox, { ReplyBoxProps } from './components/ReplyBox'
 
 import {
   DEFAULT_PAGE_SIZE,
@@ -27,6 +27,7 @@ import {
   useForceUpdate,
   useLoading,
   useNotFoundStore,
+  useReplyBoxStore,
   useSiteStore,
 } from './state/global'
 import {
@@ -35,11 +36,6 @@ import {
   ArticleListState,
   Category,
 } from './types/types'
-
-type ReplyBoxState = Pick<
-  ReplyBoxProps,
-  'isEditting' | 'edittingArticle' | 'replyToArticle'
->
 
 export default function ArticlePage() {
   /* const [loading, setLoading] = useState(false) */
@@ -59,17 +55,18 @@ export default function ArticlePage() {
     totalPage: 0,
   })
 
-  const [replyBoxState, setReplyBoxState] = useState<ReplyBoxState>({
-    isEditting: false,
-    edittingArticle: null,
-    replyToArticle: null,
-  })
-
   const replyHandlerRef = useRef<((x: Article) => void) | null>(null)
   const editHandlerRef = useRef<((x: Article) => void) | null>(null)
 
   const [params, setParams] = useSearchParams()
   const { updateNotFound } = useNotFoundStore()
+
+  const { setShowReplyBox, setReplyBoxState } = useReplyBoxStore(
+    useShallow(({ setShow, setState }) => ({
+      setShowReplyBox: setShow,
+      setReplyBoxState: setState,
+    }))
+  )
 
   const authStore = useAuthedUserStore()
   const { forceState } = useForceUpdate()
@@ -117,7 +114,7 @@ export default function ArticlePage() {
 
           /* setReplyToArticle(article) */
           setReplyBoxState({
-            isEditting: false,
+            editType: 'reply',
             replyToArticle: article,
             edittingArticle: null,
           })
@@ -159,7 +156,15 @@ export default function ArticlePage() {
         setLoading(false)
       }
     },
-    [params, siteFrontId, sort, updateNotFound, articleId, setLoading]
+    [
+      params,
+      siteFrontId,
+      sort,
+      updateNotFound,
+      articleId,
+      setLoading,
+      setReplyBoxState,
+    ]
   )
 
   const fetchArticleSync = toSync(fetchArticle)
@@ -171,30 +176,34 @@ export default function ArticlePage() {
     })
   }
 
-  const onReplyClick = useCallback((article: Article) => {
-    /* setReplyToArticle(article)
-     * setIsEditting(false) */
-    setReplyBoxState({
-      isEditting: false,
-      replyToArticle: article,
-      edittingArticle: null,
-    })
-  }, [])
+  const onReplyClick = useCallback(
+    (article: Article) => {
+      setReplyBoxState({
+        editType: 'reply',
+        replyToArticle: article,
+        edittingArticle: null,
+      })
+    },
+    [setReplyBoxState]
+  )
 
   if (!replyHandlerRef.current) {
     replyHandlerRef.current = onReplyClick
   }
 
-  const onEditClick = useCallback((article: Article) => {
-    /* setReplyToArticle(parent)
-     * setEdittingArticle(article)
-     * setIsEditting(true) */
-    setReplyBoxState({
-      isEditting: true,
-      edittingArticle: article,
-      replyToArticle: article.replyToArticle,
-    })
-  }, [])
+  const onEditClick = useCallback(
+    (article: Article) => {
+      /* setReplyToArticle(parent)
+       * setEdittingArticle(article)
+       * setIsEditting(true) */
+      setReplyBoxState({
+        editType: 'edit',
+        edittingArticle: article,
+        replyToArticle: article.replyToArticle,
+      })
+    },
+    [setReplyBoxState]
+  )
 
   if (!editHandlerRef.current) {
     editHandlerRef.current = onEditClick
@@ -233,6 +242,62 @@ export default function ArticlePage() {
       fetchArticleSync(false)
     }
   }, [params, initialized, forceState, articleId])
+
+  useEffect(() => {
+    if (
+      article &&
+      !article.deleted &&
+      !article.locked &&
+      article.status == 'published' &&
+      authStore.isLogined() &&
+      (siteStore.site?.currUserState.isMember ||
+        authStore.permit('site', 'manage'))
+    ) {
+      setShowReplyBox(true)
+    } else {
+      setShowReplyBox(false)
+    }
+
+    return () => {
+      setShowReplyBox(false)
+    }
+  }, [article, authStore, siteStore, setShowReplyBox])
+
+  useEffect(() => {
+    setReplyBoxState({
+      disabled: !authStore.permit('article', 'reply'),
+    })
+  }, [authStore, setReplyBoxState])
+
+  useEffect(() => {
+    setReplyBoxState({
+      mode: 'reply',
+      category: null,
+      editType: 'reply',
+      edittingArticle: null,
+      replyToArticle: article,
+      onSuccess(_resp, actionType) {
+        toSync(fetchArticle, () => {
+          if (actionType == 'reply') {
+            setTimeout(() => {
+              window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth',
+              })
+            }, 0)
+          }
+        })(false)
+        /* fetchArticleSync(false) */
+      },
+      onRemoveReply() {
+        setReplyBoxState({
+          editType: 'reply',
+          edittingArticle: null,
+          replyToArticle: article,
+        })
+      },
+    })
+  }, [article, setReplyBoxState, fetchArticle])
 
   return (
     <>
@@ -301,37 +366,6 @@ export default function ArticlePage() {
           </ArticleContext.Provider>
         )}
         {pageState.totalPage > 1 && <ListPagination pageState={pageState} />}
-        {article &&
-          !article.deleted &&
-          !article.locked &&
-          article.status == 'published' &&
-          authStore.isLogined() &&
-          (siteStore.site?.currUserState.isMember ||
-            authStore.permit('site', 'manage')) && (
-            <ReplyBox
-              disabled={!authStore.permit('article', 'reply')}
-              {...replyBoxState}
-              onSuccess={(_resp, actionType) =>
-                fetchArticle(false).then(() => {
-                  if (actionType == 'reply') {
-                    setTimeout(() => {
-                      window.scrollTo({
-                        top: document.body.scrollHeight,
-                        behavior: 'smooth',
-                      })
-                    }, 0)
-                  }
-                })
-              }
-              onRemoveReply={() => {
-                setReplyBoxState({
-                  isEditting: false,
-                  edittingArticle: null,
-                  replyToArticle: article,
-                })
-              }}
-            />
-          )}
       </BContainer>
     </>
   )

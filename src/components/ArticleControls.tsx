@@ -264,8 +264,8 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
               >
                 <BookmarkIcon
                   size={20}
-                  fill={userState.saved ? 'currentColor' : 'transparent'}
-                  className={cn('mr-1', userState.saved && 'text-primary')}
+                  fill={userState?.saved ? 'currentColor' : 'transparent'}
+                  className={cn('mr-1', userState?.saved && 'text-primary')}
                 />
                 {article.totalSavedCount > 0 && article.totalSavedCount}
               </Button>
@@ -283,10 +283,12 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                 >
                   <BellIcon
                     size={20}
-                    fill={userState.subscribed ? 'currentColor' : 'transparent'}
+                    fill={
+                      userState?.subscribed ? 'currentColor' : 'transparent'
+                    }
                     className={cn(
                       'mr-1',
-                      userState.subscribed && 'text-primary'
+                      userState?.subscribed && 'text-primary'
                     )}
                   />
                 </Button>

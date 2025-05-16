@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [
     react(),
     analyzer({
-      openAnalyzer: false,
+      openAnalyzer: true,
     }),
   ],
   build: {

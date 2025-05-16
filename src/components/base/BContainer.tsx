@@ -18,6 +18,7 @@ import { cn, isInnerURL } from '@/lib/utils'
 import { getSiteList, joinSite } from '@/api/site'
 import {
   DEFAULT_CONTENT_WIDTH,
+  DEFAULT_INNER_CONTENT_WIDTH,
   DEFAULT_PAGE_SIZE,
   LEFT_SIDEBAR_STATE_KEY,
   NAV_HEIGHT,
@@ -35,6 +36,7 @@ import {
   useForceUpdate,
   useInviteCodeStore,
   useNotFoundStore,
+  useReplyBoxStore,
   useRightSidebarStore,
   useSidebarStore,
   useSiteStore,
@@ -47,6 +49,7 @@ import { FrontCategory, SITE_VISIBLE } from '@/types/types'
 import ArticleHistory from '../ArticleHistory'
 import Invite from '../Invite'
 import NotFound from '../NotFound'
+import ReplyBox from '../ReplyBox'
 import SigninForm from '../SigninForm'
 import SignupForm from '../SignupForm'
 import SiteForm from '../SiteForm'
@@ -114,14 +117,22 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       }))
     )
 
+    const { showReplyBox, ...replyBoxProps } = useReplyBoxStore(
+      useShallow(({ show, setShow, setState, ...replyBoxProps }) => ({
+        showReplyBox: show,
+        ...replyBoxProps,
+      }))
+    )
+
     const { siteMode } = useSiteUIStore(
       useShallow(({ mode }) => ({ siteMode: mode }))
     )
 
-    const { siteListMode, contentWidth } = useUserUIStore(
-      useShallow(({ siteListMode, contentWidth }) => ({
+    const { siteListMode, contentWidth, innerContentWidth } = useUserUIStore(
+      useShallow(({ siteListMode, contentWidth, innerContentWidth }) => ({
         siteListMode,
         contentWidth: contentWidth || DEFAULT_CONTENT_WIDTH,
+        innerContentWidth: innerContentWidth || DEFAULT_INNER_CONTENT_WIDTH,
       }))
     )
 
@@ -595,12 +606,20 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 onGripClick={onToggleTopDrawer}
               />
             )}
-            <div className="container mx-auto max-w-3xl px-4 py-4" {...props}>
+            <div
+              className="container mx-auto px-4 py-4"
+              {...props}
+              style={{
+                maxWidth: `${innerContentWidth}px`,
+                ...props.style,
+              }}
+            >
               {showNotFound ? (
                 <NotFound />
               ) : (
                 <>
                   {children}
+                  {showReplyBox && <ReplyBox {...replyBoxProps} />}
                   {isLogined() ? (
                     currSite &&
                     currSite.visible &&

@@ -35,6 +35,7 @@ export interface Category {
   iconBgColor: string
   iconContent: string
   contentFormId: string
+  contentForm: ContentForm | null
 }
 
 export type CategoryExists = ItemExists
@@ -139,7 +140,7 @@ export interface Article {
   weight: number
   listWeight: number
   participateCount: number
-  currUserState: CurrUserState
+  currUserState: CurrUserState | null
   showScore: boolean
   categoryId: string
   categoryFrontId: string
@@ -669,3 +670,23 @@ export type SiteListMode = ValuesToUnion<typeof SITE_LIST_MODE>
 export type Theme = 'dark' | 'light' | 'system'
 
 export type StringFn = () => string
+
+export type ReplyBoxType = 'create' | 'edit' | 'reply'
+export type ReplyBoxMode = 'reply' | 'chat'
+
+export interface ReplyBoxProps {
+  mode?: ReplyBoxMode
+  category?: Category | null
+  replyToArticle: Article | null
+  editType: ReplyBoxType
+  edittingArticle?: Article | null
+  disabled?: boolean
+  onSuccess?:
+    | ((
+        data: ResponseData<ArticleSubmitResponse>,
+        type?: ReplyBoxType,
+        boxHeight?: number
+      ) => void)
+    | (() => Promise<void>)
+  onRemoveReply?: () => void
+}

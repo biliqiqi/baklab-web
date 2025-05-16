@@ -3,6 +3,7 @@ import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 
 import { refreshAuthState } from '@/lib/request'
+import { noop } from '@/lib/utils'
 
 import { getCategoryList } from '@/api/category'
 import { getNotificationUnreadCount } from '@/api/message'
@@ -20,6 +21,7 @@ import {
   ArticleLog,
   Category,
   InviteCode,
+  ReplyBoxProps,
   Role,
   SITE_LIST_MODE,
   SITE_STATUS,
@@ -804,6 +806,7 @@ export interface UserUIState {
   theme?: Theme
   fontSize?: number
   contentWidth?: number
+  innerContentWidth?: number
   setState: (state: Partial<UserUIStateData>) => void
 }
 
@@ -859,4 +862,25 @@ export const useLoading = create<GlobalLoadingState>((set) => ({
   setLoading(loading) {
     set((state) => ({ ...state, loading }))
   },
+}))
+
+export interface ReplyBoxState extends ReplyBoxProps {
+  show: boolean
+  setShow: (show: boolean) => void
+  setState: (state: Partial<ReplyBoxState>) => void
+}
+
+export const useReplyBoxStore = create<ReplyBoxState>((set) => ({
+  show: false,
+  setShow(show) {
+    set((state) => ({ ...state, show }))
+  },
+  mode: 'reply',
+  category: null,
+  replyToArticle: null,
+  editType: 'reply',
+  disabled: false,
+  onSuccess: noop,
+  onRemoveReply: noop,
+  setState: set,
 }))

@@ -1,5 +1,5 @@
 import { SquareArrowOutUpRightIcon } from 'lucide-react'
-import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import { MouseEvent, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 /* import mockArticleList from '@/mock/articles.json' */
@@ -10,61 +10,48 @@ import { Button } from './components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 import { Card } from '@/components/ui/card'
 
-import BContainer from './components/base/BContainer'
-
 import ArticleControls from './components/ArticleControls'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 
-import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
-
-import { getArticleList } from './api/article'
-import { getCategoryWithFrontId } from './api/category'
-import { toSync } from './lib/fire-and-forget'
 import {
   extractDomain,
   genArticlePath,
   getArticleStatusName,
   renderMD,
 } from './lib/utils'
-import { isLogined, useAuthedUserStore, useLoading } from './state/global'
+import { isLogined, useAuthedUserStore } from './state/global'
 import {
   Article,
   ArticleListSort,
   ArticleListState,
   Category,
-  FrontCategory,
 } from './types/types'
 
 /* const articleList = mockArticleList as Article[] */
 
-export default function ArticleListPage() {
-  /* const [loading, setLoading] = useState(false) */
+interface ArticleListPageProps {
+  list: Article[]
+  pageState: ArticleListState
+  currCate: Category | null
+  onRefresh: () => void
+}
 
+const ArticleListPage: React.FC<ArticleListPageProps> = ({
+  list,
+  pageState,
+  currCate,
+  onRefresh,
+}) => {
   const [showSummary] = useState(false)
-  const [currCate, setCurrCate] = useState<Category | null>(null)
-
-  const [list, updateList] = useState<Article[]>([])
-
-  const [pageState, setPageState] = useState<ArticleListState>({
-    currPage: 1,
-    pageSize: DEFAULT_PAGE_SIZE,
-    total: 0,
-    totalPage: 0,
-  })
-
-  /* const forceUpdate = useForceUpdate((state) => state.forceUpdate) */
 
   const isMySelf = useAuthedUserStore((state) => state.isMySelf)
   const checkPermit = useAuthedUserStore((state) => state.permit)
   const loginWithDialog = useAuthedUserStore((state) => state.loginWithDialog)
   const checkIsLogined = useAuthedUserStore((state) => state.isLogined)
-  const authToken = useAuthedUserStore((state) => state.authToken)
 
   const [params, setParams] = useSearchParams()
   const { siteFrontId, categoryFrontId } = useParams()
-
-  const { setLoading } = useLoading()
 
   const navigate = useNavigate()
   /* const siteStore = useSiteStore() */
@@ -78,67 +65,6 @@ export default function ArticleListPage() {
         ? `/${siteFrontId}/submit?category_id=` + currCate.id
         : `/${siteFrontId}/submit`,
     [currCate, siteFrontId, categoryFrontId]
-  )
-
-  const fetchArticles = toSync(
-    useCallback(async () => {
-      try {
-        const page = Number(params.get('page')) || 1
-        const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
-        const sort = (params.get('sort') as ArticleListSort | null) || 'best'
-
-        setLoading(true)
-
-        /* if (!siteFrontId) return */
-
-        const resp = await getArticleList(
-          page,
-          pageSize,
-          sort,
-          categoryFrontId,
-          '',
-          undefined,
-          '',
-          undefined,
-          { siteFrontId }
-        )
-        if (!resp.code) {
-          /* console.log('article list: ', resp.data) */
-          const { data } = resp
-          let category: FrontCategory | undefined
-          if (data.category) {
-            const { frontId, name, describe, siteFrontId } = data.category
-            category = { frontId, name, describe, siteFrontId } as FrontCategory
-          }
-
-          if (data.articles) {
-            /* console.log('articles: ', data.articles) */
-
-            updateList([...data.articles])
-            setPageState({
-              currPage: data.currPage,
-              pageSize: data.pageSize,
-              total: data.articleTotal,
-              totalPage: data.totalPage,
-              category,
-            })
-          } else {
-            updateList([])
-            setPageState({
-              currPage: 1,
-              pageSize: data.pageSize,
-              total: data.articleTotal,
-              totalPage: data.totalPage,
-              category,
-            })
-          }
-        }
-      } catch (e) {
-        console.error('get article list error: ', e)
-      } finally {
-        setLoading(false)
-      }
-    }, [params, siteFrontId, categoryFrontId, setLoading])
   )
 
   const onSwitchTab = (tab: string) => {
@@ -172,39 +98,10 @@ export default function ArticleListPage() {
     [submitPath, navigate, checkIsLogined, loginWithDialog]
   )
 
-  const fetchCategory = toSync(
-    useCallback(async () => {
-      if (!categoryFrontId) return
-
-      const { code, data } = await getCategoryWithFrontId(categoryFrontId, {
-        siteFrontId,
-      })
-
-      if (!code) {
-        setCurrCate({ ...data })
-      } else {
-        setCurrCate(null)
-      }
-    }, [categoryFrontId, siteFrontId])
-  )
-
-  /* console.log('article list siteFrontId: ', siteFrontId) */
-
-  useEffect(() => {
-    if (categoryFrontId) {
-      fetchCategory()
-    }
-
-    fetchArticles()
-  }, [params, siteFrontId, categoryFrontId, authToken])
-
   /* console.log('list: ', list) */
 
   return (
-    <BContainer
-      category={pageState.category}
-      key={`article_list_${list.length}`}
-    >
+    <>
       <div className="flex justify-between items-center">
         <div>
           {list.length > 0 && (
@@ -293,7 +190,7 @@ export default function ArticleListPage() {
                 ctype="list"
                 bookmark={false}
                 notify={false}
-                onSuccess={() => fetchArticles()}
+                onSuccess={onRefresh}
               />
             </Card>
           ))
@@ -303,6 +200,8 @@ export default function ArticleListPage() {
       {pageState.totalPage > 1 && (
         <ListPagination pageState={pageState} autoScrollTop />
       )}
-    </BContainer>
+    </>
   )
 }
+
+export default ArticleListPage

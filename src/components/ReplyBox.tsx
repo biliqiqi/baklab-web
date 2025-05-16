@@ -12,21 +12,29 @@ import {
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
+import { useShallow } from 'zustand/react/shallow'
 
 import { toSync } from '@/lib/fire-and-forget'
 import { bus, cn, md2text, renderMD, summryText } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
-import { submitReply, updateReply } from '@/api/article'
+import { submitArticle, submitReply, updateReply } from '@/api/article'
 import {
   ARTICLE_MAX_CONTENT_LEN,
+  DEFAULT_INNER_CONTENT_WIDTH,
   EV_ON_EDIT_CLICK,
   EV_ON_REPLY_CLICK,
   NAV_HEIGHT,
 } from '@/constants/constants'
 import { I18n } from '@/constants/types'
 import i18n from '@/i18n'
-import { Article, ArticleSubmitResponse, ResponseData } from '@/types/types'
+import { useUserUIStore } from '@/state/global'
+import {
+  Article,
+  ArticleSubmitResponse,
+  ReplyBoxProps,
+  ResponseData,
+} from '@/types/types'
 
 import TipTap, { TipTapRef } from './TipTap'
 import BLoader from './base/BLoader'
@@ -46,18 +54,6 @@ const articleSchema = z.object({
 })
 
 type ArticleSchema = z.infer<typeof articleSchema>
-
-export interface ReplyBoxProps {
-  replyToArticle: Article | null
-  isEditting?: boolean
-  edittingArticle?: Article | null
-  disabled?: boolean
-  onSuccess?: (
-    data: ResponseData<ArticleSubmitResponse>,
-    type?: 'edit' | 'reply'
-  ) => void
-  onRemoveReply?: () => void
-}
 
 interface ReplyBoxData {
   startHeight: number
@@ -79,8 +75,10 @@ const defaultBoxRef: ReplyBoxData = {
 }
 
 const ReplyBox: React.FC<ReplyBoxProps> = ({
+  mode = 'reply',
+  category,
   replyToArticle,
-  isEditting,
+  editType,
   edittingArticle,
   onSuccess,
   onRemoveReply,
@@ -97,6 +95,11 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   const { siteFrontId } = useParams()
 
   /* const authStore = useAuthedUserStore() */
+  const { innerContentWidth } = useUserUIStore(
+    useShallow(({ innerContentWidth }) => ({
+      innerContentWidth: innerContentWidth || DEFAULT_INNER_CONTENT_WIDTH,
+    }))
+  )
 
   const { t, i18n } = useTranslation()
 
@@ -114,9 +117,16 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   }
 
   const targetArticle = useMemo(
-    () => (isEditting ? edittingArticle : replyToArticle),
-    [isEditting, replyToArticle, edittingArticle]
+    () =>
+      editType == 'create'
+        ? null
+        : editType == 'edit'
+          ? edittingArticle
+          : replyToArticle,
+    [editType, replyToArticle, edittingArticle]
   )
+
+  const isEditting = useMemo(() => editType == 'edit', [editType])
 
   /* console.log('isEditting: ', isEditting) */
   /* console.log('edittingArticle: ', edittingArticle) */
@@ -141,7 +151,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
         setLoading(true)
 
         let resp: ResponseData<ArticleSubmitResponse>
-        if (isEditting) {
+        if (editType == 'edit') {
           if (!edittingArticle || !edittingArticle.id)
             throw new Error('reply to aritcle id is required')
 
@@ -153,11 +163,23 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
             false,
             { siteFrontId: edittingArticle.siteFrontId }
           )
-        } else {
+        } else if (editType == 'reply') {
           if (!replyToArticle || !replyToArticle.id)
             throw new Error('reply to aritcle id is required')
 
           resp = await submitReply(replyToArticle.id, content, { siteFrontId })
+        } else {
+          if (!category || category.contentForm?.frontId != 'chat')
+            throw new Error('category data is required or not under chat')
+          resp = await submitArticle(
+            '',
+            category.id,
+            '',
+            content,
+            false,
+            category.contentForm.id,
+            { siteFrontId }
+          )
         }
 
         /* const data = await submitReply(replyToArticle.id, content) */
@@ -166,7 +188,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
           form.reset({ content: '' })
 
           if (onSuccess && typeof onSuccess == 'function') {
-            onSuccess(resp, isEditting ? 'edit' : 'reply')
+            await onSuccess(resp, editType, replyBoxHeight)
           }
         }
       } catch (err) {
@@ -175,7 +197,16 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
         setLoading(false)
       }
     },
-    [replyToArticle, isEditting, edittingArticle, form, onSuccess, siteFrontId]
+    [
+      replyToArticle,
+      edittingArticle,
+      form,
+      onSuccess,
+      siteFrontId,
+      editType,
+      category,
+      replyBoxHeight,
+    ]
   )
 
   const onMouseMove = useCallback((e: globalThis.MouseEvent) => {
@@ -410,7 +441,12 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
 
   if (disabled) {
     return (
-      <div className="max-w-[800px] -mx-2 mt-[10px] sticky bottom-0 bg-white p-3 rounded-lg border-[1px] text-gray-500 text-sm">
+      <div
+        className={cn(
+          'max-w-[800px] -mx-2 mt-[10px] bottom-0 bg-white p-3 rounded-lg border-[1px] text-gray-500 text-sm',
+          mode == 'chat' ? 'fixed' : 'sticky'
+        )}
+      >
         {t('lackPermission')}
       </div>
     )
@@ -420,10 +456,14 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="-mx-2 mt-[10px] sticky bottom-0 bg-white px-3 pb-3 rounded-lg border-[1px]"
+        className={cn(
+          '-mx-2 mt-[10px] bottom-0 bg-white px-3 pb-3 rounded-lg border-[1px]',
+          mode == 'chat' ? 'fixed w-[calc(100vw-theme(spacing.4))]' : 'sticky'
+        )}
         style={{
           boxShadow:
             '0 0 15px -3px rgb(0 0 0 / 0.1), 0 0 6px -4px rgb(0 0 0 / 0.1)',
+          maxWidth: `${innerContentWidth}px`,
         }}
         onKeyUp={(e) => {
           if (e.ctrlKey && e.key == 'Enter') {

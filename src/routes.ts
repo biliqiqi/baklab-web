@@ -1,14 +1,14 @@
 import {
-  LoaderFunction,
-  RouteObject,
-  redirect,
-  replace,
+    LoaderFunction,
+    RouteObject,
+    redirect,
+    replace,
 } from 'react-router-dom'
 
 import ActivityPage from './ActivityPage.tsx'
-import ArticleListPage from './ArticleListPage.tsx'
 import ArticlePage from './ArticlePage.tsx'
 import { ArticleReviewPage } from './ArticleReviewPage.tsx'
+import BankuaiPage from './BankuaiPage.tsx'
 import BannedUserListPage from './BannedUserListPage.tsx'
 import BlockedUserListPage from './BlockedUserListPage.tsx'
 import BlockedWordListPage from './BlockedWordListPage.tsx'
@@ -28,10 +28,10 @@ import UserPage from './UserPage.tsx'
 import { getSiteWithFrontId } from './api/site.ts'
 import { PermissionAction, PermissionModule } from './constants/types.ts'
 import {
-  ensureLogin,
-  isLogined,
-  useAuthedUserStore,
-  useSiteStore,
+    ensureLogin,
+    isLogined,
+    useAuthedUserStore,
+    useSiteStore,
 } from './state/global.ts'
 import { Site } from './types/types.ts'
 
@@ -125,7 +125,7 @@ const somePermissions =
 export const routes: RouteObject[] = [
   {
     path: '/',
-    Component: ArticleListPage,
+    Component: BankuaiPage,
   },
   {
     path: '/invite/:inviteCode',
@@ -219,11 +219,11 @@ export const routes: RouteObject[] = [
         return null
       }
     },
-    Component: ArticleListPage,
+    Component: BankuaiPage,
   },
   {
     path: '/:siteFrontId/feed',
-    Component: ArticleListPage,
+    Component: BankuaiPage,
   },
   {
     path: '/:siteFrontId/bankuai',
@@ -236,11 +236,11 @@ export const routes: RouteObject[] = [
   },
   {
     path: '/:siteFrontId/bankuai/:categoryFrontId',
-    Component: ArticleListPage,
+    Component: BankuaiPage,
   },
   {
     path: '/:siteFrontId/b/:categoryFrontId',
-    Component: ArticleListPage,
+    Component: BankuaiPage,
   },
   {
     path: '/:siteFrontId/articles/:articleId',

@@ -463,7 +463,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
         style={{
           boxShadow:
             '0 0 15px -3px rgb(0 0 0 / 0.1), 0 0 6px -4px rgb(0 0 0 / 0.1)',
-          maxWidth: `${innerContentWidth}px`,
+          maxWidth: `calc(${innerContentWidth}px - 1rem)`,
         }}
         onKeyUp={(e) => {
           if (e.ctrlKey && e.key == 'Enter') {

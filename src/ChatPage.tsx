@@ -93,16 +93,18 @@ const ChatPage: React.FC<ChatPageProps> = ({ list, currCate, onRefresh }) => {
       replyToArticle: null,
       category: currCate,
       disabled: !permit('article', 'reply'),
-      onSuccess: async () => {
+      onSuccess: async (_, actionType) => {
         const res = onRefresh()
         if (res instanceof Promise) {
           await res
-          setTimeout(() => {
-            window.scrollTo({
-              top: document.body.scrollHeight,
-              behavior: 'smooth',
-            })
-          }, 0)
+          if (actionType != 'edit') {
+            setTimeout(() => {
+              window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth',
+              })
+            }, 0)
+          }
         }
       },
       onRemoveReply() {

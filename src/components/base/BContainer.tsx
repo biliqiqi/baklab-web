@@ -715,13 +715,13 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                       <XIcon size={20} />
                     </Button>
                   </div>
-                  {settingsType == 'site_ui' && (
+                  {openRightSidebar && settingsType == 'site_ui' && (
                     <SiteUIForm
                       onChange={setSiteUIFormDirty}
                       ref={siteUIFormRef}
                     />
                   )}
-                  {settingsType == 'user_ui' && (
+                  {openRightSidebar && settingsType == 'user_ui' && (
                     <UserUIForm
                       onChange={setUserUIFormDirty}
                       ref={userUIFormRef}

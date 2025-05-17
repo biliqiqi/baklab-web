@@ -424,6 +424,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
                       disabled={isEdit}
                       value={field.value}
                       onChange={field.onChange}
+                      ref={field.ref}
                     />
                   </FormControl>
                   <FormMessage />

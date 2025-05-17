@@ -533,6 +533,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                         <ContentFormSelector
                           value={field.value || '0'}
                           onChange={field.onChange}
+                          ref={field.ref}
                           disabled={Boolean(
                             categoryMap[formVals.category]?.contentFormId &&
                               categoryMap[formVals.category]?.contentFormId !=

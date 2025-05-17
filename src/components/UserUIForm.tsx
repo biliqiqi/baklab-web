@@ -332,17 +332,26 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                 </FormLabel>
                 <FormDescription></FormDescription>
                 <FormControl>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="w-[180px] bg-white">
-                      <SelectValue placeholder={t('readonly')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="zh-CN">中文</SelectItem>
-                        <SelectItem value="en-US">English</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                  <div>
+                    <Select
+                      value={field.value}
+                      name={field.name}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="w-[180px] bg-white">
+                        <SelectValue
+                          placeholder={t('readonly')}
+                          ref={field.ref}
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="zh-CN">中文</SelectItem>
+                          <SelectItem value="en-US">English</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </FormControl>
               </FormItem>
             )}
@@ -360,6 +369,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                     className="flex flex-wrap"
                     value={field.value}
                     onValueChange={field.onChange}
+                    ref={field.ref}
                   >
                     {fontSizeList.map((item) =>
                       item == 'custom' ? (
@@ -433,6 +443,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                     className="flex flex-wrap"
                     value={field.value}
                     onValueChange={field.onChange}
+                    ref={field.ref}
                   >
                     {themeList.map((item) => (
                       <FormItem
@@ -467,6 +478,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                     className="flex flex-wrap"
                     value={field.value}
                     onValueChange={field.onChange}
+                    ref={field.ref}
                   >
                     {contentWidthList.map((item) =>
                       item == 'custom' ? (
@@ -540,6 +552,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                     className="flex flex-wrap"
                     value={field.value}
                     onValueChange={field.onChange}
+                    ref={field.ref}
                   >
                     <FormItem
                       className="flex items-center space-y-0 mr-4 mb-4"

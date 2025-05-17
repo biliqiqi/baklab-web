@@ -127,7 +127,9 @@ const ChatPage: React.FC<ChatPageProps> = ({ list, currCate, onRefresh }) => {
   return (
     <div className="pb-[170px]">
       {list.map((item) => {
-        return <ArticleCard article={item} key={item.id} />
+        return (
+          <ArticleCard article={item} key={item.id} onSuccess={onRefresh} />
+        )
       })}
     </div>
   )

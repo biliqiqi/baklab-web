@@ -13,7 +13,7 @@ import { useShallow } from 'zustand/react/shallow'
 
 import { timeFmt } from '@/lib/dayjs-custom'
 import { toSync } from '@/lib/fire-and-forget'
-import { cn, isInnerURL } from '@/lib/utils'
+import { cn, isInnerURL, summryText } from '@/lib/utils'
 
 import { getSiteList, joinSite } from '@/api/site'
 import {
@@ -548,7 +548,13 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       <div>
         {siteListMode == 'top_drawer' && <BTopDrawer />}
         {siteMode == 'top_nav' && (
-          <div className="bg-white dark:bg-slate-900 sticky top-0 z-50 border-b-2 shadow-sm">
+          <div
+            className="bg-white dark:bg-slate-900 sticky top-0 z-50 border-b-2 shadow-sm"
+            style={{
+              height: `${NAV_HEIGHT}px`,
+              boxSizing: 'border-box',
+            }}
+          >
             <BNav
               category={category}
               goBack={goBack}
@@ -815,7 +821,9 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 <DialogHeader>
                   <DialogTitle>
                     {t('postEditHistory', {
-                      title: articleHistory.article.displayTitle,
+                      title: articleHistory.article.title
+                        ? articleHistory.article.displayTitle
+                        : summryText(articleHistory.article.content, 120),
                     })}
                   </DialogTitle>
                   <DialogDescription></DialogDescription>

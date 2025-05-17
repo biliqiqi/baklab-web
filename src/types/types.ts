@@ -688,5 +688,5 @@ export interface ReplyBoxProps {
         boxHeight?: number
       ) => void)
     | (() => Promise<void>)
-  onRemoveReply?: () => void
+  onRemoveReply?: (() => void) | (() => Promise<void>)
 }

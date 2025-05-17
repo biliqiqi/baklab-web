@@ -61,7 +61,10 @@ const isOneOfPath = (loc: Location, pathes: string[]) =>
   pathes.some((path) => loc.pathname == path)
 
 const BNav = React.forwardRef<HTMLDivElement, NavProps>(
-  ({ className, category, goBack = false, onGripClick, ...props }, ref) => {
+  (
+    { className, style, category, goBack = false, onGripClick, ...props },
+    ref
+  ) => {
     /* const [loading, setLoading] = useState(false) */
     const [showCategoryDetail, setShowCategoryDetail] = useState(false)
     const { siteFrontId } = useParams()
@@ -225,7 +228,8 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
           className
         )}
         style={{
-          height: `${NAV_HEIGHT}px`,
+          height: `${NAV_HEIGHT - 2}px`,
+          ...style,
         }}
         ref={ref}
         {...props}

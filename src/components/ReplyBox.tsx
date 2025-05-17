@@ -491,10 +491,10 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={(e) => {
+                onClick={async (e) => {
                   e.preventDefault()
                   if (onRemoveReply && typeof onRemoveReply == 'function')
-                    onRemoveReply()
+                    await onRemoveReply()
                 }}
               >
                 <XIcon size={20} />

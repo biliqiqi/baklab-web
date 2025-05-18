@@ -232,7 +232,10 @@ const ChatCard: React.FC<ChatCardProps> = ({
             {timeAgo(article.createdAt, 'YYYY-M-D H:m')}
           </span>
         </div>
-        <Card className="flex-grow-0 relative p-3 pb-2 mb-3">
+        <Card
+          className="b-chat-card__card flex-grow-0 relative p-3 pb-2 mb-3"
+          tabIndex={0}
+        >
           {article.asMainArticle && (
             <>
               <h1
@@ -329,6 +332,7 @@ const ChatCard: React.FC<ChatCardProps> = ({
               onToggleLockClick={onToggleLockClick}
               onSuccess={onSuccess}
               className="absolute left-[calc(100%+theme(space.1))] bottom-2"
+              tabIndex={0}
             />
           )}
         </Card>

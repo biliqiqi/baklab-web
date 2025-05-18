@@ -210,7 +210,8 @@ a:hover {
   margin-bottom: 1em;
 }
 
-.b-chat-card:hover .b-chat-controls__btns {
+.b-chat-card:hover .b-chat-controls__btns,
+.b-chat-card__card:focus-within .b-chat-controls__btns {
   visibility: visible;
 }
 

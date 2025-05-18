@@ -258,6 +258,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
                 size="sm"
                 onClick={onCommentClick}
                 className="mr-1 px-2.5"
+                tabIndex={0}
               >
                 <MessageSquare size={20} className="inline-block" />
               </Button>
@@ -302,7 +303,12 @@ const ChatControls: React.FC<ChatControlsProps> = ({
               )}
             <DropdownMenu open={showChatMenu} onOpenChange={setShowChatMenu}>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="mr-1 px-2.5">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mr-1 px-2.5"
+                  tabIndex={0}
+                >
                   <EllipsisIcon size={20} className="inline-block" />
                 </Button>
               </DropdownMenuTrigger>

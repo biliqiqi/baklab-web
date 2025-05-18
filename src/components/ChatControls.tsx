@@ -2,9 +2,14 @@ import {
   BellIcon,
   BookmarkIcon,
   CheckIcon,
+  EllipsisIcon,
   HistoryIcon,
+  LockIcon,
+  LockOpenIcon,
   MessageSquare,
+  PencilIcon,
   QrCode,
+  Trash2Icon,
 } from 'lucide-react'
 import {
   HTMLAttributes,
@@ -13,6 +18,7 @@ import {
   useCallback,
   useContext,
   useMemo,
+  useState,
 } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
@@ -42,11 +48,16 @@ import BSiteIcon from './base/BSiteIcon'
 import { BIconTriangleDown } from './icon/TriangleDown'
 import { BIconTriangleUp } from './icon/TriangleUp'
 import { Button } from './ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu'
 
-interface ArticleControlsProps extends HTMLAttributes<HTMLDivElement> {
+interface ChatControlsProps extends HTMLAttributes<HTMLDivElement> {
   disabled?: boolean
   article: Article
-  ctype?: ArticleCardType
   upVote?: boolean
   downVote?: boolean
   bookmark?: boolean
@@ -58,6 +69,9 @@ interface ArticleControlsProps extends HTMLAttributes<HTMLDivElement> {
   history?: boolean
   isTopArticle?: boolean
   onCommentClick?: MouseEventHandler<HTMLButtonElement>
+  onEditClick?: MouseEventHandler<HTMLElement>
+  onDeleteClick?: MouseEventHandler<HTMLElement>
+  onToggleLockClick?: MouseEventHandler<HTMLElement>
   /* onSaveClick?: MouseEventHandler<HTMLButtonElement> */
   /* onVoteUpClick?: MouseEventHandler<HTMLButtonElement>
    * onVoteDownClick?: MouseEventHandler<HTMLButtonElement> */
@@ -68,25 +82,25 @@ const checkContentForm = (targetArticle: Article, contentForm: string) => {
   return targetArticle.contentForm?.frontId == contentForm
 }
 
-const ArticleControls: React.FC<ArticleControlsProps> = ({
+const ChatControls: React.FC<ChatControlsProps> = ({
   disabled = false,
   article,
   className,
-  upVote = true,
+  upVote = false,
   downVote = false,
-  bookmark = true,
-  author = true,
-  linkQrCode = false,
-  cornerLink = false,
-  notify = true,
+  bookmark = false,
+  notify = false,
   comment = true,
-  history = true,
-  ctype = 'item',
+  history = false,
   isTopArticle = false,
   onCommentClick = noop,
+  onEditClick = noop,
+  onDeleteClick = noop,
+  onToggleLockClick = noop,
   onSuccess = noop,
   ...props
 }) => {
+  const [showChatMenu, setShowChatMenu] = useState(false)
   const { siteFrontId } = useParams()
   const userState = useMemo(() => article.currUserState, [article])
 
@@ -103,7 +117,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   const articleCtx = useContext(ArticleContext)
 
   const onSaveClick = useCallback(
-    async (e: MouseEvent<HTMLButtonElement>) => {
+    async (e: MouseEvent<HTMLElement>) => {
       try {
         e.preventDefault()
         const resp = await toggleSaveArticle(article.id, {
@@ -198,13 +212,14 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   return (
     <div
       className={cn(
-        'flex flex-wrap justify-between text-sm text-gray-500',
+        'b-chat-controls flex flex-wrap justify-between text-sm text-gray-500',
         className
       )}
       {...props}
     >
-      <div className="flex flex-wrap items-center whitespace-pre-wrap">
-        {!article.locked && (
+      <div></div>
+      <div className="b-chat-controls__btns flex flex-nowrap items-center whitespace-pre-wrap invisible">
+        {
           <>
             {checkPermit('article', 'vote_up') && isPublished && upVote && (
               <Button
@@ -237,22 +252,14 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                 {article.voteDown > 0 && article.voteDown}
               </Button>
             )}
-            {comment && (
+            {comment && !article.locked && (
               <Button
                 variant="ghost"
                 size="sm"
-                asChild={ctype == 'list'}
                 onClick={onCommentClick}
-                className="mr-1"
+                className="mr-1 px-2.5"
               >
-                {ctype == 'list' ? (
-                  <Link to={genArticlePath(article)}>
-                    <MessageSquare size={20} className="inline-block mr-1" />
-                    {article.totalReplyCount > 0 && article.totalReplyCount}
-                  </Link>
-                ) : (
-                  <MessageSquare size={20} className="inline-block mr-1" />
-                )}
+                <MessageSquare size={20} className="inline-block" />
               </Button>
             )}
             {checkPermit('article', 'save') && isPublished && bookmark && (
@@ -293,13 +300,84 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                   />
                 </Button>
               )}
+            <DropdownMenu open={showChatMenu} onOpenChange={setShowChatMenu}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="mr-1 px-2.5">
+                  <EllipsisIcon size={20} className="inline-block" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="px-0" align="end">
+                {((isMyself(article.authorId) &&
+                  checkPermit('article', 'edit_mine')) ||
+                  checkPermit('article', 'edit_others')) &&
+                  !article.hasReviewing &&
+                  article.status == 'published' &&
+                  (!article.locked || checkPermit('site', 'manage')) && (
+                    <DropdownMenuItem
+                      className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                      onClick={(e) => {
+                        setShowChatMenu(false)
+                        onEditClick(e)
+                      }}
+                    >
+                      <PencilIcon size={20} className="inline-block" />{' '}
+                      {t('edit')}
+                    </DropdownMenuItem>
+                  )}
+                {((isMyself(article.authorId) &&
+                  checkPermit('article', 'delete_mine')) ||
+                  checkPermit('article', 'delete_others')) &&
+                  (!article.locked || checkPermit('site', 'manage')) && (
+                    <DropdownMenuItem
+                      className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0 text-red-500"
+                      onClick={(e) => {
+                        setShowChatMenu(false)
+                        onDeleteClick(e)
+                      }}
+                    >
+                      <Trash2Icon size={20} className="inline-block" />
+                      {t('delete')}
+                    </DropdownMenuItem>
+                  )}
+                {checkPermit('article', 'save') && isPublished && (
+                  <DropdownMenuItem
+                    className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                    onClick={async (e) => {
+                      setShowChatMenu(false)
+                      await onSaveClick(e)
+                    }}
+                  >
+                    <BookmarkIcon
+                      size={20}
+                      fill={userState?.saved ? 'currentColor' : 'transparent'}
+                      className={cn(
+                        'inline-block',
+                        userState?.saved && 'text-primary'
+                      )}
+                    />
+                    {t('savePost')}
+                  </DropdownMenuItem>
+                )}
+                {checkPermit('article', 'lock') && (
+                  <DropdownMenuItem
+                    className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                    onClick={(e) => {
+                      setShowChatMenu(false)
+                      onToggleLockClick(e)
+                    }}
+                  >
+                    {article.locked ? (
+                      <LockIcon className="inline-block" size={20} />
+                    ) : (
+                      <LockOpenIcon className="inline-block" size={20} />
+                    )}
+                    {article.locked ? t('unlock') : t('lock')}
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </>
-        )}
-        {article.locked && (
-          <i className="inline-block mr-2 text-sm text-gray-500">
-            &lt;{t('locked')}&gt;
-          </i>
-        )}
+        }
         {history && checkPermit('article', 'manage') && (
           <Button
             variant="ghost"
@@ -363,104 +441,14 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             </Link>
           </Button>
         )}
-
-        {ctype == 'list' && (
-          <>
-            <Trans
-              i18nKey={'userPublishInfo'}
-              components={{
-                userLink: (
-                  <Link
-                    to={'/users/' + article.authorName}
-                    className="text-gray-700"
-                  >
-                    {article.authorName}&nbsp;
-                  </Link>
-                ),
-                actionTag:
-                  article.replyToId == '0' || !article.replyToArticle ? (
-                    <span>{t('lowerCase', { val: t('published') })}</span>
-                  ) : (
-                    <Trans
-                      i18nKey={'replyToUser'}
-                      components={{
-                        userLink: (
-                          <Link
-                            to={'/users/' + article.replyToArticle.authorName}
-                            className="text-gray-700"
-                          >
-                            {article.replyToArticle.authorName}
-                          </Link>
-                        ),
-                      }}
-                    />
-                  ),
-                placeLink: (
-                  <span className="whitespace-nowrap">
-                    {siteFrontId ? (
-                      <Link
-                        to={`/${article.siteFrontId}/bankuai/${article.category.frontId}`}
-                      >
-                        <BIconColorChar
-                          iconId={article.categoryFrontId}
-                          char={article.category.iconContent}
-                          color={article.category.iconBgColor}
-                          size={20}
-                          fontSize={12}
-                          className="align-[-5px] mx-1"
-                        />
-                        {article.category.name}
-                      </Link>
-                    ) : (
-                      <Link
-                        to={`/${article.siteFrontId}`}
-                        className="leading-3 mx-1"
-                      >
-                        <BSiteIcon
-                          logoUrl={article.site.logoUrl}
-                          name={article.site.name}
-                          size={20}
-                          fontSize={12}
-                          showSiteName
-                        />
-                      </Link>
-                    )}
-                    &nbsp;·&nbsp;
-                    <span title={timeFmt(article.createdAt, 'YYYY-M-D H:m:s')}>
-                      {timeAgo(article.createdAt)}
-                    </span>
-                  </span>
-                ),
-              }}
-            />
-          </>
-        )}
         {isTopArticle && (
           <span className="text-gray-500">
             {t('replyCount', { num: article.totalReplyCount })}
           </span>
         )}
       </div>
-      <div className="flex items-center">
-        {article.replyToId == '0' && (
-          <>
-            {linkQrCode && (
-              <Button size="sm" variant="ghost">
-                <QrCode size={20} />
-              </Button>
-            )}
-            {cornerLink && (
-              <Button size="sm" variant="link">
-                <a href={article.link} target="_blank">
-                  {t('source')} {article.link}
-                </a>
-              </Button>
-            )}
-          </>
-        )}
-      </div>
     </div>
   )
 }
 
-export default ArticleControls
+export default ChatControls

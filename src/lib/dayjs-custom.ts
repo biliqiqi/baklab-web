@@ -26,10 +26,10 @@ dayjs.updateLocale('zh-cn', {
 
 console.log('dayjs initialized')
 
-const timeAgo = (timeStr: string) => {
+const timeAgo = (timeStr: string, formatTpl?: string) => {
   const time = dayjs(timeStr)
   if (time.isBefore(dayjs().add(-3, 'day'))) {
-    return time.format('YYYY-M-D')
+    return time.format(formatTpl || 'YYYY-M-D')
   } else {
     return time.fromNow()
   }

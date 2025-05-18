@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 
 import ArticleCard from './components/ArticleCard'
+import ChatCard from './components/ChatCard'
 
 import { EV_ON_EDIT_CLICK, EV_ON_REPLY_CLICK } from './constants/constants'
 import { bus } from './lib/utils'
@@ -127,9 +128,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ list, currCate, onRefresh }) => {
   return (
     <div className="pb-[170px]">
       {list.map((item) => {
-        return (
-          <ArticleCard article={item} key={item.id} onSuccess={onRefresh} />
-        )
+        return <ChatCard article={item} key={item.id} onSuccess={onRefresh} />
       })}
     </div>
   )

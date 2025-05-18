@@ -181,7 +181,8 @@ a:hover {
   @apply text-primary underline-offset-4 hover:underline;
 }
 
-.b-highlight > .bg-card {
+.b-highlight > .bg-card,
+.b-chat-highlight {
   animation: highlight 2s ease-in-out none;
 }
 
@@ -200,9 +201,17 @@ a:hover {
   word-break: break-word;
 }
 
+.b-article-content p:last-child {
+  margin-bottom: 0;
+}
+
 .b-article-content pre {
   @apply py-2 px-3 bg-gray-100 text-sm font-mono overflow-y-auto;
   margin-bottom: 1em;
+}
+
+.b-chat-card:hover .b-chat-controls__btns {
+  visibility: visible;
 }
 
 .tiptap p.is-empty {

@@ -212,6 +212,7 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
       fetchSiteData,
       fetchSiteList,
       t,
+      updateCurrSite,
     ]
   )
 

@@ -528,7 +528,10 @@ export const ActivityList: React.FC<ActivityListProps> = ({
         <div></div>
       </div>
       {list.map((item) => (
-        <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
+        <Card
+          key={item.id}
+          className="p-3 my-2 hover:bg-slate-50 dark:hover:bg-slate-950"
+        >
           <Collapsible>
             <div className="flex justify-between items-center text-base activity-title whitespace-pre-wrap">
               {['delete_article', 'review_article'].includes(item.action) ? (

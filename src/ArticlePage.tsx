@@ -15,13 +15,14 @@ import {
   DEFAULT_PAGE_SIZE,
   EV_ON_EDIT_CLICK,
   EV_ON_REPLY_CLICK,
+  REPLY_BOX_PLACEHOLDER_HEIGHT,
 } from '@/constants/constants'
 
 import { getArticle } from './api/article'
 import { ArticleContext } from './contexts/ArticleContext'
 import useDocumentTitle from './hooks/use-page-title'
 import { toSync } from './lib/fire-and-forget'
-import { bus } from './lib/utils'
+import { bus, scrollToBottom } from './lib/utils'
 import {
   useAuthedUserStore,
   useForceUpdate,
@@ -279,12 +280,7 @@ export default function ArticlePage() {
       onSuccess(_resp, actionType) {
         toSync(fetchArticle, () => {
           if (actionType == 'reply') {
-            setTimeout(() => {
-              window.scrollTo({
-                top: document.body.scrollHeight,
-                behavior: 'smooth',
-              })
-            }, 0)
+            scrollToBottom('smooth')
           }
         })(false)
         /* fetchArticleSync(false) */
@@ -314,7 +310,7 @@ export default function ArticlePage() {
             : undefined
         }
         goBack
-        style={{ paddingBottom: 0 }}
+        style={{ paddingBottom: `${REPLY_BOX_PLACEHOLDER_HEIGHT}px` }}
         loading={loading}
       >
         {article && (

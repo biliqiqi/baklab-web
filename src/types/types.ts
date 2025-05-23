@@ -178,6 +178,8 @@ export interface ArticleListResponse {
   category: Category
   sortTabList: ArticleListSort[]
   sortTabNames: ArticleSortTabMap
+  prevCursor: string
+  nextCursor: string
 }
 
 export interface ArticleReact {
@@ -294,6 +296,8 @@ export interface ListPageState {
 
 export interface ArticleListState extends ListPageState {
   category?: FrontCategory
+  prevCursor?: string
+  nextCursor?: string
 }
 
 export type ArticleListType =

@@ -597,13 +597,17 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             <BSidebar category={category} />
           </div>
           <main
+            id="main"
             className={cn(
-              'flex-grow w-full',
+              'relative flex-grow w-full',
               !isMobile && 'duration-200 transition-[width] ease-linear',
               !isMobile &&
                 sidebarOpen &&
                 'w-[calc(100%-var(--sidebar-width)*2)]'
             )}
+            style={{
+              height: `calc(100vh - ${NAV_HEIGHT}px)`,
+            }}
           >
             {siteMode == 'sidebar' && (
               <BNav
@@ -613,53 +617,58 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               />
             )}
             <div
-              className="container mx-auto px-4 py-4"
-              {...props}
-              style={{
-                maxWidth: `${innerContentWidth}px`,
-                ...props.style,
-              }}
+              id="outer-container"
+              className="overflow-y-auto h-full max-h-full"
             >
-              {showNotFound ? (
-                <NotFound />
-              ) : (
-                <>
-                  {children}
-                  {showReplyBox && <ReplyBox {...replyBoxProps} />}
-                  {isLogined() ? (
-                    currSite &&
-                    currSite.visible &&
-                    !currSite.currUserState.isMember && (
-                      <Card className="sticky bottom-0 p-2 px-4 -mx-2 text-sm mt-4 text-center">
-                        {t('joinTip')}
+              <div
+                className="container mx-auto p-4"
+                {...props}
+                style={{
+                  maxWidth: `${innerContentWidth}px`,
+                  ...props.style,
+                }}
+              >
+                {showNotFound ? (
+                  <NotFound />
+                ) : (
+                  <>
+                    {children}
+                    {isLogined() ? (
+                      currSite &&
+                      currSite.visible &&
+                      !currSite.currUserState.isMember && (
+                        <Card className="sticky bottom-0 p-2 px-4 -mx-2 text-sm mt-4 text-center">
+                          {t('joinTip')}
+                          <Button
+                            size={'sm'}
+                            className="ml-2"
+                            onClick={onJoinSiteClick}
+                          >
+                            {t('join')}
+                          </Button>
+                        </Card>
+                      )
+                    ) : (
+                      <Card className="sticky bottom-0 p-2 -mx-2 text-sm mt-4 text-center">
+                        {t('signinTip')}
                         <Button
-                          size={'sm'}
-                          className="ml-2"
-                          onClick={onJoinSiteClick}
+                          variant="default"
+                          size="sm"
+                          asChild
+                          onClick={(e) => {
+                            e.preventDefault()
+                            updateSignin(true)
+                          }}
                         >
-                          {t('join')}
+                          <Link to="/signin">{t('signin')}</Link>
                         </Button>
                       </Card>
-                    )
-                  ) : (
-                    <Card className="sticky bottom-0 p-2 -mx-2 text-sm mt-4 text-center">
-                      {t('signinTip')}
-                      <Button
-                        variant="default"
-                        size="sm"
-                        asChild
-                        onClick={(e) => {
-                          e.preventDefault()
-                          updateSignin(true)
-                        }}
-                      >
-                        <Link to="/signin">{t('signin')}</Link>
-                      </Button>
-                    </Card>
-                  )}
-                </>
-              )}
+                    )}
+                  </>
+                )}
+              </div>
             </div>
+            {isLogined() && showReplyBox && <ReplyBox {...replyBoxProps} />}
           </main>
           <SidebarProvider
             defaultOpen={false}

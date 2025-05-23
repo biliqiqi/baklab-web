@@ -1,24 +1,58 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLocation, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
-import ArticleCard from './components/ArticleCard'
 import ChatCard from './components/ChatCard'
 
-import { EV_ON_EDIT_CLICK, EV_ON_REPLY_CLICK } from './constants/constants'
-import { bus } from './lib/utils'
-import { useAuthedUserStore, useReplyBoxStore } from './state/global'
-import { Article, ArticleListState, Category } from './types/types'
+import { getChatList } from './api/article'
+import {
+  EV_ON_EDIT_CLICK,
+  EV_ON_REPLY_CLICK,
+  REPLY_BOX_PLACEHOLDER_HEIGHT,
+} from './constants/constants'
+import { defaultPageState } from './constants/defaults'
+import { toSync } from './lib/fire-and-forget'
+import { bus, scrollToBottom } from './lib/utils'
+import {
+  useAuthedUserStore,
+  useLoading,
+  useReplyBoxStore,
+} from './state/global'
+import { Article, Category } from './types/types'
 
-interface ChatPageProps {
+interface ChatListState {
   list: Article[]
-  pageState: ArticleListState
-  currCate: Category | null
-  onRefresh: (() => void) | (() => Promise<void>)
+  prevCursor: string
+  nextCursor: string
+  initialized: boolean
 }
 
-const ChatPage: React.FC<ChatPageProps> = ({ list, currCate, onRefresh }) => {
+interface ChatListMap {
+  [x: string]: Article
+}
+
+interface ChatPageProps {
+  currCate: Category
+}
+
+const ChatPage: React.FC<ChatPageProps> = ({ currCate }) => {
+  const [chatList, setChatList] = useState<ChatListState>({
+    list: [],
+    prevCursor: '',
+    nextCursor: '',
+    initialized: false,
+  })
+  const [currCursor, setCurrCursor] = useState('')
+  const [replySuccess, setReplySuccess] = useState(false)
+  const isLoading = useLoading((state) => state.loading)
+  const setLoading = useLoading((state) => state.setLoading)
+
+  const chatTopRef = useRef<HTMLDivElement | null>(null)
+  const chatBottomRef = useRef<HTMLDivElement | null>(null)
   const replyHandlerRef = useRef<((x: Article) => void) | null>(null)
   const editHandlerRef = useRef<((x: Article) => void) | null>(null)
+
+  const { siteFrontId, categoryFrontId } = useParams()
 
   const { setShowReplyBox, setReplyBoxState } = useReplyBoxStore(
     useShallow(({ setShow, setState }) => ({
@@ -27,8 +61,146 @@ const ChatPage: React.FC<ChatPageProps> = ({ list, currCate, onRefresh }) => {
     }))
   )
 
+  const location = useLocation()
+
   const { permit } = useAuthedUserStore(
     useShallow(({ permit }) => ({ permit }))
+  )
+
+  const saveChatList = useCallback(
+    (
+      _isNext: boolean,
+      list: Article[],
+      prevCursor: string,
+      nextCursor: string
+    ) => {
+      let data: ChatListState = {
+        list,
+        prevCursor,
+        nextCursor,
+        initialized: true,
+      }
+
+      const dataStr = localStorage.getItem(location.pathname)
+      if (dataStr) {
+        try {
+          const existingData = JSON.parse(dataStr) as ChatListState
+
+          const tempMap = existingData.list.reduce((prev, curr) => {
+            prev[curr.id] = curr
+            return prev
+          }, {} as ChatListMap)
+
+          const mergedList = [...existingData.list]
+
+          for (const item of list) {
+            if (item.id in tempMap) {
+              // 更新现有项目
+              const index = mergedList.findIndex(
+                (existing) => existing.id === item.id
+              )
+              if (index !== -1) {
+                mergedList[index] = { ...mergedList[index], ...item }
+              }
+            } else {
+              // 添加新项目
+              mergedList.push(item)
+            }
+          }
+
+          // 排序
+          mergedList.sort((a, b) => {
+            return (
+              new Date(a.createdAt).getTime() -
+                new Date(b.createdAt).getTime() || Number(a.id) - Number(b.id)
+            )
+          })
+
+          data = {
+            list: mergedList,
+            prevCursor,
+            nextCursor,
+            initialized: true,
+          }
+        } catch (err) {
+          console.error('save chat list data error: ', err)
+        }
+      }
+
+      setChatList((state) => ({ ...state, ...data }))
+      localStorage.setItem(location.pathname, JSON.stringify(data))
+    },
+    [location.pathname]
+  )
+
+  const fetchChatList = useCallback(
+    async (isNext: boolean, force = false, withCursor = true) => {
+      if (isLoading) return
+
+      setLoading(true)
+
+      try {
+        let cursor: string | undefined
+        if (withCursor) {
+          if (isNext) {
+            cursor = chatList.nextCursor
+          } else {
+            cursor = chatList.prevCursor
+          }
+
+          if (!cursor) {
+            cursor = currCursor
+          }
+        }
+
+        /* console.log('cursor: ', cursor) */
+
+        if (!force && (!cursor || !currCate?.frontId || !siteFrontId)) return
+
+        const { code, data } = await getChatList(
+          cursor,
+          isNext,
+          defaultPageState.pageSize,
+          currCate.frontId,
+          {
+            siteFrontId,
+          }
+        )
+
+        if (isNext) {
+          if (data.nextCursor == cursor) {
+            data.nextCursor = ''
+          }
+        } else {
+          if (data.prevCursor == cursor) {
+            data.prevCursor = ''
+          }
+        }
+
+        if (!code && data) {
+          saveChatList(
+            isNext,
+            data.articles || [],
+            data.prevCursor,
+            data.nextCursor
+          )
+          setCurrCursor(cursor || '')
+        }
+      } catch (err) {
+        console.error('fetch chat list error: ', err)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [
+      currCate,
+      siteFrontId,
+      saveChatList,
+      isLoading,
+      chatList,
+      setLoading,
+      currCursor,
+    ]
   )
 
   const onReplyClick = useCallback(
@@ -42,15 +214,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ list, currCate, onRefresh }) => {
     [setReplyBoxState]
   )
 
-  if (!replyHandlerRef.current) {
-    replyHandlerRef.current = onReplyClick
-  }
-
   const onEditClick = useCallback(
     (article: Article) => {
-      /* setReplyToArticle(parent)
-       * setEdittingArticle(article)
-       * setIsEditting(true) */
       setReplyBoxState({
         editType: 'edit',
         edittingArticle: article,
@@ -60,28 +225,29 @@ const ChatPage: React.FC<ChatPageProps> = ({ list, currCate, onRefresh }) => {
     [setReplyBoxState]
   )
 
-  if (!editHandlerRef.current) {
+  useEffect(() => {
+    replyHandlerRef.current = onReplyClick
     editHandlerRef.current = onEditClick
-  }
+  }, [onReplyClick, onEditClick])
 
   useEffect(() => {
-    if (replyHandlerRef.current) {
-      bus.off(EV_ON_REPLY_CLICK, replyHandlerRef.current)
-      bus.on(EV_ON_REPLY_CLICK, replyHandlerRef.current)
+    const replyHandler = replyHandlerRef.current
+    const editHandler = editHandlerRef.current
+
+    if (replyHandler) {
+      bus.on(EV_ON_REPLY_CLICK, replyHandler)
     }
 
-    if (editHandlerRef.current) {
-      bus.off(EV_ON_EDIT_CLICK, editHandlerRef.current)
-      bus.on(EV_ON_EDIT_CLICK, editHandlerRef.current)
+    if (editHandler) {
+      bus.on(EV_ON_EDIT_CLICK, editHandler)
     }
 
     return () => {
-      if (replyHandlerRef.current) {
-        bus.off(EV_ON_REPLY_CLICK, replyHandlerRef.current)
+      if (replyHandler) {
+        bus.off(EV_ON_REPLY_CLICK, replyHandler)
       }
-
-      if (editHandlerRef.current) {
-        bus.off(EV_ON_EDIT_CLICK, editHandlerRef.current)
+      if (editHandler) {
+        bus.off(EV_ON_EDIT_CLICK, editHandler)
       }
     }
   }, [])
@@ -95,17 +261,9 @@ const ChatPage: React.FC<ChatPageProps> = ({ list, currCate, onRefresh }) => {
       category: currCate,
       disabled: !permit('article', 'reply'),
       onSuccess: async (_, actionType) => {
-        const res = onRefresh()
-        if (res instanceof Promise) {
-          await res
-          if (actionType != 'edit') {
-            setTimeout(() => {
-              window.scrollTo({
-                top: document.body.scrollHeight,
-                behavior: 'smooth',
-              })
-            }, 0)
-          }
+        if (actionType != 'edit') {
+          await fetchChatList(false, true, false)
+          setReplySuccess(true)
         }
       },
       onRemoveReply() {
@@ -116,7 +274,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ list, currCate, onRefresh }) => {
         })
       },
     })
-  }, [currCate, onRefresh, permit, setReplyBoxState])
+  }, [currCate, fetchChatList, permit, setReplyBoxState, setReplySuccess])
 
   useEffect(() => {
     setShowReplyBox(true)
@@ -125,11 +283,135 @@ const ChatPage: React.FC<ChatPageProps> = ({ list, currCate, onRefresh }) => {
     }
   }, [setShowReplyBox])
 
+  useEffect(() => {
+    const container = document.querySelector('#outer-container')
+
+    if (!container) return
+
+    let topObserver: IntersectionObserver | null = null
+    let bottomObserver: IntersectionObserver | null = null
+
+    if (chatTopRef.current) {
+      topObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((ent) => {
+            if (ent.target == chatTopRef.current && ent.isIntersecting) {
+              /* console.log('reach top: ', entries) */
+              setChatList((currentChatList) => {
+                /* console.log(
+                 *   'curr list initialized:',
+                 *   currentChatList.initialized
+                 * ) */
+
+                if (!currentChatList.initialized) return currentChatList
+
+                if (currentChatList.prevCursor && !isLoading) {
+                  toSync(fetchChatList)(false)
+                }
+                return currentChatList
+              })
+            }
+          })
+        },
+        {
+          root: container,
+          rootMargin: `${container.getBoundingClientRect().height / 2}px`,
+        }
+      )
+
+      topObserver.observe(chatTopRef.current)
+    }
+
+    if (chatBottomRef.current) {
+      bottomObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((ent) => {
+            if (ent.target == chatBottomRef.current && ent.isIntersecting) {
+              /* console.log('reach bottom: ', entries) */
+              setChatList((currentChatList) => {
+                /* console.log(
+                 *   'curr list initialized:',
+                 *   currentChatList.initialized
+                 * ) */
+
+                if (!currentChatList.initialized) return currentChatList
+                if (currentChatList.nextCursor && !isLoading) {
+                  toSync(fetchChatList)(true)
+                }
+                return currentChatList
+              })
+            }
+          })
+        },
+        {
+          root: container,
+          rootMargin: `${container.getBoundingClientRect().height / 2}px`,
+        }
+      )
+
+      bottomObserver.observe(chatBottomRef.current)
+    }
+
+    return () => {
+      if (topObserver) {
+        topObserver.disconnect()
+        topObserver = null
+      }
+
+      if (bottomObserver) {
+        bottomObserver.disconnect()
+        bottomObserver = null
+      }
+    }
+  }, [fetchChatList])
+
+  // 初始化数据
+  useEffect(() => {
+    toSync(fetchChatList, () => {
+      scrollToBottom('instant', () => {
+        setChatList((state) => {
+          return {
+            ...state,
+            initialized: true,
+          }
+        })
+      })
+    })(false, true)
+
+    return () => {
+      setCurrCursor('')
+      setChatList({
+        list: [],
+        prevCursor: '',
+        nextCursor: '',
+        initialized: false,
+      })
+    }
+  }, [siteFrontId, categoryFrontId])
+
+  useEffect(() => {
+    /* console.log('reply success: ', replySuccess) */
+    if (replySuccess) {
+      setReplySuccess(false)
+      scrollToBottom('smooth')
+    }
+  }, [replySuccess])
+
   return (
-    <div className="pb-[170px]">
-      {list.map((item) => {
-        return <ChatCard article={item} key={item.id} onSuccess={onRefresh} />
-      })}
+    <div style={{ paddingBottom: `${REPLY_BOX_PLACEHOLDER_HEIGHT}px` }}>
+      <div ref={chatTopRef}></div>
+      <div>
+        {chatList.list.map((item) => {
+          return (
+            <ChatCard
+              article={item}
+              key={item.id}
+              onSuccess={() => fetchChatList(false)}
+            />
+          )
+        })}
+      </div>
+      <div ref={chatBottomRef}></div>
     </div>
   )
 }

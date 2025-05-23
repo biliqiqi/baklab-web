@@ -7,13 +7,13 @@ import { twMerge } from 'tailwind-merge'
 import { DEFAULT_FONT_SIZE } from '@/constants/constants'
 import { SITE_STATUS_COLOR_MAP } from '@/constants/maps'
 import {
-  PERMISSION_DATA,
-  PERMISSION_MODULE_DATA,
+    PERMISSION_DATA,
+    PERMISSION_MODULE_DATA,
 } from '@/constants/permissions'
 import {
-  PermissionAction,
-  PermissionItem,
-  PermissionModule,
+    PermissionAction,
+    PermissionItem,
+    PermissionModule,
 } from '@/constants/types'
 import i18n from '@/i18n'
 import { Article, ArticleStatus, SITE_STATUS, SiteStatus } from '@/types/types'
@@ -221,3 +221,22 @@ export const getModeReasons = () => [
   i18n.t('selfHarm'),
   i18n.t('lackAIGenNote'),
 ]
+
+export const scrollToBottom = (
+  scrollBehavior: ScrollBehavior,
+  fn?: () => void
+) => {
+  const container = document.querySelector('#outer-container')
+  if (container) {
+    setTimeout(() => {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: scrollBehavior,
+      })
+
+      if (typeof fn == 'function') {
+        setTimeout(fn, 100)
+      }
+    }, 100)
+  }
+}

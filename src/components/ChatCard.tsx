@@ -60,10 +60,13 @@ const scrollToElement = (element: HTMLElement) => {
       highlightElement(element)
     }, 500)
 
-    window.scrollTo({
-      top: rectTop + window.scrollY - NAV_HEIGHT,
-      behavior: 'smooth',
-    })
+    const container = document.querySelector('#main')
+    if (container) {
+      container.scrollTo({
+        top: rectTop + container.scrollTop - NAV_HEIGHT,
+        behavior: 'smooth',
+      })
+    }
   }
 }
 
@@ -82,13 +85,13 @@ const ChatCard: React.FC<ChatCardProps> = ({
   /* const { siteFrontId } = useParams() */
 
   const authStore = useAuthedUserStore()
-  const permit = useAuthedUserStore((state) => state.permit)
+  /* const permit = useAuthedUserStore((state) => state.permit) */
   const { t } = useTranslation()
 
-  const isMyself = useMemo(
-    () => authStore.isMySelf(article.authorId),
-    [authStore, article]
-  )
+  /* const isMyself = useMemo(
+   *   () => authStore.isMySelf(article.authorId),
+   *   [authStore, article]
+   * ) */
 
   const alertDialog = useAlertDialogStore()
 

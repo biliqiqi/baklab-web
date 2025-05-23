@@ -523,6 +523,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                           >
                             <Link
                               to={`/${siteFrontId}/bankuai/${item.frontId}`}
+                              state={item}
                             >
                               <BIconColorChar
                                 iconId={item.frontId}

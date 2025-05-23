@@ -19,7 +19,11 @@ import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
 import { bus, cn, extractDomain, md2text, noop, renderMD } from '@/lib/utils'
 
 import { deleteArticle, toggleLockArticle } from '@/api/article'
-import { EV_ON_EDIT_CLICK, EV_ON_REPLY_CLICK } from '@/constants/constants'
+import {
+  EV_ON_EDIT_CLICK,
+  EV_ON_REPLY_CLICK,
+  NAV_HEIGHT,
+} from '@/constants/constants'
 import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
 import {
   ARTICLE_LOCK_ACTION,
@@ -66,14 +70,17 @@ const scrollToElement = (element: HTMLElement) => {
     highlightElement(element)
   } else {
     setTimeout(() => {
-      location.hash = element.id
+      /* location.hash = element.id */
       highlightElement(element)
     }, 500)
 
-    window.scrollTo({
-      top: rectTop + window.scrollY,
-      behavior: 'smooth',
-    })
+    const container = document.querySelector('#main')
+    if (container) {
+      container.scrollTo({
+        top: rectTop + container.scrollTop - NAV_HEIGHT,
+        behavior: 'smooth',
+      })
+    }
   }
 }
 

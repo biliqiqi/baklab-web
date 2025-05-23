@@ -75,7 +75,6 @@ const defaultBoxRef: ReplyBoxData = {
 }
 
 const ReplyBox: React.FC<ReplyBoxProps> = ({
-  mode = 'reply',
   category,
   replyToArticle,
   editType,
@@ -439,170 +438,175 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
     setUpdateRef(true)
   }, [])
 
-  if (disabled) {
-    return (
-      <div
-        className={cn(
-          'max-w-[800px] -mx-2 mt-[10px] bottom-0 bg-white p-3 rounded-lg border-[1px] text-gray-500 text-sm',
-          mode == 'chat' ? 'fixed' : 'sticky'
-        )}
-      >
-        {t('lackPermission')}
-      </div>
-    )
-  }
-
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className={cn(
-          '-mx-2 mt-[10px] bottom-0 bg-white px-3 pb-3 rounded-lg border-[1px]',
-          mode == 'chat' ? 'fixed w-[calc(100vw-theme(spacing.4))]' : 'sticky'
-        )}
+    <div
+      className={cn(
+        `bottom-0 flex justify-center absolute left-0 right-0 z-50`
+      )}
+    >
+      <div
+        className="flex-grow bg-white p-3 rounded-lg border-[1px]"
         style={{
           boxShadow:
             '0 0 15px -3px rgb(0 0 0 / 0.1), 0 0 6px -4px rgb(0 0 0 / 0.1)',
           maxWidth: `calc(${innerContentWidth}px - 1rem)`,
         }}
-        onKeyUp={(e) => {
-          if (e.ctrlKey && e.key == 'Enter') {
-            toSync(form.handleSubmit(onSubmit))()
-          }
-        }}
       >
-        <div
-          className="pt-3 cursor-ns-resize"
-          onMouseDown={onReplyBoxBarMouseDown}
-        ></div>
-        {targetArticle && !targetArticle.asMainArticle && (
-          <div className="flex items-center justify-between bg-gray-100 rounded-sm py-1 px-2 mb-2 text-gray-500 text-sm">
-            <span>
-              {targetArticle.deleted ? (
-                <i className="text-gray-500 text-sm">&lt;{t('deleted')}&gt;</i>
-              ) : (
-                <span>
-                  {targetArticle.authorName}:{' '}
-                  <span>{summryText(md2text(targetArticle.content), 80)}</span>
-                </span>
-              )}
-            </span>
-            {!isPreview && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={async (e) => {
-                  e.preventDefault()
-                  if (onRemoveReply && typeof onRemoveReply == 'function')
-                    await onRemoveReply()
-                }}
-              >
-                <XIcon size={20} />
-              </Button>
-            )}
+        {disabled ? (
+          <div className={cn('text-gray-500 text-sm')}>
+            {t('lackPermission')}
           </div>
-        )}
-        <FormField
-          control={form.control}
-          name="content"
-          render={({ field, fieldState }) => (
-            <FormItem>
-              <FormControl>
-                <>
-                  <Textarea
-                    {...field}
-                    state={fieldState.invalid ? 'invalid' : 'default'}
-                    ref={textareaRef}
-                    style={{
-                      height: replyBoxHeight + 'px',
-                      display: isPreview || !markdownMode ? 'none' : '',
-                    }}
-                    onFocus={onTextareaFocus}
-                    disabled={disabled}
-                  />
-
-                  <TipTap
-                    {...field}
-                    state={fieldState.invalid ? 'invalid' : 'default'}
-                    ref={tiptapRef}
-                    style={{
-                      height: replyBoxHeight + 'px',
-                      display: isPreview || markdownMode ? 'none' : '',
-                      marginTop: 0,
-                    }}
-                    onFocus={onTextareaFocus}
-                    onChange={field.onChange}
-                    value={escapeHtml(field.value)}
-                    hideBubble={markdownMode}
-                    disabled={disabled}
-                    className={cn(isActive && 'resize-y overflow-auto')}
-                  />
-                </>
-              </FormControl>
-              {isPreview && (
-                <div
-                  style={{
-                    maxHeight: `calc(100vh - ${NAV_HEIGHT * 4}px)`,
-                    overflowY: 'scroll',
-                  }}
-                  className="b-article-content"
-                  dangerouslySetInnerHTML={{ __html: renderMD(field.value) }}
-                ></div>
+        ) : (
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              onKeyUp={(e) => {
+                if (e.ctrlKey && e.key == 'Enter') {
+                  toSync(form.handleSubmit(onSubmit))()
+                }
+              }}
+            >
+              <div
+                className="pt-3 cursor-ns-resize"
+                onMouseDown={onReplyBoxBarMouseDown}
+              ></div>
+              {targetArticle && !targetArticle.asMainArticle && (
+                <div className="flex items-center justify-between bg-gray-100 rounded-sm py-1 px-2 mb-2 text-gray-500 text-sm">
+                  <span>
+                    {targetArticle.deleted ? (
+                      <i className="text-gray-500 text-sm">
+                        &lt;{t('deleted')}&gt;
+                      </i>
+                    ) : (
+                      <span>
+                        {targetArticle.authorName}:{' '}
+                        <span>
+                          {summryText(md2text(targetArticle.content), 80)}
+                        </span>
+                      </span>
+                    )}
+                  </span>
+                  {!isPreview && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={async (e) => {
+                        e.preventDefault()
+                        if (onRemoveReply && typeof onRemoveReply == 'function')
+                          await onRemoveReply()
+                      }}
+                    >
+                      <XIcon size={20} />
+                    </Button>
+                  )}
+                </div>
               )}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormControl>
+                      <>
+                        <Textarea
+                          {...field}
+                          state={fieldState.invalid ? 'invalid' : 'default'}
+                          ref={textareaRef}
+                          style={{
+                            height: replyBoxHeight + 'px',
+                            display: isPreview || !markdownMode ? 'none' : '',
+                          }}
+                          onFocus={onTextareaFocus}
+                          disabled={disabled}
+                        />
 
-        {isActive && (
-          <div className="flex justify-between mt-1 items-center">
-            <div>
-              {!isPreview && (
-                <>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    onClick={() => setIsActive(false)}
-                    title={t('collape')}
-                    className="h-[24px] text-gray-500 px-0 align-middle"
-                  >
-                    <ArrowDownToLineIcon size={18} /> {t('collape')}
-                  </Button>
-                  <Button
-                    variant={markdownMode ? 'default' : 'ghost'}
-                    size="icon"
-                    onClick={onMarkdownModeClick}
-                    title={t('xMode', { name: 'Markdown' })}
-                    className="mx-2 w-8 h-[24px] align-middle"
-                  >
-                    M
-                  </Button>
-                </>
+                        <TipTap
+                          {...field}
+                          state={fieldState.invalid ? 'invalid' : 'default'}
+                          ref={tiptapRef}
+                          style={{
+                            height: replyBoxHeight + 'px',
+                            display: isPreview || markdownMode ? 'none' : '',
+                            marginTop: 0,
+                          }}
+                          onFocus={onTextareaFocus}
+                          onChange={field.onChange}
+                          value={escapeHtml(field.value)}
+                          hideBubble={markdownMode}
+                          disabled={disabled}
+                          className={cn(isActive && 'resize-y overflow-auto')}
+                        />
+                      </>
+                    </FormControl>
+                    {isPreview && (
+                      <div
+                        style={{
+                          maxHeight: `calc(100vh - ${NAV_HEIGHT * 4}px)`,
+                          overflowY: 'scroll',
+                        }}
+                        className="b-article-content"
+                        dangerouslySetInnerHTML={{
+                          __html: renderMD(field.value),
+                        }}
+                      ></div>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {isActive && (
+                <div className="flex justify-between mt-1 items-center">
+                  <div>
+                    {!isPreview && (
+                      <>
+                        <Button
+                          variant="link"
+                          size="sm"
+                          onClick={() => setIsActive(false)}
+                          title={t('collape')}
+                          className="h-[24px] text-gray-500 px-0 align-middle"
+                        >
+                          <ArrowDownToLineIcon size={18} /> {t('collape')}
+                        </Button>
+                        <Button
+                          variant={markdownMode ? 'default' : 'ghost'}
+                          size="icon"
+                          onClick={onMarkdownModeClick}
+                          title={t('xMode', { name: 'Markdown' })}
+                          className="mx-2 w-8 h-[24px] align-middle"
+                        >
+                          M
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                  <div>
+                    <Button
+                      variant="outline"
+                      disabled={loading}
+                      className="mt-2"
+                      size="sm"
+                      onClick={onPreviewClick}
+                    >
+                      {isPreview ? t('continue') : t('preview')}
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={loading || disabled}
+                      className="mt-2 ml-2"
+                      size="sm"
+                    >
+                      {loading ? <BLoader /> : t('submit')}
+                    </Button>
+                  </div>
+                </div>
               )}
-            </div>
-            <div>
-              <Button
-                variant="outline"
-                disabled={loading}
-                className="mt-2"
-                size="sm"
-                onClick={onPreviewClick}
-              >
-                {isPreview ? t('continue') : t('preview')}
-              </Button>
-              <Button
-                type="submit"
-                disabled={loading || disabled}
-                className="mt-2 ml-2"
-                size="sm"
-              >
-                {loading ? <BLoader /> : t('submit')}
-              </Button>
-            </div>
-          </div>
+            </form>
+          </Form>
         )}
-      </form>
-    </Form>
+      </div>
+    </div>
   )
 }
 

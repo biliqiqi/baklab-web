@@ -1,5 +1,5 @@
 import { SquareArrowOutUpRightIcon } from 'lucide-react'
-import { MouseEvent, useCallback, useMemo, useState } from 'react'
+import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 /* import mockArticleList from '@/mock/articles.json' */
@@ -14,36 +14,44 @@ import ArticleControls from './components/ArticleControls'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 
+import { getArticleList } from './api/article'
+import { DEFAULT_PAGE_SIZE } from './constants/constants'
+import { defaultPageState } from './constants/defaults'
+import { toSync } from './lib/fire-and-forget'
 import {
   extractDomain,
   genArticlePath,
   getArticleStatusName,
   renderMD,
 } from './lib/utils'
-import { isLogined, useAuthedUserStore } from './state/global'
+import { isLogined, useAuthedUserStore, useLoading } from './state/global'
 import {
   Article,
   ArticleListSort,
   ArticleListState,
   Category,
+  FrontCategory,
 } from './types/types'
 
 /* const articleList = mockArticleList as Article[] */
 
-interface ArticleListPageProps {
-  list: Article[]
-  pageState: ArticleListState
-  currCate: Category | null
-  onRefresh: () => void
-}
+/* interface ArticleListPageProps {
+ *   list: Article[]
+ *   pageState: ArticleListState
+ *   currCate: Category | null
+ *   onRefresh: () => void
+ * } */
 
-const ArticleListPage: React.FC<ArticleListPageProps> = ({
-  list,
-  pageState,
-  currCate,
-  onRefresh,
-}) => {
+const ArticleListPage = () => {
   const [showSummary] = useState(false)
+  const [currCate, setCurrCate] = useState<Category | null>(null)
+  const [list, updateList] = useState<Article[]>([])
+  const [pageState, setPageState] = useState<ArticleListState>({
+    currPage: 1,
+    pageSize: DEFAULT_PAGE_SIZE,
+    total: 0,
+    totalPage: 0,
+  })
 
   const isMySelf = useAuthedUserStore((state) => state.isMySelf)
   const checkPermit = useAuthedUserStore((state) => state.permit)
@@ -66,6 +74,71 @@ const ArticleListPage: React.FC<ArticleListPageProps> = ({
         : `/${siteFrontId}/submit`,
     [currCate, siteFrontId, categoryFrontId]
   )
+
+  const { setLoading } = useLoading()
+
+  const fetchArticles = useCallback(async () => {
+    try {
+      const page = Number(params.get('page')) || 1
+      const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
+      const sort = (params.get('sort') as ArticleListSort | null) || 'best'
+
+      setLoading(true)
+
+      /* if (!siteFrontId) return */
+
+      const resp = await getArticleList(
+        page,
+        pageSize,
+        sort,
+        categoryFrontId,
+        '',
+        undefined,
+        '',
+        undefined,
+        { siteFrontId }
+      )
+      if (!resp.code) {
+        const { data } = resp
+        let category: FrontCategory | undefined
+        if (data.category) {
+          const { frontId, name, describe, siteFrontId } = data.category
+          setCurrCate({ ...data.category })
+          category = { frontId, name, describe, siteFrontId } as FrontCategory
+        } else {
+          setCurrCate(null)
+        }
+
+        if (data.articles) {
+          updateList([...data.articles])
+          setPageState({
+            currPage: data.currPage,
+            pageSize: data.pageSize,
+            total: data.articleTotal,
+            totalPage: data.totalPage,
+            category,
+            prevCursor: data.prevCursor,
+            nextCursor: data.nextCursor,
+          })
+        } else {
+          updateList([])
+          setPageState({
+            currPage: 1,
+            pageSize: data.pageSize,
+            total: data.articleTotal,
+            totalPage: data.totalPage,
+            category,
+            prevCursor: data.prevCursor,
+            nextCursor: data.nextCursor,
+          })
+        }
+      }
+    } catch (e) {
+      console.error('get article list error: ', e)
+    } finally {
+      setLoading(false)
+    }
+  }, [params, siteFrontId, categoryFrontId, setLoading, setCurrCate])
 
   const onSwitchTab = (tab: string) => {
     setParams((prevParams) => {
@@ -99,6 +172,15 @@ const ArticleListPage: React.FC<ArticleListPageProps> = ({
   )
 
   /* console.log('list: ', list) */
+  useEffect(() => {
+    toSync(fetchArticles)()
+    return () => {
+      updateList([])
+      setPageState({
+        ...defaultPageState,
+      })
+    }
+  }, [params, siteFrontId, categoryFrontId])
 
   return (
     <>
@@ -190,7 +272,7 @@ const ArticleListPage: React.FC<ArticleListPageProps> = ({
                 ctype="list"
                 bookmark={false}
                 notify={false}
-                onSuccess={onRefresh}
+                onSuccess={fetchArticles}
               />
             </Card>
           ))

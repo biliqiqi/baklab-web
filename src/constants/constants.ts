@@ -46,3 +46,5 @@ export const URL_PATTERN =
 export const DOCK_HEIGHT = 80
 
 export const MAX_BLOCKED_WORD_LEN = 20
+
+export const REPLY_BOX_PLACEHOLDER_HEIGHT = 180

@@ -1,121 +1,53 @@
-import { useCallback, useEffect, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { useLocation, useParams } from 'react-router-dom'
 
 import BContainer from './components/base/BContainer'
 
-import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
-
 import ArticleListPage from './ArticleListPage'
 import ChatPage from './ChatPage'
-import { getArticleList } from './api/article'
+import { getCategoryWithFrontId } from './api/category'
 import { toSync } from './lib/fire-and-forget'
-import { useAuthedUserStore, useLoading } from './state/global'
-import {
-  Article,
-  ArticleListSort,
-  ArticleListState,
-  Category,
-  FrontCategory,
-} from './types/types'
+import { Category } from './types/types'
 
 export default function BankuaiPage() {
-  const [currCate, setCurrCate] = useState<Category | null>(null)
+  const [serverCate, setServerCate] = useState<Category | null>(null)
+  const { state } = useLocation() as { state: Category | undefined }
 
-  const [list, updateList] = useState<Article[]>([])
-
-  const [pageState, setPageState] = useState<ArticleListState>({
-    currPage: 1,
-    pageSize: DEFAULT_PAGE_SIZE,
-    total: 0,
-    totalPage: 0,
-  })
-
-  const authToken = useAuthedUserStore((state) => state.authToken)
-
-  const [params] = useSearchParams()
+  const currCate = useMemo(() => state || serverCate, [state, serverCate])
   const { siteFrontId, categoryFrontId } = useParams()
 
-  const { setLoading } = useLoading()
-
-  const fetchArticles = useCallback(async () => {
-    try {
-      const page = Number(params.get('page')) || 1
-      const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
-      const sort = (params.get('sort') as ArticleListSort | null) || 'best'
-
-      setLoading(true)
-
-      /* if (!siteFrontId) return */
-
-      const resp = await getArticleList(
-        page,
-        pageSize,
-        sort,
-        categoryFrontId,
-        '',
-        undefined,
-        '',
-        undefined,
-        { siteFrontId }
-      )
-      if (!resp.code) {
-        const { data } = resp
-        let category: FrontCategory | undefined
-        if (data.category) {
-          const { frontId, name, describe, siteFrontId } = data.category
-          setCurrCate({ ...data.category })
-          category = { frontId, name, describe, siteFrontId } as FrontCategory
-        } else {
-          setCurrCate(null)
-        }
-
-        if (data.articles) {
-          updateList([...data.articles])
-          setPageState({
-            currPage: data.currPage,
-            pageSize: data.pageSize,
-            total: data.articleTotal,
-            totalPage: data.totalPage,
-            category,
-          })
-        } else {
-          updateList([])
-          setPageState({
-            currPage: 1,
-            pageSize: data.pageSize,
-            total: data.articleTotal,
-            totalPage: data.totalPage,
-            category,
-          })
-        }
-      }
-    } catch (e) {
-      console.error('get article list error: ', e)
-    } finally {
-      setLoading(false)
-    }
-  }, [params, siteFrontId, categoryFrontId, setLoading, setCurrCate])
+  const isChat = useMemo(
+    () => currCate?.contentForm?.frontId == 'chat',
+    [currCate]
+  )
 
   useEffect(() => {
-    toSync(fetchArticles)()
-  }, [params, siteFrontId, authToken, categoryFrontId])
+    if (!currCate && categoryFrontId) {
+      toSync(getCategoryWithFrontId, (data) => {
+        if (!data.code) {
+          setServerCate(data.data)
+        }
+      })(categoryFrontId, { siteFrontId })
+    }
+  }, [currCate, categoryFrontId, siteFrontId])
 
   return (
-    <BContainer category={pageState.category}>
-      {currCate?.contentForm?.frontId == 'chat' ? (
+    <BContainer
+      category={{
+        isFront: false,
+        siteFrontId,
+        frontId: currCate?.frontId || 'bankuai',
+        name: currCate?.name || '',
+        describe: currCate?.describe || '',
+      }}
+    >
+      {currCate && isChat ? (
         <ChatPage
-          list={list}
-          pageState={pageState}
           currCate={currCate}
-          onRefresh={fetchArticles}
+          key={`chat_list_${siteFrontId}_${currCate?.frontId}`}
         />
       ) : (
-        <ArticleListPage
-          list={list}
-          pageState={pageState}
-          currCate={currCate}
-          onRefresh={fetchArticles}
-        />
+        <ArticleListPage />
       )}
     </BContainer>
   )

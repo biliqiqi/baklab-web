@@ -3,21 +3,21 @@ import { Options } from 'ky'
 import { authRequest } from '@/lib/request'
 
 import {
-  ArticleDeleteResponse,
-  ArticleHistoryResponse,
-  ArticleItemResponse,
-  ArticleListResponse,
-  ArticleListSort,
-  ArticleListType,
-  ArticleLockAction,
-  ArticleResponse,
-  ArticleStatus,
-  ArticleSubmitResponse,
-  CustomRequestOptions,
-  ResponseData,
-  SUBSCRIBE_ACTION,
-  SubscribeAction,
-  VoteType,
+    ArticleDeleteResponse,
+    ArticleHistoryResponse,
+    ArticleItemResponse,
+    ArticleListResponse,
+    ArticleListSort,
+    ArticleListType,
+    ArticleLockAction,
+    ArticleResponse,
+    ArticleStatus,
+    ArticleSubmitResponse,
+    CustomRequestOptions,
+    ResponseData,
+    SUBSCRIBE_ACTION,
+    SubscribeAction,
+    VoteType,
 } from '@/types/types'
 
 export const submitArticle = (
@@ -122,7 +122,9 @@ export const getArticleList = (
   listType?: ArticleListType,
   keywords?: string,
   status?: ArticleStatus[],
-  custom?: CustomRequestOptions
+  custom?: CustomRequestOptions,
+  cursor?: string,
+  next?: boolean
 ): Promise<ResponseData<ArticleListResponse>> => {
   const params = new URLSearchParams()
 
@@ -156,6 +158,48 @@ export const getArticleList = (
 
   if (status && status.length > 0) {
     params.set('status', status.join(','))
+  }
+
+  if (cursor) {
+    params.set('cursor', cursor)
+  }
+
+  if (next) {
+    params.set('next', '1')
+  }
+
+  return authRequest.get(
+    `articles`,
+    {
+      searchParams: params,
+    },
+    custom
+  )
+}
+
+export const getChatList = (
+  cursor?: string,
+  next?: boolean,
+  pageSize?: number,
+  categoryFrontID?: string,
+  custom?: CustomRequestOptions
+): Promise<ResponseData<ArticleListResponse>> => {
+  const params = new URLSearchParams()
+
+  if (pageSize) {
+    params.set('pageSize', String(pageSize))
+  }
+
+  if (categoryFrontID) {
+    params.set('category', categoryFrontID)
+  }
+
+  if (cursor) {
+    params.set('cursor', cursor)
+  }
+
+  if (next) {
+    params.set('next', '1')
   }
 
   return authRequest.get(

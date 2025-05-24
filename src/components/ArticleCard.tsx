@@ -16,14 +16,18 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
-import { bus, cn, extractDomain, md2text, noop, renderMD } from '@/lib/utils'
+import {
+  bus,
+  cn,
+  extractDomain,
+  md2text,
+  noop,
+  renderMD,
+  scrollToElement,
+} from '@/lib/utils'
 
 import { deleteArticle, toggleLockArticle } from '@/api/article'
-import {
-  EV_ON_EDIT_CLICK,
-  EV_ON_REPLY_CLICK,
-  NAV_HEIGHT,
-} from '@/constants/constants'
+import { EV_ON_EDIT_CLICK, EV_ON_REPLY_CLICK } from '@/constants/constants'
 import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
 import {
   ARTICLE_LOCK_ACTION,
@@ -59,29 +63,6 @@ const highlightElement = (element: HTMLElement) => {
   setTimeout(() => {
     element.classList.remove('b-highlight')
   }, 2000)
-}
-
-const scrollToElement = (element: HTMLElement) => {
-  if (!element) return
-
-  const rectTop = element.getBoundingClientRect().y
-
-  if (rectTop > 0) {
-    highlightElement(element)
-  } else {
-    setTimeout(() => {
-      /* location.hash = element.id */
-      highlightElement(element)
-    }, 500)
-
-    const container = document.querySelector('#main')
-    if (container) {
-      container.scrollTo({
-        top: rectTop + container.scrollTop - NAV_HEIGHT,
-        behavior: 'smooth',
-      })
-    }
-  }
 }
 
 const ArticleCard: React.FC<ArticleCardProps> = ({
@@ -331,7 +312,9 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                 )
 
                 if (parentCommentEl) {
-                  scrollToElement(parentCommentEl)
+                  scrollToElement(parentCommentEl, () => {
+                    highlightElement(parentCommentEl)
+                  })
                 }
               }}
             >

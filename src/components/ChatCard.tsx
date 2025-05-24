@@ -1,23 +1,22 @@
 import { SquareArrowOutUpRightIcon } from 'lucide-react'
-import {
-  HTMLAttributes,
-  MouseEvent,
-  useCallback,
-  useMemo,
-  useState,
-} from 'react'
+import { HTMLAttributes, MouseEvent, useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
-import { bus, cn, extractDomain, md2text, noop, renderMD } from '@/lib/utils'
+import {
+  bus,
+  cn,
+  extractDomain,
+  md2text,
+  noop,
+  renderMD,
+  scrollToElement,
+  summryText,
+} from '@/lib/utils'
 
 import { deleteArticle, toggleLockArticle } from '@/api/article'
-import {
-  EV_ON_EDIT_CLICK,
-  EV_ON_REPLY_CLICK,
-  NAV_HEIGHT,
-} from '@/constants/constants'
+import { EV_ON_EDIT_CLICK, EV_ON_REPLY_CLICK } from '@/constants/constants'
 import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
 import { ARTICLE_LOCK_ACTION, Article, ArticleAction } from '@/types/types'
 
@@ -45,29 +44,6 @@ const highlightElement = (element: HTMLElement) => {
   setTimeout(() => {
     element.classList.remove('b-chat-highlight')
   }, 2000)
-}
-
-const scrollToElement = (element: HTMLElement) => {
-  if (!element) return
-
-  const rectTop = element.getBoundingClientRect().y
-
-  if (rectTop > 0) {
-    highlightElement(element)
-  } else {
-    setTimeout(() => {
-      /* location.hash = element.id */
-      highlightElement(element)
-    }, 500)
-
-    const container = document.querySelector('#main')
-    if (container) {
-      container.scrollTo({
-        top: rectTop + container.scrollTop - NAV_HEIGHT,
-        behavior: 'smooth',
-      })
-    }
-  }
 }
 
 const ChatCard: React.FC<ChatCardProps> = ({
@@ -288,7 +264,9 @@ const ChatCard: React.FC<ChatCardProps> = ({
                   )
 
                   if (parentCommentEl) {
-                    scrollToElement(parentCommentEl)
+                    scrollToElement(parentCommentEl, () => {
+                      highlightElement(parentCommentEl)
+                    })
                   }
                 }}
               >
@@ -298,7 +276,8 @@ const ChatCard: React.FC<ChatCardProps> = ({
                   </i>
                 ) : (
                   <span>
-                    {parent.authorName}: {md2text(parent.summary)} ...
+                    {parent.authorName}:{' '}
+                    {summryText(md2text(parent.content), 100)}
                   </span>
                 )}
               </div>

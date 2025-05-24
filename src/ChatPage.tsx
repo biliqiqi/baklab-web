@@ -16,10 +16,16 @@ import { toSync } from './lib/fire-and-forget'
 import { bus, scrollToBottom } from './lib/utils'
 import {
   useAuthedUserStore,
+  useEventSourceStore,
   useLoading,
   useReplyBoxStore,
 } from './state/global'
-import { Article, Category } from './types/types'
+import {
+  Article,
+  ArticleListResponse,
+  Category,
+  SSE_EVENT,
+} from './types/types'
 
 interface ChatListState {
   list: Article[]
@@ -39,6 +45,13 @@ interface ChatListMap {
 interface ChatPageProps {
   currCate: Category
 }
+
+type SaveChatList = (
+  _isNext: boolean,
+  list: Article[],
+  prevCursor: string,
+  nextCursor: string
+) => void
 
 const getLocalChatData = () => {
   const dataStr = localStorage.getItem(CHAT_DATA_CACHE_KEY)
@@ -94,6 +107,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate }) => {
   })
   const [currCursor, setCurrCursor] = useState('')
   const [replySuccess, setReplySuccess] = useState(false)
+  const [atBottom, setAtBottom] = useState(false)
+
   const isLoading = useLoading((state) => state.loading)
   const setLoading = useLoading((state) => state.setLoading)
 
@@ -101,6 +116,14 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate }) => {
   const chatBottomRef = useRef<HTMLDivElement | null>(null)
   const replyHandlerRef = useRef<((x: Article) => void) | null>(null)
   const editHandlerRef = useRef<((x: Article) => void) | null>(null)
+  const newMessageHandlerRef = useRef<
+    | ((
+        atBottom: boolean,
+        saveChatList: SaveChatList,
+        prevCursor: string
+      ) => (ev: MessageEvent<string>) => void)
+    | null
+  >(null)
 
   const { siteFrontId, categoryFrontId } = useParams()
 
@@ -110,6 +133,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate }) => {
       setReplyBoxState: setState,
     }))
   )
+
+  const eventSource = useEventSourceStore((state) => state.eventSource)
 
   const location = useLocation()
 
@@ -270,8 +295,33 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate }) => {
   )
 
   useEffect(() => {
+    const CreateOnNewMessage =
+      (atBottom: boolean, saveChatList: SaveChatList, prevCursor: string) =>
+      (ev: MessageEvent<string>) => {
+        try {
+          /* console.log('new message data str: ', ev.data) */
+          const listResp = JSON.parse(ev.data) as ArticleListResponse
+          /* console.log('new message data: ', listResp) */
+
+          if (listResp.articles) {
+            saveChatList(true, [...listResp.articles], prevCursor, '')
+
+            /* console.log('at bottom: ', atBottom) */
+
+            if (atBottom) {
+              setTimeout(() => {
+                scrollToBottom('smooth')
+              }, 0)
+            }
+          }
+        } catch (err) {
+          console.error('parse event data error in newmessage event: ', err)
+        }
+      }
+
     replyHandlerRef.current = onReplyClick
     editHandlerRef.current = onEditClick
+    newMessageHandlerRef.current = CreateOnNewMessage
   }, [onReplyClick, onEditClick])
 
   useEffect(() => {
@@ -304,9 +354,9 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate }) => {
       replyToArticle: null,
       category: currCate,
       disabled: !permit('article', 'reply'),
-      onSuccess: async (_, actionType) => {
+      onSuccess: (_, actionType) => {
         if (actionType != 'edit') {
-          await fetchChatList(false, true, false)
+          /* await fetchChatList(false, true, false) */
           setReplySuccess(true)
         }
       },
@@ -334,22 +384,17 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate }) => {
 
     let topObserver: IntersectionObserver | null = null
     let bottomObserver: IntersectionObserver | null = null
+    let atBottomObserver: IntersectionObserver | null = null
 
     if (chatTopRef.current) {
       topObserver = new IntersectionObserver(
         (entries) => {
           entries.forEach((ent) => {
             if (ent.target == chatTopRef.current && ent.isIntersecting) {
-              /* console.log('reach top: ', entries) */
               setChatList((currentChatList) => {
-                /* console.log(
-                 *   'curr list initialized:',
-                 *   currentChatList.initialized
-                 * ) */
-
                 if (!currentChatList.initialized) return currentChatList
 
-                if (currentChatList.prevCursor && !isLoading) {
+                if (currentChatList.prevCursor) {
                   toSync(fetchChatList)(false)
                 }
                 return currentChatList
@@ -371,15 +416,9 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate }) => {
         (entries) => {
           entries.forEach((ent) => {
             if (ent.target == chatBottomRef.current && ent.isIntersecting) {
-              /* console.log('reach bottom: ', entries) */
               setChatList((currentChatList) => {
-                /* console.log(
-                 *   'curr list initialized:',
-                 *   currentChatList.initialized
-                 * ) */
-
                 if (!currentChatList.initialized) return currentChatList
-                if (currentChatList.nextCursor && !isLoading) {
+                if (currentChatList.nextCursor) {
                   toSync(fetchChatList)(true)
                 }
                 return currentChatList
@@ -394,6 +433,25 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate }) => {
       )
 
       bottomObserver.observe(chatBottomRef.current)
+
+      atBottomObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((ent) => {
+            if (ent.target == chatBottomRef.current && ent.isIntersecting) {
+              /* console.log('touch bottom: ', true) */
+              setAtBottom(true)
+            } else {
+              /* console.log('touch bottom: ', false) */
+              setAtBottom(false)
+            }
+          })
+        },
+        {
+          root: container,
+        }
+      )
+
+      atBottomObserver.observe(chatBottomRef.current)
     }
 
     return () => {
@@ -405,6 +463,11 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate }) => {
       if (bottomObserver) {
         bottomObserver.disconnect()
         bottomObserver = null
+      }
+
+      if (atBottomObserver) {
+        atBottomObserver.disconnect()
+        atBottomObserver = null
       }
     }
   }, [fetchChatList])
@@ -440,6 +503,26 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate }) => {
       scrollToBottom('smooth')
     }
   }, [replySuccess])
+
+  useEffect(() => {
+    const newMessageHandler = newMessageHandlerRef.current
+      ? newMessageHandlerRef.current(
+          atBottom,
+          saveChatList,
+          chatList.prevCursor
+        )
+      : null
+
+    if (eventSource && newMessageHandler) {
+      eventSource.addEventListener(SSE_EVENT.NewMessage, newMessageHandler)
+    }
+
+    return () => {
+      if (eventSource && newMessageHandler) {
+        eventSource.removeEventListener(SSE_EVENT.NewMessage, newMessageHandler)
+      }
+    }
+  }, [eventSource, atBottom, saveChatList, chatList.prevCursor])
 
   return (
     <div style={{ paddingBottom: `${REPLY_BOX_PLACEHOLDER_HEIGHT}px` }}>

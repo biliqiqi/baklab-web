@@ -694,3 +694,13 @@ export interface ReplyBoxProps {
     | (() => Promise<void>)
   onRemoveReply?: (() => void) | (() => Promise<void>)
 }
+
+export const SSE_EVENT = Object.freeze({
+  Ping: 'ping',
+  UpdateRole: 'updaterole',
+  UpdateNoties: 'updatenoties',
+  Close: 'close',
+  NewMessage: 'newmessage',
+} as const)
+
+export type SseEvent = ValuesToUnion<typeof SSE_EVENT>

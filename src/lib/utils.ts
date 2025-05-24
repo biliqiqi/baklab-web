@@ -4,7 +4,7 @@ import MarkdownIt from 'markdown-it'
 import { KeyboardEvent, KeyboardEventHandler } from 'react'
 import { twMerge } from 'tailwind-merge'
 
-import { DEFAULT_FONT_SIZE } from '@/constants/constants'
+import { DEFAULT_FONT_SIZE, NAV_HEIGHT } from '@/constants/constants'
 import { SITE_STATUS_COLOR_MAP } from '@/constants/maps'
 import {
     PERMISSION_DATA,
@@ -238,5 +238,31 @@ export const scrollToBottom = (
         setTimeout(fn, 100)
       }
     }, 100)
+  }
+}
+
+export const scrollToElement = (
+  element: HTMLElement,
+  callback = noop,
+  containerElId = 'outer-container'
+) => {
+  if (!element) return
+
+  const rectTop = element.getBoundingClientRect().y
+
+  if (rectTop > 0) {
+    callback()
+  } else {
+    setTimeout(() => {
+      callback()
+    }, 500)
+
+    const container = document.querySelector(`#${containerElId}`)
+    if (container) {
+      container.scrollTo({
+        top: rectTop + container.scrollTop - NAV_HEIGHT,
+        behavior: 'smooth',
+      })
+    }
   }
 }

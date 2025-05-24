@@ -27,6 +27,7 @@ import { setRootFontSize } from './lib/utils.ts'
 import {
   getLocalUserUISettings,
   useAuthedUserStore,
+  useEventSourceStore,
   useForceUpdate,
   useNotificationStore,
   useRightSidebarStore,
@@ -36,7 +37,7 @@ import {
   useUserUIStore,
 } from './state/global.ts'
 import { useRoutesStore } from './state/routes.ts'
-import { SettingsType } from './types/types.ts'
+import { SSE_EVENT, SettingsType } from './types/types.ts'
 
 const fetchNotiCount = toSync(async () => {
   const notiState = useNotificationStore.getState()
@@ -54,29 +55,35 @@ const connectEvents = () => {
     withCredentials: true,
   })
 
-  eventSource.addEventListener('ping', (_event: MessageEvent<string>) => {
-    try {
-      /* const data = JSON.parse(atob(event.data)) as PingData */
-      /* console.log('event data: ', data) */
-    } catch (err) {
-      console.error('parse event data error: ', err)
+  eventSource.addEventListener(
+    SSE_EVENT.Ping,
+    (_event: MessageEvent<string>) => {
+      try {
+        /* const data = JSON.parse(event.data) as PingData */
+        /* console.log('event data: ', data) */
+      } catch (err) {
+        console.error('parse event data error: ', err)
+      }
     }
-  })
+  )
 
-  eventSource.addEventListener('updaterole', (_event: MessageEvent<string>) => {
-    toSync(refreshAuthState)(true)
-    const siteState = useSiteStore.getState()
-    if (siteState.site) {
-      toSync(siteState.fetchSiteData)(siteState.site.frontId)
+  eventSource.addEventListener(
+    SSE_EVENT.UpdateRole,
+    (_event: MessageEvent<string>) => {
+      toSync(refreshAuthState)(true)
+      const siteState = useSiteStore.getState()
+      if (siteState.site) {
+        toSync(siteState.fetchSiteData)(siteState.site.frontId)
+      }
     }
-  })
+  )
 
-  eventSource.addEventListener('updatenoties', (_ev) => {
+  eventSource.addEventListener(SSE_EVENT.UpdateNoties, (_ev) => {
     /* console.log('updatenoties:', ev) */
     fetchNotiCount()
   })
 
-  eventSource.addEventListener('close', (_ev) => {
+  eventSource.addEventListener(SSE_EVENT.Close, (_ev) => {
     /* console.log('close:', ev) */
     eventSource.close()
   })
@@ -111,6 +118,8 @@ const App = () => {
         })
       )
     )
+
+  const setEventSource = useEventSourceStore((state) => state.setEventSource)
 
   const { fetchSiteList } = useSiteStore(
     useShallow(({ fetchSiteList }) => ({
@@ -156,10 +165,13 @@ const App = () => {
   useEffect(() => {
     const eventSource = connectEvents()
 
+    setEventSource(eventSource)
+
     return () => {
+      setEventSource(null)
       eventSource.close()
     }
-  }, [currUsername])
+  }, [currUsername, setEventSource])
 
   useEffect(() => {
     window.onfocus = () => {

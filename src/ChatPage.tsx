@@ -6,6 +6,7 @@ import ChatCard from './components/ChatCard'
 
 import { getChatList } from './api/article'
 import {
+  CHAT_DATA_CACHE_KEY,
   EV_ON_EDIT_CLICK,
   EV_ON_REPLY_CLICK,
   REPLY_BOX_PLACEHOLDER_HEIGHT,
@@ -27,6 +28,10 @@ interface ChatListState {
   initialized: boolean
 }
 
+interface ChatListCache {
+  [x: string]: ChatListState
+}
+
 interface ChatListMap {
   [x: string]: Article
 }
@@ -34,6 +39,51 @@ interface ChatListMap {
 interface ChatPageProps {
   currCate: Category
 }
+
+const getLocalChatData = () => {
+  const dataStr = localStorage.getItem(CHAT_DATA_CACHE_KEY)
+  if (!dataStr) return null
+
+  try {
+    return JSON.parse(dataStr) as ChatListCache
+  } catch (err) {
+    console.error('parse chat data cache error: ', err)
+  }
+
+  return null
+}
+
+const getLocalChatListData = (key: string) => {
+  const data = getLocalChatData()
+  if (data && data[key]) {
+    return data[key]
+  }
+
+  return null
+}
+
+const setLocalChatListData = (key: string, val: ChatListState) => {
+  const data = getLocalChatData()
+
+  let newData = {
+    [key]: val,
+  } as ChatListCache
+
+  if (data) {
+    newData = Object.assign(data, newData)
+  }
+
+  localStorage.setItem(CHAT_DATA_CACHE_KEY, JSON.stringify(newData))
+}
+
+// const deleteLocalChatListData = (key: string) => {
+//   const data = getLocalChatData()
+//
+//   if (data && data[key]) {
+//     delete data[key]
+//     localStorage.setItem(CHAT_DATA_CACHE_KEY, JSON.stringify(data))
+//   }
+// }
 
 const ChatPage: React.FC<ChatPageProps> = ({ currCate }) => {
   const [chatList, setChatList] = useState<ChatListState>({
@@ -81,54 +131,48 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate }) => {
         initialized: true,
       }
 
-      const dataStr = localStorage.getItem(location.pathname)
-      if (dataStr) {
-        try {
-          const existingData = JSON.parse(dataStr) as ChatListState
+      const existingData = getLocalChatListData(location.pathname)
+      if (existingData) {
+        const tempMap = existingData.list.reduce((prev, curr) => {
+          prev[curr.id] = curr
+          return prev
+        }, {} as ChatListMap)
 
-          const tempMap = existingData.list.reduce((prev, curr) => {
-            prev[curr.id] = curr
-            return prev
-          }, {} as ChatListMap)
+        const mergedList = [...existingData.list]
 
-          const mergedList = [...existingData.list]
-
-          for (const item of list) {
-            if (item.id in tempMap) {
-              // 更新现有项目
-              const index = mergedList.findIndex(
-                (existing) => existing.id === item.id
-              )
-              if (index !== -1) {
-                mergedList[index] = { ...mergedList[index], ...item }
-              }
-            } else {
-              // 添加新项目
-              mergedList.push(item)
-            }
-          }
-
-          // 排序
-          mergedList.sort((a, b) => {
-            return (
-              new Date(a.createdAt).getTime() -
-                new Date(b.createdAt).getTime() || Number(a.id) - Number(b.id)
+        for (const item of list) {
+          if (item.id in tempMap) {
+            // 更新现有项目
+            const index = mergedList.findIndex(
+              (existing) => existing.id === item.id
             )
-          })
-
-          data = {
-            list: mergedList,
-            prevCursor,
-            nextCursor,
-            initialized: true,
+            if (index !== -1) {
+              mergedList[index] = { ...mergedList[index], ...item }
+            }
+          } else {
+            // 添加新项目
+            mergedList.push(item)
           }
-        } catch (err) {
-          console.error('save chat list data error: ', err)
+        }
+
+        // 排序
+        mergedList.sort((a, b) => {
+          return (
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime() ||
+            Number(a.id) - Number(b.id)
+          )
+        })
+
+        data = {
+          list: mergedList,
+          prevCursor,
+          nextCursor,
+          initialized: true,
         }
       }
 
       setChatList((state) => ({ ...state, ...data }))
-      localStorage.setItem(location.pathname, JSON.stringify(data))
+      setLocalChatListData(location.pathname, data)
     },
     [location.pathname]
   )

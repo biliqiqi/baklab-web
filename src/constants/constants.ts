@@ -34,6 +34,7 @@ export const RIGHT_SIDEBAR_STATE_KEY = 'right_sidebar_state'
 export const TOP_DRAWER_STATE_KEY = 'top_drawer_state'
 export const RIGHT_SIDEBAR_SETTINGS_TYPE_KEY = 'right_sidebar_settings_type'
 export const USER_UI_SETTINGS_KEY = 'user_ui_settings'
+export const CHAT_DATA_CACHE_KEY = 'chat_data_cache'
 
 export const DEFAULT_THEME = 'system'
 export const DEFAULT_FONT_SIZE = '16'

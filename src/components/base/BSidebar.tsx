@@ -4,6 +4,7 @@ import {
   ChevronDownIcon,
   GlobeIcon,
   LockIcon,
+  MessageCircleIcon,
   MessageSquareXIcon,
   PackageIcon,
   PencilIcon,
@@ -525,12 +526,23 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                               to={`/${siteFrontId}/bankuai/${item.frontId}`}
                               state={item}
                             >
-                              <BIconColorChar
-                                iconId={item.frontId}
-                                char={item.iconContent}
-                                color={item.iconBgColor}
-                                size={32}
-                              />
+                              <span
+                                className="relative inline-block"
+                                style={{ overflow: 'visible' }}
+                              >
+                                <BIconColorChar
+                                  iconId={item.frontId}
+                                  char={item.iconContent}
+                                  color={item.iconBgColor}
+                                  size={32}
+                                />
+                                {item.contentForm?.frontId == 'chat' && (
+                                  <MessageCircleIcon
+                                    size={20}
+                                    className="absolute -right-[9px] bottom-0 text-gray-500 z-20 bg-white rounded-full p-[2px]"
+                                  />
+                                )}
+                              </span>
                               {item.name}
                             </Link>
                           </SidebarMenuButton>

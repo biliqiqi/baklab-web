@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
+import { useDebouncedCallback } from 'use-debounce'
 import { useShallow } from 'zustand/react/shallow'
 
-import ChatCard, { ChatCardSkeleton } from './components/ChatCard'
+import ChatCard from './components/ChatCard'
 
 import { getChatList } from './api/article'
 import {
@@ -199,7 +200,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate, onLoad = noop }) => {
   )
 
   const fetchChatList = useCallback(
-    async (isNext: boolean, force = false, withCursor = true) => {
+    async (isNext: boolean, force = false, withCursor = true, init = false) => {
       if (isLoading) return
 
       setLoading(true)
@@ -243,19 +244,28 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate, onLoad = noop }) => {
         }
 
         if (!code && data) {
+          const existingData = getLocalChatListData(location.pathname)
           saveChatList(
             isNext,
             data.articles || [],
-            data.prevCursor,
+            init &&
+              existingData &&
+              data.articles &&
+              existingData.list.length > data.articles.length
+              ? ''
+              : data.prevCursor,
             data.nextCursor
           )
           setCurrCursor(cursor || '')
+          return data
         }
       } catch (err) {
         console.error('fetch chat list error: ', err)
       } finally {
         setLoading(false)
       }
+
+      return null
     },
     [
       currCate,
@@ -371,6 +381,43 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate, onLoad = noop }) => {
     })
   }, [currCate, fetchChatList, permit, setReplyBoxState, setReplySuccess])
 
+  const topObserverHandler = useDebouncedCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((ent) => {
+        if (ent.target == chatTopRef.current && ent.isIntersecting) {
+          /* console.log('at top') */
+          setChatList((currentChatList) => {
+            if (!currentChatList.initialized) return currentChatList
+
+            if (currentChatList.prevCursor) {
+              toSync(fetchChatList)(false)
+            }
+            return currentChatList
+          })
+        }
+      })
+    },
+    200
+  )
+
+  const bottomObserverHandler = useDebouncedCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((ent) => {
+        if (ent.target == chatBottomRef.current && ent.isIntersecting) {
+          /* console.log('at bottom') */
+          setChatList((currentChatList) => {
+            if (!currentChatList.initialized) return currentChatList
+            if (currentChatList.nextCursor) {
+              toSync(fetchChatList)(true)
+            }
+            return currentChatList
+          })
+        }
+      })
+    },
+    200
+  )
+
   useEffect(() => {
     setShowReplyBox(true)
     return () => {
@@ -388,50 +435,19 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate, onLoad = noop }) => {
     let atBottomObserver: IntersectionObserver | null = null
 
     if (chatTopRef.current) {
-      topObserver = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((ent) => {
-            if (ent.target == chatTopRef.current && ent.isIntersecting) {
-              setChatList((currentChatList) => {
-                if (!currentChatList.initialized) return currentChatList
-
-                if (currentChatList.prevCursor) {
-                  toSync(fetchChatList)(false)
-                }
-                return currentChatList
-              })
-            }
-          })
-        },
-        {
-          root: container,
-          rootMargin: `${container.getBoundingClientRect().height / 2}px`,
-        }
-      )
+      topObserver = new IntersectionObserver(topObserverHandler, {
+        root: container,
+        rootMargin: `${container.getBoundingClientRect().height / 2}px`,
+      })
 
       topObserver.observe(chatTopRef.current)
     }
 
     if (chatBottomRef.current) {
-      bottomObserver = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((ent) => {
-            if (ent.target == chatBottomRef.current && ent.isIntersecting) {
-              setChatList((currentChatList) => {
-                if (!currentChatList.initialized) return currentChatList
-                if (currentChatList.nextCursor) {
-                  toSync(fetchChatList)(true)
-                }
-                return currentChatList
-              })
-            }
-          })
-        },
-        {
-          root: container,
-          rootMargin: `${container.getBoundingClientRect().height / 2}px`,
-        }
-      )
+      bottomObserver = new IntersectionObserver(bottomObserverHandler, {
+        root: container,
+        rootMargin: `${container.getBoundingClientRect().height / 2}px`,
+      })
 
       bottomObserver.observe(chatBottomRef.current)
 
@@ -476,16 +492,20 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate, onLoad = noop }) => {
   // 初始化数据
   useEffect(() => {
     toSync(fetchChatList, () => {
+      const chatListState: Partial<ChatListState> = {
+        initialized: true,
+      }
+
       scrollToBottom('instant', () => {
         setChatList((state) => {
           return {
             ...state,
-            initialized: true,
+            ...chatListState,
           }
         })
         onLoad()
       })
-    })(false, true)
+    })(false, true, false, true)
 
     return () => {
       setCurrCursor('')

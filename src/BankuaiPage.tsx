@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
+import { Skeleton } from './components/ui/skeleton'
+
 import BContainer from './components/base/BContainer'
 
 import { ChatCardSkeleton } from './components/ChatCard'
@@ -66,6 +68,12 @@ export default function BankuaiPage() {
             className="mx-auto"
             style={{ maxWidth: `${innerContentWidth}px` }}
           >
+            {!(currCate && isChat) && (
+              <div className="flex justify-between items-center my-4">
+                <Skeleton className="w-[180px] h-[44px]" />
+                <Skeleton className="w-[75px] h-[44px]" />
+              </div>
+            )}
             {Array(3)
               .fill('')
               .map((_, idx) =>

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
-import ChatCard from './components/ChatCard'
+import ChatCard, { ChatCardSkeleton } from './components/ChatCard'
 
 import { getChatList } from './api/article'
 import {
@@ -13,19 +13,14 @@ import {
 } from './constants/constants'
 import { defaultPageState } from './constants/defaults'
 import { toSync } from './lib/fire-and-forget'
-import { bus, scrollToBottom } from './lib/utils'
+import { bus, noop, scrollToBottom } from './lib/utils'
 import {
   useAuthedUserStore,
   useEventSourceStore,
   useLoading,
   useReplyBoxStore,
 } from './state/global'
-import {
-  Article,
-  ArticleListResponse,
-  Category,
-  SSE_EVENT,
-} from './types/types'
+import { Article, Category, SSE_EVENT } from './types/types'
 
 interface ChatListState {
   list: Article[]
@@ -44,6 +39,7 @@ interface ChatListMap {
 
 interface ChatPageProps {
   currCate: Category
+  onLoad?: () => void
 }
 
 type SaveChatList = (
@@ -98,7 +94,7 @@ const setLocalChatListData = (key: string, val: ChatListState) => {
 //   }
 // }
 
-const ChatPage: React.FC<ChatPageProps> = ({ currCate }) => {
+const ChatPage: React.FC<ChatPageProps> = ({ currCate, onLoad = noop }) => {
   const [chatList, setChatList] = useState<ChatListState>({
     list: [],
     prevCursor: '',
@@ -300,12 +296,11 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate }) => {
       (ev: MessageEvent<string>) => {
         try {
           /* console.log('new message data str: ', ev.data) */
-          const listResp = JSON.parse(ev.data) as ArticleListResponse
+          const item = JSON.parse(ev.data) as Article
           /* console.log('new message data: ', listResp) */
 
-          if (listResp.articles) {
-            saveChatList(true, [...listResp.articles], prevCursor, '')
-
+          if (item) {
+            saveChatList(true, [item], prevCursor, '')
             /* console.log('at bottom: ', atBottom) */
 
             if (atBottom) {
@@ -355,6 +350,12 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate }) => {
       category: currCate,
       disabled: !permit('article', 'reply'),
       onSuccess: (_, actionType) => {
+        setReplyBoxState({
+          editType: 'create',
+          edittingArticle: null,
+          replyToArticle: null,
+        })
+
         if (actionType != 'edit') {
           /* await fetchChatList(false, true, false) */
           setReplySuccess(true)
@@ -482,6 +483,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate }) => {
             initialized: true,
           }
         })
+        onLoad()
       })
     })(false, true)
 

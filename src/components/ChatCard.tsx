@@ -31,6 +31,7 @@ import {
 } from './ui/alert-dialog'
 import { Badge } from './ui/badge'
 import { Card } from './ui/card'
+import { Skeleton } from './ui/skeleton'
 
 interface ChatCardProps extends HTMLAttributes<HTMLDivElement> {
   article: Article
@@ -337,6 +338,28 @@ const ChatCard: React.FC<ChatCardProps> = ({
           />
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  )
+}
+
+export const ChatCardSkeleton = () => {
+  return (
+    <div className={cn('b-chat-card flex items-start px-2')}>
+      <div className="flex pt-3 pr-2">
+        <Skeleton className="w-[40px] h-[40px] rounded-full" />
+      </div>
+      <div className="max-w-[80%] flex flex-col items-start">
+        <div className="flex h-[40px] flex-wrap items-center text-sm text-gray-500">
+          <Skeleton className="w-[120px] h-[22px]" />
+        </div>
+        <Skeleton className="flex-grow-0 p-3 pb-2 mb-3 break-all">
+          <div className="b-article-content mb-2">
+            <p>
+              &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
+            </p>
+          </div>
+        </Skeleton>
+      </div>
     </div>
   )
 }

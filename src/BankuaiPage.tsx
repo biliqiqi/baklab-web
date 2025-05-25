@@ -1,15 +1,21 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
+import { useShallow } from 'zustand/react/shallow'
 
 import BContainer from './components/base/BContainer'
 
-import ArticleListPage from './ArticleListPage'
+import { ChatCardSkeleton } from './components/ChatCard'
+
+import ArticleListPage, { ArticleListItemSkeleton } from './ArticleListPage'
 import ChatPage from './ChatPage'
 import { getCategoryWithFrontId } from './api/category'
+import { DEFAULT_INNER_CONTENT_WIDTH, NAV_HEIGHT } from './constants/constants'
 import { toSync } from './lib/fire-and-forget'
+import { useUserUIStore } from './state/global'
 import { Category } from './types/types'
 
 export default function BankuaiPage() {
+  const [showSkeleton, setShowSkeleton] = useState(false)
   const [serverCate, setServerCate] = useState<Category | null>(null)
   const { state } = useLocation() as { state: Category | undefined }
 
@@ -21,6 +27,12 @@ export default function BankuaiPage() {
     [currCate]
   )
 
+  const { innerContentWidth } = useUserUIStore(
+    useShallow(({ innerContentWidth }) => ({
+      innerContentWidth: innerContentWidth || DEFAULT_INNER_CONTENT_WIDTH,
+    }))
+  )
+
   useEffect(() => {
     if (!currCate && categoryFrontId) {
       toSync(getCategoryWithFrontId, (data) => {
@@ -28,6 +40,10 @@ export default function BankuaiPage() {
           setServerCate(data.data)
         }
       })(categoryFrontId, { siteFrontId })
+    }
+
+    return () => {
+      setShowSkeleton(true)
     }
   }, [currCate, categoryFrontId, siteFrontId])
 
@@ -41,13 +57,36 @@ export default function BankuaiPage() {
         describe: currCate?.describe || '',
       }}
     >
+      {showSkeleton && (
+        <div
+          className="absolute top-0 left-0 w-full z-10 bg-background"
+          style={{ height: `calc(100vh - ${NAV_HEIGHT}px)` }}
+        >
+          <div
+            className="mx-auto"
+            style={{ maxWidth: `${innerContentWidth}px` }}
+          >
+            {Array(3)
+              .fill('')
+              .map((_, idx) =>
+                currCate && isChat ? (
+                  <ChatCardSkeleton key={idx} />
+                ) : (
+                  <ArticleListItemSkeleton key={idx} />
+                )
+              )}
+          </div>
+        </div>
+      )}
+
       {currCate && isChat ? (
         <ChatPage
           currCate={currCate}
           key={`chat_list_${siteFrontId}_${currCate?.frontId}`}
+          onLoad={() => setShowSkeleton(false)}
         />
       ) : (
-        <ArticleListPage />
+        <ArticleListPage onLoad={() => setShowSkeleton(false)} />
       )}
     </BContainer>
   )

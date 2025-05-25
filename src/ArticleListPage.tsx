@@ -1,5 +1,11 @@
 import { SquareArrowOutUpRightIcon } from 'lucide-react'
-import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import React, {
+  MouseEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 
 /* import mockArticleList from '@/mock/articles.json' */
@@ -7,6 +13,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
+import { Skeleton } from './components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 import { Card } from '@/components/ui/card'
 
@@ -22,6 +29,7 @@ import {
   extractDomain,
   genArticlePath,
   getArticleStatusName,
+  noop,
   renderMD,
 } from './lib/utils'
 import { isLogined, useAuthedUserStore, useLoading } from './state/global'
@@ -35,14 +43,11 @@ import {
 
 /* const articleList = mockArticleList as Article[] */
 
-/* interface ArticleListPageProps {
- *   list: Article[]
- *   pageState: ArticleListState
- *   currCate: Category | null
- *   onRefresh: () => void
- * } */
+interface ArticleListPageProps {
+  onLoad?: () => void
+}
 
-const ArticleListPage = () => {
+const ArticleListPage: React.FC<ArticleListPageProps> = ({ onLoad = noop }) => {
   const [showSummary] = useState(false)
   const [currCate, setCurrCate] = useState<Category | null>(null)
   const [list, updateList] = useState<Article[]>([])
@@ -173,7 +178,9 @@ const ArticleListPage = () => {
 
   /* console.log('list: ', list) */
   useEffect(() => {
-    toSync(fetchArticles)()
+    toSync(fetchArticles, () => {
+      onLoad()
+    })()
     return () => {
       updateList([])
       setPageState({
@@ -285,5 +292,9 @@ const ArticleListPage = () => {
     </>
   )
 }
+
+export const ArticleListItemSkeleton = () => (
+  <Skeleton className="p-3 my-2 h-[107px]"></Skeleton>
+)
 
 export default ArticleListPage

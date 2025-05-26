@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import { useDebouncedCallback } from 'use-debounce'
 import { useShallow } from 'zustand/react/shallow'
 
 import ChatCard from './components/ChatCard'
 
-import { getChatList } from './api/article'
+import { getChatList, readManyArticle } from './api/article'
+import { readArticle } from './api/message'
 import {
   CHAT_DATA_CACHE_KEY,
   EV_ON_EDIT_CLICK,
@@ -106,6 +107,11 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate, onLoad = noop }) => {
   const [replySuccess, setReplySuccess] = useState(false)
   const [atBottom, setAtBottom] = useState(false)
 
+  const listItemRef = useRef<Map<string, HTMLDivElement>>(new Map())
+  const listItemReverseRef = useRef<Map<HTMLDivElement, Article>>(new Map())
+  const readIdList = useRef<Set<string>>(new Set())
+  const readingIdList = useRef<Set<string>>(new Set())
+
   const isLoading = useLoading((state) => state.loading)
   const setLoading = useLoading((state) => state.setLoading)
 
@@ -135,8 +141,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate, onLoad = noop }) => {
 
   const location = useLocation()
 
-  const { permit } = useAuthedUserStore(
-    useShallow(({ permit }) => ({ permit }))
+  const { permit, currUserId } = useAuthedUserStore(
+    useShallow(({ permit, userID }) => ({ permit, currUserId: userID }))
   )
 
   const saveChatList = useCallback(
@@ -307,7 +313,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate, onLoad = noop }) => {
         try {
           /* console.log('new message data str: ', ev.data) */
           const item = JSON.parse(ev.data) as Article
-          /* console.log('new message data: ', listResp) */
+
+          /* console.log('new message data: ', item) */
 
           if (item) {
             saveChatList(true, [item], prevCursor, '')
@@ -418,6 +425,51 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate, onLoad = noop }) => {
     200
   )
 
+  const debouncedReadManyMessage = useDebouncedCallback((ids: string[]) => {
+    const unreadIds: string[] = []
+
+    ids.forEach((id) => {
+      if (!readingIdList.current.has(id)) {
+        unreadIds.push(id)
+        readingIdList.current.add(id)
+      }
+    })
+
+    /* console.log('debunced read ids: ', unreadIds) */
+
+    toSync(readManyArticle, () => {
+      unreadIds.forEach((id) => {
+        readIdList.current.delete(id)
+        readingIdList.current.delete(id)
+
+        setChatList((currChatList) => {
+          const list = currChatList.list
+          const readItemIdx = list.findIndex((item) => item.id == id)
+
+          const item = list[readItemIdx]
+          const newItem: Article = {
+            ...item,
+            currUserState: item.currUserState
+              ? {
+                  ...item.currUserState,
+                  isRead: true,
+                }
+              : null,
+          }
+
+          return {
+            ...currChatList,
+            list: [
+              ...list.slice(0, readItemIdx),
+              newItem,
+              ...list.slice(readItemIdx + 1),
+            ],
+          }
+        })
+      })
+    })(unreadIds)
+  }, 200)
+
   useEffect(() => {
     setShowReplyBox(true)
     return () => {
@@ -489,6 +541,50 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate, onLoad = noop }) => {
     }
   }, [fetchChatList])
 
+  useEffect(() => {
+    const container = document.querySelector('#outer-container')
+
+    if (!container) return
+
+    const inViewObserver: IntersectionObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((ent) => {
+          const target = ent.target as HTMLDivElement
+          if (listItemReverseRef.current.has(target)) {
+            if (ent.isIntersecting) {
+              /* console.log(
+               *   'message enter view: ',
+               *   listItemReverseRef.current.get(target)
+               * ) */
+              const message = listItemReverseRef.current.get(target)
+              if (
+                message &&
+                message.authorId != currUserId &&
+                message.currUserState &&
+                !message.currUserState.isRead
+              ) {
+                readIdList.current.add(message.id)
+
+                debouncedReadManyMessage([...readIdList.current])
+              }
+            }
+          }
+        })
+      },
+      {
+        root: container,
+      }
+    )
+
+    for (const [_id, el] of listItemRef.current.entries()) {
+      inViewObserver.observe(el)
+    }
+
+    return () => {
+      inViewObserver.disconnect()
+    }
+  }, [chatList.initialized, currUserId, chatList])
+
   // 初始化数据
   useEffect(() => {
     toSync(fetchChatList, () => {
@@ -556,6 +652,12 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate, onLoad = noop }) => {
               article={item}
               key={item.id}
               onSuccess={() => fetchChatList(false)}
+              ref={(el) => {
+                if (el) {
+                  listItemRef.current.set(item.id, el)
+                  listItemReverseRef.current.set(el, item)
+                }
+              }}
             />
           )
         })}

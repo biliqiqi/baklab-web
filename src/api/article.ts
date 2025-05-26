@@ -387,3 +387,12 @@ export const acceptAnswer = (id: string, answerId: string) =>
   authRequest.post<ResponseData<null>>(`articles/${id}/accept_answer`, {
     json: { answerId },
   })
+
+export const readManyArticle = (idList: string[]) =>
+  authRequest.post<ResponseData<null>>(`articles/read`, {
+    json: {
+      idList: idList
+        .map((str) => Number(str))
+        .filter((num) => !Number.isNaN(num)),
+    },
+  })

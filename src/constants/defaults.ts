@@ -75,6 +75,7 @@ export const defaultCurrState: CurrUserState = {
   saved: false,
   reactFrontId: '',
   subscribed: false,
+  isRead: false,
 }
 
 export const defaultArticle: Article = {

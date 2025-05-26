@@ -97,6 +97,7 @@ export interface CurrUserState {
   saved: boolean
   reactFrontId: string
   subscribed: boolean
+  isRead: boolean
 }
 
 export type ArticleStatus = 'draft' | 'pending' | 'rejected' | 'published'

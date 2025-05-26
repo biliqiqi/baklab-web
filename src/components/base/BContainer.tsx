@@ -619,6 +619,10 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             <div
               id="outer-container"
               className="overflow-y-auto h-full max-h-full"
+              style={{
+                scrollbarColor: 'rgba(0, 0, 0, 0.5)',
+                scrollbarWidth: 'thin',
+              }}
             >
               <div
                 className="container mx-auto p-4"

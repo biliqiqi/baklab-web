@@ -179,7 +179,9 @@ const ArticleListPage: React.FC<ArticleListPageProps> = ({ onLoad = noop }) => {
   /* console.log('list: ', list) */
   useEffect(() => {
     toSync(fetchArticles, () => {
-      onLoad()
+      setTimeout(() => {
+        onLoad()
+      }, 0)
     })()
     return () => {
       updateList([])

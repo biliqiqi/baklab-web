@@ -1,3 +1,4 @@
+import { MessageCircleIcon } from 'lucide-react'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
@@ -40,18 +41,30 @@ export default function CategoryListPage() {
             <Card className="flex items-start p-2 w-full">
               <Link
                 to={`/${siteFrontId}/bankuai/${cate.frontId}`}
+                state={cate}
                 className="mr-2"
               >
-                <BIconColorChar
-                  iconId={cate.frontId}
-                  char={cate.iconContent}
-                  color={cate.iconBgColor}
-                  size={48}
-                />
+                <span className="relative inline-block">
+                  <BIconColorChar
+                    iconId={cate.frontId}
+                    char={cate.iconContent}
+                    color={cate.iconBgColor}
+                    size={48}
+                  />
+                  {cate.contentForm?.frontId == 'chat' && (
+                    <MessageCircleIcon
+                      size={24}
+                      className="absolute -right-[9px] bottom-0 text-gray-500 z-20 bg-white rounded-full p-[3px]"
+                    />
+                  )}
+                </span>
               </Link>
               <div>
                 <div className="font-bold pt-2">
-                  <Link to={`/${siteFrontId}/bankuai/${cate.frontId}`}>
+                  <Link
+                    to={`/${siteFrontId}/bankuai/${cate.frontId}`}
+                    state={cate}
+                  >
                     {cate.name}
                   </Link>
                 </div>

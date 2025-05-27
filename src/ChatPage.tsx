@@ -42,6 +42,7 @@ interface ChatListMap {
 interface ChatPageProps {
   currCate: Category
   onLoad?: () => void
+  onReady?: () => void
 }
 
 type SaveChatList = (
@@ -96,7 +97,11 @@ const setLocalChatListData = (key: string, val: ChatListState) => {
 //   }
 // }
 
-const ChatPage: React.FC<ChatPageProps> = ({ currCate, onLoad = noop }) => {
+const ChatPage: React.FC<ChatPageProps> = ({
+  currCate,
+  onLoad = noop,
+  onReady = noop,
+}) => {
   const [chatList, setChatList] = useState<ChatListState>({
     list: [],
     prevCursor: '',
@@ -587,6 +592,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate, onLoad = noop }) => {
 
   // 初始化数据
   useEffect(() => {
+    onReady()
     toSync(fetchChatList, () => {
       const chatListState: Partial<ChatListState> = {
         initialized: true,
@@ -612,7 +618,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ currCate, onLoad = noop }) => {
         initialized: false,
       })
     }
-  }, [siteFrontId, categoryFrontId])
+  }, [siteFrontId, categoryFrontId, location])
 
   useEffect(() => {
     /* console.log('reply success: ', replySuccess) */

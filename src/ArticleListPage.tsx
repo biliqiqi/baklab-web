@@ -45,9 +45,13 @@ import {
 
 interface ArticleListPageProps {
   onLoad?: () => void
+  onReady?: () => void
 }
 
-const ArticleListPage: React.FC<ArticleListPageProps> = ({ onLoad = noop }) => {
+const ArticleListPage: React.FC<ArticleListPageProps> = ({
+  onLoad = noop,
+  onReady = noop,
+}) => {
   const [showSummary] = useState(false)
   const [currCate, setCurrCate] = useState<Category | null>(null)
   const [list, updateList] = useState<Article[]>([])
@@ -178,6 +182,7 @@ const ArticleListPage: React.FC<ArticleListPageProps> = ({ onLoad = noop }) => {
 
   /* console.log('list: ', list) */
   useEffect(() => {
+    onReady()
     toSync(fetchArticles, () => {
       setTimeout(() => {
         onLoad()
@@ -189,7 +194,7 @@ const ArticleListPage: React.FC<ArticleListPageProps> = ({ onLoad = noop }) => {
         ...defaultPageState,
       })
     }
-  }, [params, siteFrontId, categoryFrontId])
+  }, [params, siteFrontId, categoryFrontId, location])
 
   return (
     <>
@@ -281,6 +286,7 @@ const ArticleListPage: React.FC<ArticleListPageProps> = ({ onLoad = noop }) => {
                 ctype="list"
                 bookmark={false}
                 notify={false}
+                history={false}
                 onSuccess={fetchArticles}
               />
             </Card>

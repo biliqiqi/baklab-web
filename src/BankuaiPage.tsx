@@ -19,6 +19,8 @@ import { Category } from './types/types'
 export default function BankuaiPage() {
   const [showSkeleton, setShowSkeleton] = useState(false)
   const [serverCate, setServerCate] = useState<Category | null>(null)
+  const [initialized, setInitialized] = useState(false)
+
   const { state } = useLocation() as { state: Category | undefined }
 
   const currCate = useMemo(() => state || serverCate, [state, serverCate])
@@ -36,17 +38,20 @@ export default function BankuaiPage() {
   )
 
   useEffect(() => {
-    if (!currCate && categoryFrontId) {
+    if (!currCate && siteFrontId && categoryFrontId) {
       toSync(getCategoryWithFrontId, (data) => {
         if (!data.code) {
           setServerCate(data.data)
+          setInitialized(true)
         }
       })(categoryFrontId, { siteFrontId })
+    } else {
+      setInitialized(true)
     }
 
-    return () => {
-      setShowSkeleton(true)
-    }
+    /* return () => {
+     *   setShowSkeleton(true)
+     * } */
   }, [currCate, categoryFrontId, siteFrontId])
 
   return (
@@ -87,15 +92,19 @@ export default function BankuaiPage() {
         </div>
       )}
 
-      {currCate && isChat ? (
-        <ChatPage
-          currCate={currCate}
-          key={`chat_list_${siteFrontId}_${currCate?.frontId}`}
-          onLoad={() => setShowSkeleton(false)}
-        />
-      ) : (
-        <ArticleListPage onLoad={() => setShowSkeleton(false)} />
-      )}
+      {initialized &&
+        (currCate && isChat ? (
+          <ChatPage
+            currCate={currCate}
+            onLoad={() => setShowSkeleton(false)}
+            onReady={() => setShowSkeleton(true)}
+          />
+        ) : (
+          <ArticleListPage
+            onLoad={() => setShowSkeleton(false)}
+            onReady={() => setShowSkeleton(true)}
+          />
+        ))}
     </BContainer>
   )
 }

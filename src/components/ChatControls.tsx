@@ -8,7 +8,6 @@ import {
   LockOpenIcon,
   MessageSquare,
   PencilIcon,
-  QrCode,
   Trash2Icon,
 } from 'lucide-react'
 import {
@@ -20,11 +19,10 @@ import {
   useMemo,
   useState,
 } from 'react'
-import { Trans, useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 
-import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
-import { cn, genArticlePath, noop } from '@/lib/utils'
+import { cn, noop } from '@/lib/utils'
 
 import {
   acceptAnswer,
@@ -38,13 +36,10 @@ import { useArticleHistoryStore, useAuthedUserStore } from '@/state/global'
 import {
   Article,
   ArticleAction,
-  ArticleCardType,
   SUBSCRIBE_ACTION,
   VoteType,
 } from '@/types/types'
 
-import BIconColorChar from './base/BIconColorChar'
-import BSiteIcon from './base/BSiteIcon'
 import { BIconTriangleDown } from './icon/TriangleDown'
 import { BIconTriangleUp } from './icon/TriangleUp'
 import { Button } from './ui/button'
@@ -153,7 +148,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
   )
 
   const onShowHistoryClick = useCallback(
-    async (e: MouseEvent<HTMLButtonElement>) => {
+    async (e: MouseEvent<HTMLElement>) => {
       try {
         e.preventDefault()
         articleHistory.updateState({
@@ -378,6 +373,18 @@ const ChatControls: React.FC<ChatControlsProps> = ({
                       <LockOpenIcon className="inline-block" size={20} />
                     )}
                     {article.locked ? t('unlock') : t('lock')}
+                  </DropdownMenuItem>
+                )}
+                {checkPermit('article', 'manage') && (
+                  <DropdownMenuItem
+                    className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                    onClick={async (e) => {
+                      setShowChatMenu(false)
+                      await onShowHistoryClick(e)
+                    }}
+                  >
+                    <HistoryIcon size={20} className="inline-block" />
+                    {t('editHistory')}
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>

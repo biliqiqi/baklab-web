@@ -395,7 +395,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
         <div className="py-2 mb-4 text-gray-500 text-sm">
           <BAvatar size={24} username={article.authorName} />{' '}
           <Link to={`/users/${article.authorName}`}>{article.authorName}</Link>{' '}
-          {t('publishedAt', { field: timeAgo(article.createdAt) })}
+          {t('publishedAt', { time: timeAgo(article.createdAt) })}
         </div>
       )}
       <Form {...form}>

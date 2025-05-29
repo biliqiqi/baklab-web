@@ -1,4 +1,4 @@
-import { SquareArrowOutUpRightIcon } from 'lucide-react'
+import { PenIcon, SquareArrowOutUpRightIcon } from 'lucide-react'
 import {
   HTMLAttributes,
   MouseEvent,
@@ -225,6 +225,16 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
             <span title={timeFmt(article.createdAt, 'YYYY-M-D H:m:s')}>
               {timeAgo(article.createdAt, 'YYYY-M-D H:m')}
             </span>
+            {article.updatedAt != article.createdAt && (
+              <span
+                title={t('editAt', {
+                  time: timeFmt(article.updatedAt, 'YYYY-M-D H:m:s'),
+                })}
+              >
+                &nbsp;&nbsp;
+                <PenIcon className="inline-block" size={14} />
+              </span>
+            )}
           </div>
           <Card
             className="b-chat-card__card flex-grow-0 relative p-3 pb-2 mb-3"

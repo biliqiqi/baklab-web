@@ -415,6 +415,7 @@
   "blockedWordDescribe2": "A single word cannot exceed {{num}} characters.",
   "postReviewTip": "Submission successful. Based on site settings, the content will be displayed after review.",
   "publishedAt": "Published at {{time}}",
+  "editAt": "Updated at {{time}}",
   "publishTo": "Publish to",
   "searchCategory": "Search Bankuais",
   "noCategoryFound": "No bankuais found",
@@ -515,5 +516,6 @@
   "postEditHistory": "Edit History for \"{{title}}\"",
   "about1": "About {{name}}",
   "siteCreatedBy": "Created by <userLink/> at <timeTag/>",
-  "inviteTip": "Please copy the link below and share it with friends"
+  "inviteTip": "Please copy the link below and share it with friends",
+  "editHistory": "Edit history"
 }

@@ -6,7 +6,6 @@ import { useShallow } from 'zustand/react/shallow'
 import ChatCard from './components/ChatCard'
 
 import { getChatList, readManyArticle } from './api/article'
-import { readArticle } from './api/message'
 import {
   CHAT_DATA_CACHE_KEY,
   EV_ON_EDIT_CLICK,

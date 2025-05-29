@@ -213,6 +213,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                 className="mr-1 p-0 w-[36px] h-[36px]"
                 onClick={(e) => onVoteClick(e, 'up')}
                 disabled={disabled}
+                title={t('upVotePost')}
               >
                 {/* <ThumbsUp size={20} className="inline-block mr-1" /> */}
                 <BIconTriangleUp
@@ -229,6 +230,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                 className="mr-1 p-0 w-[36px] h-[36px]"
                 onClick={(e) => onVoteClick(e, 'down')}
                 disabled={disabled}
+                title={t('downVotePost')}
               >
                 <BIconTriangleDown
                   size={28}
@@ -244,6 +246,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                 asChild={ctype == 'list'}
                 onClick={onCommentClick}
                 className="mr-1"
+                title={t('replyPost')}
               >
                 {ctype == 'list' ? (
                   <Link to={genArticlePath(article)}>
@@ -261,6 +264,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                 size="sm"
                 onClick={onSaveClick}
                 disabled={disabled}
+                title={t('savePost')}
               >
                 <BookmarkIcon
                   size={20}
@@ -280,6 +284,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                   onClick={onSubscribeClick}
                   disabled={disabled}
                   className="mr-1"
+                  title={t('subscribePost')}
                 >
                   <BellIcon
                     size={20}
@@ -307,6 +312,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             onClick={onShowHistoryClick}
             disabled={disabled}
             className="mr-1"
+            title={t('editHistory')}
           >
             <HistoryIcon size={20} className="mr-1" />
           </Button>

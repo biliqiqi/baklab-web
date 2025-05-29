@@ -415,6 +415,7 @@
   "blockedWordDescribe2": "单个词汇不得超过 {{num}} 个字符",
   "postReviewTip": "提交成功，根据站点设置，内容将会在审核之后展示。",
   "publishedAt": "发布于 {{time}}",
+  "editAt": "编辑于 {{time}}",
   "publishTo": "发布到",
   "searchCategory": "搜索板块",
   "noCategoryFound": "未找到板块",
@@ -515,5 +516,6 @@
   "postEditHistory": "\"{{title}}\" 的编辑历史",
   "about1": "关于{{name}}",
   "siteCreatedBy": "由 <userLink/> 创建于 <timeTag/>",
-  "inviteTip": "请复制以下链接并分享给好友"
+  "inviteTip": "请复制以下链接并分享给好友",
+  "editHistory": "编辑历史"
 }

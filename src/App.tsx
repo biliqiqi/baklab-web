@@ -9,6 +9,9 @@ import BLoader from './components/base/BLoader.tsx'
 
 import { useTheme } from './components/theme-provider.ts'
 
+import '@/state/chat-db.ts'
+import { deleteMessage, saveMessage } from '@/state/chat-db.ts'
+
 import {
   API_HOST,
   API_PATH_PREFIX,
@@ -37,7 +40,7 @@ import {
   useUserUIStore,
 } from './state/global.ts'
 import { useRoutesStore } from './state/routes.ts'
-import { SSE_EVENT, SettingsType } from './types/types.ts'
+import { Article, SSE_EVENT, SettingsType } from './types/types.ts'
 
 const fetchNotiCount = toSync(async () => {
   const notiState = useNotificationStore.getState()
@@ -87,6 +90,36 @@ const connectEvents = () => {
     /* console.log('close:', ev) */
     eventSource.close()
   })
+
+  eventSource.addEventListener(
+    SSE_EVENT.NewMessage,
+    (ev: MessageEvent<string>) => {
+      try {
+        /* console.log('new message data str: ', ev.data) */
+        const item = JSON.parse(ev.data) as Article
+        /* console.log('new message data: ', item) */
+        if (item) {
+          toSync(saveMessage)(item.siteFrontId, item.categoryFrontId, item)
+        }
+      } catch (err) {
+        console.error('parse event data error in newmessage event: ', err)
+      }
+    }
+  )
+
+  eventSource.addEventListener(
+    SSE_EVENT.DeleteMessage,
+    (ev: MessageEvent<string>) => {
+      try {
+        /* console.log('delete message data str: ', ev.data) */
+        if (ev.data) {
+          toSync(deleteMessage)(ev.data)
+        }
+      } catch (err) {
+        console.error('parse event data error in deletemessage event: ', err)
+      }
+    }
+  )
 
   eventSource.onerror = (err) => {
     console.error('event source error: ', err)

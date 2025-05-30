@@ -48,6 +48,7 @@
     "events": "^3.3.0",
     "i18next": "^23.16.8",
     "i18next-browser-languagedetector": "^8.1.0",
+    "idb": "^8.0.3",
     "ky": "^1.8.1",
     "lucide-react": "^0.451.0",
     "markdown-it": "^14.1.0",

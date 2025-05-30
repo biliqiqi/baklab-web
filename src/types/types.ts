@@ -702,6 +702,21 @@ export const SSE_EVENT = Object.freeze({
   UpdateNoties: 'updatenoties',
   Close: 'close',
   NewMessage: 'newmessage',
+  DeleteMessage: 'deletemessage',
 } as const)
 
 export type SseEvent = ValuesToUnion<typeof SSE_EVENT>
+
+export interface ChatListState {
+  path: string
+  list: Article[]
+  prevCursor: string
+  nextCursor: string
+  initialized: boolean
+  lastReadCursor: string
+  lastScrollTop: number
+}
+
+export interface ChatData {
+  [path: string]: ChatListState
+}

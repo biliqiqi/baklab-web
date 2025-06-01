@@ -10,7 +10,7 @@ import BLoader from './components/base/BLoader.tsx'
 import { useTheme } from './components/theme-provider.ts'
 
 import '@/state/chat-db.ts'
-import { deleteMessage, saveMessage } from '@/state/chat-db.ts'
+import { deleteIDBMessage, saveIDBMessage } from '@/state/chat-db.ts'
 
 import {
   API_HOST,
@@ -99,7 +99,7 @@ const connectEvents = () => {
         const item = JSON.parse(ev.data) as Article
         /* console.log('new message data: ', item) */
         if (item) {
-          toSync(saveMessage)(item.siteFrontId, item.categoryFrontId, item)
+          toSync(saveIDBMessage)(item.siteFrontId, item.categoryFrontId, item)
         }
       } catch (err) {
         console.error('parse event data error in newmessage event: ', err)
@@ -113,7 +113,7 @@ const connectEvents = () => {
       try {
         /* console.log('delete message data str: ', ev.data) */
         if (ev.data) {
-          toSync(deleteMessage)(ev.data)
+          toSync(deleteIDBMessage)(ev.data)
         }
       } catch (err) {
         console.error('parse event data error in deletemessage event: ', err)

@@ -1,15 +1,14 @@
 import { DBSchema, openDB } from 'idb'
 
-import { Article, ChatListState } from '@/types/types'
+import { bus } from '@/lib/utils'
 
-type ChatRoom = Pick<
-  ChatListState,
-  'path' | 'prevCursor' | 'nextCursor' | 'lastReadCursor' | 'lastScrollTop'
->
-
-interface ChatMessage extends Article {
-  roomPath: string
-}
+import {
+    Article,
+    CHAT_DB_EVENT,
+    ChatListState,
+    ChatMessage,
+    ChatRoom,
+} from '@/types/types'
 
 interface ChatDB extends DBSchema {
   chatRooms: {
@@ -29,7 +28,7 @@ interface ChatDB extends DBSchema {
 }
 
 const CHAT_DB_NAME = 'chatDB'
-const CHAT_DB_VERSION = 1
+const CHAT_DB_VERSION = 2
 
 export const chatDB = await openDB<ChatDB>(CHAT_DB_NAME, CHAT_DB_VERSION, {
   upgrade(db, oldVersion, newVersion) {
@@ -44,12 +43,12 @@ export const chatDB = await openDB<ChatDB>(CHAT_DB_NAME, CHAT_DB_VERSION, {
       const chatMessages = db.createObjectStore('chatMessages', {
         keyPath: 'id',
       })
-      chatMessages.createIndex('by-room', 'roomId')
+      chatMessages.createIndex('by-room', 'roomPath')
     }
   },
 })
 
-export const saveChatList = async (
+export const saveIDBChatList = async (
   siteFrontId: string,
   categoryFrontId: string,
   list: Article[],
@@ -62,25 +61,34 @@ export const saveChatList = async (
     const chatRooms = tx.objectStore('chatRooms')
     const chatMessages = tx.objectStore('chatMessages')
 
-    await chatRooms.put({
+    const roomData: ChatRoom = {
       path: roomPath,
       prevCursor: prevCursor,
       nextCursor: nextCursor,
       lastReadCursor: '',
       lastScrollTop: 0,
-    })
-
-    for (const item of list) {
-      await chatMessages.put({ ...item, roomPath })
     }
 
+    await chatRooms.put(roomData)
+
+    const messageList: ChatMessage[] = list.map((item) => ({
+      ...item,
+      roomPath,
+      idNum: Number(item.id) || 0,
+      createdAtTimestamp: new Date(item.createdAt).getTime(),
+    }))
+
+    await Promise.all(messageList.map((item) => chatMessages.put(item)))
+
     await tx.done
+
+    bus.emit(CHAT_DB_EVENT.SaveChatList, roomData, messageList)
   } catch (err) {
     console.error('save chat list error: ', err)
   }
 }
 
-export const getChatList = async (
+export const getIDBChatList = async (
   siteFrontId: string,
   categoryFrontId: string
 ) => {
@@ -98,7 +106,15 @@ export const getChatList = async (
       return null
     }
 
+    // console.log('roomPath:', roomPath)
+
     list = await chatMessages.index('by-room').getAll(roomPath)
+    list.sort((a, b) => {
+      return a.createdAtTimestamp - b.createdAtTimestamp || a.idNum - b.idNum
+    })
+
+    // console.log('list:', list)
+
     await tx.done
     return {
       ...roomData,
@@ -112,23 +128,26 @@ export const getChatList = async (
   return null
 }
 
-export const saveMessage = async (
+export const saveIDBMessage = async (
   siteFrontId: string,
   categoryFrontId: string,
   article: Article
 ) => {
   try {
     const roomPath = `/${siteFrontId}/bankuai/${categoryFrontId}`
-    const message = {
+    const message: ChatMessage = {
       ...article,
       roomPath,
-    } as ChatMessage
+      idNum: Number(article.id) || 0,
+      createdAtTimestamp: new Date(article.createdAt).getTime(),
+    }
 
     const tx = chatDB.transaction(['chatRooms', 'chatMessages'], 'readwrite')
     const chatMessages = tx.objectStore('chatMessages')
     const chatRooms = tx.objectStore('chatRooms')
 
     const roomData = await chatRooms.get(roomPath)
+
     if (!roomData) {
       await chatRooms.put({
         path: roomPath,
@@ -140,18 +159,28 @@ export const saveMessage = async (
     }
 
     await chatMessages.put(message)
+
+    bus.emit(CHAT_DB_EVENT.SaveMessage, message)
   } catch (err) {
     console.error('save message error: ', err)
   }
 }
 
-export const deleteMessage = async (messageId: string) => {
+export const deleteIDBMessage = async (messageId: string) => {
   try {
     const tx = chatDB.transaction(['chatMessages'], 'readwrite')
     const chatMessages = tx.objectStore('chatMessages')
 
+    const message = await chatMessages.get(messageId)
+
+    if (!message) return
+
+    const { roomPath } = message
+
     await chatMessages.delete(messageId)
     await tx.done
+
+    bus.emit(CHAT_DB_EVENT.DeleteMessage, messageId, roomPath)
   } catch (err) {
     console.error('delete message error: ', err)
   }

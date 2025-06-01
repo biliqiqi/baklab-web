@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import { useDebouncedCallback } from 'use-debounce'
 import { useShallow } from 'zustand/react/shallow'
@@ -7,7 +7,6 @@ import ChatCard from './components/ChatCard'
 
 import { getChatList, readManyArticle } from './api/article'
 import {
-  CHAT_DATA_CACHE_KEY,
   EV_ON_EDIT_CLICK,
   EV_ON_REPLY_CLICK,
   REPLY_BOX_PLACEHOLDER_HEIGHT,
@@ -15,28 +14,19 @@ import {
 import { defaultPageState } from './constants/defaults'
 import { toSync } from './lib/fire-and-forget'
 import { bus, noop, scrollToBottom } from './lib/utils'
+import { getIDBChatList, saveIDBChatList } from './state/chat-db'
 import {
   useAuthedUserStore,
-  useEventSourceStore,
   useLoading,
   useReplyBoxStore,
 } from './state/global'
-import { Article, Category, SSE_EVENT } from './types/types'
-
-interface ChatListState {
-  list: Article[]
-  prevCursor: string
-  nextCursor: string
-  initialized: boolean
-}
-
-interface ChatListCache {
-  [x: string]: ChatListState
-}
-
-interface ChatListMap {
-  [x: string]: Article
-}
+import {
+  Article,
+  CHAT_DB_EVENT,
+  Category,
+  ChatListState,
+  ChatMessage,
+} from './types/types'
 
 interface ChatPageProps {
   currCate: Category
@@ -44,57 +34,15 @@ interface ChatPageProps {
   onReady?: () => void
 }
 
-type SaveChatList = (
-  _isNext: boolean,
-  list: Article[],
-  prevCursor: string,
-  nextCursor: string
-) => void
-
-const getLocalChatData = () => {
-  const dataStr = localStorage.getItem(CHAT_DATA_CACHE_KEY)
-  if (!dataStr) return null
-
-  try {
-    return JSON.parse(dataStr) as ChatListCache
-  } catch (err) {
-    console.error('parse chat data cache error: ', err)
-  }
-
-  return null
+const defaultChatListData: ChatListState = {
+  list: [],
+  prevCursor: '',
+  nextCursor: '',
+  initialized: false,
+  lastReadCursor: '',
+  lastScrollTop: 0,
+  path: '',
 }
-
-const getLocalChatListData = (key: string) => {
-  const data = getLocalChatData()
-  if (data && data[key]) {
-    return data[key]
-  }
-
-  return null
-}
-
-const setLocalChatListData = (key: string, val: ChatListState) => {
-  const data = getLocalChatData()
-
-  let newData = {
-    [key]: val,
-  } as ChatListCache
-
-  if (data) {
-    newData = Object.assign(data, newData)
-  }
-
-  localStorage.setItem(CHAT_DATA_CACHE_KEY, JSON.stringify(newData))
-}
-
-// const deleteLocalChatListData = (key: string) => {
-//   const data = getLocalChatData()
-//
-//   if (data && data[key]) {
-//     delete data[key]
-//     localStorage.setItem(CHAT_DATA_CACHE_KEY, JSON.stringify(data))
-//   }
-// }
 
 const ChatPage: React.FC<ChatPageProps> = ({
   currCate,
@@ -102,10 +50,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
   onReady = noop,
 }) => {
   const [chatList, setChatList] = useState<ChatListState>({
-    list: [],
-    prevCursor: '',
-    nextCursor: '',
-    initialized: false,
+    ...defaultChatListData,
   })
   const [currCursor, setCurrCursor] = useState('')
   const [replySuccess, setReplySuccess] = useState(false)
@@ -126,9 +71,17 @@ const ChatPage: React.FC<ChatPageProps> = ({
   const newMessageHandlerRef = useRef<
     | ((
         atBottom: boolean,
-        saveChatList: SaveChatList,
-        prevCursor: string
-      ) => (ev: MessageEvent<string>) => void)
+        siteFrontId: string,
+        categoryFrontId: string
+      ) => (data: ChatMessage) => void)
+    | null
+  >(null)
+
+  const deleteMessageHandlerRef = useRef<
+    | ((
+        siteFrontId: string,
+        categoryFrontId: string
+      ) => (id: string, roomPath: string) => void)
     | null
   >(null)
 
@@ -141,72 +94,10 @@ const ChatPage: React.FC<ChatPageProps> = ({
     }))
   )
 
-  const eventSource = useEventSourceStore((state) => state.eventSource)
-
   const location = useLocation()
 
   const { permit, currUserId } = useAuthedUserStore(
     useShallow(({ permit, userID }) => ({ permit, currUserId: userID }))
-  )
-
-  const saveChatList = useCallback(
-    (
-      _isNext: boolean,
-      list: Article[],
-      prevCursor: string,
-      nextCursor: string
-    ) => {
-      let data: ChatListState = {
-        list,
-        prevCursor,
-        nextCursor,
-        initialized: true,
-      }
-
-      const existingData = getLocalChatListData(location.pathname)
-      if (existingData) {
-        const tempMap = existingData.list.reduce((prev, curr) => {
-          prev[curr.id] = curr
-          return prev
-        }, {} as ChatListMap)
-
-        const mergedList = [...existingData.list]
-
-        for (const item of list) {
-          if (item.id in tempMap) {
-            // 更新现有项目
-            const index = mergedList.findIndex(
-              (existing) => existing.id === item.id
-            )
-            if (index !== -1) {
-              mergedList[index] = { ...mergedList[index], ...item }
-            }
-          } else {
-            // 添加新项目
-            mergedList.push(item)
-          }
-        }
-
-        // 排序
-        mergedList.sort((a, b) => {
-          return (
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime() ||
-            Number(a.id) - Number(b.id)
-          )
-        })
-
-        data = {
-          list: mergedList,
-          prevCursor,
-          nextCursor,
-          initialized: true,
-        }
-      }
-
-      setChatList((state) => ({ ...state, ...data }))
-      setLocalChatListData(location.pathname, data)
-    },
-    [location.pathname]
   )
 
   const fetchChatList = useCallback(
@@ -230,8 +121,9 @@ const ChatPage: React.FC<ChatPageProps> = ({
         }
 
         /* console.log('cursor: ', cursor) */
+        if (!siteFrontId || !categoryFrontId) return
 
-        if (!force && (!cursor || !currCate?.frontId || !siteFrontId)) return
+        if (!force && (!cursor || !currCate?.frontId)) return
 
         const { code, data } = await getChatList(
           cursor,
@@ -253,11 +145,16 @@ const ChatPage: React.FC<ChatPageProps> = ({
           }
         }
 
-        if (!code && data) {
-          const existingData = getLocalChatListData(location.pathname)
-          saveChatList(
-            isNext,
-            data.articles || [],
+        if (!code && data.articles) {
+          const existingData = await getIDBChatList(
+            siteFrontId,
+            categoryFrontId
+          )
+
+          await saveIDBChatList(
+            siteFrontId,
+            categoryFrontId,
+            [...data.articles],
             init &&
               existingData &&
               data.articles &&
@@ -280,7 +177,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
     [
       currCate,
       siteFrontId,
-      saveChatList,
+      categoryFrontId,
       isLoading,
       chatList,
       setLoading,
@@ -310,39 +207,57 @@ const ChatPage: React.FC<ChatPageProps> = ({
     [setReplyBoxState]
   )
 
+  const getLocalChatList = toSync(getIDBChatList, (data) => {
+    /* console.log('getLocalChatList: ', data) */
+    if (data) {
+      setChatList((state) => ({ ...state, ...data }))
+    } else {
+      setChatList(() => ({ ...defaultChatListData }))
+    }
+  })
+
   useEffect(() => {
     const CreateOnNewMessage =
-      (atBottom: boolean, saveChatList: SaveChatList, prevCursor: string) =>
-      (ev: MessageEvent<string>) => {
-        try {
-          /* console.log('new message data str: ', ev.data) */
-          const item = JSON.parse(ev.data) as Article
-
-          /* console.log('new message data: ', item) */
-
-          if (item) {
-            saveChatList(true, [item], prevCursor, '')
-            /* console.log('at bottom: ', atBottom) */
-
-            if (atBottom) {
-              setTimeout(() => {
-                scrollToBottom('smooth')
-              }, 0)
-            }
-          }
-        } catch (err) {
-          console.error('parse event data error in newmessage event: ', err)
+      (atBottom: boolean, siteFrontId: string, categoryFrontId: string) =>
+      (data: ChatMessage) => {
+        if (data.roomPath != `/${siteFrontId}/bankuai/${categoryFrontId}`)
+          return
+        /* console.log('new message: ', data) */
+        getLocalChatList(siteFrontId, categoryFrontId)
+        if (atBottom) {
+          setTimeout(() => {
+            scrollToBottom('smooth')
+          }, 0)
         }
+      }
+
+    const CreateOnDeleteMessage =
+      (siteFrontId: string, categoryFrontId: string) =>
+      (_id: string, roomPath: string) => {
+        if (roomPath != `/${siteFrontId}/bankuai/${categoryFrontId}`) return
+        /* console.log('delete article id: ', id) */
+        getLocalChatList(siteFrontId, categoryFrontId)
       }
 
     replyHandlerRef.current = onReplyClick
     editHandlerRef.current = onEditClick
     newMessageHandlerRef.current = CreateOnNewMessage
-  }, [onReplyClick, onEditClick])
+    deleteMessageHandlerRef.current = CreateOnDeleteMessage
+  }, [onReplyClick, onEditClick, getLocalChatList])
 
   useEffect(() => {
     const replyHandler = replyHandlerRef.current
     const editHandler = editHandlerRef.current
+    const newMessageFn = newMessageHandlerRef.current
+    const newMessageHandler =
+      newMessageFn && siteFrontId && categoryFrontId
+        ? newMessageFn(atBottom, siteFrontId, categoryFrontId)
+        : null
+    const deleteMessageFn = deleteMessageHandlerRef.current
+    const deleteMessageHandler =
+      deleteMessageFn && siteFrontId && categoryFrontId
+        ? deleteMessageFn(siteFrontId, categoryFrontId)
+        : null
 
     if (replyHandler) {
       bus.on(EV_ON_REPLY_CLICK, replyHandler)
@@ -352,15 +267,32 @@ const ChatPage: React.FC<ChatPageProps> = ({
       bus.on(EV_ON_EDIT_CLICK, editHandler)
     }
 
+    if (newMessageHandler) {
+      bus.on(CHAT_DB_EVENT.SaveMessage, newMessageHandler)
+    }
+
+    if (deleteMessageHandler) {
+      bus.on(CHAT_DB_EVENT.DeleteMessage, deleteMessageHandler)
+    }
+
     return () => {
       if (replyHandler) {
         bus.off(EV_ON_REPLY_CLICK, replyHandler)
       }
+
       if (editHandler) {
         bus.off(EV_ON_EDIT_CLICK, editHandler)
       }
+
+      if (newMessageHandler) {
+        bus.off(CHAT_DB_EVENT.SaveMessage, newMessageHandler)
+      }
+
+      if (deleteMessageHandler) {
+        bus.off(CHAT_DB_EVENT.DeleteMessage, deleteMessageHandler)
+      }
     }
-  }, [])
+  }, [atBottom, siteFrontId, categoryFrontId])
 
   useEffect(() => {
     setReplyBoxState({
@@ -556,15 +488,11 @@ const ChatPage: React.FC<ChatPageProps> = ({
           const target = ent.target as HTMLDivElement
           if (listItemReverseRef.current.has(target)) {
             if (ent.isIntersecting) {
-              /* console.log(
-               *   'message enter view: ',
-               *   listItemReverseRef.current.get(target)
-               * ) */
               const message = listItemReverseRef.current.get(target)
               if (
                 message &&
                 message.authorId != currUserId &&
-                message.currUserState &&
+                message?.currUserState &&
                 !message.currUserState.isRead
               ) {
                 readIdList.current.add(message.id)
@@ -587,7 +515,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
     return () => {
       inViewObserver.disconnect()
     }
-  }, [chatList.initialized, currUserId, chatList])
+  }, [chatList.initialized, currUserId, chatList, debouncedReadManyMessage])
 
   // 初始化数据
   useEffect(() => {
@@ -615,6 +543,9 @@ const ChatPage: React.FC<ChatPageProps> = ({
         prevCursor: '',
         nextCursor: '',
         initialized: false,
+        lastReadCursor: '',
+        lastScrollTop: 0,
+        path: '',
       })
     }
   }, [siteFrontId, categoryFrontId, location])
@@ -628,24 +559,9 @@ const ChatPage: React.FC<ChatPageProps> = ({
   }, [replySuccess])
 
   useEffect(() => {
-    const newMessageHandler = newMessageHandlerRef.current
-      ? newMessageHandlerRef.current(
-          atBottom,
-          saveChatList,
-          chatList.prevCursor
-        )
-      : null
-
-    if (eventSource && newMessageHandler) {
-      eventSource.addEventListener(SSE_EVENT.NewMessage, newMessageHandler)
-    }
-
-    return () => {
-      if (eventSource && newMessageHandler) {
-        eventSource.removeEventListener(SSE_EVENT.NewMessage, newMessageHandler)
-      }
-    }
-  }, [eventSource, atBottom, saveChatList, chatList.prevCursor])
+    if (!siteFrontId || !categoryFrontId) return
+    getLocalChatList(siteFrontId, categoryFrontId)
+  }, [siteFrontId, categoryFrontId])
 
   return (
     <div style={{ paddingBottom: `${REPLY_BOX_PLACEHOLDER_HEIGHT}px` }}>
@@ -656,7 +572,9 @@ const ChatPage: React.FC<ChatPageProps> = ({
             <ChatCard
               article={item}
               key={item.id}
-              onSuccess={() => fetchChatList(false)}
+              onSuccess={async () => {
+                await fetchChatList(false)
+              }}
               ref={(el) => {
                 if (el) {
                   listItemRef.current.set(item.id, el)

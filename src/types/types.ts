@@ -720,3 +720,22 @@ export interface ChatListState {
 export interface ChatData {
   [path: string]: ChatListState
 }
+
+export type ChatRoom = Pick<
+  ChatListState,
+  'path' | 'prevCursor' | 'nextCursor' | 'lastReadCursor' | 'lastScrollTop'
+>
+
+export interface ChatMessage extends Article {
+  roomPath: string
+  idNum: number
+  createdAtTimestamp: number
+}
+
+export const CHAT_DB_EVENT = Object.freeze({
+  SaveChatList: 'savechatlist',
+  SaveMessage: 'savemessage',
+  DeleteMessage: 'deletemessage',
+} as const)
+
+export type ChatDBEvent = ValuesToUnion<typeof CHAT_DB_EVENT>

@@ -41,7 +41,7 @@ import { Skeleton } from './ui/skeleton'
 
 interface ChatCardProps extends HTMLAttributes<HTMLDivElement> {
   article: Article
-  onSuccess?: (a: ArticleAction) => void
+  onSuccess?: (a: ArticleAction, id?: string) => void
   isTop?: boolean
   previewMode?: boolean
 }
@@ -122,7 +122,7 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
             )
             if (!resp.code) {
               /* navigate(-1) */
-              onSuccess('delete')
+              onSuccess('delete', article.id)
             }
           }
         } catch (err) {
@@ -172,7 +172,7 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
           )
           if (!resp.code) {
             setAlertOpen(false)
-            onSuccess('delete')
+            onSuccess('delete', article.id)
           }
         } catch (err) {
           console.error('confirm delete error: ', err)

@@ -15,6 +15,7 @@ export default tseslint.config(
       'ts_tracing_output',
       '.git',
       '*.min.js',
+      'src/i18n',
     ],
   },
   {
@@ -57,6 +58,7 @@ export default tseslint.config(
           },
         },
       ],
+      'react-refresh/only-export-components': 'off',
     },
   },
   {

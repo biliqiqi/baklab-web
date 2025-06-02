@@ -77,7 +77,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
     | null
   >(null)
 
-  const deleteMessageHandlerRef = useRef<
+  const refreshChatListHandlerRef = useRef<
     | ((
         siteFrontId: string,
         categoryFrontId: string
@@ -231,7 +231,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
         }
       }
 
-    const CreateOnDeleteMessage =
+    const CreateRefreshChatList =
       (siteFrontId: string, categoryFrontId: string) =>
       (_id: string, roomPath: string) => {
         if (roomPath != `/${siteFrontId}/bankuai/${categoryFrontId}`) return
@@ -242,7 +242,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
     replyHandlerRef.current = onReplyClick
     editHandlerRef.current = onEditClick
     newMessageHandlerRef.current = CreateOnNewMessage
-    deleteMessageHandlerRef.current = CreateOnDeleteMessage
+    refreshChatListHandlerRef.current = CreateRefreshChatList
   }, [onReplyClick, onEditClick, getLocalChatList])
 
   useEffect(() => {
@@ -253,10 +253,10 @@ const ChatPage: React.FC<ChatPageProps> = ({
       newMessageFn && siteFrontId && categoryFrontId
         ? newMessageFn(atBottom, siteFrontId, categoryFrontId)
         : null
-    const deleteMessageFn = deleteMessageHandlerRef.current
-    const deleteMessageHandler =
-      deleteMessageFn && siteFrontId && categoryFrontId
-        ? deleteMessageFn(siteFrontId, categoryFrontId)
+    const refreshChatListFn = refreshChatListHandlerRef.current
+    const refreshChatListHandler =
+      refreshChatListFn && siteFrontId && categoryFrontId
+        ? refreshChatListFn(siteFrontId, categoryFrontId)
         : null
 
     if (replyHandler) {
@@ -271,8 +271,9 @@ const ChatPage: React.FC<ChatPageProps> = ({
       bus.on(CHAT_DB_EVENT.SaveMessage, newMessageHandler)
     }
 
-    if (deleteMessageHandler) {
-      bus.on(CHAT_DB_EVENT.DeleteMessage, deleteMessageHandler)
+    if (refreshChatListHandler) {
+      bus.on(CHAT_DB_EVENT.DeleteMessage, refreshChatListHandler)
+      bus.on(CHAT_DB_EVENT.SaveChatList, refreshChatListHandler)
     }
 
     return () => {
@@ -288,8 +289,8 @@ const ChatPage: React.FC<ChatPageProps> = ({
         bus.off(CHAT_DB_EVENT.SaveMessage, newMessageHandler)
       }
 
-      if (deleteMessageHandler) {
-        bus.off(CHAT_DB_EVENT.DeleteMessage, deleteMessageHandler)
+      if (refreshChatListHandler) {
+        bus.off(CHAT_DB_EVENT.DeleteMessage, refreshChatListHandler)
       }
     }
   }, [atBottom, siteFrontId, categoryFrontId])

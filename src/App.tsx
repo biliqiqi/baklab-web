@@ -153,6 +153,7 @@ const App = () => {
     )
 
   const setEventSource = useEventSourceStore((state) => state.setEventSource)
+  const eventSource = useEventSourceStore((state) => state.eventSource)
 
   const { fetchSiteList } = useSiteStore(
     useShallow(({ fetchSiteList }) => ({
@@ -195,26 +196,36 @@ const App = () => {
 
   const routes = useRoutesStore(useShallow((state) => state.routes))
 
-  useEffect(() => {
-    const eventSource = connectEvents()
+  const reconnectEventSource = useCallback(() => {
+    if (eventSource) {
+      eventSource.close()
+      setEventSource(null)
+    }
 
-    setEventSource(eventSource)
+    const ev = connectEvents()
+    setEventSource(ev)
+  }, [eventSource, setEventSource])
+
+  useEffect(() => {
+    const ev = connectEvents()
+    setEventSource(ev)
 
     return () => {
       setEventSource(null)
-      eventSource.close()
+      ev.close()
     }
   }, [currUsername, setEventSource])
 
   useEffect(() => {
     window.onfocus = () => {
+      reconnectEventSource()
       refreshTokenSync(true)
       fetchNotiCount()
     }
     return () => {
       window.onfocus = null
     }
-  }, [refreshTokenSync])
+  }, [refreshTokenSync, reconnectEventSource])
 
   useEffect(() => {
     if (!authToken) {

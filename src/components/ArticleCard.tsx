@@ -20,6 +20,7 @@ import {
   bus,
   cn,
   extractDomain,
+  highlightElement,
   md2text,
   noop,
   renderMD,
@@ -56,13 +57,6 @@ interface ArticleCardProps extends HTMLAttributes<HTMLDivElement> {
   onSuccess?: (a: ArticleAction) => void
   isTop?: boolean
   previewMode?: boolean
-}
-
-const highlightElement = (element: HTMLElement) => {
-  element.classList.add('b-highlight')
-  setTimeout(() => {
-    element.classList.remove('b-highlight')
-  }, 2000)
 }
 
 const ArticleCard: React.FC<ArticleCardProps> = ({
@@ -313,7 +307,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
                 if (parentCommentEl) {
                   scrollToElement(parentCommentEl, () => {
-                    highlightElement(parentCommentEl)
+                    highlightElement(parentCommentEl, 'b-highlight')
                   })
                 }
               }}

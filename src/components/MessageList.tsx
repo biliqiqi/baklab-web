@@ -95,11 +95,14 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
       )
       if (!resp.code) {
         const { data } = resp
+
+        /* console.log('data list: ', data.list) */
+
         if (data.list) {
           const list: MessageFront[] = data.list.map((item) => {
             return {
               ...item,
-              targetPath: genArticlePath(item.targetData),
+              targetPath: genArticlePath(item.contentArticle),
             }
           })
 

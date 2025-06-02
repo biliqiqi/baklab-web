@@ -14,6 +14,7 @@ import {
   bus,
   cn,
   extractDomain,
+  highlightElement,
   md2text,
   noop,
   renderMD,
@@ -44,13 +45,6 @@ interface ChatCardProps extends HTMLAttributes<HTMLDivElement> {
   onSuccess?: (a: ArticleAction, id?: string) => void
   isTop?: boolean
   previewMode?: boolean
-}
-
-const highlightElement = (element: HTMLElement) => {
-  element.classList.add('b-chat-highlight')
-  setTimeout(() => {
-    element.classList.remove('b-chat-highlight')
-  }, 2000)
 }
 
 const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
@@ -183,7 +177,7 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
 
     return (
       <div
-        id={'comment' + article.id}
+        id={'message' + article.id}
         className={cn('b-chat-card flex items-start px-2', className)}
         {...props}
         ref={ref}
@@ -288,12 +282,12 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
                   onClick={(e) => {
                     e.preventDefault()
                     const parentCommentEl = document.getElementById(
-                      'comment' + parent.id
+                      'message' + parent.id
                     )
 
                     if (parentCommentEl) {
                       scrollToElement(parentCommentEl, () => {
-                        highlightElement(parentCommentEl)
+                        highlightElement(parentCommentEl, 'b-chat-highlight')
                       })
                     }
                   }}

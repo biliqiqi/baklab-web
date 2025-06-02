@@ -13,7 +13,13 @@ import {
 } from './constants/constants'
 import { defaultPageState } from './constants/defaults'
 import { toSync } from './lib/fire-and-forget'
-import { bus, noop, scrollToBottom } from './lib/utils'
+import {
+  bus,
+  highlightElement,
+  noop,
+  scrollToBottom,
+  scrollToElement,
+} from './lib/utils'
 import { getIDBChatList, saveIDBChatList } from './state/chat-db'
 import {
   useAuthedUserStore,
@@ -291,6 +297,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
 
       if (refreshChatListHandler) {
         bus.off(CHAT_DB_EVENT.DeleteMessage, refreshChatListHandler)
+        bus.off(CHAT_DB_EVENT.SaveChatList, refreshChatListHandler)
       }
     }
   }, [atBottom, siteFrontId, categoryFrontId])
@@ -518,7 +525,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
     }
   }, [chatList.initialized, currUserId, chatList, debouncedReadManyMessage])
 
-  // 初始化数据
+  // init data
   useEffect(() => {
     onReady()
     toSync(fetchChatList, () => {
@@ -526,7 +533,14 @@ const ChatPage: React.FC<ChatPageProps> = ({
         initialized: true,
       }
 
-      scrollToBottom('instant', () => {
+      const messageId = /^#message\d+$/.test(location.hash)
+        ? location.hash
+        : null
+      const targetMessageEl = messageId
+        ? (document.querySelector(`${messageId}`) as HTMLElement)
+        : null
+
+      const cb = () => {
         setChatList((state) => {
           return {
             ...state,
@@ -534,7 +548,21 @@ const ChatPage: React.FC<ChatPageProps> = ({
           }
         })
         onLoad()
-      })
+
+        if (targetMessageEl) {
+          setTimeout(() => {
+            highlightElement(targetMessageEl, 'b-chat-highlight')
+          }, 0)
+        }
+      }
+
+      setTimeout(() => {
+        if (targetMessageEl) {
+          scrollToElement(targetMessageEl, cb, 'instant')
+        } else {
+          scrollToBottom('instant', cb)
+        }
+      }, 0)
     })(false, true, false, true)
 
     return () => {

@@ -7,13 +7,13 @@ import { twMerge } from 'tailwind-merge'
 import { DEFAULT_FONT_SIZE, NAV_HEIGHT } from '@/constants/constants'
 import { SITE_STATUS_COLOR_MAP } from '@/constants/maps'
 import {
-    PERMISSION_DATA,
-    PERMISSION_MODULE_DATA,
+  PERMISSION_DATA,
+  PERMISSION_MODULE_DATA,
 } from '@/constants/permissions'
 import {
-    PermissionAction,
-    PermissionItem,
-    PermissionModule,
+  PermissionAction,
+  PermissionItem,
+  PermissionModule,
 } from '@/constants/types'
 import i18n from '@/i18n'
 import { Article, ArticleStatus, SITE_STATUS, SiteStatus } from '@/types/types'
@@ -144,8 +144,17 @@ export const md2text = (markdown: string) => {
   return tmpEl.textContent || ''
 }
 
-export const genArticlePath = ({ siteFrontId, id }: Article) =>
-  `/${siteFrontId}/articles/${id}`
+export const genArticlePath = ({
+  siteFrontId,
+  id,
+  categoryFrontId,
+  contentForm,
+}: Article) => {
+  if (contentForm && contentForm.frontId == 'chat') {
+    return `/${siteFrontId}/bankuai/${categoryFrontId}#message${id}`
+  }
+  return `/${siteFrontId}/articles/${id}`
+}
 
 export const getSiteStatusName = (status: SiteStatus) => {
   switch (status) {
@@ -244,25 +253,24 @@ export const scrollToBottom = (
 export const scrollToElement = (
   element: HTMLElement,
   callback = noop,
-  containerElId = 'outer-container'
+  mode: ScrollBehavior = 'smooth'
 ) => {
   if (!element) return
 
-  const rectTop = element.getBoundingClientRect().y
+  element.scrollIntoView({ behavior: mode, block: 'center' })
 
-  if (rectTop > 0) {
-    callback()
-  } else {
+  if (mode == 'smooth') {
     setTimeout(() => {
       callback()
     }, 500)
-
-    const container = document.querySelector(`#${containerElId}`)
-    if (container) {
-      container.scrollTo({
-        top: rectTop + container.scrollTop - NAV_HEIGHT,
-        behavior: 'smooth',
-      })
-    }
+  } else {
+    callback()
   }
+}
+
+export const highlightElement = (element: HTMLElement, className: string) => {
+  element.classList.add(className)
+  setTimeout(() => {
+    element.classList.remove(className)
+  }, 2000)
 }

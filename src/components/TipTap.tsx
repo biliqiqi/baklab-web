@@ -92,7 +92,7 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
       if (content !== value) {
         onChange(content)
       }
-    }, 300)
+    }, 100)
 
     const handleUpdate = React.useCallback(
       ({ editor }: { editor: Editor }) => {

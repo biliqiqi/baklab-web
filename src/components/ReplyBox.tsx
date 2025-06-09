@@ -90,6 +90,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   const [markdownMode, setMarkdownMode] = useState(false)
   const [updateRef, setUpdateRef] = useState(false)
   const [targetInputEl, setTargetInputEl] = useState<HTMLElement | null>(null)
+  const [justSubmitted, setJustSubmitted] = useState(false)
 
   const { siteFrontId } = useParams()
 
@@ -109,10 +110,18 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
     ...defaultBoxRef,
   })
 
-  const reset = () => {
+  const reset = (immediate = false) => {
     setLoading(false)
-    setReplyBoxHeight(REPLY_BOX_INITIAL_HEIGHT)
     setPreview(false)
+    setJustSubmitted(false)
+
+    if (immediate) {
+      setReplyBoxHeight(REPLY_BOX_INITIAL_HEIGHT)
+    } else {
+      setTimeout(() => {
+        setReplyBoxHeight(REPLY_BOX_INITIAL_HEIGHT)
+      }, 100)
+    }
   }
 
   const targetArticle = useMemo(
@@ -183,12 +192,17 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
 
         /* const data = await submitReply(replyToArticle.id, content) */
         if (!resp.code) {
+          setJustSubmitted(true)
           reset()
           form.reset({ content: '' })
 
           if (onSuccess && typeof onSuccess == 'function') {
             await onSuccess(resp, editType, replyBoxHeight)
           }
+
+          setTimeout(() => {
+            setJustSubmitted(false)
+          }, 300)
         }
       } catch (err) {
         console.error('submit reply error: ', err)
@@ -342,7 +356,11 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
       }
     } else {
       form.clearErrors('content')
-      if (replyBoxHeight != REPLY_BOX_INITIAL_HEIGHT) {
+      if (
+        replyBoxHeight != REPLY_BOX_INITIAL_HEIGHT &&
+        !loading &&
+        !justSubmitted
+      ) {
         targetInputEl.classList.add('duration-200', 'transition-all')
         setReplyBoxHeight(REPLY_BOX_INITIAL_HEIGHT)
         setTimeout(() => {
@@ -351,7 +369,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
         }, 200)
       }
     }
-  }, [isActive, replyBoxHeight, targetInputEl, form])
+  }, [isActive, replyBoxHeight, targetInputEl, form, loading, justSubmitted])
 
   useEffect(() => {
     /* console.log('editting: ', isEditting) */

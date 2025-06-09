@@ -23,7 +23,7 @@ export const AutoBreak = Extension.create({
           }
 
           const tr = newState.tr
-          let modiffied = false
+          let modified = false
 
           newState.doc.descendants((node, pos) => {
             if (node.type.name == 'hardBreak') {
@@ -36,12 +36,12 @@ export const AutoBreak = Extension.create({
 
                 tr.delete(pos, pos + 2)
                 tr.split(pos)
-                modiffied = true
+                modified = true
               }
             }
           })
 
-          return modiffied ? tr : null
+          return modified ? tr : null
         },
       }),
     ]

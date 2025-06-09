@@ -20,6 +20,7 @@ import { unescapeAll } from 'markdown-it/lib/common/utils.mjs'
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'
 import { Markdown } from 'tiptap-markdown'
+import { useDebouncedCallback } from 'use-debounce'
 
 import { cn, noop } from '@/lib/utils'
 
@@ -84,7 +85,28 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
     ref
   ) => {
     const elementRef = React.useRef<HTMLDivElement>(null)
+    const lastContentRef = React.useRef<string>('')
     const { t } = useTranslation()
+
+    const debouncedOnChange = useDebouncedCallback((content: string) => {
+      if (content !== value) {
+        onChange(content)
+      }
+    }, 300)
+
+    const handleUpdate = React.useCallback(
+      ({ editor }: { editor: Editor }) => {
+        /* eslint-disable-next-line */
+        const rawMarkdown: string = editor.storage.markdown.getMarkdown() || ''
+
+        if (rawMarkdown !== lastContentRef.current) {
+          lastContentRef.current = rawMarkdown
+          const mdVal = unescapeAll(rawMarkdown)
+          debouncedOnChange(mdVal)
+        }
+      },
+      [debouncedOnChange]
+    )
 
     const editor = useEditor({
       content: value,
@@ -128,15 +150,7 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
         },
       },
       editable: !disabled,
-      onUpdate({ editor }) {
-        /* eslint-disable-next-line */
-        const mdVal = unescapeAll(editor.storage.markdown.getMarkdown() || '')
-        /* console.log('markdown: ', mdVal) */
-
-        if (mdVal != value) {
-          onChange(mdVal)
-        }
-      },
+      onUpdate: handleUpdate,
     })
 
     const onKeyUp = React.useCallback(

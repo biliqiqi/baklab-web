@@ -100,6 +100,8 @@ const ChatPage: React.FC<ChatPageProps> = ({
     }))
   )
 
+  const isLogined = useAuthedUserStore((state) => state.isLogined)
+
   const location = useLocation()
 
   const { permit, currUserId } = useAuthedUserStore(
@@ -336,6 +338,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
     (entries: IntersectionObserverEntry[]) => {
       entries.forEach((ent) => {
         if (ent.target == chatTopRef.current && ent.isIntersecting) {
+          if (isLoading) return
           /* console.log('at top') */
           setChatList((currentChatList) => {
             if (!currentChatList.initialized) return currentChatList
@@ -355,7 +358,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
     (entries: IntersectionObserverEntry[]) => {
       entries.forEach((ent) => {
         if (ent.target == chatBottomRef.current && ent.isIntersecting) {
-          /* console.log('at bottom') */
+          console.log('at bottom')
           setChatList((currentChatList) => {
             if (!currentChatList.initialized) return currentChatList
             if (currentChatList.nextCursor) {
@@ -369,50 +372,58 @@ const ChatPage: React.FC<ChatPageProps> = ({
     200
   )
 
-  const debouncedReadManyMessage = useDebouncedCallback((ids: string[]) => {
-    const unreadIds: string[] = []
+  const debouncedReadManyMessage = useDebouncedCallback(
+    useCallback(
+      (ids: string[]) => {
+        const unreadIds: string[] = []
 
-    ids.forEach((id) => {
-      if (!readingIdList.current.has(id)) {
-        unreadIds.push(id)
-        readingIdList.current.add(id)
-      }
-    })
-
-    /* console.log('debunced read ids: ', unreadIds) */
-
-    toSync(readManyArticle, () => {
-      unreadIds.forEach((id) => {
-        readIdList.current.delete(id)
-        readingIdList.current.delete(id)
-
-        setChatList((currChatList) => {
-          const list = currChatList.list
-          const readItemIdx = list.findIndex((item) => item.id == id)
-
-          const item = list[readItemIdx]
-          const newItem: Article = {
-            ...item,
-            currUserState: item.currUserState
-              ? {
-                  ...item.currUserState,
-                  isRead: true,
-                }
-              : null,
-          }
-
-          return {
-            ...currChatList,
-            list: [
-              ...list.slice(0, readItemIdx),
-              newItem,
-              ...list.slice(readItemIdx + 1),
-            ],
+        ids.forEach((id) => {
+          if (!readingIdList.current.has(id)) {
+            unreadIds.push(id)
+            readingIdList.current.add(id)
           }
         })
-      })
-    })(unreadIds)
-  }, 200)
+
+        /* console.log('debunced read ids: ', unreadIds) */
+
+        if (unreadIds.length == 0 || !isLogined()) return
+
+        toSync(readManyArticle, () => {
+          unreadIds.forEach((id) => {
+            readIdList.current.delete(id)
+            readingIdList.current.delete(id)
+
+            setChatList((currChatList) => {
+              const list = currChatList.list
+              const readItemIdx = list.findIndex((item) => item.id == id)
+
+              const item = list[readItemIdx]
+              const newItem: Article = {
+                ...item,
+                currUserState: item.currUserState
+                  ? {
+                      ...item.currUserState,
+                      isRead: true,
+                    }
+                  : null,
+              }
+
+              return {
+                ...currChatList,
+                list: [
+                  ...list.slice(0, readItemIdx),
+                  newItem,
+                  ...list.slice(readItemIdx + 1),
+                ],
+              }
+            })
+          })
+        })(unreadIds)
+      },
+      [isLogined]
+    ),
+    200
+  )
 
   useEffect(() => {
     setShowReplyBox(true)
@@ -483,7 +494,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
         atBottomObserver = null
       }
     }
-  }, [fetchChatList])
+  }, [bottomObserverHandler, topObserverHandler])
 
   useEffect(() => {
     const container = document.querySelector('#outer-container')

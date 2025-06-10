@@ -370,17 +370,17 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
 
 export const ChatCardSkeleton = () => {
   return (
-    <div className={cn('b-chat-card flex items-start px-2')}>
-      <div className="flex pt-3 pr-2">
+    <div className={cn('b-chat-card relative flex items-start px-2')}>
+      <div className="sticky top-0 flex pt-3 pr-2">
         <Skeleton className="w-[40px] h-[40px] rounded-full" />
       </div>
       <div className="max-w-[80%] flex flex-col items-start">
         <div className="flex h-[40px] flex-wrap items-center text-sm text-gray-500">
           <Skeleton className="w-[120px] h-[22px]" />
         </div>
-        <Skeleton className="flex-grow-0 p-3 pb-2 mb-3 break-all">
+        <Skeleton className="max-w-full flex-grow-0 p-3 pb-2 mb-3 break-all">
           <div className="b-article-content mb-2">
-            <p>
+            <p className="h-20 overflow-hidden">
               &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
             </p>
           </div>

@@ -317,58 +317,6 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             <HistoryIcon size={20} className="mr-1" />
           </Button>
         )}
-        {!isRootArticle &&
-          isMyself(article.replyRootAuthorId) &&
-          articleCtx.root &&
-          checkContentForm(articleCtx.root, 'qna') &&
-          articleCtx.root.acceptAnswerId == '0' && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onAcceptAnswerClick}
-              disabled={disabled}
-              className="mr-1"
-            >
-              <CheckIcon size={20} className="mr-1" />
-              &nbsp;
-              <span className="text-sm text-gray-500 font-normal">
-                {t('markAsSolution')}
-              </span>
-            </Button>
-          )}
-
-        {!isRootArticle &&
-          articleCtx.root &&
-          checkContentForm(articleCtx.root, 'qna') &&
-          articleCtx.root.acceptAnswerId == article.id && (
-            <span className="inline-flex items-center mr-2 text-green-500 text-sm whitespace-nowrap">
-              <CheckIcon size={20} className="mr-1 inline" />
-              &nbsp;<span>{t('markedAsSolution')}</span>
-            </span>
-          )}
-
-        {((isRootArticle &&
-          articleCtx.root &&
-          checkContentForm(articleCtx.root, 'qna') &&
-          articleCtx.root.acceptAnswerId !== '0') ||
-          (article.acceptAnswerId !== '0' &&
-            article.contentForm?.frontId == 'qna')) && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mr-1 text-green-500"
-            asChild
-            title={t('viewAnswer')}
-          >
-            <Link
-              to={`/${siteFrontId}/articles/${(articleCtx.root || article).acceptAnswerId}`}
-            >
-              <CheckIcon size={20} className="mr-1" />
-              &nbsp;
-              <span className="text-sm font-normal">{t('solved')}</span>
-            </Link>
-          </Button>
-        )}
 
         {ctype == 'list' && (
           <>
@@ -446,7 +394,61 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             {t('replyCount', { num: article.totalReplyCount })}
           </span>
         )}
+
+        {((isRootArticle &&
+          articleCtx.root &&
+          checkContentForm(articleCtx.root, 'qna') &&
+          articleCtx.root.acceptAnswerId !== '0') ||
+          (article.acceptAnswerId !== '0' &&
+            article.contentForm?.frontId == 'qna')) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mr-1 text-green-500"
+            asChild
+            title={t('viewAnswer')}
+          >
+            <Link
+              to={`/${siteFrontId}/articles/${(articleCtx.root || article).acceptAnswerId}`}
+            >
+              <CheckIcon size={20} className="mr-1" />
+              &nbsp;
+              <span className="text-sm font-normal">{t('solved')}</span>
+            </Link>
+          </Button>
+        )}
+
+        {!isRootArticle &&
+          isMyself(article.replyRootAuthorId) &&
+          articleCtx.root &&
+          checkContentForm(articleCtx.root, 'qna') &&
+          articleCtx.root.acceptAnswerId == '0' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onAcceptAnswerClick}
+              disabled={disabled}
+              className="mr-1"
+            >
+              <CheckIcon size={20} className="mr-1" />
+              &nbsp;
+              <span className="text-sm text-gray-500 font-normal">
+                {t('markAsSolution')}
+              </span>
+            </Button>
+          )}
+
+        {!isRootArticle &&
+          articleCtx.root &&
+          checkContentForm(articleCtx.root, 'qna') &&
+          articleCtx.root.acceptAnswerId == article.id && (
+            <span className="inline-flex items-center mr-2 text-green-500 text-sm whitespace-nowrap">
+              <CheckIcon size={20} className="mr-1 inline" />
+              &nbsp;<span>{t('markedAsSolution')}</span>
+            </span>
+          )}
       </div>
+
       <div className="flex items-center">
         {article.replyToId == '0' && (
           <>

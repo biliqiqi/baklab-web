@@ -429,7 +429,7 @@
   "minutes": "分",
   "editBy": "由 <userLink>{{name}}</userLink> 编辑于 {{time}}",
   "locked": "已锁定",
-  "markedAsSolution": "标记为已答案",
+  "markedAsSolution": "标记为答案",
   "markAsSolution": "标记为答案",
   "viewAnswer": "查看答案",
   "solved": "已解决",

@@ -196,9 +196,13 @@ a:hover {
   color: hsl(var(--primary));
 }
 
+.b-article-content {
+  overflow: auto;
+}
+
 .b-article-content p {
   margin-bottom: 1em;
-  word-break: break-word;
+  word-break: break-all;
 }
 
 .b-article-content p:last-child {

@@ -20,6 +20,7 @@ import {
   DEFAULT_CONTENT_WIDTH,
   DEFAULT_INNER_CONTENT_WIDTH,
   DEFAULT_PAGE_SIZE,
+  DOCK_HEIGHT,
   LEFT_SIDEBAR_STATE_KEY,
   NAV_HEIGHT,
   RIGHT_SIDEBAR_STATE_KEY,
@@ -102,6 +103,12 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     const userUIFormRef = useRef<UserUIFormRef | null>(null)
     const siteUIFormRef = useRef<SiteUIFormRef | null>(null)
+
+    const bodyHeight = useMemo(() => {
+      return showTopDrawer
+        ? `calc(100vh - ${NAV_HEIGHT + DOCK_HEIGHT}px)`
+        : `calc(100vh - ${NAV_HEIGHT}px)`
+    }, [showTopDrawer])
 
     const {
       sidebarOpen,
@@ -578,7 +585,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           onOpenMobileChange={setSidebarOpenMobile}
           statePersistKey={LEFT_SIDEBAR_STATE_KEY}
           style={{
-            minHeight: `calc(100vh - ${NAV_HEIGHT}px)`,
+            minHeight: 'auto',
+            maxHeight: bodyHeight,
             maxWidth: contentWidth == -1 ? '' : `${contentWidth}px`,
           }}
         >
@@ -590,8 +598,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             )}
             style={{
               top: siteMode == 'top_nav' ? `${NAV_HEIGHT}px` : '',
-              maxHeight:
-                siteMode == 'top_nav' ? `calc(100vh - ${NAV_HEIGHT}px)` : '',
+              maxHeight: siteMode == 'top_nav' ? bodyHeight : '',
             }}
           >
             <BSidebar category={category} />
@@ -606,7 +613,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 'w-[calc(100%-var(--sidebar-width)*2)]'
             )}
             style={{
-              height: `calc(100vh - ${NAV_HEIGHT}px)`,
+              height: bodyHeight,
             }}
           >
             {siteMode == 'sidebar' && (

@@ -178,11 +178,11 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
     return (
       <div
         id={'message' + article.id}
-        className={cn('b-chat-card flex items-start px-2', className)}
+        className={cn('b-chat-card relative flex items-start px-2', className)}
         {...props}
         ref={ref}
       >
-        <div className="flex pt-3 pr-2">
+        <div className="sticky top-0 flex pt-3 pr-2">
           {article.deleted && !authStore.permit('article', 'delete_others') ? (
             <span>{t('unknowUser')}</span>
           ) : (
@@ -231,7 +231,7 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
             )}
           </div>
           <Card
-            className="b-chat-card__card flex-grow-0 relative p-3 pb-2 mb-3"
+            className="b-chat-card__card max-w-full flex-grow-0 relative p-3 pb-2 mb-3"
             tabIndex={0}
           >
             {article.asMainArticle && (
@@ -339,7 +339,7 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
                 onDeleteClick={onDelClick}
                 onToggleLockClick={onToggleLockClick}
                 onSuccess={onSuccess}
-                className="absolute left-[calc(100%+theme(space.1))] bottom-2"
+                className="absolute left-[calc(100%+theme(space.1))] max-md:left-auto max-md:right-[theme(space.1)] bottom-2"
                 tabIndex={0}
               />
             )}

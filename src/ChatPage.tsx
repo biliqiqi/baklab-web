@@ -358,7 +358,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
     (entries: IntersectionObserverEntry[]) => {
       entries.forEach((ent) => {
         if (ent.target == chatBottomRef.current && ent.isIntersecting) {
-          console.log('at bottom')
+          /* console.log('at bottom') */
           setChatList((currentChatList) => {
             if (!currentChatList.initialized) return currentChatList
             if (currentChatList.nextCursor) {

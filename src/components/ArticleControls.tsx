@@ -409,7 +409,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             title={t('viewAnswer')}
           >
             <Link
-              to={`/${siteFrontId}/articles/${(articleCtx.root || article).acceptAnswerId}`}
+              to={`/${article.siteFrontId}/articles/${(articleCtx.root || article).acceptAnswerId}`}
             >
               <CheckIcon size={20} className="mr-1" />
               &nbsp;

@@ -3,6 +3,7 @@ import {
   BellIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  EllipsisVerticalIcon,
   GripIcon,
   Loader,
   MenuIcon,
@@ -477,6 +478,31 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
               </DropdownMenuContent>
             </DropdownMenu>
           )}
+
+          {!isLogined() && <DropdownMenu onOpenChange={onDropdownChange}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-[36px] h-[36px] p-0 rounded-full mr-2"
+                title={t('moreSettings')}
+              >
+                <EllipsisVerticalIcon size={20} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="px-0"
+              align="end"
+              sideOffset={6}
+            >
+              <DropdownMenuItem
+                className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                onClick={onUserUISettingClick}
+              >
+                {t('personalizationUI')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>}
 
           {isLogined() ? (
             <>

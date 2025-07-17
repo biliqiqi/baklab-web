@@ -60,13 +60,35 @@ const levelSchema = (i: I18n) =>
 const siteNumLimitSchema = (i: I18n) =>
   z.string().min(1, i.t('inputTip', { field: i.t('siteNumLimit') }))
 
-const roleSchema = z.object({
-  name: nameSchema(i18n),
-  level: levelSchema(i18n),
+const createRoleSchema = (i: I18n) => z.object({
+  name: nameSchema(i),
+  level: levelSchema(i),
   permissionFrontIds: z.string().array().optional(),
-  siteNumLimit: siteNumLimitSchema(i18n),
+  siteNumLimit: siteNumLimitSchema(i),
   showRoleName: z.boolean(),
+  rateLimitTokens: z.string().optional(),
+  rateLimitInterval: z.string().optional(),
+  rateLimitEnabled: z.boolean(),
+}).refine((data) => {
+  if (data.rateLimitEnabled) {
+    return data.rateLimitTokens && data.rateLimitTokens.trim() !== '' &&
+           data.rateLimitInterval && data.rateLimitInterval.trim() !== ''
+  }
+  return true
+}, {
+  message: i.t('inputTip', { field: i.t('rateLimitTokens') }),
+  path: ['rateLimitTokens'],
+}).refine((data) => {
+  if (data.rateLimitEnabled) {
+    return data.rateLimitInterval && data.rateLimitInterval.trim() !== ''
+  }
+  return true
+}, {
+  message: i.t('inputTip', { field: i.t('rateLimitInterval') }),
+  path: ['rateLimitInterval'],
 })
+
+const roleSchema = createRoleSchema(i18n)
 
 type RoleSchema = z.infer<typeof roleSchema>
 
@@ -76,6 +98,9 @@ const defaultRoleData: RoleSchema = {
   permissionFrontIds: [],
   siteNumLimit: '0',
   showRoleName: false,
+  rateLimitTokens: '15',
+  rateLimitInterval: '60',
+  rateLimitEnabled: false,
 }
 
 const RoleForm: React.FC<RoleFormProps> = ({
@@ -116,13 +141,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
   )
 
   const form = useForm<RoleSchema>({
-    resolver: zodResolver(
-      roleSchema.extend({
-        name: nameSchema(i18n),
-        level: levelSchema(i18n),
-        siteNumLimit: siteNumLimitSchema(i18n),
-      })
-    ),
+    resolver: zodResolver(createRoleSchema(i18n)),
     defaultValues:
       isEdit || isCreate
         ? {
@@ -131,6 +150,9 @@ const RoleForm: React.FC<RoleFormProps> = ({
             permissionFrontIds: edittingPermissionFrontIds,
             siteNumLimit: String(role.siteNumLimit) || '0',
             showRoleName: role.showRoleName,
+            rateLimitTokens: String(role.rateLimitTokens) || '15',
+            rateLimitInterval: String(role.rateLimitInterval) || '60',
+            rateLimitEnabled: role.rateLimitEnabled || false,
           }
         : { ...defaultRoleData, level: String(minLevel) },
   })
@@ -167,6 +189,8 @@ const RoleForm: React.FC<RoleFormProps> = ({
       }
 
       const siteNumLimit = parseInt(vals.siteNumLimit, 10) || 0
+      const rateLimitTokens = parseInt(vals.rateLimitTokens || '15', 10) || 15
+      const rateLimitInterval = parseInt(vals.rateLimitInterval || '60', 10) || 60
 
       if (isEdit) {
         if (!role) return
@@ -177,6 +201,9 @@ const RoleForm: React.FC<RoleFormProps> = ({
           vals.permissionFrontIds || [],
           siteNumLimit,
           vals.showRoleName,
+          rateLimitTokens,
+          rateLimitInterval,
+          vals.rateLimitEnabled,
           { siteFrontId }
         )
       } else {
@@ -186,6 +213,9 @@ const RoleForm: React.FC<RoleFormProps> = ({
           vals.permissionFrontIds || [],
           siteNumLimit,
           vals.showRoleName,
+          rateLimitTokens,
+          rateLimitInterval,
+          vals.rateLimitEnabled,
           { siteFrontId }
         )
       }
@@ -380,6 +410,116 @@ const RoleForm: React.FC<RoleFormProps> = ({
               </FormItem>
             )}
           />
+        )}
+        <FormField
+          control={form.control}
+          name="rateLimitEnabled"
+          key="rateLimitEnabled"
+          render={({ field }) => (
+            <FormItem className="mb-8">
+              <FormLabel>{t('rateLimitEnabled')}</FormLabel>
+              <FormDescription>
+                {t('rateLimitEnabledDescribe')}
+              </FormDescription>
+              {isDetail ? (
+                <div>
+                  <span className="talbe-cell text-sm">
+                    {role?.rateLimitEnabled ? (
+                      <>
+                        {t('enabled')}
+                        <span className="text-gray-500 ml-2">
+                          {t('rateLimitPolicy', { 
+                            tokens: role.rateLimitTokens, 
+                            interval: role.rateLimitInterval 
+                          })}
+                        </span>
+                      </>
+                    ) : (
+                      t('disabled')
+                    )}
+                  </span>
+                </div>
+              ) : (
+                <FormControl>
+                  <div className="flex items-center">
+                    <Switch
+                      id="rate-limit-enabled"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={systemRole}
+                    />
+                    <label
+                      htmlFor="rate-limit-enabled"
+                      className="inline-block pl-2 leading-[24px] text-sm"
+                    >
+                      {t('rateLimitEnabledDescribe')}
+                    </label>
+                  </div>
+                </FormControl>
+              )}
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {formVals.rateLimitEnabled && (
+          <>
+            <FormField
+              control={form.control}
+              name="rateLimitTokens"
+              key="rateLimitTokens"
+              render={({ field, fieldState }) => (
+                <FormItem className="mb-8">
+                  <FormLabel>{t('rateLimitTokens')}</FormLabel>
+                  <FormDescription>
+                    {t('rateLimitTokensDescribe')}
+                  </FormDescription>
+                  {isDetail ? (
+                    <div>{role?.rateLimitTokens}</div>
+                  ) : (
+                    <FormControl>
+                      <Input
+                        placeholder={t('inputTip', { field: t('rateLimitTokens') })}
+                        autoComplete="off"
+                        pattern="^\d+$"
+                        state={fieldState.invalid ? 'invalid' : 'default'}
+                        disabled={systemRole}
+                        {...field}
+                      />
+                    </FormControl>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="rateLimitInterval"
+              key="rateLimitInterval"
+              render={({ field, fieldState }) => (
+                <FormItem className="mb-8">
+                  <FormLabel>{t('rateLimitInterval')}</FormLabel>
+                  <FormDescription>
+                    {t('rateLimitIntervalDescribe')}
+                  </FormDescription>
+                  {isDetail ? (
+                    <div>{role?.rateLimitInterval}</div>
+                  ) : (
+                    <FormControl>
+                      <Input
+                        placeholder={t('inputTip', { field: t('rateLimitInterval') })}
+                        autoComplete="off"
+                        pattern="^\d+$"
+                        state={fieldState.invalid ? 'invalid' : 'default'}
+                        disabled={systemRole}
+                        {...field}
+                      />
+                    </FormControl>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
         )}
         <FormField
           control={form.control}

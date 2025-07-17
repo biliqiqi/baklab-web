@@ -517,5 +517,14 @@
   "about1": "About {{name}}",
   "siteCreatedBy": "Created by <userLink/> at <timeTag/>",
   "inviteTip": "Please copy the link below and share it with friends",
-  "editHistory": "Edit history"
+  "editHistory": "Edit history",
+  "rateLimitEnabled": "Rate Limit Enabled",
+  "rateLimitEnabledDescribe": "Enable rate limiting for this role",
+  "rateLimitTokens": "Rate Limit Tokens",
+  "rateLimitTokensDescribe": "Number of tokens allowed per interval",
+  "rateLimitInterval": "Rate Limit Interval",
+  "rateLimitIntervalDescribe": "Time window in seconds for rate limiting",
+  "rateLimitPolicy": "({{tokens}} times/{{interval}} seconds)",
+  "enabled": "Enabled",
+  "disabled": "Disabled"
 }

@@ -496,6 +496,9 @@ export interface Role {
   relateUserCount: number
   siteNumLimit: number
   showRoleName: boolean
+  rateLimitTokens: number
+  rateLimitInterval: number
+  rateLimitEnabled: boolean
 }
 
 export interface RoleListResponse extends ListPageState {

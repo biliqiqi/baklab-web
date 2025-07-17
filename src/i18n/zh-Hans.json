@@ -517,5 +517,14 @@
   "about1": "关于{{name}}",
   "siteCreatedBy": "由 <userLink/> 创建于 <timeTag/>",
   "inviteTip": "请复制以下链接并分享给好友",
-  "editHistory": "编辑历史"
+  "editHistory": "编辑历史",
+  "rateLimitEnabled": "开启限流",
+  "rateLimitEnabledDescribe": "为该角色开启限流功能",
+  "rateLimitTokens": "限流令牌数",
+  "rateLimitTokensDescribe": "每个时间窗口允许的令牌数量",
+  "rateLimitInterval": "限流时间间隔",
+  "rateLimitIntervalDescribe": "限流的时间窗口（秒）",
+  "rateLimitPolicy": "（每{{interval}}秒最多{{tokens}}次操作）",
+  "enabled": "已启用",
+  "disabled": "已禁用"
 }

@@ -46,6 +46,9 @@ export const submitRole = (
   permissionFrontIDs: string[],
   siteNumLimit: number,
   showRoleName: boolean,
+  rateLimitTokens: number,
+  rateLimitInterval: number,
+  rateLimitEnabled: boolean,
   custom?: CustomRequestOptions
 ) => {
   return authRequest.post<ResponseData<ResponseID>>(
@@ -57,6 +60,9 @@ export const submitRole = (
         permissionFrontIDs,
         siteNumLimit,
         showRoleName,
+        rateLimitTokens,
+        rateLimitInterval,
+        rateLimitEnabled,
         extra: { roleName: name },
       },
     },
@@ -71,6 +77,9 @@ export const updateRole = (
   permissionFrontIDs: string[],
   siteNumLimit: number,
   showRoleName: boolean,
+  rateLimitTokens: number,
+  rateLimitInterval: number,
+  rateLimitEnabled: boolean,
   custom?: CustomRequestOptions
 ) => {
   return authRequest.patch<ResponseData<ResponseID>>(
@@ -82,6 +91,9 @@ export const updateRole = (
         permissionFrontIDs,
         siteNumLimit,
         showRoleName,
+        rateLimitTokens,
+        rateLimitInterval,
+        rateLimitEnabled,
         extra: { roleName: name },
       },
     },

@@ -156,4 +156,7 @@ export const defaultRole: Role = {
   relateUserCount: 0,
   siteNumLimit: 0,
   showRoleName: false,
+  rateLimitTokens: 15,
+  rateLimitInterval: 60,
+  rateLimitEnabled: false,
 }

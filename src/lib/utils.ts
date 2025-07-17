@@ -4,7 +4,7 @@ import MarkdownIt from 'markdown-it'
 import { KeyboardEvent, KeyboardEventHandler } from 'react'
 import { twMerge } from 'tailwind-merge'
 
-import { DEFAULT_FONT_SIZE, NAV_HEIGHT } from '@/constants/constants'
+import { DEFAULT_FONT_SIZE } from '@/constants/constants'
 import { SITE_STATUS_COLOR_MAP } from '@/constants/maps'
 import {
   PERMISSION_DATA,
@@ -22,7 +22,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const noop = () => {}
+export const noop = () => { }
 
 export const bus = new EventEmitter()
 

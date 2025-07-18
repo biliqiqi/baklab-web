@@ -3,11 +3,11 @@ import { DBSchema, openDB } from 'idb'
 import { bus } from '@/lib/utils'
 
 import {
-    Article,
-    CHAT_DB_EVENT,
-    ChatListState,
-    ChatMessage,
-    ChatRoom,
+  Article,
+  CHAT_DB_EVENT,
+  ChatListState,
+  ChatMessage,
+  ChatRoom,
 } from '@/types/types'
 
 interface ChatDB extends DBSchema {

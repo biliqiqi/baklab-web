@@ -567,6 +567,9 @@ export interface Site {
   onlineCount: number
   reviewBeforePublish: boolean
   uiSettings: JSONMap | null
+  rateLimitTokens?: number
+  rateLimitInterval?: number
+  rateLimitEnabled: boolean
 }
 
 export interface SiteListResponse extends ListPageState {

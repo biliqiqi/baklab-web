@@ -519,12 +519,16 @@
   "inviteTip": "请复制以下链接并分享给好友",
   "editHistory": "编辑历史",
   "rateLimitEnabled": "开启限流",
-  "rateLimitEnabledDescribe": "为该角色开启限流功能",
+  "rateLimitEnabledDescribe": "为该角色开启限流，限制拥有该角色用户的操作频率",
   "rateLimitTokens": "限流令牌数",
   "rateLimitTokensDescribe": "每个时间窗口允许的令牌数量",
   "rateLimitInterval": "限流时间间隔",
   "rateLimitIntervalDescribe": "限流的时间窗口（秒）",
   "rateLimitPolicy": "（每{{interval}}秒最多{{tokens}}次操作）",
+  "siteRateLimitEnabled": "全站限流",
+  "siteRateLimitEnabledDescribe": "为全站开启限流，限制用户操作频率，这将覆盖其他模块的限流设置",
+  "siteRateLimitEnabledLabel": "开启全站限流",
+  "roleRateLimitEnabledLabel": "为该角色开启限流",
   "enabled": "已启用",
   "disabled": "已禁用"
 }

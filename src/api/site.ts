@@ -24,7 +24,10 @@ export const submitSite = (
   nonMemberInteract: boolean,
   logoUrl: string,
   logoHtmlStr: string,
-  reviewBeforePublish: boolean
+  reviewBeforePublish: boolean,
+  rateLimitTokens: number,
+  rateLimitInterval: number,
+  rateLimitEnabled: boolean
 ) =>
   authRequest.post<ResponseData<ResponseID>>(`sites`, {
     json: {
@@ -37,6 +40,9 @@ export const submitSite = (
       logoUrl,
       logoHtmlStr,
       reviewBeforePublish,
+      rateLimitTokens,
+      rateLimitInterval,
+      rateLimitEnabled,
     },
   })
 
@@ -50,7 +56,10 @@ export const updateSite = (
   logoUrl: string,
   logoHtmlStr: string,
   homePage: string,
-  reviewBeforePublish: boolean
+  reviewBeforePublish: boolean,
+  rateLimitTokens: number,
+  rateLimitInterval: number,
+  rateLimitEnabled: boolean
 ) =>
   authRequest.patch<ResponseData<ResponseID>>(`sites/${frontId}`, {
     json: {
@@ -63,6 +72,9 @@ export const updateSite = (
       logoHtmlStr,
       homePage,
       reviewBeforePublish,
+      rateLimitTokens,
+      rateLimitInterval,
+      rateLimitEnabled,
     },
   })
 

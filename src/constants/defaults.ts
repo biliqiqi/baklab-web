@@ -39,6 +39,9 @@ export const defaultSite: Site = {
   onlineCount: 0,
   reviewBeforePublish: false,
   uiSettings: null,
+  rateLimitTokens: 15,
+  rateLimitInterval: 60,
+  rateLimitEnabled: false,
 }
 
 export const defaultCategory: Category = {

@@ -150,8 +150,8 @@ const RoleForm: React.FC<RoleFormProps> = ({
             permissionFrontIds: edittingPermissionFrontIds,
             siteNumLimit: String(role.siteNumLimit) || '0',
             showRoleName: role.showRoleName,
-            rateLimitTokens: String(role.rateLimitTokens) || '15',
-            rateLimitInterval: String(role.rateLimitInterval) || '60',
+            rateLimitTokens: role.rateLimitTokens != null ? String(role.rateLimitTokens) : '15',
+            rateLimitInterval: role.rateLimitInterval != null ? String(role.rateLimitInterval) : '60',
             rateLimitEnabled: role.rateLimitEnabled || false,
           }
         : { ...defaultRoleData, level: String(minLevel) },
@@ -452,10 +452,18 @@ const RoleForm: React.FC<RoleFormProps> = ({
                       htmlFor="rate-limit-enabled"
                       className="inline-block pl-2 leading-[24px] text-sm"
                     >
-                      {t('rateLimitEnabledDescribe')}
+                      {t('roleRateLimitEnabledLabel')}
                     </label>
                   </div>
                 </FormControl>
+              )}
+              {!isDetail && formVals.rateLimitEnabled && formVals.rateLimitTokens && formVals.rateLimitInterval && (
+                <div className="text-sm text-gray-500 mt-2">
+                  {t('rateLimitPolicy', { 
+                    tokens: formVals.rateLimitTokens, 
+                    interval: formVals.rateLimitInterval 
+                  })}
+                </div>
               )}
               <FormMessage />
             </FormItem>

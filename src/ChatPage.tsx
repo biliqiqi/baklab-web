@@ -582,9 +582,6 @@ const ChatPage: React.FC<ChatPageProps> = ({
       const messageId = /^#message\d+$/.test(location.hash)
         ? location.hash
         : null
-      const targetMessageEl = messageId
-        ? (document.querySelector(`${messageId}`) as HTMLElement)
-        : null
 
       const cb = () => {
         setChatList((state) => {
@@ -594,21 +591,32 @@ const ChatPage: React.FC<ChatPageProps> = ({
           }
         })
         onLoad()
-
-        if (targetMessageEl) {
-          setTimeout(() => {
-            highlightElement(targetMessageEl, 'b-chat-highlight')
-          }, 0)
-        }
       }
 
-      setTimeout(() => {
-        if (targetMessageEl) {
-          scrollToElement(targetMessageEl, cb, 'instant')
+      const tryScrollToMessage = (retries = 5) => {
+        if (messageId) {
+          const targetMessageEl = document.querySelector(`${messageId}`) as HTMLElement
+          if (targetMessageEl) {
+            scrollToElement(targetMessageEl, () => {
+              cb()
+              setTimeout(() => {
+                highlightElement(targetMessageEl, 'b-chat-highlight')
+              }, 100)
+            }, 'instant')
+          } else if (retries > 0) {
+            // Element not found, retry after DOM update
+            setTimeout(() => tryScrollToMessage(retries - 1), 100)
+          } else {
+            // Failed to find element, fallback to bottom
+            scrollToBottom('instant', cb)
+          }
         } else {
           scrollToBottom('instant', cb)
         }
-      }, 0)
+      }
+
+      // Give React time to render the components
+      setTimeout(tryScrollToMessage, 0)
     })(false, true, false, true)
   }, [siteFrontId, categoryFrontId, location])
 
@@ -619,6 +627,32 @@ const ChatPage: React.FC<ChatPageProps> = ({
       scrollToBottom('smooth')
     }
   }, [replySuccess])
+
+  // Handle hash changes after initial load
+  useEffect(() => {
+    if (!chatList.initialized) return
+
+    const messageId = /^#message\d+$/.test(location.hash)
+      ? location.hash
+      : null
+
+    if (messageId) {
+      const tryScrollToMessage = (retries = 3) => {
+        const targetMessageEl = document.querySelector(`${messageId}`) as HTMLElement
+        if (targetMessageEl) {
+          scrollToElement(targetMessageEl, () => {
+            setTimeout(() => {
+              highlightElement(targetMessageEl, 'b-chat-highlight')
+            }, 100)
+          }, 'smooth')
+        } else if (retries > 0) {
+          setTimeout(() => tryScrollToMessage(retries - 1), 100)
+        }
+      }
+
+      setTimeout(tryScrollToMessage, 0)
+    }
+  }, [location.hash, chatList.initialized])
 
   useEffect(() => {
     if (!siteFrontId || !categoryFrontId) return

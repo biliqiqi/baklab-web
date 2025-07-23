@@ -32,6 +32,7 @@ import {
   Category,
   ChatListState,
   ChatMessage,
+  ChatRoom,
 } from './types/types'
 
 interface ChatPageProps {
@@ -76,18 +77,18 @@ const ChatPage: React.FC<ChatPageProps> = ({
   const editHandlerRef = useRef<((x: Article) => void) | null>(null)
   const newMessageHandlerRef = useRef<
     | ((
-        atBottom: boolean,
-        siteFrontId: string,
-        categoryFrontId: string
-      ) => (data: ChatMessage) => void)
+      atBottom: boolean,
+      siteFrontId: string,
+      categoryFrontId: string
+    ) => (data: ChatMessage) => void)
     | null
   >(null)
 
   const refreshChatListHandlerRef = useRef<
     | ((
-        siteFrontId: string,
-        categoryFrontId: string
-      ) => (id: string, roomPath: string) => void)
+      siteFrontId: string,
+      categoryFrontId: string
+    ) => (roomData: ChatRoom, _messageList?: ChatMessage[]) => void)
     | null
   >(null)
 
@@ -171,6 +172,19 @@ const ChatPage: React.FC<ChatPageProps> = ({
               : data.prevCursor,
             data.nextCursor
           )
+
+          if (init) {
+            setChatList({
+              list: data.articles,
+              prevCursor: data.prevCursor,
+              nextCursor: data.nextCursor,
+              initialized: false,
+              lastReadCursor: '',
+              lastScrollTop: 0,
+              path: `/${siteFrontId}/bankuai/${categoryFrontId}`,
+            })
+          }
+
           setCurrCursor(cursor || '')
           return data
         }
@@ -227,25 +241,24 @@ const ChatPage: React.FC<ChatPageProps> = ({
   useEffect(() => {
     const CreateOnNewMessage =
       (atBottom: boolean, siteFrontId: string, categoryFrontId: string) =>
-      (data: ChatMessage) => {
-        if (data.roomPath != `/${siteFrontId}/bankuai/${categoryFrontId}`)
-          return
-        /* console.log('new message: ', data) */
-        getLocalChatList(siteFrontId, categoryFrontId)
-        if (atBottom) {
-          setTimeout(() => {
-            scrollToBottom('smooth')
-          }, 0)
+        (data: ChatMessage) => {
+          if (data.roomPath != `/${siteFrontId}/bankuai/${categoryFrontId}`)
+            return
+          /* console.log('new message: ', data) */
+          getLocalChatList(siteFrontId, categoryFrontId)
+          if (atBottom) {
+            setTimeout(() => {
+              scrollToBottom('smooth')
+            }, 0)
+          }
         }
-      }
 
     const CreateRefreshChatList =
       (siteFrontId: string, categoryFrontId: string) =>
-      (_id: string, roomPath: string) => {
-        if (roomPath != `/${siteFrontId}/bankuai/${categoryFrontId}`) return
-        /* console.log('delete article id: ', id) */
-        getLocalChatList(siteFrontId, categoryFrontId)
-      }
+        (roomData: ChatRoom, _messageList?: ChatMessage[]) => {
+          if (roomData.path != `/${siteFrontId}/bankuai/${categoryFrontId}`) return
+          getLocalChatList(siteFrontId, categoryFrontId)
+        }
 
     replyHandlerRef.current = onReplyClick
     editHandlerRef.current = onEditClick
@@ -397,14 +410,18 @@ const ChatPage: React.FC<ChatPageProps> = ({
               const list = currChatList.list
               const readItemIdx = list.findIndex((item) => item.id == id)
 
+              if (readItemIdx === -1) {
+                return currChatList
+              }
+
               const item = list[readItemIdx]
               const newItem: Article = {
                 ...item,
                 currUserState: item.currUserState
                   ? {
-                      ...item.currUserState,
-                      isRead: true,
-                    }
+                    ...item.currUserState,
+                    isRead: true,
+                  }
                   : null,
               }
 

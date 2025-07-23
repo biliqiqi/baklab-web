@@ -145,7 +145,7 @@ const platformSidebarMenus: () => (
   },
 ]
 
-const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
+const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
   const [showCategoryForm, setShowCategoryForm] = useState(false)
   const [categoryFormDirty, setCategoryFormDirty] = useState(false)
 
@@ -518,8 +518,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category }) => {
                             asChild
                             isActive={
                               location.pathname ==
-                                `/${siteFrontId}/bankuai/${item.frontId}` ||
-                              category?.frontId == item.frontId
+                                `/${siteFrontId}/bankuai/${item.frontId}`
                             }
                           >
                             <Link

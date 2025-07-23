@@ -231,10 +231,12 @@ const ChatPage: React.FC<ChatPageProps> = ({
 
   const getLocalChatList = toSync(getIDBChatList, (data) => {
     /* console.log('getLocalChatList: ', data) */
-    if (data) {
+    const currentPath = `/${siteFrontId}/bankuai/${categoryFrontId}`
+    
+    if (data && data.path === currentPath) {
       setChatList((state) => ({ ...state, ...data }))
     } else {
-      setChatList(() => ({ ...defaultChatListData }))
+      setChatList(() => ({ ...defaultChatListData, path: currentPath }))
     }
   })
 
@@ -553,6 +555,22 @@ const ChatPage: React.FC<ChatPageProps> = ({
     }
   }, [chatList.initialized, currUserId, chatList, debouncedReadManyMessage])
 
+  // Clear state immediately when route params change
+  useEffect(() => {
+    setCurrCursor('')
+    setChatList({
+      list: [],
+      prevCursor: '',
+      nextCursor: '',
+      initialized: false,
+      lastReadCursor: '',
+      lastScrollTop: 0,
+      path: '',
+    })
+    readIdList.current.clear()
+    readingIdList.current.clear()
+  }, [siteFrontId, categoryFrontId])
+
   // init data
   useEffect(() => {
     onReady()
@@ -592,19 +610,6 @@ const ChatPage: React.FC<ChatPageProps> = ({
         }
       }, 0)
     })(false, true, false, true)
-
-    return () => {
-      setCurrCursor('')
-      setChatList({
-        list: [],
-        prevCursor: '',
-        nextCursor: '',
-        initialized: false,
-        lastReadCursor: '',
-        lastScrollTop: 0,
-        path: '',
-      })
-    }
   }, [siteFrontId, categoryFrontId, location])
 
   useEffect(() => {
@@ -617,7 +622,20 @@ const ChatPage: React.FC<ChatPageProps> = ({
 
   useEffect(() => {
     if (!siteFrontId || !categoryFrontId) return
-    getLocalChatList(siteFrontId, categoryFrontId)
+    const currentPath = `/${siteFrontId}/bankuai/${categoryFrontId}`
+    
+    // Only load local data if the path matches current route
+    setChatList((prevState) => {
+      if (prevState.path && prevState.path !== currentPath) {
+        return { ...defaultChatListData, path: currentPath }
+      }
+      return prevState
+    })
+    
+    // Delay loading local data to ensure state is cleared first
+    setTimeout(() => {
+      getLocalChatList(siteFrontId, categoryFrontId)
+    }, 0)
   }, [siteFrontId, categoryFrontId])
 
   return (

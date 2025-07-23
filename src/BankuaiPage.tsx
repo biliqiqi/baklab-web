@@ -37,6 +37,12 @@ export default function BankuaiPage() {
     }))
   )
 
+  // Clear state immediately when route params change
+  useEffect(() => {
+    setServerCate(null)
+    setInitialized(false)
+  }, [siteFrontId, categoryFrontId])
+
   useEffect(() => {
     if (!currCate && siteFrontId && categoryFrontId) {
       toSync(getCategoryWithFrontId, (data) => {

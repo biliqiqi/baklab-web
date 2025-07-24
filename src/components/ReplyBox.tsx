@@ -278,6 +278,14 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
 
   const onTextareaFocus = () => {
     setIsActive(true)
+    
+    // 如果 targetInputEl 还未设置，立即更新
+    if (!targetInputEl) {
+      const currentElement = markdownMode ? textareaRef.current : tiptapRef.current?.element
+      if (currentElement) {
+        setTargetInputEl(currentElement)
+      }
+    }
   }
 
   const onPreviewClick = useCallback(
@@ -346,9 +354,11 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
     /* console.log('replyBoxHeight: ', replyBoxHeight) */
 
     if (isActive) {
-      if (replyBoxHeight < 80) {
+      // 只要高度小于目标高度就进行调整
+      const targetHeight = 80
+      if (replyBoxHeight < targetHeight) {
         targetInputEl.classList.add('duration-200', 'transition-all')
-        setReplyBoxHeight(80)
+        setReplyBoxHeight(targetHeight)
         setTimeout(() => {
           if (targetInputEl)
             targetInputEl.classList.remove('duration-200', 'transition-all')
@@ -445,12 +455,24 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   }, [targetInputEl])
 
   useEffect(() => {
-    if (markdownMode) {
-      setTargetInputEl(textareaRef.current)
-    } else {
-      setTargetInputEl(tiptapRef.current?.element || null)
+    const updateTargetElement = () => {
+      if (markdownMode) {
+        setTargetInputEl(textareaRef.current)
+      } else {
+        setTargetInputEl(tiptapRef.current?.element || null)
+      }
     }
-  }, [markdownMode])
+    
+    updateTargetElement()
+    
+    // 如果是 TipTap 模式但元素还未准备好，延迟重试
+    if (!markdownMode && !tiptapRef.current?.element) {
+      const retryTimer = setTimeout(() => {
+        updateTargetElement()
+      }, 100)
+      return () => clearTimeout(retryTimer)
+    }
+  }, [markdownMode, tiptapRef.current?.element])
 
   useEffect(() => {
     setUpdateRef(true)

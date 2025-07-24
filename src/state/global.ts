@@ -9,30 +9,30 @@ import { getCategoryList } from '@/api/category'
 import { getNotificationUnreadCount } from '@/api/message'
 import { getJoinedSiteList, getSiteWithFrontId } from '@/api/site'
 import {
-    LEFT_SIDEBAR_STATE_KEY,
-    RIGHT_SIDEBAR_SETTINGS_TYPE_KEY,
-    RIGHT_SIDEBAR_STATE_KEY,
-    USER_UI_SETTINGS_KEY,
+  LEFT_SIDEBAR_STATE_KEY,
+  RIGHT_SIDEBAR_SETTINGS_TYPE_KEY,
+  RIGHT_SIDEBAR_STATE_KEY,
+  USER_UI_SETTINGS_KEY,
 } from '@/constants/constants'
 import { PermitFn, PermitUnderSiteFn } from '@/constants/types'
 import i18n from '@/i18n'
 import {
-    Article,
-    ArticleLog,
-    Category,
-    InviteCode,
-    ReplyBoxProps,
-    Role,
-    SITE_LIST_MODE,
-    SITE_STATUS,
-    SITE_UI_MODE,
-    SettingsType,
-    Site,
-    SiteListMode,
-    SiteUIMode,
-    StringFn,
-    Theme,
-    UserData,
+  Article,
+  ArticleLog,
+  Category,
+  InviteCode,
+  ReplyBoxProps,
+  Role,
+  SITE_LIST_MODE,
+  SITE_STATUS,
+  SITE_UI_MODE,
+  SettingsType,
+  Site,
+  SiteListMode,
+  SiteUIMode,
+  StringFn,
+  Theme,
+  UserData,
 } from '@/types/types'
 
 export interface ToastState {
@@ -818,15 +818,26 @@ export interface UserUIStateData
   updatedAt: number
 }
 
-export const useUserUIStore = create<UserUIState>((set) => ({
-  siteListMode: SITE_LIST_MODE.TopDrawer,
-  setSiteListMode(mode) {
-    set((state) => ({ ...state, siteListMode: mode }))
-  },
-  setState(newState) {
-    set((state) => ({ ...state, ...newState }))
-  },
-}))
+export const useUserUIStore = create(
+  subscribeWithSelector<UserUIState>((set) => ({
+    siteListMode: SITE_LIST_MODE.TopDrawer,
+    setSiteListMode(mode) {
+      set((state) => ({ ...state, siteListMode: mode }))
+    },
+    setState(newState) {
+      set((state) => ({ ...state, ...newState }))
+    },
+  }))
+)
+
+useUserUIStore.subscribe(
+  (state) => state.siteListMode,
+  (mode) => {
+    if (mode == SITE_LIST_MODE.DropdownMenu) {
+      useTopDrawerStore.getState().update(false)
+    }
+  }
+)
 
 export interface InviteDataState {
   generatting: boolean

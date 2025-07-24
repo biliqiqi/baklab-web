@@ -95,8 +95,12 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const [userUIFormDirty, setUserUIFormDirty] = useState(false)
     const [siteUIFormDirty, setSiteUIFormDirty] = useState(false)
 
-    const { open: showTopDrawer, update: setShowTopDrawer } =
-      useTopDrawerStore()
+    const { showTopDrawer, setShowTopDrawer } =
+      useTopDrawerStore(useShallow(({ open, update }) => ({
+        showTopDrawer: open,
+        setShowTopDrawer: update,
+      })))
+
     const { signin, signup, updateSignin, updateSignup } = useDialogStore()
     const { showNotFound, updateNotFound } = useNotFoundStore()
     const { t } = useTranslation()
@@ -609,8 +613,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               'relative flex-grow w-full',
               !isMobile && 'duration-200 transition-[width] ease-linear',
               !isMobile &&
-                sidebarOpen &&
-                'w-[calc(100%-var(--sidebar-width)*2)]'
+              sidebarOpen &&
+              'w-[calc(100%-var(--sidebar-width)*2)]'
             )}
             style={{
               height: bodyHeight,

@@ -211,12 +211,15 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
     }, [editor, onResize])
 
     React.useEffect(() => {
-      if (editor !== null && placeholder !== '') {
-        editor.extensionManager.extensions.filter(
+      if (editor !== null) {
+        const placeholderExt = editor.extensionManager.extensions.find(
           (extension) => extension.name === 'placeholder'
+        )
+        if (placeholderExt) {
           // eslint-disable-next-line
-        )[0].options['placeholder'] = placeholder
-        editor.view.dispatch(editor.state.tr)
+          placeholderExt.options['placeholder'] = placeholder || ''
+          editor.view.dispatch(editor.state.tr)
+        }
       }
     }, [editor, placeholder])
 

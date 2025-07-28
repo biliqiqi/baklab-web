@@ -1,3 +1,5 @@
+import { AfterResponseHook } from "ky"
+
 export interface ResponseData<T> {
   code: number
   message: string
@@ -281,6 +283,7 @@ export interface CustomRequestOptions {
   showNotFound?: boolean
   showAuthToast?: boolean
   siteFrontId?: string
+  afterResponseHooks?: AfterResponseHook[]
 }
 
 export type FrontCategory = Pick<Category, 'frontId' | 'name' | 'describe'> & {
@@ -693,12 +696,12 @@ export interface ReplyBoxProps {
   edittingArticle?: Article | null
   disabled?: boolean
   onSuccess?:
-    | ((
-        data: ResponseData<ArticleSubmitResponse>,
-        type?: ReplyBoxType,
-        boxHeight?: number
-      ) => void)
-    | (() => Promise<void>)
+  | ((
+    data: ResponseData<ArticleSubmitResponse>,
+    type?: ReplyBoxType,
+    boxHeight?: number
+  ) => void)
+  | (() => Promise<void>)
   onRemoveReply?: (() => void) | (() => Promise<void>)
 }
 

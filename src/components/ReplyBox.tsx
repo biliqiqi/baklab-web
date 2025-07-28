@@ -41,6 +41,7 @@ import BLoader from './base/BLoader'
 import { Button } from './ui/button'
 import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form'
 import { Textarea } from './ui/textarea'
+import { AfterResponseHook } from 'ky'
 
 const contentSchema = (i: I18n) =>
   z
@@ -91,6 +92,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   const [updateRef, setUpdateRef] = useState(false)
   const [targetInputEl, setTargetInputEl] = useState<HTMLElement | null>(null)
   const [justSubmitted, setJustSubmitted] = useState(false)
+  const [rateLimitResetSeconds, setRateLimitResetSeconds] = useState(0)
 
   const { siteFrontId } = useParams()
 
@@ -151,10 +153,23 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   })
 
   /* const isReplyToRoot = () => replyToArticle && replyToArticle.replyToId == '0' */
+  const readRateLimitData: AfterResponseHook = useCallback((_req, _opt, resp) => {
+    const rateLimitRemainingStr = resp.headers.get('X-Ratelimit-Remaining')
+
+    if (rateLimitRemainingStr && rateLimitRemainingStr == '0') {
+      const rateLimitResetSecondsStr = resp.headers.get('X-Ratelimit-Reset')
+      if (!rateLimitResetSecondsStr) return
+      
+      const remainSeconds = parseInt(rateLimitResetSecondsStr, 10)
+      if (isNaN(remainSeconds) || remainSeconds <= 0) return
+      
+      form.reset()
+      setRateLimitResetSeconds(remainSeconds)
+    }
+  }, [form])
 
   const onSubmit = useCallback(
     async ({ content }: ArticleSchema) => {
-      /* console.log('values: ', values) */
       try {
         setLoading(true)
 
@@ -169,13 +184,19 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
             edittingArticle.replyToId,
             edittingArticle.displayTitle,
             false,
-            { siteFrontId: edittingArticle.siteFrontId }
+            {
+              siteFrontId: edittingArticle.siteFrontId,
+              afterResponseHooks: [readRateLimitData]
+            }
           )
         } else if (editType == 'reply') {
           if (!replyToArticle || !replyToArticle.id)
             throw new Error('reply to aritcle id is required')
 
-          resp = await submitReply(replyToArticle.id, content, { siteFrontId })
+          resp = await submitReply(replyToArticle.id, content, {
+            siteFrontId,
+            afterResponseHooks: [readRateLimitData]
+          })
         } else {
           if (!category || category.contentForm?.frontId != 'chat')
             throw new Error('category data is required or not under chat')
@@ -186,7 +207,10 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
             content,
             false,
             category.contentForm.id,
-            { siteFrontId }
+            {
+              siteFrontId,
+              afterResponseHooks: [readRateLimitData]
+            }
           )
         }
 
@@ -219,6 +243,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
       editType,
       category,
       replyBoxHeight,
+      readRateLimitData,
     ]
   )
 
@@ -278,7 +303,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
 
   const onTextareaFocus = () => {
     setIsActive(true)
-    
+
     // 如果 targetInputEl 还未设置，立即更新
     if (!targetInputEl) {
       const currentElement = markdownMode ? textareaRef.current : tiptapRef.current?.element
@@ -306,7 +331,6 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
 
   const createSetupForm = (isMarkdownMode: boolean) => {
     return () => {
-      /* console.log('onclick, markdown mode: ', isMarkdownMode) */
       setTimeout(() => {
         if (isMarkdownMode) {
           if (textareaRef.current) {
@@ -314,7 +338,6 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
           }
         } else {
           if (tiptapRef.current?.editor) {
-            /* console.log('clicked set focus !', tiptapRef.current) */
             tiptapRef.current.editor.commands.focus()
           }
         }
@@ -462,9 +485,9 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
         setTargetInputEl(tiptapRef.current?.element || null)
       }
     }
-    
+
     updateTargetElement()
-    
+
     // 如果是 TipTap 模式但元素还未准备好，延迟重试
     if (!markdownMode && !tiptapRef.current?.element) {
       const retryTimer = setTimeout(() => {
@@ -477,6 +500,21 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   useEffect(() => {
     setUpdateRef(true)
   }, [])
+
+  useEffect(() => {
+    if (rateLimitResetSeconds <= 0) return
+
+    const timer = setTimeout(() => {
+      const newSeconds = rateLimitResetSeconds - 1
+      setRateLimitResetSeconds(newSeconds <= 0 ? 0 : newSeconds)
+    }, 1000)
+
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [rateLimitResetSeconds])
+
+
 
   return (
     <div
@@ -501,7 +539,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
             <form
               onSubmit={form.handleSubmit(onSubmit)}
               onKeyUp={(e) => {
-                if (e.ctrlKey && e.key == 'Enter') {
+                if (e.ctrlKey && e.key == 'Enter' && !disabled && rateLimitResetSeconds <= 0) {
                   toSync(form.handleSubmit(onSubmit))()
                 }
               }}
@@ -557,7 +595,8 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
                             display: isPreview || !markdownMode ? 'none' : '',
                           }}
                           onFocus={onTextareaFocus}
-                          disabled={disabled}
+                          disabled={disabled || rateLimitResetSeconds > 0}
+                          placeholder={rateLimitResetSeconds > 0 ? t('availableInSeconds', { seconds: rateLimitResetSeconds }) : ''}
                         />
 
                         <TipTap
@@ -573,8 +612,9 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
                           onChange={field.onChange}
                           value={escapeHtml(field.value)}
                           hideBubble={markdownMode}
-                          disabled={disabled}
+                          disabled={disabled || rateLimitResetSeconds > 0}
                           className={cn(isActive && 'resize-y overflow-auto')}
+                          placeholder={rateLimitResetSeconds > 0 ? t('availableInSeconds', { seconds: rateLimitResetSeconds }) : ''}
                         />
                       </>
                     </FormControl>
@@ -633,7 +673,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
                     </Button>
                     <Button
                       type="submit"
-                      disabled={loading || disabled}
+                      disabled={loading || disabled || rateLimitResetSeconds > 0}
                       className="mt-2 ml-2"
                       size="sm"
                     >

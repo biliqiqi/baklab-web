@@ -530,5 +530,7 @@
   "siteRateLimitEnabledLabel": "Enable Site-wide Rate Limiting",
   "roleRateLimitEnabledLabel": "Enable rate limiting for this role",
   "enabled": "Enabled",
-  "disabled": "Disabled"
+  "disabled": "Disabled",
+  "tooManyOperations": "Too many operations. Please try again later.",
+  "availableInSeconds": "Available in {{seconds}}s"
 }

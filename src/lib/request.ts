@@ -46,7 +46,7 @@ const defaultOptions: Options = {
     // ],
     afterResponse: [
       async (req, _opt, resp) => {
-        // console.log('base request after response hooks: ', resp)
+        // console.log('response headers: ', resp.headers.get(''))
         const status = resp.status
         const respDup = resp.clone()
 
@@ -84,6 +84,9 @@ const defaultOptions: Options = {
               } else {
                 toast.error(i18n.t('forbiddenError'))
               }
+              break
+            case status == 429:
+              toast.error(i18n.t('tooManyOperations'))
               break
             case status >= 500 && status <= 599:
               toast.error(i18n.t('internalServerError'))
@@ -145,8 +148,14 @@ const makeAuthRequestConfigs = (
     },
   }
 
-  if (custom.showAuthToast && opt.hooks?.afterResponse) {
-    opt.hooks.afterResponse.push(authToastHook)
+  if (opt.hooks?.afterResponse) {
+    if (custom.showAuthToast) {
+      opt.hooks.afterResponse.push(authToastHook)
+    }
+
+    if (custom.afterResponseHooks?.length) {
+      opt.hooks.afterResponse.push(...custom.afterResponseHooks)
+    }
   }
 
   return opt

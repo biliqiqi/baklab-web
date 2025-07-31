@@ -8,7 +8,6 @@ import React, {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 
-/* import mockArticleList from '@/mock/articles.json' */
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { Badge } from './components/ui/badge'

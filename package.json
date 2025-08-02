@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "lint": "eslint . && npm run type-check",
     "type-check": "tsc --noEmit -p tsconfig.app.json --noUnusedLocals false",
     "preview": "vite preview",
     "test": "vitest",

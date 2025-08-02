@@ -79,7 +79,7 @@ const createSiteSchema = (i: I18n) => z.object({
 }).refine((data) => {
   if (data.rateLimitEnabled) {
     return data.rateLimitTokens && data.rateLimitTokens.trim() !== '' &&
-           data.rateLimitInterval && data.rateLimitInterval.trim() !== ''
+      data.rateLimitInterval && data.rateLimitInterval.trim() !== ''
   }
   return true
 }, {
@@ -111,7 +111,7 @@ const createSiteEditSchema = (i: I18n) => z.object({
 }).refine((data) => {
   if (data.rateLimitEnabled) {
     return data.rateLimitTokens && data.rateLimitTokens.trim() !== '' &&
-           data.rateLimitInterval && data.rateLimitInterval.trim() !== ''
+      data.rateLimitInterval && data.rateLimitInterval.trim() !== ''
   }
   return true
 }, {
@@ -192,19 +192,19 @@ const SiteForm: React.FC<SiteFormProps> = ({
     defaultValues: {
       ...(isEdit
         ? {
-            logoUrl: site.logoUrl,
-            logoBrandHTML: site.logoHtmlStr,
-            visible: site.visible,
-            nonMemberInteract: site.allowNonMemberInteract,
-            name: site.name,
-            keywords: site.keywords,
-            description: site.description,
-            homePage: site.homePage,
-            reviewBeforePublish: site.reviewBeforePublish,
-            rateLimitTokens: site.rateLimitTokens != null ? String(site.rateLimitTokens) : '15',
-            rateLimitInterval: site.rateLimitInterval != null ? String(site.rateLimitInterval) : '60',
-            rateLimitEnabled: site.rateLimitEnabled || false,
-          }
+          logoUrl: site.logoUrl,
+          logoBrandHTML: site.logoHtmlStr,
+          visible: site.visible,
+          nonMemberInteract: site.allowNonMemberInteract,
+          name: site.name,
+          keywords: site.keywords,
+          description: site.description,
+          homePage: site.homePage,
+          reviewBeforePublish: site.reviewBeforePublish,
+          rateLimitTokens: site.rateLimitTokens != null ? String(site.rateLimitTokens) : '15',
+          rateLimitInterval: site.rateLimitInterval != null ? String(site.rateLimitInterval) : '60',
+          rateLimitEnabled: site.rateLimitEnabled || false,
+        }
         : defaultSiteData),
     },
     mode: 'onChange',
@@ -494,6 +494,30 @@ const SiteForm: React.FC<SiteFormProps> = ({
             )}
           />
         )}
+        <FormField
+          control={form.control}
+          name="description"
+          key="description"
+          render={({ field, fieldState }) => (
+            <FormItem className="mb-8">
+              <FormControl>
+                <FormItem className="mb-8">
+                  <FormLabel>{t('description')}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder={t('siteDescriptionInputTip')}
+                      autoComplete="off"
+                      state={fieldState.invalid ? 'invalid' : 'default'}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <Collapsible open={showMoreSettings} onOpenChange={setShowMoreSettings}>
           <CollapsibleTrigger asChild>
             <Button
@@ -512,6 +536,25 @@ const SiteForm: React.FC<SiteFormProps> = ({
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="CollapsibleContent">
+            <FormField
+              control={form.control}
+              name="keywords"
+              key="keywords"
+              render={({ field, fieldState }) => (
+                <FormItem className="mb-8">
+                  <FormLabel>{t('keywords')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder={t('keywordDescribe')}
+                      autoComplete="off"
+                      state={fieldState.invalid ? 'invalid' : 'default'}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="logoBrandHTML"
@@ -708,9 +751,9 @@ const SiteForm: React.FC<SiteFormProps> = ({
                   </FormControl>
                   {formVals.rateLimitEnabled && formVals.rateLimitTokens && formVals.rateLimitInterval && (
                     <div className="text-sm text-gray-500 mt-2">
-                      {t('rateLimitPolicy', { 
-                        tokens: formVals.rateLimitTokens, 
-                        interval: formVals.rateLimitInterval 
+                      {t('rateLimitPolicy', {
+                        tokens: formVals.rateLimitTokens,
+                        interval: formVals.rateLimitInterval
                       })}
                     </div>
                   )}
@@ -821,51 +864,6 @@ const SiteForm: React.FC<SiteFormProps> = ({
                 )}
               />
             )}
-            <FormField
-              control={form.control}
-              name="keywords"
-              key="keywords"
-              render={({ field, fieldState }) => (
-                <FormItem className="mb-8">
-                  <FormLabel>{t('keywords')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder={t('keywordDescribe')}
-                      autoComplete="off"
-                      state={fieldState.invalid ? 'invalid' : 'default'}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              key="description"
-              render={({ field, fieldState }) => (
-                <FormItem className="mb-8">
-                  <FormControl>
-                    <FormItem className="mb-8">
-                      <FormLabel>{t('description')}</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder={t('inputTip', {
-                            field: t('description'),
-                          })}
-                          autoComplete="off"
-                          state={fieldState.invalid ? 'invalid' : 'default'}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </CollapsibleContent>
         </Collapsible>
         <div className="flex justify-between">

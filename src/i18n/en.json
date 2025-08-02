@@ -330,6 +330,7 @@
   "feed": "Feed",
   "keywordDescribe": "Enter site keywords, separated by commas (,)",
   "description": "Description",
+  "siteDescriptionInputTip": "Please enter a description to introduce this site",
   "delete": "Delete",
   "emailExistsTip": "Email already registered. Please sign in directly.",
   "signupTitle": "Sign up for a new account",

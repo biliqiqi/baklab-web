@@ -330,6 +330,7 @@
   "feed": "信息流",
   "keywordDescribe": "请输入站点关键字词，用逗号 (,) 隔开",
   "description": "描述",
+  "siteDescriptionInputTip": "请输入描述，介绍一下此站点",
   "delete": "删除",
   "emailExistsTip": "邮箱已注册，请直接登录",
   "signupTitle": "注册新账户",

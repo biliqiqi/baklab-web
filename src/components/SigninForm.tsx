@@ -22,9 +22,9 @@ import { Button } from './ui/button'
 import { Form, FormControl, FormItem } from './ui/form'
 import { Input } from './ui/input'
 
-const emailRule = z.string().email()
+const accountRule = z.string().min(1)
 const signinSchema = z.object({
-  account: emailRule,
+  account: accountRule,
   password: z.string(),
 })
 
@@ -110,12 +110,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
 
   signinForm.register('account', {
     onChange: (e: ChangeEvent<HTMLInputElement>) => {
-      try {
-        const email = emailRule.parse(e.target.value)
-        setEmail(email)
-      } catch (_err) {
-        setEmail('')
-      }
+      setEmail(e.target.value)
     },
   })
 
@@ -172,7 +167,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
             <FormInput
               control={signinForm.control}
               name="account"
-              placeholder={t('inputTip', { field: t('email') })}
+              placeholder={t('inputTip', { field: t('usernameOrEmail') })}
             />
             <FormInput
               control={signinForm.control}

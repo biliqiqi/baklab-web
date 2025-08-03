@@ -71,6 +71,7 @@
   "userList": "用户列表",
   "userListDescribe": "全部用户",
   "username": "用户名",
+  "usernameOrEmail": "用户名或邮箱",
   "selectRole": "选择角色",
   "countMember": "{{num}} 个成员",
   "countUser": "{{num}} 个用户",

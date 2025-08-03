@@ -71,6 +71,7 @@
   "userList": "User List",
   "userListDescribe": "All users",
   "username": "Username",
+  "usernameOrEmail": "Username or Email",
   "selectRole": "Select Role",
   "countMember": "{{num}} members",
   "countUser": "{{num}} users",

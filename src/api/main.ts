@@ -7,6 +7,7 @@ import {
   ArticleLogStatus,
   AuthedDataResponse,
   CustomRequestOptions,
+  OAuthProvider,
   PermissionListResponse,
   ResponseData,
   TokenResponse,
@@ -39,6 +40,30 @@ export const postSignin = async (
   request.post(`signin`, {
     credentials: 'include',
     json: { account, password },
+  })
+
+export const postOAuthAuthorize = async (
+  provider: OAuthProvider
+): Promise<ResponseData<{ authUrl: string }>> =>
+  request.post(`oauth/authorize`, { json: { provider } })
+
+export const postOAuthCallback = async (
+  provider: OAuthProvider,
+  code: string
+): Promise<ResponseData<AuthedDataResponse>> =>
+  request.post(`oauth/callback`, {
+    credentials: 'include',
+    json: { provider, code },
+  })
+
+export const postOAuthCompleteRegistration = async (
+  provider: OAuthProvider,
+  email: string,
+  username: string
+): Promise<ResponseData<AuthedDataResponse>> =>
+  request.post(`oauth/complete-registration`, {
+    credentials: 'include',
+    json: { provider, email, username },
   })
 
 export const getActivityList = async (

@@ -7,7 +7,7 @@ import { useParams } from 'react-router-dom'
 import { timeAgo } from '@/lib/dayjs-custom'
 import { cn } from '@/lib/utils'
 
-import { FRONT_END_HOST } from '@/constants/constants'
+import { FRONTEND_HOST } from '@/constants/constants'
 import { InviteCode } from '@/types/types'
 
 import { Button } from './ui/button'
@@ -31,9 +31,9 @@ const Invite: React.FC<InviteProps> = ({
   const { siteFrontId } = useParams()
   const inviteLink = useMemo(() => {
     if (publicSite) {
-      return `${FRONT_END_HOST}/${siteFrontId}`
+      return `${FRONTEND_HOST}/${siteFrontId}`
     } else {
-      return `${FRONT_END_HOST}/invite/${data?.code || ''}`
+      return `${FRONTEND_HOST}/invite/${data?.code || ''}`
     }
   }, [publicSite, siteFrontId, data])
 

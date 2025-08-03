@@ -1,8 +1,8 @@
 import {
-    LoaderFunction,
-    RouteObject,
-    redirect,
-    replace,
+  LoaderFunction,
+  RouteObject,
+  redirect,
+  replace,
 } from 'react-router-dom'
 
 import ActivityPage from './ActivityPage.tsx'
@@ -13,6 +13,7 @@ import BannedUserListPage from './BannedUserListPage.tsx'
 import BlockedUserListPage from './BlockedUserListPage.tsx'
 import BlockedWordListPage from './BlockedWordListPage.tsx'
 import CategoryListPage from './CategoryListPage.tsx'
+import OAuthCallback from './components/OAuthCallback.tsx'
 import EditPage from './EditPage.tsx'
 import InvitePage from './InvitePage.tsx'
 import MessagePage from './MessagePage.tsx'
@@ -28,10 +29,10 @@ import UserPage from './UserPage.tsx'
 import { getSiteWithFrontId } from './api/site.ts'
 import { PermissionAction, PermissionModule } from './constants/types.ts'
 import {
-    ensureLogin,
-    isLogined,
-    useAuthedUserStore,
-    useSiteStore,
+  ensureLogin,
+  isLogined,
+  useAuthedUserStore,
+  useSiteStore,
 } from './state/global.ts'
 import { Site } from './types/types.ts'
 
@@ -64,63 +65,63 @@ const needPermission =
     module: T,
     action: PermissionAction<T>
   ): LoaderFunction =>
-  async ({ request, params: { siteFrontId } }) => {
-    try {
-      const logined = await ensureLogin()
-      const checkPermit = useAuthedUserStore.getState().permit
-      const checkPermitUnderSite = useAuthedUserStore.getState().permitUnderSite
+    async ({ request, params: { siteFrontId } }) => {
+      try {
+        const logined = await ensureLogin()
+        const checkPermit = useAuthedUserStore.getState().permit
+        const checkPermitUnderSite = useAuthedUserStore.getState().permitUnderSite
 
-      if (!logined) {
-        return redirectToSignin(request.url)
+        if (!logined) {
+          return redirectToSignin(request.url)
+        }
+
+        if (siteFrontId) {
+          let site: Site | null | undefined = null
+          const siteStore = useSiteStore.getState()
+          site = siteStore.site
+          if (!site) {
+            site = await siteStore.fetchSiteData(siteFrontId)
+          }
+
+          if (!site || !checkPermitUnderSite(site, module, action)) {
+            return redirect(`/${siteFrontId}`)
+          }
+        } else {
+          if (!checkPermit(module, action)) {
+            return redirect('/')
+          }
+        }
+      } catch (err) {
+        console.error('permission check error in router: ', err)
       }
 
-      if (siteFrontId) {
-        let site: Site | null | undefined = null
-        const siteStore = useSiteStore.getState()
-        site = siteStore.site
-        if (!site) {
-          site = await siteStore.fetchSiteData(siteFrontId)
-        }
-
-        if (!site || !checkPermitUnderSite(site, module, action)) {
-          return redirect(`/${siteFrontId}`)
-        }
-      } else {
-        if (!checkPermit(module, action)) {
-          return redirect('/')
-        }
-      }
-    } catch (err) {
-      console.error('permission check error in router: ', err)
+      return null
     }
-
-    return null
-  }
 
 const somePermissions =
   <T extends PermissionModule>(
     ...pairs: [T, PermissionAction<T>][]
   ): LoaderFunction =>
-  ({ request, params: { siteFrontId } }) => {
-    const authState = useAuthedUserStore.getState()
+    ({ request, params: { siteFrontId } }) => {
+      const authState = useAuthedUserStore.getState()
 
-    if (!authState.isLogined()) {
-      return redirectToSignin(request.url)
-    }
-
-    const permitted = pairs.some(([module, action]) =>
-      authState.permit(module, action)
-    )
-    if (!permitted) {
-      if (siteFrontId) {
-        return redirect(`/${siteFrontId}`)
-      } else {
-        return redirect('/')
+      if (!authState.isLogined()) {
+        return redirectToSignin(request.url)
       }
-    }
 
-    return null
-  }
+      const permitted = pairs.some(([module, action]) =>
+        authState.permit(module, action)
+      )
+      if (!permitted) {
+        if (siteFrontId) {
+          return redirect(`/${siteFrontId}`)
+        } else {
+          return redirect('/')
+        }
+      }
+
+      return null
+    }
 
 export const routes: RouteObject[] = [
   {
@@ -140,6 +141,10 @@ export const routes: RouteObject[] = [
     path: '/signin',
     Component: SigninPage,
     loader: notAtAuthed,
+  },
+  {
+    path: '/oauth_callback',
+    Component: OAuthCallback,
   },
   {
     path: '/users/:username',

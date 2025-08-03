@@ -16,8 +16,11 @@ import {
   useDialogStore,
   useSiteStore,
 } from '@/state/global'
+import { OAUTH_PROVIDER, OAuthProvider } from '@/types/types'
 
 import BLoader from './base/BLoader'
+import OAuthButton from './OAuthButton'
+import OAuthUsernameSetup from './OAuthUsernameSetup'
 import { Button } from './ui/button'
 import { Form, FormControl, FormItem } from './ui/form'
 import { Input } from './ui/input'
@@ -78,6 +81,12 @@ const SigninForm: React.FC<SigninFromProps> = ({
   onSuccess,
 }) => {
   const [loading, setLoading] = useState(false)
+  const [showUsernameSetup, setShowUsernameSetup] = useState(false)
+  const [oauthData, setOauthData] = useState<{
+    email: string
+    provider: OAuthProvider
+    suggestedName: string
+  } | null>(null)
   const updateAuthState = useAuthedUserStore((state) => state.update)
 
   const { siteFrontId } = useParams()
@@ -132,6 +141,29 @@ const SigninForm: React.FC<SigninFromProps> = ({
     }, [siteFrontId, siteStore])
   )
 
+  const handleOAuthUsernameRequired = (email: string, provider: OAuthProvider, suggestedName: string) => {
+    setOauthData({ email, provider, suggestedName })
+    setShowUsernameSetup(true)
+    setLoading(false)
+  }
+
+  const handleUsernameSetupSuccess = () => {
+    setShowUsernameSetup(false)
+    setOauthData(null)
+    fetchSiteData()
+    toSync(siteStore.fetchSiteList)()
+    onSuccess?.()
+  }
+
+  const handleUsernameSetupError = (error: string) => {
+    console.error('OAuth username setup error:', error)
+  }
+
+  const handleBackToSignin = () => {
+    setShowUsernameSetup(false)
+    setOauthData(null)
+  }
+
   const onSigninSubmit = async (values: SigninSchema) => {
     try {
       if (loading) return
@@ -159,6 +191,28 @@ const SigninForm: React.FC<SigninFromProps> = ({
 
   useDocumentTitle(t('signin'))
 
+  // Show username setup if needed
+  if (showUsernameSetup && oauthData) {
+    return (
+      <div className="w-[400px] max-sm:w-full space-y-6 mx-auto py-4">
+        <OAuthUsernameSetup
+          email={oauthData.email}
+          provider={oauthData.provider}
+          suggestedName={oauthData.suggestedName}
+          onSuccess={handleUsernameSetupSuccess}
+          onError={handleUsernameSetupError}
+        />
+        <button 
+          type="button"
+          onClick={handleBackToSignin}
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          ← {t('goBack')}
+        </button>
+      </div>
+    )
+  }
+
   return (
     <>
       <div className="w-[400px] max-sm:w-full space-y-8 mx-auto py-4">
@@ -184,6 +238,38 @@ const SigninForm: React.FC<SigninFromProps> = ({
             </Button>
           </form>
         </Form>
+
+        {/* OAuth login section */}
+        <div className="space-y-4">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                {t('orContinueWith')}
+              </span>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <OAuthButton
+              provider={OAUTH_PROVIDER.GOOGLE}
+              onSuccess={onSuccess}
+              onError={(error) => console.error('Google OAuth error:', error)}
+              onUsernameRequired={handleOAuthUsernameRequired}
+              disabled={loading}
+            />
+            <OAuthButton
+              provider={OAUTH_PROVIDER.GITHUB}
+              onSuccess={onSuccess}
+              onError={(error) => console.error('GitHub OAuth error:', error)}
+              onUsernameRequired={handleOAuthUsernameRequired}
+              disabled={loading}
+            />
+          </div>
+        </div>
+
         <div className="text-sm">
           <Trans
             i18nKey={'directlySignupTip'}

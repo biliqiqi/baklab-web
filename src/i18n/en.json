@@ -534,5 +534,8 @@
   "enabled": "Enabled",
   "disabled": "Disabled",
   "tooManyOperations": "Too many operations. Please try again later.",
-  "availableInSeconds": "Available in {{seconds}}s"
+  "availableInSeconds": "Available in {{seconds}}s",
+  "orContinueWith": "Or continue with",
+  "continueWith": "Continue with {{provider}}",
+  "loading": "Loading..."
 }

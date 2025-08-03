@@ -16,6 +16,10 @@ export interface AuthedDataResponse {
   userID: string
   role: string
   user: UserData | null
+  needsUsername: boolean
+  email: string
+  provider: OAuthProvider
+  suggestedName: string
 }
 
 export interface ItemExists {
@@ -228,7 +232,13 @@ export const AUTH_TYPE = Object.freeze({
   MICROSOFT: 'microsoft',
 } as const)
 
+export const OAUTH_PROVIDER = Object.freeze({
+  GOOGLE: 'google',
+  GITHUB: 'github',
+} as const)
+
 export type AuthType = ValuesToUnion<typeof AUTH_TYPE>
+export type OAuthProvider = ValuesToUnion<typeof OAUTH_PROVIDER>
 
 // Permission interface matching the Go struct
 export interface Permission {

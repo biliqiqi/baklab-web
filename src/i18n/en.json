@@ -537,5 +537,9 @@
   "availableInSeconds": "Available in {{seconds}}s",
   "orContinueWith": "Or continue with",
   "continueWith": "Continue with {{provider}}",
-  "loading": "Loading..."
+  "loading": "Loading...",
+  "or": "or",
+  "settingsUpdatedFromAnotherDevice": "Settings updated from another device",
+  "doYouWantToApplyNewSettings": "Do you want to apply the new settings?",
+  "apply": "Apply"
 }

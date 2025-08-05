@@ -202,7 +202,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
           onSuccess={handleUsernameSetupSuccess}
           onError={handleUsernameSetupError}
         />
-        <button 
+        <button
           type="button"
           onClick={handleBackToSignin}
           className="text-sm text-muted-foreground hover:text-foreground"
@@ -246,12 +246,12 @@ const SigninForm: React.FC<SigninFromProps> = ({
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                {t('orContinueWith')}
+              <span className="bg-dialog px-2">
+                {t('or')}
               </span>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <OAuthButton
               provider={OAUTH_PROVIDER.GOOGLE}

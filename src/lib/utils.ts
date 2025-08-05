@@ -206,6 +206,7 @@ export const setRootFontSize = (size: string) => {
   document.documentElement.style.fontSize = `${sizeNum}px`
 }
 
+
 export const handleWithKeyName = (
   keyName: string,
   fn: KeyboardEventHandler

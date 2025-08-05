@@ -9,9 +9,12 @@ import {
 } from 'react'
 import { UseFormReturn, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
+import { useShallow } from 'zustand/react/shallow'
 import z from 'zod'
 
 import { noop, setRootFontSize } from '@/lib/utils'
+import { saveUserUISettings } from '@/api/user'
 
 import {
   DEFAULT_CONTENT_WIDTH,
@@ -20,7 +23,12 @@ import {
 } from '@/constants/constants'
 import i18n from '@/i18n'
 import {
+  BackendUISettings,
+  forceApplyUISettings,
+  registerUISettingsCallback,
   setLocalUserUISettings,
+  getLocalUserUISettings,
+  unregisterUISettingsCallback,
   useForceUpdate,
   useSiteStore,
   useTopDrawerStore,
@@ -156,14 +164,22 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
   ({ onChange = noop }, ref) => {
     /* const [syncDevices, setSyncDevices] = useState<CheckedState>(false) */
     /* const [customFontSize, setCustomFontSize] = useState('') */
-    const currSiteListMode = useUserUIStore((state) => state.siteListMode)
+    // Get all UI settings from userUIStore for consistency using useShallow
+    const {
+      siteListMode: currSiteListMode,
+      fontSize: userUIFontSizeNum,
+      contentWidth: userUIContentWidthNum,
+      theme: userUITheme,
+    } = useUserUIStore(
+      useShallow((state) => ({
+        siteListMode: state.siteListMode,
+        fontSize: state.fontSize || Number(DEFAULT_FONT_SIZE),
+        contentWidth: state.contentWidth || Number(DEFAULT_CONTENT_WIDTH),
+        theme: state.theme,
+      }))
+    )
+
     const setSiteListMode = useUserUIStore((state) => state.setSiteListMode)
-    const userUIFontSize = useUserUIStore((state) =>
-      String(state.fontSize || Number(DEFAULT_FONT_SIZE))
-    )
-    const userUIContentWidth = useUserUIStore((state) =>
-      String(state.contentWidth || Number(DEFAULT_CONTENT_WIDTH))
-    )
     const setUserUIState = useUserUIStore((state) => state.setState)
     const setOpenTopDrawer = useTopDrawerStore((state) => state.update)
     const setShowSiteListDropdown = useSiteStore(
@@ -173,9 +189,13 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
 
     const { t, i18n } = useTranslation()
 
-    // const userUISettings = useAuthedUserStore((state) => state.user?.uiSettings)
+    // Get theme from userUIStore, fallback to theme provider
+    const { setTheme } = useTheme()
+    const effectiveTheme = userUITheme || DEFAULT_THEME
 
-    const { theme, setTheme } = useTheme()
+    // Convert numbers to strings for form processing
+    const userUIFontSize = String(userUIFontSizeNum)
+    const userUIContentWidth = String(userUIContentWidthNum)
 
     const fontSizeGlobalVal = useMemo(
       () =>
@@ -198,7 +218,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
       defaultValues: {
         ...defaultUserUIData,
         mode: currSiteListMode,
-        theme: theme as ThemeSchema,
+        theme: effectiveTheme as ThemeSchema,
         fontSize: fontSizeGlobalVal,
         customFontSize: fontSizeGlobalVal == 'custom' ? userUIFontSize : '',
         contentWidth: contentWidthGlobalVal,
@@ -234,12 +254,24 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
           cw = customContentWidth
         }
 
+        // Use same timestamp for both local and backend storage
+        const timestamp = Date.now()
+        const savedFontSize = Number(fs) || Number(DEFAULT_FONT_SIZE)
+        const savedContentWidth = Number(cw) || Number(DEFAULT_CONTENT_WIDTH)
+
         setLocalUserUISettings({
           siteListMode: mode,
           theme,
-          fontSize: Number(fs) || Number(DEFAULT_FONT_SIZE),
-          contentWidth: Number(cw) || Number(DEFAULT_CONTENT_WIDTH),
-          updatedAt: Date.now(),
+          fontSize: savedFontSize,
+          contentWidth: savedContentWidth,
+          updatedAt: timestamp,
+        })
+
+        // Immediately update userUIStore to ensure form displays correctly after save
+        setUserUIState({
+          fontSize: savedFontSize,
+          contentWidth: savedContentWidth,
+          theme,
         })
 
         try {
@@ -248,6 +280,21 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
           console.error('switch language error: ', err)
         }
 
+        // Save all UI settings to backend for cross-device sync
+        try {
+          await saveUserUISettings({
+            mode,
+            theme,
+            fontSize: Number(fs) || Number(DEFAULT_FONT_SIZE),
+            contentWidth: Number(cw) || Number(DEFAULT_CONTENT_WIDTH),
+            lang,
+            updatedAt: timestamp
+          })
+        } catch (err) {
+          console.error('save UI settings error: ', err)
+        }
+
+        // Reset form with current form values (userUIStore has been updated)
         form.reset({
           mode,
           theme,
@@ -260,7 +307,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
 
         forceUpdate()
       },
-      [form, i18n, forceUpdate]
+      [form, i18n, forceUpdate, setUserUIState]
     )
 
     useEffect(() => {
@@ -313,6 +360,64 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
     useEffect(() => {
       onChange(form.formState.isDirty)
     }, [formVals, form, onChange])
+
+    // Register callback to handle backend settings updates
+    useEffect(() => {
+      const handlePendingSettings = (settings: BackendUISettings) => {
+        toast.info(t('settingsUpdatedFromAnotherDevice'), {
+          description: t('doYouWantToApplyNewSettings'),
+          duration: Infinity,
+          action: {
+            label: t('apply'),
+            onClick: () => {
+              // Apply settings to global state first
+              forceApplyUISettings(settings)
+
+              // Then update form to reflect the new values
+              const newFontSizeStr = String(settings.fontSize || Number(DEFAULT_FONT_SIZE))
+              const newContentWidthStr = String(settings.contentWidth || Number(DEFAULT_CONTENT_WIDTH))
+
+              const newFontSizeVal = fontSizeSchema.safeParse(newFontSizeStr).success
+                ? newFontSizeStr as FontSizeSchema
+                : 'custom'
+
+              const newContentWidthVal = contentWidthSchema.safeParse(newContentWidthStr).success
+                ? newContentWidthStr as ContentWidthSchema
+                : 'custom'
+
+              form.reset({
+                ...defaultUserUIData,
+                mode: settings.mode || SITE_LIST_MODE.TopDrawer,
+                theme: (settings.theme || DEFAULT_THEME) as ThemeSchema,
+                fontSize: newFontSizeVal,
+                customFontSize: newFontSizeVal === 'custom' ? newFontSizeStr : '',
+                contentWidth: newContentWidthVal,
+                customContentWidth: newContentWidthVal === 'custom' ? newContentWidthStr : '',
+                lang: (settings.lang || i18n.language) as LanguageSchema,
+              })
+            },
+          },
+          cancel: {
+            label: t('cancel'),
+            onClick: () => {
+              const existingSettings = getLocalUserUISettings()
+              if (existingSettings) {
+                setLocalUserUISettings({
+                  ...existingSettings,
+                  updatedAt: Date.now(),
+                })
+              }
+            },
+          },
+        })
+      }
+
+      registerUISettingsCallback(handlePendingSettings)
+
+      return () => {
+        unregisterUISettingsCallback()
+      }
+    }, [t, form, i18n.language])
 
     return (
       <Form {...form}>

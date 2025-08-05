@@ -537,5 +537,9 @@
   "availableInSeconds": "{{seconds}}s 后可用",
   "orContinueWith": "或使用以下方式继续",
   "continueWith": "使用 {{provider}} 继续",
-  "loading": "加载中..."
+  "loading": "加载中...",
+  "or": "或者",
+  "settingsUpdatedFromAnotherDevice": "设置已从其他设备更新",
+  "doYouWantToApplyNewSettings": "是否要应用新的设置？",
+  "apply": "应用"
 }

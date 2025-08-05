@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
+import { useUserUIStore } from '@/state/global'
 import { Theme } from '@/types/types'
 
 import { ThemeProviderContext } from './theme-provider'
@@ -31,14 +32,12 @@ const updateTheme = (settingTheme: Theme) => {
 export function ThemeProvider({
   children,
   defaultTheme = 'system',
-  storageKey = 'ui-theme',
+  storageKey: _storageKey = 'ui-theme',
   ...props
 }: ThemeProviderProps) {
-  /* const [theme, setTheme] = useState<Theme>(
-   *   () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
-   * ) */
-
-  const [theme, setTheme] = useState<Theme>(defaultTheme)
+  // Use userUIStore as single source of truth for theme
+  const theme = useUserUIStore((state) => state.theme) || defaultTheme
+  const setUserUITheme = useUserUIStore((state) => state.setState)
 
   useEffect(() => {
     updateTheme(theme)
@@ -50,7 +49,7 @@ export function ThemeProvider({
   const value = {
     theme,
     setTheme: (theme: Theme) => {
-      setTheme(theme)
+      setUserUITheme({ theme })
     },
   }
 

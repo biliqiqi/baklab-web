@@ -10,7 +10,7 @@ export const SITE_LOGO_IMAGE =
 
 export const FRONTEND_HOST = 'http://192.168.31.51:5173'
 
-export const API_HOST = 'http://192.168.31.51:3000'
+export const API_HOST = 'https://192.168.31.51:3443'
 export const API_PATH_PREFIX = '/api/'
 
 export const STATIC_HOST_NAME = `static.biliqiqi.net`

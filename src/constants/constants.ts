@@ -8,7 +8,7 @@ export const SITE_LOGO_IMAGE =
 // export const SITE_LOGO_IMAGE =
 //   'https://static.biliqiqi.net/WHqTOjf6jVraf1VPGpLwxkf-pNTNW3Nz'
 
-export const FRONTEND_HOST = 'http://192.168.31.51:5173'
+export const FRONTEND_HOST = 'http://localhost:5173'
 
 export const API_HOST = 'https://192.168.31.51:3443'
 export const API_PATH_PREFIX = '/api/'

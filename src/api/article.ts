@@ -22,7 +22,7 @@ import {
 
 export const submitArticle = (
   title: string,
-  categoryFrontID: string,
+  categoryId: string,
   link?: string,
   content?: string,
   locked: boolean = false,
@@ -34,7 +34,7 @@ export const submitArticle = (
     {
       json: {
         title,
-        category: categoryFrontID,
+        categoryId: categoryId,
         link,
         content,
         locked,
@@ -50,7 +50,7 @@ export const submitArticle = (
 export const updateArticle = (
   id: string,
   title?: string,
-  categoryFrontID?: string,
+  categoryId?: string,
   link?: string,
   content?: string,
   locked: boolean = false,
@@ -62,7 +62,7 @@ export const updateArticle = (
     {
       json: {
         title,
-        category: categoryFrontID,
+        categoryId: categoryId,
         link,
         content,
         locked,

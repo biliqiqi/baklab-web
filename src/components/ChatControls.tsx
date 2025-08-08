@@ -105,6 +105,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
   const articleHistory = useArticleHistoryStore()
   const checkPermit = useAuthedUserStore((state) => state.permit)
   const isMyself = useAuthedUserStore((state) => state.isMySelf)
+  const isLogined = useAuthedUserStore((state) => state.isLogined)
   const { t } = useTranslation()
 
   /* console.log('curr article history: ', articleHistory) */
@@ -296,17 +297,18 @@ const ChatControls: React.FC<ChatControlsProps> = ({
                   />
                 </Button>
               )}
-            <DropdownMenu open={showChatMenu} onOpenChange={setShowChatMenu}>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="mr-1 px-2.5"
-                  tabIndex={0}
-                >
-                  <EllipsisIcon size={20} className="inline-block" />
-                </Button>
-              </DropdownMenuTrigger>
+            {isLogined() && (
+              <DropdownMenu open={showChatMenu} onOpenChange={setShowChatMenu}>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="mr-1 px-2.5"
+                    tabIndex={0}
+                  >
+                    <EllipsisIcon size={20} className="inline-block" />
+                  </Button>
+                </DropdownMenuTrigger>
               <DropdownMenuContent className="px-0" align="end">
                 {((isMyself(article.authorId) &&
                   checkPermit('article', 'edit_mine')) ||
@@ -340,7 +342,8 @@ const ChatControls: React.FC<ChatControlsProps> = ({
                       {t('delete')}
                     </DropdownMenuItem>
                   )}
-                {checkPermit('article', 'save') && isPublished && (
+                {/* Save Post button hidden as requested */}
+                {/* {checkPermit('article', 'save') && isPublished && (
                   <DropdownMenuItem
                     className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                     onClick={async (e) => {
@@ -358,7 +361,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
                     />
                     {t('savePost')}
                   </DropdownMenuItem>
-                )}
+                )} */}
                 {checkPermit('article', 'lock') && (
                   <DropdownMenuItem
                     className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
@@ -388,7 +391,8 @@ const ChatControls: React.FC<ChatControlsProps> = ({
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>
-            </DropdownMenu>
+              </DropdownMenu>
+            )}
           </>
         }
         {history && checkPermit('article', 'manage') && (

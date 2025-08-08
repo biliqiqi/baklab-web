@@ -44,12 +44,8 @@ await i18n
     resources,
     detection: {
       lookupQuerystring: 'lang',
-      lookupCookie: 'lang',
-      cookieDomain: new URL(API_HOST).hostname,
-      cookieMinutes: 30 * 24 * 60,
-      cookieOptions: { path: '/', sameSite: 'lax' },
-      caches: ['localStorage', 'cookie'],
       lookupLocalStorage: 'lang',
+      caches: ['localStorage'],
       htmlTag: document.documentElement,
       convertDetectedLanguage: (lng) => {
         return lng.replace('_', '-')

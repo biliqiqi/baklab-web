@@ -28,6 +28,13 @@ const isRefreshRequest: (x: Request) => boolean = (req) =>
 //   siteFrontId = frontId
 // }
 
+const addLanguageHeader: BeforeRequestHook = (req, _opt) => {
+  const currentLanguage = i18n.language
+  if (currentLanguage) {
+    req.headers.set('X-Language', currentLanguage)
+  }
+}
+
 const defaultOptions: Options = {
   prefixUrl: `${API_HOST}${API_PATH_PREFIX}`,
   headers: {
@@ -39,11 +46,7 @@ const defaultOptions: Options = {
   //   statusCodes: [401],
   // },
   hooks: {
-    // beforeRequest: [
-    //   (_req, opt) => {
-    //     console.log('options in base request:', opt)
-    //   },
-    // ],
+    beforeRequest: [addLanguageHeader],
     afterResponse: [
       async (req, _opt, resp) => {
         // console.log('response headers: ', resp.headers.get(''))

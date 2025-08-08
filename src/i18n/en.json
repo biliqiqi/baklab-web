@@ -195,7 +195,7 @@
   "passRule1": "Password must contain at least one lowercase letter",
   "passRule2": "Password must contain at least one uppercase letter",
   "passRule3": "Password must contain at least one number",
-  "passRule4": "Password must contain at least one special character",
+  "passRule4": "Password must contain at least one special character (!@#$%^&*)",
   "editMyPost": "Edit own posts",
   "editOthersPost": "Edit others' posts",
   "deleteMyPost": "Delete own posts",

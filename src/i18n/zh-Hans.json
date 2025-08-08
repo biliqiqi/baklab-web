@@ -195,7 +195,7 @@
   "passRule1": "密码必须至少包含一个小写字母",
   "passRule2": "密码必须至少包含一个大写字母",
   "passRule3": "密码必须至少包含数字",
-  "passRule4": "密码必须至少包含特殊字符",
+  "passRule4": "密码必须至少包含特殊字符(!@#$%^&*)",
   "editMyPost": "编辑自己的文章",
   "editOthersPost": "编辑他人的文章",
   "deleteMyPost": "删除自己的文章",

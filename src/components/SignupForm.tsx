@@ -133,12 +133,11 @@ const SignupForm: React.FC<SignupFormProps> = ({
         password: z
           .string()
           .min(12, t('charMinimum', { field: t('password'), num: 12 }))
-          .max(18, t('charMaximum', { field: t('password'), num: 18 }))
+          .max(64, t('charMaximum', { field: t('password'), num: 64 }))
           .regex(/[a-z]/, t('passRule1'))
           .regex(/[A-Z]/, t('passRule2'))
           .regex(/\d/, t('passRule3'))
-          /* eslint-disable-next-line */
-          .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/, t('passRule4')),
+          .regex(/[!@#$%^&*]/, t('passRule4')),
       })
     ),
     defaultValues: {

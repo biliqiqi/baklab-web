@@ -108,7 +108,19 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const userUIFormRef = useRef<UserUIFormRef | null>(null)
     const siteUIFormRef = useRef<SiteUIFormRef | null>(null)
 
+    const { siteMode } = useSiteUIStore(
+      useShallow(({ mode }) => ({ siteMode: mode }))
+    )
+
     const bodyHeight = useMemo(() => {
+      const currNavHeight = siteMode == 'top_nav' ? NAV_HEIGHT : 0
+
+      return showTopDrawer
+        ? `calc(100vh - ${currNavHeight + DOCK_HEIGHT}px)`
+        : `calc(100vh - ${currNavHeight}px)`
+    }, [showTopDrawer, siteMode])
+
+    const outerContainerHeight = useMemo(() => {
       return showTopDrawer
         ? `calc(100vh - ${NAV_HEIGHT + DOCK_HEIGHT}px)`
         : `calc(100vh - ${NAV_HEIGHT}px)`
@@ -133,10 +145,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         showReplyBox: show,
         ...replyBoxProps,
       }))
-    )
-
-    const { siteMode } = useSiteUIStore(
-      useShallow(({ mode }) => ({ siteMode: mode }))
     )
 
     const { siteListMode, contentWidth, innerContentWidth } = useUserUIStore(
@@ -633,6 +641,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               style={{
                 scrollbarColor: 'rgba(0, 0, 0, 0.5)',
                 scrollbarWidth: 'thin',
+                height: siteMode == 'top_nav' ? '' : outerContainerHeight,
+                maxHeight: siteMode == 'top_nav' ? '' : outerContainerHeight
               }}
             >
               <div

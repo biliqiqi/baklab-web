@@ -161,7 +161,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
   const navigate = useNavigate()
   const { t } = useTranslation()
 
-  const { authPermit, currUserId } = useAuthedUserStore(
+  const { authPermit, currUserId, isLogined } = useAuthedUserStore(
     useShallow(({ permit, userID, isLogined }) => ({
       currUserId: userID,
       authPermit: permit,
@@ -186,12 +186,16 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
     }))
   )
 
+  const subscribedCateList = useMemo(() => cateList.filter(cate => cate?.userState?.subscribed), [cateList])
+
   const { currSite } = useSiteStore(
     useShallow(({ site, update }) => ({
       currSite: site,
       updateCurrSite: update,
     }))
   )
+
+  const currCateList = useMemo(() => isLogined() ? subscribedCateList : cateList, [isLogined, subscribedCateList, cateList])
 
   const { siteMode } = useSiteUIStore(
     useShallow(({ mode }) => ({ siteMode: mode }))
@@ -512,13 +516,13 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
                 <CollapsibleContent className="CollapsibleContent">
                   <SidebarGroupContent>
                     <SidebarMenu>
-                      {cateList.map((item) => (
+                      {currCateList.map((item) => (
                         <SidebarMenuItem key={item.frontId}>
                           <SidebarMenuButton
                             asChild
                             isActive={
                               location.pathname ==
-                                `/${siteFrontId}/bankuai/${item.frontId}`
+                              `/${siteFrontId}/bankuai/${item.frontId}`
                             }
                           >
                             <Link

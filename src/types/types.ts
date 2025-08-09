@@ -26,6 +26,10 @@ export interface ItemExists {
   exists: boolean
 }
 
+export interface CategoryUserState {
+  subscribed: boolean
+}
+
 export interface Category {
   id: string
   frontId: string
@@ -42,6 +46,7 @@ export interface Category {
   iconContent: string
   contentFormId: string
   contentForm: ContentForm | null
+  userState: CategoryUserState | null
 }
 
 export type CategoryExists = ItemExists

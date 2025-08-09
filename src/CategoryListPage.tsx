@@ -1,5 +1,5 @@
 import { MessageCircleIcon } from 'lucide-react'
-import { useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 
@@ -8,19 +8,62 @@ import { Card } from './components/ui/card'
 import BContainer from './components/base/BContainer'
 import BIconColorChar from './components/base/BIconColorChar'
 
-import { toSync } from './lib/fire-and-forget'
-import { useCategoryStore } from './state/global'
+import { useCategoryStore, useAuthedUserStore } from './state/global'
+import { Button } from './components/ui/button'
+import { toggleSubscribe } from './api/category'
+import { Category } from './types/types'
 
 export default function CategoryListPage() {
   const cateStore = useCategoryStore()
+  const authStore = useAuthedUserStore()
   const { siteFrontId } = useParams()
+  const [subscribingIds, setSubscribingIds] = useState<Set<string>>(new Set())
 
   const { t } = useTranslation()
 
   useEffect(() => {
     if (!siteFrontId) return
-    toSync(cateStore.fetchCategoryList)(siteFrontId)
-  }, [siteFrontId])
+    void cateStore.fetchCategoryList(siteFrontId)
+  }, [siteFrontId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleToggleSubscribe = useCallback(async (category: Category) => {
+    if (!siteFrontId) return
+
+    if (!authStore.isLogined()) {
+      void authStore.loginWithDialog()
+      return
+    }
+
+    setSubscribingIds(prev => {
+      if (prev.has(category.frontId)) {
+        return prev
+      }
+      return new Set([...prev, category.frontId])
+    })
+
+    try {
+      const { code, data } = await toggleSubscribe(category.frontId, {
+        siteFrontId: siteFrontId
+      })
+
+      if (!code && data) {
+        // Update the category in the store
+        const updatedCategories = cateStore.categories.map(cat =>
+          cat.frontId === category.frontId ? data : cat
+        )
+        cateStore.updateCategories(updatedCategories)
+      }
+    } catch (error) {
+      console.error('Failed to toggle subscription:', error)
+    } finally {
+      await cateStore.fetchCategoryList(siteFrontId)
+      setSubscribingIds(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(category.frontId)
+        return newSet
+      })
+    }
+  }, [authStore, siteFrontId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <BContainer
@@ -38,11 +81,11 @@ export default function CategoryListPage() {
             className="flex basis-[50%] flex-shrink-0 p-2"
             key={cate.frontId}
           >
-            <Card className="flex items-start p-2 w-full">
+            <Card className="flex items-start justify-between p-2 w-full">
               <Link
                 to={`/${siteFrontId}/bankuai/${cate.frontId}`}
                 state={cate}
-                className="mr-2"
+                className="flex-grow-0 mr-2"
               >
                 <span className="relative inline-block">
                   <BIconColorChar
@@ -59,7 +102,7 @@ export default function CategoryListPage() {
                   )}
                 </span>
               </Link>
-              <div>
+              <div className="flex-grow">
                 <div className="font-bold pt-2">
                   <Link
                     to={`/${siteFrontId}/bankuai/${cate.frontId}`}
@@ -70,6 +113,20 @@ export default function CategoryListPage() {
                 </div>
                 <div className="text-sm text-gray-500">{cate.describe}</div>
               </div>
+              <Button
+                size="xsm"
+                className="flex-grow-0 mt-2"
+                onClick={() => handleToggleSubscribe(cate)}
+                disabled={subscribingIds.has(cate.frontId)}
+                variant={cate.userState?.subscribed ? "outline" : "default"}
+              >
+                {subscribingIds.has(cate.frontId)
+                  ? t('loading')
+                  : cate.userState?.subscribed
+                    ? t('unsubscribe')
+                    : t('subscribe')
+                }
+              </Button>
             </Card>
           </div>
         ))}

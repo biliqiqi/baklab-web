@@ -107,3 +107,13 @@ export const checkCategoryExists = async (
   }
   return false
 }
+
+export const toggleSubscribe = async (
+  categoryId: string,
+  custom?: CustomRequestOptions
+) =>
+  authRequest.post<ResponseData<Category>>(
+    `categories/${categoryId}/toggle_subscribe`,
+    {},
+    custom
+  )

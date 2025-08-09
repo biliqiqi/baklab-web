@@ -539,6 +539,8 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                               categoryMap[formVals.category]?.contentFormId !=
                                 '0'
                           )}
+                          selectedCategory={categoryMap[formVals.category] || null}
+                          filterChatBasedOnCategory={true}
                         />
                       </FormControl>
                       <FormMessage />

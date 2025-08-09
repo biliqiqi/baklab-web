@@ -29,7 +29,7 @@ import {
 import { getContentForms } from '@/api/site'
 import { defaultContentForm } from '@/constants/defaults'
 import i18n from '@/i18n'
-import { ContentForm, StringFn } from '@/types/types'
+import { ContentForm, StringFn, SYSTEM_ARTICLE_CONTENT_FORM } from '@/types/types'
 
 import { BLoaderBlock } from './base/BLoader'
 import { Button } from './ui/button'
@@ -40,6 +40,8 @@ export interface ContentFormSelectorProps {
   placeholder?: string | StringFn
   disabled?: boolean
   onChange?: (id: string) => void
+  selectedCategory?: { contentForm?: { frontId: string } | null } | null
+  filterChatBasedOnCategory?: boolean
 }
 
 const ContentFormSelector = forwardRef<
@@ -53,6 +55,8 @@ const ContentFormSelector = forwardRef<
       disabled = false,
       placeholder = () => i18n.t('pleaseSelect'),
       onChange = noop,
+      selectedCategory = null,
+      filterChatBasedOnCategory = false,
     },
     ref
   ) => {
@@ -87,6 +91,24 @@ const ContentFormSelector = forwardRef<
       () => selectedContentForm?.name || '',
       [selectedContentForm]
     )
+
+    // Filter contentForm options based on category type (only when enabled)
+    const filteredContentFormOptions = useMemo(() => {
+      if (!filterChatBasedOnCategory) {
+        return contentFormOptions
+      }
+      
+      const isCurrentCategoryChat = selectedCategory?.contentForm?.frontId === SYSTEM_ARTICLE_CONTENT_FORM.Chat
+      
+      // If current category is not chat type, remove chat content form options
+      if (!isCurrentCategoryChat) {
+        return contentFormOptions.filter(
+          option => option.frontId !== SYSTEM_ARTICLE_CONTENT_FORM.Chat
+        )
+      }
+      
+      return contentFormOptions
+    }, [contentFormOptions, selectedCategory, filterChatBasedOnCategory])
 
     const fetchContentFormList = useCallback(() => {
       if (!siteFrontId) return
@@ -156,7 +178,7 @@ const ContentFormSelector = forwardRef<
             <CommandList>
               <CommandEmpty>{searchLoading && <BLoaderBlock />}</CommandEmpty>
               <CommandGroup>
-                {contentFormOptions.map((item) => (
+                {filteredContentFormOptions.map((item) => (
                   <CommandItem
                     key={item.id}
                     value={item.id}

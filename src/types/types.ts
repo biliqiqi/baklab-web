@@ -673,6 +673,7 @@ export interface ContentFormListResponse {
 export const SYSTEM_ARTICLE_CONTENT_FORM = Object.freeze({
   QnA: 'qna',
   Ticket: 'ticket',
+  Chat: 'chat',
 } as const)
 
 export const SITE_UI_MODE = Object.freeze({

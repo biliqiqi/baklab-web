@@ -115,7 +115,7 @@ export default function CategoryListPage() {
               </div>
               <Button
                 size="xsm"
-                className="flex-grow-0 mt-2"
+                className="flex-grow-0 mt-2 text-sm"
                 onClick={() => handleToggleSubscribe(cate)}
                 disabled={subscribingIds.has(cate.frontId)}
                 variant={cate.userState?.subscribed ? "outline" : "default"}

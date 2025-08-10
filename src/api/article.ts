@@ -396,3 +396,37 @@ export const readManyArticle = (idList: string[]) =>
         .filter((num) => !Number.isNaN(num)),
     },
   })
+
+export const getFeedList = (
+  page: number,
+  pageSize: number,
+  sort?: ArticleListSort | null,
+  keywords?: string,
+  custom?: CustomRequestOptions
+): Promise<ResponseData<ArticleListResponse>> => {
+  const params = new URLSearchParams()
+
+  if (page > 0) {
+    params.set('page', String(page))
+  }
+
+  if (pageSize > 0) {
+    params.set('pageSize', String(pageSize))
+  }
+
+  if (sort) {
+    params.set('sort', String(sort))
+  }
+
+  if (keywords) {
+    params.set('keywords', keywords)
+  }
+
+  return authRequest.get(
+    `feed`,
+    {
+      searchParams: params,
+    },
+    custom
+  )
+}

@@ -202,6 +202,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
   )
 
   const categoryListMatch = useMatch(`/${siteFrontId}/bankuai`)
+  const allPageMatch = useMatch(`/${siteFrontId}/all`)
 
   const isFeedPage = useMemo(
     () => ['/', `/${siteFrontId}/feed`].includes(location.pathname),
@@ -409,6 +410,19 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
                         <PackageIcon size={18} />
                       </BIconCircle>
                       {t('feed')}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem key="all">
+                  <SidebarMenuButton asChild isActive={allPageMatch != null}>
+                    <Link 
+                      to={siteFrontId ? `/${siteFrontId}/all` : `/all`}
+                      title={siteFrontId ? t('siteAllPostsDescription') : t('allPostsDescription')}
+                    >
+                      <BIconCircle id="feed" size={32}>
+                        <GlobeIcon size={18} />
+                      </BIconCircle>
+                      {t('allPosts')}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

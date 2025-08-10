@@ -15,6 +15,7 @@ import BlockedWordListPage from './BlockedWordListPage.tsx'
 import CategoryListPage from './CategoryListPage.tsx'
 import OAuthCallback from './components/OAuthCallback.tsx'
 import EditPage from './EditPage.tsx'
+import FeedPage from './FeedPage.tsx'
 import InvitePage from './InvitePage.tsx'
 import MessagePage from './MessagePage.tsx'
 import NotFoundPage from './NotFoundPage.tsx'
@@ -126,6 +127,10 @@ const somePermissions =
 export const routes: RouteObject[] = [
   {
     path: '/',
+    Component: FeedPage,
+  },
+  {
+    path: '/all',
     Component: BankuaiPage,
   },
   {
@@ -228,6 +233,10 @@ export const routes: RouteObject[] = [
   },
   {
     path: '/:siteFrontId/feed',
+    Component: FeedPage,
+  },
+  {
+    path: '/:siteFrontId/all',
     Component: BankuaiPage,
   },
   {

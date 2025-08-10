@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
+import { useTranslation } from 'react-i18next'
 
 import { Skeleton } from './components/ui/skeleton'
 
@@ -21,10 +22,16 @@ export default function BankuaiPage() {
   const [serverCate, setServerCate] = useState<Category | null>(null)
   const [initialized, setInitialized] = useState(false)
 
-  const { state } = useLocation() as { state: Category | undefined }
+  const { state, pathname } = useLocation() as { state: Category | undefined, pathname: string }
 
   const currCate = useMemo(() => state || serverCate, [state, serverCate])
   const { siteFrontId, categoryFrontId } = useParams()
+  const { t } = useTranslation()
+
+  const isAllPage = useMemo(() => 
+    pathname === '/all' || pathname === `/${siteFrontId}/all`,
+    [pathname, siteFrontId]
+  )
 
   const isChat = useMemo(
     () => currCate?.contentForm?.frontId == 'chat',
@@ -65,9 +72,11 @@ export default function BankuaiPage() {
       category={{
         isFront: false,
         siteFrontId,
-        frontId: currCate?.frontId || 'bankuai',
-        name: currCate?.name || '',
-        describe: currCate?.describe || '',
+        frontId: isAllPage ? 'all' : (currCate?.frontId || 'bankuai'),
+        name: isAllPage ? t('allPosts') : (currCate?.name || ''),
+        describe: isAllPage 
+          ? (siteFrontId ? t('siteAllPostsDescription') : t('allPostsDescription'))
+          : (currCate?.describe || ''),
       }}
     >
       {showSkeleton && (

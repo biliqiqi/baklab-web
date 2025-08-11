@@ -17,10 +17,11 @@ import {
 } from 'lucide-react'
 import React, { MouseEvent, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useMatch, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { cn, getSiteStatusColor, getSiteStatusName } from '@/lib/utils'
+import { useRouteMatch, buildRoutePath } from '@/hooks/use-route-match'
 
 import {
   NAV_HEIGHT,
@@ -158,7 +159,6 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
 
   const alertDialog = useAlertDialogStore()
 
-  const navigate = useNavigate()
   const { t } = useTranslation()
 
   const { authPermit, currUserId, isLogined } = useAuthedUserStore(
@@ -201,13 +201,11 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
     useShallow(({ mode }) => ({ siteMode: mode }))
   )
 
-  const categoryListMatch = useMatch(`/${siteFrontId}/bankuai`)
-  const allPageMatch = useMatch(`/${siteFrontId}/all`)
-
-  const isFeedPage = useMemo(
-    () => ['/', `/${siteFrontId}/feed`].includes(location.pathname),
-    [siteFrontId, navigate]
-  )
+  const isCategoryListActive = useRouteMatch('/bankuai')
+  const isAllPageActive = useRouteMatch('/all')
+  const isHomePageActive = useRouteMatch('/')
+  const isFeedPageActive = useRouteMatch('/feed')
+  const isFeedPage = isHomePageActive || isFeedPageActive
 
   const siteSidebarMenus: () => (
     | SidebarMenuItem<'user'>
@@ -405,7 +403,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
               <SidebarMenu>
                 <SidebarMenuItem key="feed">
                   <SidebarMenuButton asChild isActive={isFeedPage}>
-                    <Link to={siteFrontId ? `/${siteFrontId}/feed` : `/`}>
+                    <Link to={buildRoutePath('/feed', siteFrontId)}>
                       <BIconCircle id="feed" size={32}>
                         <PackageIcon size={18} />
                       </BIconCircle>
@@ -414,9 +412,9 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem key="all">
-                  <SidebarMenuButton asChild isActive={allPageMatch != null}>
+                  <SidebarMenuButton asChild isActive={isAllPageActive}>
                     <Link
-                      to={siteFrontId ? `/${siteFrontId}/all` : `/all`}
+                      to={buildRoutePath('/all', siteFrontId)}
                       title={siteFrontId ? t('siteAllPostsDescription') : t('allPostsDescription')}
                     >
                       <BIconCircle id="feed" size={32}>
@@ -430,9 +428,9 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
                   <SidebarMenuItem key="categories">
                     <SidebarMenuButton
                       asChild
-                      isActive={categoryListMatch != null}
+                      isActive={isCategoryListActive}
                     >
-                      <Link to={`/${siteFrontId}/bankuai`}>
+                      <Link to={buildRoutePath('/bankuai', siteFrontId)}>
                         <BIconCircle id="categories" size={32}>
                           <ChartBarStackedIcon size={18} />
                         </BIconCircle>

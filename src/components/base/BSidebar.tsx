@@ -415,7 +415,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
                 </SidebarMenuItem>
                 <SidebarMenuItem key="all">
                   <SidebarMenuButton asChild isActive={allPageMatch != null}>
-                    <Link 
+                    <Link
                       to={siteFrontId ? `/${siteFrontId}/all` : `/all`}
                       title={siteFrontId ? t('siteAllPostsDescription') : t('allPostsDescription')}
                     >

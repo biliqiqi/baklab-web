@@ -17,6 +17,7 @@ import {
   API_PATH_PREFIX,
   DEFAULT_FONT_SIZE,
   DEFAULT_THEME,
+  LEFT_SIDEBAR_DEFAULT_OPEN,
   LEFT_SIDEBAR_STATE_KEY,
   RIGHT_SIDEBAR_SETTINGS_TYPE_KEY,
   RIGHT_SIDEBAR_STATE_KEY,
@@ -263,7 +264,7 @@ const App = () => {
         setSettingsType(rightSidebarSettingsType)
       }
 
-      setSidebarOpen(leftSidebarState == 'true')
+      setSidebarOpen(leftSidebarState ? leftSidebarState == 'true' : LEFT_SIDEBAR_DEFAULT_OPEN)
       setRightSidebarOpen(rightSidebarState == 'true')
     }
   }, [

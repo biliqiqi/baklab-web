@@ -3,14 +3,14 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 
+import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
 
 import BContainer from './components/base/BContainer'
 import BIconColorChar from './components/base/BIconColorChar'
 
-import { useCategoryStore, useAuthedUserStore } from './state/global'
-import { Button } from './components/ui/button'
 import { toggleSubscribe } from './api/category'
+import { useAuthedUserStore, useCategoryStore } from './state/global'
 import { Category } from './types/types'
 
 export default function CategoryListPage() {
@@ -26,44 +26,47 @@ export default function CategoryListPage() {
     void cateStore.fetchCategoryList(siteFrontId)
   }, [siteFrontId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleToggleSubscribe = useCallback(async (category: Category) => {
-    if (!siteFrontId) return
+  const handleToggleSubscribe = useCallback(
+    async (category: Category) => {
+      if (!siteFrontId) return
 
-    if (!authStore.isLogined()) {
-      void authStore.loginWithDialog()
-      return
-    }
-
-    setSubscribingIds(prev => {
-      if (prev.has(category.frontId)) {
-        return prev
+      if (!authStore.isLogined()) {
+        void authStore.loginWithDialog()
+        return
       }
-      return new Set([...prev, category.frontId])
-    })
 
-    try {
-      const { code, data } = await toggleSubscribe(category.frontId, {
-        siteFrontId: siteFrontId
+      setSubscribingIds((prev) => {
+        if (prev.has(category.frontId)) {
+          return prev
+        }
+        return new Set([...prev, category.frontId])
       })
 
-      if (!code && data) {
-        // Update the category in the store
-        const updatedCategories = cateStore.categories.map(cat =>
-          cat.frontId === category.frontId ? data : cat
-        )
-        cateStore.updateCategories(updatedCategories)
+      try {
+        const { code, data } = await toggleSubscribe(category.frontId, {
+          siteFrontId: siteFrontId,
+        })
+
+        if (!code && data) {
+          // Update the category in the store
+          const updatedCategories = cateStore.categories.map((cat) =>
+            cat.frontId === category.frontId ? data : cat
+          )
+          cateStore.updateCategories(updatedCategories)
+        }
+      } catch (error) {
+        console.error('Failed to toggle subscription:', error)
+      } finally {
+        await cateStore.fetchCategoryList(siteFrontId)
+        setSubscribingIds((prev) => {
+          const newSet = new Set(prev)
+          newSet.delete(category.frontId)
+          return newSet
+        })
       }
-    } catch (error) {
-      console.error('Failed to toggle subscription:', error)
-    } finally {
-      await cateStore.fetchCategoryList(siteFrontId)
-      setSubscribingIds(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(category.frontId)
-        return newSet
-      })
-    }
-  }, [authStore, siteFrontId]) // eslint-disable-line react-hooks/exhaustive-deps
+    },
+    [authStore, siteFrontId]
+  ) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <BContainer
@@ -75,12 +78,9 @@ export default function CategoryListPage() {
       }}
       key={`category_list_${cateStore.categories.length}`}
     >
-      <div className="flex justify-between flex-wrap -m-2">
+      <div className="-m-2">
         {cateStore.categories.map((cate) => (
-          <div
-            className="flex basis-[50%] flex-shrink-0 p-2"
-            key={cate.frontId}
-          >
+          <div className="flex p-1" key={cate.frontId}>
             <Card className="flex items-start justify-between p-2 w-full">
               <Link
                 to={`/${siteFrontId}/bankuai/${cate.frontId}`}
@@ -118,14 +118,13 @@ export default function CategoryListPage() {
                 className="flex-grow-0 mt-2 text-sm"
                 onClick={() => handleToggleSubscribe(cate)}
                 disabled={subscribingIds.has(cate.frontId)}
-                variant={cate.userState?.subscribed ? "outline" : "default"}
+                variant={cate.userState?.subscribed ? 'outline' : 'default'}
               >
                 {subscribingIds.has(cate.frontId)
                   ? t('loading')
                   : cate.userState?.subscribed
                     ? t('unsubscribe')
-                    : t('subscribe')
-                }
+                    : t('subscribe')}
               </Button>
             </Card>
           </div>

@@ -30,6 +30,7 @@ export const DEFAULT_PAGE_SIZE = 20
 export const SINGUP_RETURN_COOKIE_NAME = 'signup_return'
 
 export const LEFT_SIDEBAR_STATE_KEY = 'left_sidebar_state'
+export const LEFT_SIDEBAR_DEFAULT_OPEN = true
 export const RIGHT_SIDEBAR_STATE_KEY = 'right_sidebar_state'
 export const TOP_DRAWER_STATE_KEY = 'top_drawer_state'
 export const RIGHT_SIDEBAR_SETTINGS_TYPE_KEY = 'right_sidebar_settings_type'
@@ -38,7 +39,7 @@ export const CHAT_DATA_CACHE_KEY = 'chat_data_cache'
 
 export const DEFAULT_THEME = 'system'
 export const DEFAULT_FONT_SIZE = '16'
-export const DEFAULT_CONTENT_WIDTH = '-1'
+export const DEFAULT_CONTENT_WIDTH = '1200'
 export const DEFAULT_INNER_CONTENT_WIDTH = '900'
 
 export const URL_PATTERN =

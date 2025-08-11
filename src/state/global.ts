@@ -10,6 +10,7 @@ import { getJoinedSiteList, getSiteWithFrontId } from '@/api/site'
 import { DEFAULT_CONTENT_WIDTH, DEFAULT_FONT_SIZE } from '@/constants/constants'
 import i18n from '@/i18n'
 import {
+  LEFT_SIDEBAR_DEFAULT_OPEN,
   LEFT_SIDEBAR_STATE_KEY,
   RIGHT_SIDEBAR_SETTINGS_TYPE_KEY,
   RIGHT_SIDEBAR_STATE_KEY,
@@ -560,7 +561,7 @@ export interface SidebarState {
 }
 
 export const useSidebarStore = create<SidebarState>((set) => ({
-  open: false,
+  open: LEFT_SIDEBAR_DEFAULT_OPEN,
   setOpen(open) {
     set((state) => ({ ...state, open }))
     localStorage.setItem(LEFT_SIDEBAR_STATE_KEY, String(open))

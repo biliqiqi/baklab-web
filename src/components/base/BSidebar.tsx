@@ -464,7 +464,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
                     ({ id, permitModule, permitAction, link, icon, name }) =>
                       authPermit(
                         permitModule,
-                        permitAction as PermissionAction<typeof permitModule>
+                        permitAction
                       ) && (
                         <SidebarMenuItem key={id}>
                           <SidebarMenuButton
@@ -630,9 +630,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
                         }) =>
                           authPermit(
                             permitModule,
-                            permitAction as PermissionAction<
-                              typeof permitModule
-                            >
+                            permitAction
                           ) && (
                             <SidebarMenuItem key={id}>
                               <SidebarMenuButton

@@ -1,4 +1,6 @@
-export const PERMISSION_DATA = {
+// 注释：这个权限数据已被后端翻译系统替代，后端通过 LocalWithLocalizer 方法返回已翻译的权限名称
+// 前端现在直接使用 Permission.name 字段，无需客户端翻译
+/* const PERMISSION_DATA = {
   article: {
     create: {
       name: 'createPost', // i18n key
@@ -272,7 +274,7 @@ export const PERMISSION_DATA = {
       enable: false,
     },
   },
-}
+} */
 
 export const PERMISSION_MODULE_DATA = {
   article: 'post',

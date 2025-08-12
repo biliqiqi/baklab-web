@@ -6,7 +6,7 @@ import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { timeFmt } from '@/lib/dayjs-custom'
-import { cn, formatMinutes, getPermissionName, noop } from '@/lib/utils'
+import { cn, formatMinutes, noop } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { Card, CardTitle } from '@/components/ui/card'
@@ -238,7 +238,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
                           className="mr-1 mb-1 font-normal"
                           key={item.frontId}
                         >
-                          {getPermissionName(item.frontId) || ''}
+                          {item.name || ''}
                         </Badge>
                       ))
                     : '-'}
@@ -326,7 +326,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
                         key={item.frontId}
                         className="mr-2 mb-2"
                       >
-                        {getPermissionName(item.frontId)}
+                        {item.name}
                       </Badge>
                     ))}
                   </>

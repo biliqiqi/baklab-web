@@ -9,7 +9,6 @@ import { toSync } from '@/lib/fire-and-forget'
 import {
   cn,
   getPermissionModuleName,
-  getPermissionName,
   noop,
 } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
@@ -578,7 +577,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
                                   key={item.frontId}
                                   className="mr-2 mb-2"
                                 >
-                                  {getPermissionName(item.frontId)}
+                                  {item.name}
                                 </Badge>
                               )
                             ) : (
@@ -590,7 +589,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
                                   variant="outline"
                                   className="mr-2 outline-none border-none"
                                 >
-                                  {getPermissionName(item.frontId)}
+                                  {item.name}
                                 </Badge>
                                 <Switch
                                   checked={

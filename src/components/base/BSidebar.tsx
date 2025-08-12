@@ -21,7 +21,6 @@ import { Link, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { cn, getSiteStatusColor, getSiteStatusName } from '@/lib/utils'
-import { useRouteMatch, buildRoutePath } from '@/hooks/use-route-match'
 
 import {
   NAV_HEIGHT,
@@ -29,6 +28,7 @@ import {
   SITE_LOGO_IMAGE,
 } from '@/constants/constants'
 import { PermissionAction, PermissionModule } from '@/constants/types'
+import { buildRoutePath, useRouteMatch } from '@/hooks/use-route-match'
 import i18n from '@/i18n'
 import {
   useAlertDialogStore,
@@ -187,7 +187,10 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
     }))
   )
 
-  const subscribedCateList = useMemo(() => cateList.filter(cate => cate?.userState?.subscribed), [cateList])
+  const subscribedCateList = useMemo(
+    () => cateList.filter((cate) => cate?.userState?.subscribed),
+    [cateList]
+  )
 
   const { currSite } = useSiteStore(
     useShallow(({ site, update }) => ({
@@ -196,14 +199,19 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
     }))
   )
 
-  const currCateList = useMemo(() => isLogined() ? subscribedCateList : cateList, [isLogined, subscribedCateList, cateList])
+  const currCateList = useMemo(
+    () => (isLogined() ? subscribedCateList : cateList),
+    [isLogined, subscribedCateList, cateList]
+  )
 
   const { siteMode } = useSiteUIStore(
     useShallow(({ mode }) => ({ siteMode: mode }))
   )
 
   const { currentCategoryFrontId } = useCurrentArticleStore(
-    useShallow(({ categoryFrontId }) => ({ currentCategoryFrontId: categoryFrontId }))
+    useShallow(({ categoryFrontId }) => ({
+      currentCategoryFrontId: categoryFrontId,
+    }))
   )
 
   const isCategoryListActive = useRouteMatch('/bankuai')
@@ -406,21 +414,27 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
           <SidebarGroup key={'default sides'}>
             <SidebarGroupContent>
               <SidebarMenu>
-                <SidebarMenuItem key="feed">
-                  <SidebarMenuButton asChild isActive={isFeedPage}>
-                    <Link to={buildRoutePath('/feed', siteFrontId)}>
-                      <BIconCircle id="feed" size={32}>
-                        <PackageIcon size={18} />
-                      </BIconCircle>
-                      {t('feed')}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                {isLogined() && (
+                  <SidebarMenuItem key="feed">
+                    <SidebarMenuButton asChild isActive={isFeedPage}>
+                      <Link to={buildRoutePath('/feed', siteFrontId)}>
+                        <BIconCircle id="feed" size={32}>
+                          <PackageIcon size={18} />
+                        </BIconCircle>
+                        {t('feed')}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
                 <SidebarMenuItem key="all">
                   <SidebarMenuButton asChild isActive={isAllPageActive}>
                     <Link
                       to={buildRoutePath('/all', siteFrontId)}
-                      title={siteFrontId ? t('siteAllPostsDescription') : t('allPostsDescription')}
+                      title={
+                        siteFrontId
+                          ? t('siteAllPostsDescription')
+                          : t('allPostsDescription')
+                      }
                     >
                       <BIconCircle id="feed" size={32}>
                         <GlobeIcon size={18} />
@@ -431,10 +445,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
                 </SidebarMenuItem>
                 {siteFrontId && currSite && (
                   <SidebarMenuItem key="categories">
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isCategoryListActive}
-                    >
+                    <SidebarMenuButton asChild isActive={isCategoryListActive}>
                       <Link to={buildRoutePath('/bankuai', siteFrontId)}>
                         <BIconCircle id="categories" size={32}>
                           <ChartBarStackedIcon size={18} />
@@ -467,10 +478,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
                 <SidebarMenu>
                   {platformSidebarMenus().map(
                     ({ id, permitModule, permitAction, link, icon, name }) =>
-                      authPermit(
-                        permitModule,
-                        permitAction
-                      ) && (
+                      authPermit(permitModule, permitAction) && (
                         <SidebarMenuItem key={id}>
                           <SidebarMenuButton
                             asChild
@@ -539,9 +547,11 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
                             asChild
                             isActive={
                               location.pathname ==
-                              `/${siteFrontId}/bankuai/${item.frontId}` ||
-                              (currentCategoryFrontId === item.frontId && 
-                               location.pathname.includes(`/${siteFrontId}/articles/`))
+                                `/${siteFrontId}/bankuai/${item.frontId}` ||
+                              (currentCategoryFrontId === item.frontId &&
+                                location.pathname.includes(
+                                  `/${siteFrontId}/articles/`
+                                ))
                             }
                           >
                             <Link
@@ -635,10 +645,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
                           link,
                           icon,
                         }) =>
-                          authPermit(
-                            permitModule,
-                            permitAction
-                          ) && (
+                          authPermit(permitModule, permitAction) && (
                             <SidebarMenuItem key={id}>
                               <SidebarMenuButton
                                 asChild

@@ -34,6 +34,7 @@ import {
   useAlertDialogStore,
   useAuthedUserStore,
   useCategoryStore,
+  useCurrentArticleStore,
   useSidebarStore,
   useSiteStore,
   useSiteUIStore,
@@ -199,6 +200,10 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
 
   const { siteMode } = useSiteUIStore(
     useShallow(({ mode }) => ({ siteMode: mode }))
+  )
+
+  const { currentCategoryFrontId } = useCurrentArticleStore(
+    useShallow(({ categoryFrontId }) => ({ currentCategoryFrontId: categoryFrontId }))
   )
 
   const isCategoryListActive = useRouteMatch('/bankuai')
@@ -534,7 +539,9 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
                             asChild
                             isActive={
                               location.pathname ==
-                              `/${siteFrontId}/bankuai/${item.frontId}`
+                              `/${siteFrontId}/bankuai/${item.frontId}` ||
+                              (currentCategoryFrontId === item.frontId && 
+                               location.pathname.includes(`/${siteFrontId}/articles/`))
                             }
                           >
                             <Link

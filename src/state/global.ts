@@ -855,6 +855,11 @@ export interface ArticleHistoryState {
   updateState: (state: Partial<ArticleHistoryState>) => void
 }
 
+export interface CurrentArticleState {
+  categoryFrontId: string | null
+  setCategoryFrontId: (categoryFrontId: string | null) => void
+}
+
 export const useArticleHistoryStore = create<ArticleHistoryState>((set) => ({
   showDialog: false,
   article: null,
@@ -864,6 +869,13 @@ export const useArticleHistoryStore = create<ArticleHistoryState>((set) => ({
       ...state,
       ...newState,
     }))
+  },
+}))
+
+export const useCurrentArticleStore = create<CurrentArticleState>((set) => ({
+  categoryFrontId: null,
+  setCategoryFrontId(categoryFrontId) {
+    set(() => ({ categoryFrontId }))
   },
 }))
 

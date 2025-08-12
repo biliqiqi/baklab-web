@@ -25,6 +25,7 @@ import { toSync } from './lib/fire-and-forget'
 import { bus, scrollToBottom } from './lib/utils'
 import {
   useAuthedUserStore,
+  useCurrentArticleStore,
   useForceUpdate,
   useLoading,
   useNotFoundStore,
@@ -72,6 +73,7 @@ export default function ArticlePage() {
   const authStore = useAuthedUserStore()
   const { forceState } = useForceUpdate()
   const siteStore = useSiteStore()
+  const { setCategoryFrontId } = useCurrentArticleStore()
 
   const sort = (params.get('sort') as ArticleListSort | null) || 'oldest'
 
@@ -110,6 +112,7 @@ export default function ArticlePage() {
 
           setArticle(article)
           setArticleCategory(category)
+          setCategoryFrontId(category?.frontId || null)
 
           setInitialized(true)
 
@@ -165,6 +168,7 @@ export default function ArticlePage() {
       articleId,
       setLoading,
       setReplyBoxState,
+      setCategoryFrontId,
     ]
   )
 
@@ -294,6 +298,12 @@ export default function ArticlePage() {
       },
     })
   }, [article, setReplyBoxState, fetchArticle])
+
+  useEffect(() => {
+    return () => {
+      setCategoryFrontId(null)
+    }
+  }, [setCategoryFrontId])
 
   return (
     <>

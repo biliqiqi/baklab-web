@@ -75,7 +75,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   upVote = true,
   downVote = false,
   bookmark = true,
-  author = true,
+  _author = true,
   linkQrCode = false,
   cornerLink = false,
   notify = true,
@@ -96,6 +96,8 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   const articleHistory = useArticleHistoryStore()
   const checkPermit = useAuthedUserStore((state) => state.permit)
   const isMyself = useAuthedUserStore((state) => state.isMySelf)
+  const isLogined = useAuthedUserStore((state) => state.isLogined)
+  const loginWithDialog = useAuthedUserStore((state) => state.loginWithDialog)
   const { t } = useTranslation()
 
   /* console.log('curr article history: ', articleHistory) */
@@ -182,6 +184,13 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
     async (e: MouseEvent<HTMLButtonElement>, voteType: VoteType) => {
       try {
         e.preventDefault()
+        
+        // Check if user is logged in
+        if (!isLogined()) {
+          await loginWithDialog()
+          return
+        }
+        
         const resp = await toggleVoteArticle(article.id, voteType, {
           siteFrontId: article.siteFrontId,
         })
@@ -192,7 +201,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
         console.error('toggle vote article failed: ', err)
       }
     },
-    [article, onSuccess]
+    [article, onSuccess, isLogined, loginWithDialog]
   )
 
   return (
@@ -206,7 +215,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
       <div className="flex flex-wrap items-center whitespace-pre-wrap">
         {!article.locked && (
           <>
-            {checkPermit('article', 'vote_up') && isPublished && upVote && (
+            {isPublished && upVote && (
               <Button
                 variant="ghost"
                 size="sm"

@@ -75,7 +75,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   upVote = true,
   downVote = false,
   bookmark = true,
-  _author = true,
+  author = true,
   linkQrCode = false,
   cornerLink = false,
   notify = true,
@@ -374,7 +374,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                         />
                         {article.category.name}
                       </Link>
-                    ) : article.site ? (
+                    ) : (
                       <Link
                         to={`/${article.siteFrontId}`}
                         className="leading-3 mx-1"
@@ -387,7 +387,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                           showSiteName
                         />
                       </Link>
-                    ) : null}
+                    )}
                     &nbsp;·&nbsp;
                     <span title={timeFmt(article.createdAt, 'YYYY-M-D H:m:s')}>
                       {timeAgo(article.createdAt)}

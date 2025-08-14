@@ -54,6 +54,7 @@ const ArticleListPage: React.FC<ArticleListPageProps> = ({
   const [showSummary] = useState(false)
   const [currCate, setCurrCate] = useState<Category | null>(null)
   const [list, updateList] = useState<Article[]>([])
+  const [isFirstLoad, setIsFirstLoad] = useState(true)
   const [pageState, setPageState] = useState<ArticleListState>({
     currPage: 1,
     pageSize: DEFAULT_PAGE_SIZE,
@@ -181,9 +182,14 @@ const ArticleListPage: React.FC<ArticleListPageProps> = ({
 
   /* console.log('list: ', list) */
   useEffect(() => {
-    onReady()
+    if (isFirstLoad) {
+      onReady()
+    }
     toSync(fetchArticles, () => {
       setTimeout(() => {
+        if (isFirstLoad) {
+          setIsFirstLoad(false)
+        }
         onLoad()
       }, 0)
     })()

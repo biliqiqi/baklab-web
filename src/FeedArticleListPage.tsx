@@ -43,6 +43,7 @@ const FeedArticleListPage: React.FC<FeedArticleListPageProps> = ({
 }) => {
   const [showSummary] = useState(false)
   const [list, updateList] = useState<Article[]>([])
+  const [isFirstLoad, setIsFirstLoad] = useState(true)
   const [pageState, setPageState] = useState<ArticleListState>({
     currPage: 1,
     pageSize: DEFAULT_PAGE_SIZE,
@@ -142,9 +143,14 @@ const FeedArticleListPage: React.FC<FeedArticleListPageProps> = ({
   )
 
   useEffect(() => {
-    onReady()
+    if (isFirstLoad) {
+      onReady()
+    }
     toSync(fetchFeedArticles, () => {
       setTimeout(() => {
+        if (isFirstLoad) {
+          setIsFirstLoad(false)
+        }
         onLoad()
       }, 0)
     })()

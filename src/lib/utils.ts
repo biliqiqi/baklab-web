@@ -22,7 +22,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const noop = () => { }
+export const noop = () => {}
 
 export const bus = new EventEmitter()
 
@@ -207,7 +207,6 @@ export const setRootFontSize = (size: string) => {
   const sizeNum = Number(size) || DEFAULT_FONT_SIZE
   document.documentElement.style.fontSize = `${sizeNum}px`
 }
-
 
 export const handleWithKeyName = (
   keyName: string,

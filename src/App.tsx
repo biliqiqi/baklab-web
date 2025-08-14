@@ -264,7 +264,11 @@ const App = () => {
         setSettingsType(rightSidebarSettingsType)
       }
 
-      setSidebarOpen(leftSidebarState ? leftSidebarState == 'true' : LEFT_SIDEBAR_DEFAULT_OPEN)
+      setSidebarOpen(
+        leftSidebarState
+          ? leftSidebarState == 'true'
+          : LEFT_SIDEBAR_DEFAULT_OPEN
+      )
       setRightSidebarOpen(rightSidebarState == 'true')
     }
   }, [
@@ -282,7 +286,6 @@ const App = () => {
 
   /* console.log('initialized: ', initialized)
    * console.log('authToken: ', authToken) */
-
   {/* prettier-ignore */}
   return (
     <>

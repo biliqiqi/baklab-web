@@ -9,6 +9,7 @@ const config = {
   tabWidth: 2,
   semi: false,
   singleQuote: true,
+  printWidth: 80,
 
   plugins: ['@trivago/prettier-plugin-sort-imports', 'prettier-plugin-merge'],
   importOrder: [

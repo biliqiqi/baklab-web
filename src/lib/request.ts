@@ -116,7 +116,7 @@ const addAuthToHeaders: BeforeRequestHook = (req, _opt) => {
   }
 }
 
-const refreshTokenHook: AfterResponseHook = async (req, opt, resp) => {
+const refreshTokenHook: AfterResponseHook = async (req, _opt, resp) => {
   if (!resp.ok && resp.status == 401 && !isRefreshRequest(req)) {
     const refreshSuccess = await refreshAuthState()
     

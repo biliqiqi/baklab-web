@@ -787,13 +787,12 @@ useSiteStore.subscribe(
   (state) => state.site,
   (site) => {
     updateCurrRole()
-    if (site?.uiSettings) {
-      const siteUIStore = useSiteUIStore.getState()
+    const siteUIStore = useSiteUIStore.getState()
 
-      siteUIStore.setMode(
-        (site.uiSettings.mode as SiteUIMode | undefined) || SITE_UI_MODE.TopNav
-      )
-    }
+    // Always set site mode when site changes, regardless of uiSettings existence
+    siteUIStore.setMode(
+      (site?.uiSettings?.mode as SiteUIMode | undefined) || SITE_UI_MODE.TopNav
+    )
   }
 )
 

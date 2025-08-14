@@ -210,11 +210,13 @@ const ChatControls: React.FC<ChatControlsProps> = ({
     const items = []
 
     // 编辑选项
-    if (((isMyself(article.authorId) && checkPermit('article', 'edit_mine')) ||
-         checkPermit('article', 'edit_others')) &&
-        !article.hasReviewing &&
-        article.status == 'published' &&
-        (!article.locked || checkPermit('site', 'manage'))) {
+    if (
+      ((isMyself(article.authorId) && checkPermit('article', 'edit_mine')) ||
+        checkPermit('article', 'edit_others')) &&
+      !article.hasReviewing &&
+      article.status == 'published' &&
+      (!article.locked || checkPermit('site', 'manage'))
+    ) {
       items.push(
         <DropdownMenuItem
           key="edit"
@@ -224,16 +226,17 @@ const ChatControls: React.FC<ChatControlsProps> = ({
             onEditClick(e)
           }}
         >
-          <PencilIcon size={20} className="inline-block" />{' '}
-          {t('edit')}
+          <PencilIcon size={20} className="inline-block" /> {t('edit')}
         </DropdownMenuItem>
       )
     }
 
     // 删除选项
-    if (((isMyself(article.authorId) && checkPermit('article', 'delete_mine')) ||
-         checkPermit('article', 'delete_others')) &&
-        (!article.locked || checkPermit('site', 'manage'))) {
+    if (
+      ((isMyself(article.authorId) && checkPermit('article', 'delete_mine')) ||
+        checkPermit('article', 'delete_others')) &&
+      (!article.locked || checkPermit('site', 'manage'))
+    ) {
       items.push(
         <DropdownMenuItem
           key="delete"
@@ -261,9 +264,9 @@ const ChatControls: React.FC<ChatControlsProps> = ({
           }}
         >
           {article.locked ? (
-            <LockIcon className="inline-block" size={20} />
-          ) : (
             <LockOpenIcon className="inline-block" size={20} />
+          ) : (
+            <LockIcon className="inline-block" size={20} />
           )}
           {article.locked ? t('unlock') : t('lock')}
         </DropdownMenuItem>
@@ -288,7 +291,16 @@ const ChatControls: React.FC<ChatControlsProps> = ({
     }
 
     return items
-  }, [article, isMyself, checkPermit, onEditClick, onDeleteClick, onToggleLockClick, onShowHistoryClick, t])
+  }, [
+    article,
+    isMyself,
+    checkPermit,
+    onEditClick,
+    onDeleteClick,
+    onToggleLockClick,
+    onShowHistoryClick,
+    t,
+  ])
 
   const hasMenuOptions = useMemo(() => {
     return renderMenuItems().length > 0
@@ -348,6 +360,17 @@ const ChatControls: React.FC<ChatControlsProps> = ({
                 <MessageSquare size={20} className="inline-block" />
               </Button>
             )}
+            {comment && article.locked && (
+              <Button
+                variant="ghost"
+                size="xsm"
+                className="mr-1 px-2.5"
+                disabled
+                title={t('locked')}
+              >
+                <LockIcon size={16} className="inline-block" />
+              </Button>
+            )}
             {checkPermit('article', 'save') && isPublished && bookmark && (
               <Button
                 variant="ghost"
@@ -398,9 +421,9 @@ const ChatControls: React.FC<ChatControlsProps> = ({
                     <EllipsisIcon size={20} className="inline-block" />
                   </Button>
                 </DropdownMenuTrigger>
-              <DropdownMenuContent className="px-0" align="end">
-                {renderMenuItems()}
-              </DropdownMenuContent>
+                <DropdownMenuContent className="px-0" align="end">
+                  {renderMenuItems()}
+                </DropdownMenuContent>
               </DropdownMenu>
             )}
           </>

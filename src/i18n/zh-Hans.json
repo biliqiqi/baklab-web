@@ -524,7 +524,7 @@
   "personalizationUISettings": "个性化界面设置",
   "close": "关闭",
   "postEditHistory": "\"{{title}}\" 的编辑历史",
-  "about1": "关于{{name}}",
+  "about1": "关于 {{name}}",
   "siteCreatedBy": "由 <userLink/> 创建于 <timeTag/>",
   "inviteTip": "请复制以下链接并分享给好友",
   "editHistory": "编辑历史",

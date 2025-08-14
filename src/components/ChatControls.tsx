@@ -205,6 +205,94 @@ const ChatControls: React.FC<ChatControlsProps> = ({
     [article, onSuccess]
   )
 
+  // 使用 children render pattern 来动态检查菜单项
+  const renderMenuItems = useCallback(() => {
+    const items = []
+
+    // 编辑选项
+    if (((isMyself(article.authorId) && checkPermit('article', 'edit_mine')) ||
+         checkPermit('article', 'edit_others')) &&
+        !article.hasReviewing &&
+        article.status == 'published' &&
+        (!article.locked || checkPermit('site', 'manage'))) {
+      items.push(
+        <DropdownMenuItem
+          key="edit"
+          className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+          onClick={(e) => {
+            setShowChatMenu(false)
+            onEditClick(e)
+          }}
+        >
+          <PencilIcon size={20} className="inline-block" />{' '}
+          {t('edit')}
+        </DropdownMenuItem>
+      )
+    }
+
+    // 删除选项
+    if (((isMyself(article.authorId) && checkPermit('article', 'delete_mine')) ||
+         checkPermit('article', 'delete_others')) &&
+        (!article.locked || checkPermit('site', 'manage'))) {
+      items.push(
+        <DropdownMenuItem
+          key="delete"
+          className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0 text-red-500"
+          onClick={(e) => {
+            setShowChatMenu(false)
+            onDeleteClick(e)
+          }}
+        >
+          <Trash2Icon size={20} className="inline-block" />
+          {t('delete')}
+        </DropdownMenuItem>
+      )
+    }
+
+    // 锁定选项
+    if (checkPermit('article', 'lock')) {
+      items.push(
+        <DropdownMenuItem
+          key="lock"
+          className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+          onClick={(e) => {
+            setShowChatMenu(false)
+            onToggleLockClick(e)
+          }}
+        >
+          {article.locked ? (
+            <LockIcon className="inline-block" size={20} />
+          ) : (
+            <LockOpenIcon className="inline-block" size={20} />
+          )}
+          {article.locked ? t('unlock') : t('lock')}
+        </DropdownMenuItem>
+      )
+    }
+
+    // 历史选项
+    if (checkPermit('article', 'manage')) {
+      items.push(
+        <DropdownMenuItem
+          key="history"
+          className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+          onClick={async (e) => {
+            setShowChatMenu(false)
+            await onShowHistoryClick(e)
+          }}
+        >
+          <HistoryIcon size={20} className="inline-block" />
+          {t('editHistory')}
+        </DropdownMenuItem>
+      )
+    }
+
+    return items
+  }, [article, isMyself, checkPermit, onEditClick, onDeleteClick, onToggleLockClick, onShowHistoryClick, t])
+
+  const hasMenuOptions = useMemo(() => {
+    return renderMenuItems().length > 0
+  }, [renderMenuItems])
 
   return (
     <div
@@ -298,7 +386,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
                   />
                 </Button>
               )}
-            {isLogined() && (
+            {isLogined() && hasMenuOptions && (
               <DropdownMenu open={showChatMenu} onOpenChange={setShowChatMenu}>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -311,86 +399,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
                   </Button>
                 </DropdownMenuTrigger>
               <DropdownMenuContent className="px-0" align="end">
-                {((isMyself(article.authorId) &&
-                  checkPermit('article', 'edit_mine')) ||
-                  checkPermit('article', 'edit_others')) &&
-                  !article.hasReviewing &&
-                  article.status == 'published' &&
-                  (!article.locked || checkPermit('site', 'manage')) && (
-                    <DropdownMenuItem
-                      className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
-                      onClick={(e) => {
-                        setShowChatMenu(false)
-                        onEditClick(e)
-                      }}
-                    >
-                      <PencilIcon size={20} className="inline-block" />{' '}
-                      {t('edit')}
-                    </DropdownMenuItem>
-                  )}
-                {((isMyself(article.authorId) &&
-                  checkPermit('article', 'delete_mine')) ||
-                  checkPermit('article', 'delete_others')) &&
-                  (!article.locked || checkPermit('site', 'manage')) && (
-                    <DropdownMenuItem
-                      className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0 text-red-500"
-                      onClick={(e) => {
-                        setShowChatMenu(false)
-                        onDeleteClick(e)
-                      }}
-                    >
-                      <Trash2Icon size={20} className="inline-block" />
-                      {t('delete')}
-                    </DropdownMenuItem>
-                  )}
-                {/* Save Post button hidden as requested */}
-                {/* {checkPermit('article', 'save') && isPublished && (
-                  <DropdownMenuItem
-                    className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
-                    onClick={async (e) => {
-                      setShowChatMenu(false)
-                      await onSaveClick(e)
-                    }}
-                  >
-                    <BookmarkIcon
-                      size={20}
-                      fill={userState?.saved ? 'currentColor' : 'transparent'}
-                      className={cn(
-                        'inline-block',
-                        userState?.saved && 'text-primary'
-                      )}
-                    />
-                    {t('savePost')}
-                  </DropdownMenuItem>
-                )} */}
-                {checkPermit('article', 'lock') && (
-                  <DropdownMenuItem
-                    className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
-                    onClick={(e) => {
-                      setShowChatMenu(false)
-                      onToggleLockClick(e)
-                    }}
-                  >
-                    {article.locked ? (
-                      <LockIcon className="inline-block" size={20} />
-                    ) : (
-                      <LockOpenIcon className="inline-block" size={20} />
-                    )}
-                    {article.locked ? t('unlock') : t('lock')}
-                  </DropdownMenuItem>
-                )}
-                {checkPermit('article', 'manage') && (
-                  <DropdownMenuItem
-                    className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
-                    onClick={async (e) => {
-                      setShowChatMenu(false)
-                      await onShowHistoryClick(e)
-                    }}
-                  >
-                    <HistoryIcon size={20} className="inline-block" />
-                    {t('editHistory')}
-                  </DropdownMenuItem>
-                )}
+                {renderMenuItems()}
               </DropdownMenuContent>
               </DropdownMenu>
             )}

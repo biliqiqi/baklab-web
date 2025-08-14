@@ -116,9 +116,21 @@ const addAuthToHeaders: BeforeRequestHook = (req, _opt) => {
   }
 }
 
-const refreshTokenHook: AfterResponseHook = async (req, _opt, resp) => {
+const refreshTokenHook: AfterResponseHook = async (req, opt, resp) => {
   if (!resp.ok && resp.status == 401 && !isRefreshRequest(req)) {
-    await refreshAuthState()
+    const refreshSuccess = await refreshAuthState()
+    
+    if (refreshSuccess) {
+      // Clone the original request and add the new token
+      const newReq = req.clone()
+      const newToken = useAuthedUserStore.getState().authToken
+      if (newToken) {
+        newReq.headers.set('Authorization', `Bearer ${newToken}`)
+      }
+      
+      // Retry the original request with the new token
+      return fetch(newReq)
+    }
   }
 
   return resp
@@ -313,25 +325,11 @@ export const refreshToken = async (refresUser = false) => {
 
 export const refreshAuthState = async (refreshUser = false) => {
   try {
-    // to ensure resolving after succesfully responsing
-    const ps = new Promise((resolve) => {
-      const unsub = useAuthedUserStore.subscribe(
-        (state) => state.user,
-        (user, _prevUser) => {
-          if (user) {
-            resolve(true)
-          } else {
-            resolve(false)
-          }
-          unsub()
-        }
-      )
-    })
-
     const {
       data: { token, username, userID, user },
       code,
     } = await refreshToken(refreshUser)
+    
     if (!code) {
       const updateBaseData = useAuthedUserStore.getState().updateBaseData
       updateBaseData(token, username, userID)
@@ -339,11 +337,15 @@ export const refreshAuthState = async (refreshUser = false) => {
         const updateUserData = useAuthedUserStore.getState().updateUserData
         updateUserData(user)
       }
-
-      return ps
+      return Promise.resolve(true)
+    } else {
+      // Refresh token failed with error code
+      return Promise.resolve(false)
     }
   } catch (e) {
     console.error('refresh auth state error: ', e)
+    // Resolve promise to prevent infinite waiting
+    return Promise.resolve(false)
   }
 }
 

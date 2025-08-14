@@ -7,8 +7,7 @@ import React, {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
@@ -31,11 +30,7 @@ import {
   renderMD,
 } from './lib/utils'
 import { isLogined, useAuthedUserStore, useLoading } from './state/global'
-import {
-  Article,
-  ArticleListSort,
-  ArticleListState,
-} from './types/types'
+import { Article, ArticleListSort, ArticleListState } from './types/types'
 
 interface FeedArticleListPageProps {
   onLoad?: () => void
@@ -64,12 +59,13 @@ const FeedArticleListPage: React.FC<FeedArticleListPageProps> = ({
   const { siteFrontId } = useParams()
 
   const navigate = useNavigate()
+  const location = useLocation()
   const { t } = useTranslation()
 
   const sort = (params.get('sort') as ArticleListSort | null) || 'best'
 
   const submitPath = useMemo(
-    () => siteFrontId ? `/${siteFrontId}/submit` : `/submit`,
+    () => (siteFrontId ? `/${siteFrontId}/submit` : `/submit`),
     [siteFrontId]
   )
 
@@ -84,13 +80,9 @@ const FeedArticleListPage: React.FC<FeedArticleListPageProps> = ({
 
       setLoading(true)
 
-      const resp = await getFeedList(
-        page,
-        pageSize,
-        sort,
-        keywords,
-        { siteFrontId }
-      )
+      const resp = await getFeedList(page, pageSize, sort, keywords, {
+        siteFrontId,
+      })
 
       if (!resp.code) {
         const { data } = resp
@@ -162,7 +154,7 @@ const FeedArticleListPage: React.FC<FeedArticleListPageProps> = ({
         ...defaultPageState,
       })
     }
-  }, [params, siteFrontId])
+  }, [params, siteFrontId, location])
 
   return (
     <>

@@ -708,7 +708,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             openMobile={openRightSidebarMobile}
             onOpenMobileChange={(open) => {
               if (open) {
-                setOpenRightSidebar(true)
+                setOpenRightSidebarMobile(true)
               } else {
                 toSync(onRightSidebarClose)()
               }
@@ -755,13 +755,13 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                       <XIcon size={20} />
                     </Button>
                   </div>
-                  {openRightSidebar && settingsType == 'site_ui' && (
+                  {(openRightSidebar || openRightSidebarMobile) && settingsType == 'site_ui' && (
                     <SiteUIForm
                       onChange={setSiteUIFormDirty}
                       ref={siteUIFormRef}
                     />
                   )}
-                  {openRightSidebar && settingsType == 'user_ui' && (
+                  {(openRightSidebar || openRightSidebarMobile) && settingsType == 'user_ui' && (
                     <UserUIForm
                       onChange={setUserUIFormDirty}
                       ref={userUIFormRef}

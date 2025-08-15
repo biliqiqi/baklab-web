@@ -495,6 +495,22 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
               align="end"
               sideOffset={6}
             >
+              {isMobile && (
+                <DropdownMenuItem
+                  className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                  onClick={() => {
+                    if (siteListMode == 'top_drawer') {
+                      if (onGripClick && typeof onGripClick == 'function') {
+                        onGripClick()
+                      }
+                    } else {
+                      setShowSiteListDropdown(true)
+                    }
+                  }}
+                >
+                  {t('siteList')}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                 onClick={onUserUISettingClick}
@@ -568,6 +584,22 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                   align="end"
                   sideOffset={6}
                 >
+                  {isMobile && (
+                    <DropdownMenuItem
+                      className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                      onClick={() => {
+                        if (siteListMode == 'top_drawer') {
+                          if (onGripClick && typeof onGripClick == 'function') {
+                            onGripClick()
+                          }
+                        } else {
+                          setShowSiteListDropdown(true)
+                        }
+                      }}
+                    >
+                      {t('siteList')}
+                    </DropdownMenuItem>
+                  )}
                   {isMobile && (
                     <DropdownMenuItem
                       className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"

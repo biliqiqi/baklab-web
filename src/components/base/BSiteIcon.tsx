@@ -68,11 +68,18 @@ const BSiteIcon: React.FC<BSiteIconProps> = ({
       {showSiteName && (
         <span
           className={cn(
-            'inline-block whitespace-nowrap overflow-hidden text-ellipsis',
+            'inline-block overflow-hidden text-ellipsis break-all',
             vertical ? 'w-full text-center' : 'ml-1',
             active && 'border-b-2 border-primary'
           )}
-          style={{ fontSize: `${fontSize}px`, lineHeight: 1.2 }}
+          style={{
+            fontSize: `${fontSize}px`,
+            lineHeight: 1.2,
+            maxHeight: `${fontSize * 2 + 10}px`,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+          }}
         >
           {name}
         </span>

@@ -405,7 +405,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                 }}
               >
                 <div>
-                  <div className="flex flex-wrap items-center">
+                  <div className="flex flex-wrap">
                     {siteList &&
                       siteList.map((site) => (
                         <Link
@@ -479,46 +479,44 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
             </DropdownMenu>
           )}
 
-          {!isLogined() && <DropdownMenu onOpenChange={onDropdownChange}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-[36px] h-[36px] p-0 rounded-full mr-2"
-                title={t('moreSettings')}
-              >
-                <EllipsisVerticalIcon size={20} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              className="px-0"
-              align="end"
-              sideOffset={6}
-            >
-              {isMobile && (
+          {!isLogined() && (
+            <DropdownMenu onOpenChange={onDropdownChange}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-[36px] h-[36px] p-0 rounded-full mr-2"
+                  title={t('moreSettings')}
+                >
+                  <EllipsisVerticalIcon size={20} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="px-0" align="end" sideOffset={6}>
+                {isMobile && (
+                  <DropdownMenuItem
+                    className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                    onClick={() => {
+                      if (siteListMode == 'top_drawer') {
+                        if (onGripClick && typeof onGripClick == 'function') {
+                          onGripClick()
+                        }
+                      } else {
+                        setShowSiteListDropdown(true)
+                      }
+                    }}
+                  >
+                    {t('siteList')}
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
-                  onClick={() => {
-                    if (siteListMode == 'top_drawer') {
-                      if (onGripClick && typeof onGripClick == 'function') {
-                        onGripClick()
-                      }
-                    } else {
-                      setShowSiteListDropdown(true)
-                    }
-                  }}
+                  onClick={onUserUISettingClick}
                 >
-                  {t('siteList')}
+                  {t('personalizationUI')}
                 </DropdownMenuItem>
-              )}
-              <DropdownMenuItem
-                className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
-                onClick={onUserUISettingClick}
-              >
-                {t('personalizationUI')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           {isLogined() ? (
             <>

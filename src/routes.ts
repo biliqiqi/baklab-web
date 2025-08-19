@@ -99,6 +99,14 @@ const needPermission =
       return null
     }
 
+const checkHomepageAuth = () => {
+  const authState = useAuthedUserStore.getState()
+  if (!authState.isLogined()) {
+    return redirect('/all')
+  }
+  return null
+}
+
 const somePermissions =
   <T extends PermissionModule>(
     ...pairs: [T, PermissionAction<T>][]
@@ -128,6 +136,7 @@ export const routes: RouteObject[] = [
   {
     path: '/',
     Component: FeedPage,
+    loader: checkHomepageAuth,
   },
   {
     path: '/all',

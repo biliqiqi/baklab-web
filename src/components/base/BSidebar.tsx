@@ -526,7 +526,8 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
                       <span>{t('category')}</span>
                     </span>
 
-                    {authPermit('category', 'create') && (
+                    {/* Create functionality moved to CategoryListPage.tsx */}
+                    {/* {authPermit('category', 'create') && (
                       <Button
                         variant="ghost"
                         className="p-0 w-[24px] h-[24px] rounded-full"
@@ -535,7 +536,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
                       >
                         <PlusIcon size={18} className="text-gray-500" />
                       </Button>
-                    )}
+                    )} */}
                   </SidebarGroupLabel>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="CollapsibleContent">
@@ -578,7 +579,8 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
                               {item.name}
                             </Link>
                           </SidebarMenuButton>
-                          {authPermit('category', 'edit') && (
+                          {/* Edit functionality moved to CategoryListPage.tsx */}
+                          {/* {authPermit('category', 'edit') && (
                             <SidebarMenuAction
                               style={{
                                 top: '10px',
@@ -593,7 +595,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
                                 className="inline-block mr-1 text-gray-500"
                               />
                             </SidebarMenuAction>
-                          )}
+                          )} */}
                         </SidebarMenuItem>
                       ))}
                     </SidebarMenu>

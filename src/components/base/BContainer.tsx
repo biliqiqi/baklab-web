@@ -95,11 +95,12 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const [userUIFormDirty, setUserUIFormDirty] = useState(false)
     const [siteUIFormDirty, setSiteUIFormDirty] = useState(false)
 
-    const { showTopDrawer, setShowTopDrawer } =
-      useTopDrawerStore(useShallow(({ open, update }) => ({
+    const { showTopDrawer, setShowTopDrawer } = useTopDrawerStore(
+      useShallow(({ open, update }) => ({
         showTopDrawer: open,
         setShowTopDrawer: update,
-      })))
+      }))
+    )
 
     const { signin, signup, updateSignin, updateSignup } = useDialogStore()
     const { showNotFound, updateNotFound } = useNotFoundStore()
@@ -621,8 +622,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               'relative flex-grow w-full',
               !isMobile && 'duration-200 transition-[width] ease-linear',
               !isMobile &&
-              sidebarOpen &&
-              'w-[calc(100%-var(--sidebar-width)*2)]'
+                sidebarOpen &&
+                'w-[calc(100%-var(--sidebar-width)*2)]'
             )}
             style={{
               height: bodyHeight,
@@ -642,7 +643,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 scrollbarColor: 'rgba(0, 0, 0, 0.5)',
                 scrollbarWidth: 'thin',
                 height: siteMode == 'top_nav' ? '' : outerContainerHeight,
-                maxHeight: siteMode == 'top_nav' ? '' : outerContainerHeight
+                maxHeight: siteMode == 'top_nav' ? '' : outerContainerHeight,
               }}
             >
               <div
@@ -755,18 +756,20 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                       <XIcon size={20} />
                     </Button>
                   </div>
-                  {(openRightSidebar || openRightSidebarMobile) && settingsType == 'site_ui' && (
-                    <SiteUIForm
-                      onChange={setSiteUIFormDirty}
-                      ref={siteUIFormRef}
-                    />
-                  )}
-                  {(openRightSidebar || openRightSidebarMobile) && settingsType == 'user_ui' && (
-                    <UserUIForm
-                      onChange={setUserUIFormDirty}
-                      ref={userUIFormRef}
-                    />
-                  )}
+                  {(openRightSidebar || openRightSidebarMobile) &&
+                    settingsType == 'site_ui' && (
+                      <SiteUIForm
+                        onChange={setSiteUIFormDirty}
+                        ref={siteUIFormRef}
+                      />
+                    )}
+                  {(openRightSidebar || openRightSidebarMobile) &&
+                    settingsType == 'user_ui' && (
+                      <UserUIForm
+                        onChange={setUserUIFormDirty}
+                        ref={userUIFormRef}
+                      />
+                    )}
                 </SidebarContent>
               </Sidebar>
             </div>

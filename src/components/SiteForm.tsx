@@ -26,7 +26,6 @@ import BSiteIcon from './base/BSiteIcon'
 import { Button } from './ui/button'
 import { Checkbox } from './ui/checkbox'
 import { CollapsibleContent, CollapsibleTrigger } from './ui/collapsible'
-import { Switch } from './ui/switch'
 import {
   Form,
   FormControl,
@@ -38,94 +37,123 @@ import {
 } from './ui/form'
 import { Input } from './ui/input'
 import { RadioGroup, RadioGroupItem } from './ui/radio-group'
+import { Switch } from './ui/switch'
 import { Textarea } from './ui/textarea'
 
 const MAX_SITE_FRONT_ID_LENGTH = 20
 const MAX_SITE_NAME_LENGTH = 12
 
-const createSiteSchema = (i: I18n) => z.object({
-  frontID: z
-    .string()
-    .min(1, i.t('siteFrontIdInputTip'))
-    .max(
-      MAX_SITE_FRONT_ID_LENGTH,
-      i.t('charMaximum', {
-        field: i.t('siteFrontId'),
-        num: MAX_SITE_FRONT_ID_LENGTH,
-      })
+const createSiteSchema = (i: I18n) =>
+  z
+    .object({
+      frontID: z
+        .string()
+        .min(1, i.t('siteFrontIdInputTip'))
+        .max(
+          MAX_SITE_FRONT_ID_LENGTH,
+          i.t('charMaximum', {
+            field: i.t('siteFrontId'),
+            num: MAX_SITE_FRONT_ID_LENGTH,
+          })
+        )
+        .regex(/^[a-zA-Z0-9_]+$/, i.t('siteFrontIdRule')),
+      name: z
+        .string()
+        .min(1, i.t('siteNameInputTip'))
+        .max(
+          MAX_SITE_NAME_LENGTH,
+          i.t('charMaximum', {
+            field: i.t('siteName'),
+            num: MAX_SITE_NAME_LENGTH,
+          })
+        ),
+      keywords: z.string(),
+      description: z.string(),
+      logoUrl: z.string().min(1, i.t('settingTip', { name: 'LOGO' })),
+      logoBrandHTML: z.string(),
+      nonMemberInteract: z.boolean(),
+      visible: z.boolean(),
+      homePage: z.string(),
+      reviewBeforePublish: z.boolean(),
+      rateLimitTokens: z.string().optional(),
+      rateLimitInterval: z.string().optional(),
+      rateLimitEnabled: z.boolean(),
+    })
+    .refine(
+      (data) => {
+        if (data.rateLimitEnabled) {
+          return (
+            data.rateLimitTokens &&
+            data.rateLimitTokens.trim() !== '' &&
+            data.rateLimitInterval &&
+            data.rateLimitInterval.trim() !== ''
+          )
+        }
+        return true
+      },
+      {
+        message: i.t('inputTip', { field: i.t('rateLimitTokens') }),
+        path: ['rateLimitTokens'],
+      }
     )
-    .regex(/^[a-zA-Z0-9_]+$/, i.t('siteFrontIdRule')),
-  name: z
-    .string()
-    .min(1, i.t('siteNameInputTip'))
-    .max(
-      MAX_SITE_NAME_LENGTH,
-      i.t('charMaximum', {
-        field: i.t('siteName'),
-        num: MAX_SITE_NAME_LENGTH,
-      })
-    ),
-  keywords: z.string(),
-  description: z.string(),
-  logoUrl: z.string().min(1, i.t('settingTip', { name: 'LOGO' })),
-  logoBrandHTML: z.string(),
-  nonMemberInteract: z.boolean(),
-  visible: z.boolean(),
-  homePage: z.string(),
-  reviewBeforePublish: z.boolean(),
-  rateLimitTokens: z.string().optional(),
-  rateLimitInterval: z.string().optional(),
-  rateLimitEnabled: z.boolean(),
-}).refine((data) => {
-  if (data.rateLimitEnabled) {
-    return data.rateLimitTokens && data.rateLimitTokens.trim() !== '' &&
-      data.rateLimitInterval && data.rateLimitInterval.trim() !== ''
-  }
-  return true
-}, {
-  message: i.t('inputTip', { field: i.t('rateLimitTokens') }),
-  path: ['rateLimitTokens'],
-}).refine((data) => {
-  if (data.rateLimitEnabled) {
-    return data.rateLimitInterval && data.rateLimitInterval.trim() !== ''
-  }
-  return true
-}, {
-  message: i.t('inputTip', { field: i.t('rateLimitInterval') }),
-  path: ['rateLimitInterval'],
-})
+    .refine(
+      (data) => {
+        if (data.rateLimitEnabled) {
+          return data.rateLimitInterval && data.rateLimitInterval.trim() !== ''
+        }
+        return true
+      },
+      {
+        message: i.t('inputTip', { field: i.t('rateLimitInterval') }),
+        path: ['rateLimitInterval'],
+      }
+    )
 
-const createSiteEditSchema = (i: I18n) => z.object({
-  name: z.string(),
-  keywords: z.string(),
-  description: z.string(),
-  logoUrl: z.string().min(1, i.t('settingTip', { name: 'LOGO' })),
-  logoBrandHTML: z.string(),
-  nonMemberInteract: z.boolean(),
-  visible: z.boolean(),
-  homePage: z.string(),
-  reviewBeforePublish: z.boolean(),
-  rateLimitTokens: z.string().optional(),
-  rateLimitInterval: z.string().optional(),
-  rateLimitEnabled: z.boolean(),
-}).refine((data) => {
-  if (data.rateLimitEnabled) {
-    return data.rateLimitTokens && data.rateLimitTokens.trim() !== '' &&
-      data.rateLimitInterval && data.rateLimitInterval.trim() !== ''
-  }
-  return true
-}, {
-  message: i.t('inputTip', { field: i.t('rateLimitTokens') }),
-  path: ['rateLimitTokens'],
-}).refine((data) => {
-  if (data.rateLimitEnabled) {
-    return data.rateLimitInterval && data.rateLimitInterval.trim() !== ''
-  }
-  return true
-}, {
-  message: i.t('inputTip', { field: i.t('rateLimitInterval') }),
-  path: ['rateLimitInterval'],
-})
+const createSiteEditSchema = (i: I18n) =>
+  z
+    .object({
+      name: z.string(),
+      keywords: z.string(),
+      description: z.string(),
+      logoUrl: z.string().min(1, i.t('settingTip', { name: 'LOGO' })),
+      logoBrandHTML: z.string(),
+      nonMemberInteract: z.boolean(),
+      visible: z.boolean(),
+      homePage: z.string(),
+      reviewBeforePublish: z.boolean(),
+      rateLimitTokens: z.string().optional(),
+      rateLimitInterval: z.string().optional(),
+      rateLimitEnabled: z.boolean(),
+    })
+    .refine(
+      (data) => {
+        if (data.rateLimitEnabled) {
+          return (
+            data.rateLimitTokens &&
+            data.rateLimitTokens.trim() !== '' &&
+            data.rateLimitInterval &&
+            data.rateLimitInterval.trim() !== ''
+          )
+        }
+        return true
+      },
+      {
+        message: i.t('inputTip', { field: i.t('rateLimitTokens') }),
+        path: ['rateLimitTokens'],
+      }
+    )
+    .refine(
+      (data) => {
+        if (data.rateLimitEnabled) {
+          return data.rateLimitInterval && data.rateLimitInterval.trim() !== ''
+        }
+        return true
+      },
+      {
+        message: i.t('inputTip', { field: i.t('rateLimitInterval') }),
+        path: ['rateLimitInterval'],
+      }
+    )
 
 type SiteSchema = z.infer<ReturnType<typeof createSiteSchema>>
 
@@ -192,19 +220,25 @@ const SiteForm: React.FC<SiteFormProps> = ({
     defaultValues: {
       ...(isEdit
         ? {
-          logoUrl: site.logoUrl,
-          logoBrandHTML: site.logoHtmlStr,
-          visible: site.visible,
-          nonMemberInteract: site.allowNonMemberInteract,
-          name: site.name,
-          keywords: site.keywords,
-          description: site.description,
-          homePage: site.homePage,
-          reviewBeforePublish: site.reviewBeforePublish,
-          rateLimitTokens: site.rateLimitTokens != null ? String(site.rateLimitTokens) : '15',
-          rateLimitInterval: site.rateLimitInterval != null ? String(site.rateLimitInterval) : '60',
-          rateLimitEnabled: site.rateLimitEnabled || false,
-        }
+            logoUrl: site.logoUrl,
+            logoBrandHTML: site.logoHtmlStr,
+            visible: site.visible,
+            nonMemberInteract: site.allowNonMemberInteract,
+            name: site.name,
+            keywords: site.keywords,
+            description: site.description,
+            homePage: site.homePage,
+            reviewBeforePublish: site.reviewBeforePublish,
+            rateLimitTokens:
+              site.rateLimitTokens != null
+                ? String(site.rateLimitTokens)
+                : '15',
+            rateLimitInterval:
+              site.rateLimitInterval != null
+                ? String(site.rateLimitInterval)
+                : '60',
+            rateLimitEnabled: site.rateLimitEnabled || false,
+          }
         : defaultSiteData),
     },
     mode: 'onChange',
@@ -237,7 +271,8 @@ const SiteForm: React.FC<SiteFormProps> = ({
         }
 
         const rateLimitTokensNum = parseInt(rateLimitTokens || '10', 10) || 10
-        const rateLimitIntervalNum = parseInt(rateLimitInterval || '60', 10) || 60
+        const rateLimitIntervalNum =
+          parseInt(rateLimitInterval || '60', 10) || 60
 
         if (isEdit) {
           resp = await updateSite(
@@ -518,6 +553,91 @@ const SiteForm: React.FC<SiteFormProps> = ({
             </FormItem>
           )}
         />
+        <FormField
+          control={form.control}
+          name="visible"
+          key="visible"
+          render={({ field }) => (
+            <FormItem className="mb-8">
+              <FormLabel>{t('visibility')}</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={(val) => {
+                    if (val == '1') {
+                      field.onChange(true)
+                    } else {
+                      field.onChange(false)
+                      form.setValue('nonMemberInteract', false, {
+                        shouldDirty: true,
+                      })
+                    }
+                  }}
+                  defaultValue="1"
+                  className="flex flex-wrap"
+                  value={field.value ? '1' : '0'}
+                >
+                  <FormItem
+                    className="flex items-center space-y-0 mr-4 mb-4"
+                    key="1"
+                  >
+                    <FormControl>
+                      <RadioGroupItem value="1" className="mr-1" />
+                    </FormControl>
+                    <FormLabel className="font-normal mr-1">
+                      {t('public')}
+                    </FormLabel>
+                    <FormDescription>{t('publicVisibilityDescription')}</FormDescription>
+                  </FormItem>
+                  <FormItem
+                    className="flex items-center space-y-0 mr-4 mb-4"
+                    key="0"
+                  >
+                    <FormControl>
+                      <RadioGroupItem value="0" className="mr-1" />
+                    </FormControl>
+                    <FormLabel className="font-normal mr-1">
+                      {t('private')}
+                    </FormLabel>
+                    <FormDescription>
+                      {t('privateVisibilityDescription')}
+                    </FormDescription>
+                  </FormItem>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {formVals.visible && (
+          <FormField
+            control={form.control}
+            name="nonMemberInteract"
+            key="nonMemberInteract"
+            render={({ field }) => (
+              <FormItem className="mb-8">
+                <FormLabel>{t('nonMemberInteract')}</FormLabel>
+                <FormDescription>
+                  {t('nonMemberInteractDescribe')}
+                </FormDescription>
+                <FormControl>
+                  <div className="flex items-center">
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      aria-label={t('allow')}
+                      className="mr-1"
+                      id="allowNonMemberInteract"
+                    />{' '}
+                    <label htmlFor="allowNonMemberInteract" className="text-sm">
+                      {t('allow')}
+                    </label>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <Collapsible open={showMoreSettings} onOpenChange={setShowMoreSettings}>
           <CollapsibleTrigger asChild>
             <Button
@@ -614,90 +734,6 @@ const SiteForm: React.FC<SiteFormProps> = ({
             />
             <FormField
               control={form.control}
-              name="visible"
-              key="visible"
-              render={({ field }) => (
-                <FormItem className="mb-8">
-                  <FormLabel>{t('visibility')}</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={(val) => {
-                        if (val == '1') {
-                          field.onChange(true)
-                        } else {
-                          field.onChange(false)
-                          form.setValue('nonMemberInteract', false, {
-                            shouldDirty: true,
-                          })
-                        }
-                      }}
-                      defaultValue="1"
-                      className="flex flex-wrap"
-                      value={field.value ? '1' : '0'}
-                    >
-                      <FormItem
-                        className="flex items-center space-y-0 mr-4 mb-4"
-                        key="1"
-                      >
-                        <FormControl>
-                          <RadioGroupItem value="1" className="mr-1" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          {t('public')}
-                        </FormLabel>
-                      </FormItem>
-                      <FormItem
-                        className="flex items-center space-y-0 mr-4 mb-4"
-                        key="0"
-                      >
-                        <FormControl>
-                          <RadioGroupItem value="0" className="mr-1" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          {t('private')}
-                        </FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {formVals.visible && (
-              <FormField
-                control={form.control}
-                name="nonMemberInteract"
-                key="nonMemberInteract"
-                render={({ field }) => (
-                  <FormItem className="mb-8">
-                    <FormLabel>{t('nonMemberInteract')}</FormLabel>
-                    <FormDescription>
-                      {t('nonMemberInteractDescribe')}
-                    </FormDescription>
-                    <FormControl>
-                      <div className="flex items-center">
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          aria-label={t('allow')}
-                          className="mr-1"
-                          id="allowNonMemberInteract"
-                        />{' '}
-                        <label
-                          htmlFor="allowNonMemberInteract"
-                          className="text-sm"
-                        >
-                          {t('allow')}
-                        </label>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-            <FormField
-              control={form.control}
               name="reviewBeforePublish"
               key="reviewBeforePublish"
               render={({ field }) => (
@@ -749,14 +785,16 @@ const SiteForm: React.FC<SiteFormProps> = ({
                       </label>
                     </div>
                   </FormControl>
-                  {formVals.rateLimitEnabled && formVals.rateLimitTokens && formVals.rateLimitInterval && (
-                    <div className="text-sm text-gray-500 mt-2">
-                      {t('rateLimitPolicy', {
-                        tokens: formVals.rateLimitTokens,
-                        interval: formVals.rateLimitInterval
-                      })}
-                    </div>
-                  )}
+                  {formVals.rateLimitEnabled &&
+                    formVals.rateLimitTokens &&
+                    formVals.rateLimitInterval && (
+                      <div className="text-sm text-gray-500 mt-2">
+                        {t('rateLimitPolicy', {
+                          tokens: formVals.rateLimitTokens,
+                          interval: formVals.rateLimitInterval,
+                        })}
+                      </div>
+                    )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -775,7 +813,9 @@ const SiteForm: React.FC<SiteFormProps> = ({
                       </FormDescription>
                       <FormControl>
                         <Input
-                          placeholder={t('inputTip', { field: t('rateLimitTokens') })}
+                          placeholder={t('inputTip', {
+                            field: t('rateLimitTokens'),
+                          })}
                           autoComplete="off"
                           pattern="^\d+$"
                           state={fieldState.invalid ? 'invalid' : 'default'}
@@ -798,7 +838,9 @@ const SiteForm: React.FC<SiteFormProps> = ({
                       </FormDescription>
                       <FormControl>
                         <Input
-                          placeholder={t('inputTip', { field: t('rateLimitInterval') })}
+                          placeholder={t('inputTip', {
+                            field: t('rateLimitInterval'),
+                          })}
                           autoComplete="off"
                           pattern="^\d+$"
                           state={fieldState.invalid ? 'invalid' : 'default'}

@@ -549,5 +549,7 @@
   "or": "or",
   "settingsUpdatedFromAnotherDevice": "Settings updated from another device",
   "doYouWantToApplyNewSettings": "Do you want to apply the new settings?",
-  "apply": "Apply"
+  "apply": "Apply",
+  "publicVisibilityDescription": "Open to everyone on the internet",
+  "privateVisibilityDescription": "Only visible to members after joining the site"
 }

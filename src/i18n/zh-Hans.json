@@ -549,5 +549,7 @@
   "or": "或者",
   "settingsUpdatedFromAnotherDevice": "设置已从其他设备更新",
   "doYouWantToApplyNewSettings": "是否要应用新的设置？",
-  "apply": "应用"
+  "apply": "应用",
+  "publicVisibilityDescription": "对互联网上的所有人公开",
+  "privateVisibilityDescription": "只有加入站点后才能查看内容"
 }

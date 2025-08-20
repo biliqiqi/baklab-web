@@ -45,7 +45,7 @@ export const DEFAULT_INNER_CONTENT_WIDTH = '900'
 export const URL_PATTERN =
   /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g
 
-export const DOCK_HEIGHT = 100
+export const DOCK_HEIGHT = 80
 
 export const MAX_BLOCKED_WORD_LEN = 20
 

@@ -19,7 +19,7 @@ import {
 import { Button } from '../ui/button'
 import BSiteIcon from './BSiteIcon'
 
-const ICON_WIDTH = 60
+const ICON_WIDTH = 80
 
 const BTopDrawer = () => {
   const { t } = useTranslation()

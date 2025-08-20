@@ -398,10 +398,11 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                 sideOffset={6}
                 align="end"
                 className={cn(
-                  `w-[330px] px-2 pt-2 pb-4 bg-gray-200 text-sm overflow-y-auto`
+                  `px-2 pt-2 pb-4 bg-gray-200 text-sm overflow-y-auto`
                 )}
                 style={{
                   maxHeight: `calc(100vh - ${NAV_HEIGHT}px)`,
+                  width: `${400}px`,
                 }}
               >
                 <div>
@@ -412,7 +413,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                           to={`/${site.frontId}`}
                           key={site.frontId}
                           className={cn(
-                            'flex justify-center w-[60px] overflow-hidden flex-shrink-0 flex-grow-0 mx-2 my-4 leading-3'
+                            'flex justify-center w-[25%] box-border overflow-hidden flex-shrink-0 flex-grow-0 px-2 py-4 leading-3'
                           )}
                           onClick={() => setShowSiteListDropdown(false)}
                         >
@@ -436,7 +437,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                     <Link
                       to={`/`}
                       className={cn(
-                        'flex justify-center w-[60px] overflow-hidden flex-shrink-0 flex-grow-0 mx-2 my-4 leading-3'
+                        'flex justify-center w-[25%] box-border overflow-hidden flex-shrink-0 flex-grow-0 px-2 py-4 leading-3'
                       )}
                       onClick={() => setShowSiteListDropdown(false)}
                     >
@@ -453,7 +454,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                     </Link>
                     {isLogined() && checkPermit('site', 'create', true) && (
                       <span
-                        className="inline-flex flex-col items-center align-middle cursor-pointer mx-2 my-4"
+                        className="inline-flex flex-col w-[25%] box-border items-center align-middle cursor-pointer px-2 py-4"
                         onClick={(e) => {
                           e.preventDefault()
                           setShowSiteForm(true)

@@ -18,9 +18,9 @@ import {
 } from '@/state/global'
 import { OAUTH_PROVIDER, OAuthProvider } from '@/types/types'
 
-import BLoader from './base/BLoader'
 import OAuthButton from './OAuthButton'
 import OAuthUsernameSetup from './OAuthUsernameSetup'
+import BLoader from './base/BLoader'
 import { Button } from './ui/button'
 import { Form, FormControl, FormItem } from './ui/form'
 import { Input } from './ui/input'
@@ -141,7 +141,11 @@ const SigninForm: React.FC<SigninFromProps> = ({
     }, [siteFrontId, siteStore])
   )
 
-  const handleOAuthUsernameRequired = (email: string, provider: OAuthProvider, suggestedName: string) => {
+  const handleOAuthUsernameRequired = (
+    email: string,
+    provider: OAuthProvider,
+    suggestedName: string
+  ) => {
     setOauthData({ email, provider, suggestedName })
     setShowUsernameSetup(true)
     setLoading(false)
@@ -246,13 +250,11 @@ const SigninForm: React.FC<SigninFromProps> = ({
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-dialog px-2">
-                {t('or')}
-              </span>
+              <span className="bg-dialog px-2">{t('or')}</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4 pt-3">
             <OAuthButton
               provider={OAUTH_PROVIDER.GOOGLE}
               onSuccess={onSuccess}

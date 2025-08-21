@@ -62,19 +62,31 @@ const defaultOptions: Options = {
           let data: ResponseData<any> | null = null
           try {
             data = await resp.json()
+            console.log('Response error data:', { status, data })
           } catch (e) {
             console.error('parse response data error: ', e)
           }
 
+          // 创建成功响应来阻止错误传播的辅助函数
+          const createSuccessResponse = (responseData: ResponseData<unknown> | null) =>
+            new Response(JSON.stringify(responseData || {}), {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' }
+            })
+
+          // 显示错误消息并返回成功响应来阻止传播
+          const handleErrorWithToast = (message: string, responseData: ResponseData<unknown> | null) => {
+            toast.error(message)
+            return createSuccessResponse(responseData)
+          }
+
           switch (true) {
             case status == 400:
-              if (data?.message) {
-                toast.error(data.message)
-              } else {
-                toast.error(i18n.t('badRequestError'))
-              }
-
-              break
+              console.log('Handling 400 error:', { data, message: data?.message, code: data?.code })
+              return handleErrorWithToast(
+                data?.message || i18n.t('badRequestError'),
+                data
+              )
             case status == 401:
               // if refresh request failed, then is refresh token expired, log out directly for re-signin
               if (isRefreshRequest(req)) {
@@ -82,21 +94,17 @@ const defaultOptions: Options = {
               }
               break
             case status == 403:
-              if (data?.message) {
-                toast.error(data.message)
-              } else {
-                toast.error(i18n.t('forbiddenError'))
-              }
-              break
+              return handleErrorWithToast(
+                data?.message || i18n.t('forbiddenError'),
+                data
+              )
             case status == 429:
-              toast.error(i18n.t('tooManyOperations'))
-              break
+              return handleErrorWithToast(i18n.t('tooManyOperations'), data)
             case status >= 500 && status <= 599:
-              toast.error(i18n.t('internalServerError'))
-              break
+              return handleErrorWithToast(i18n.t('internalServerError'), data)
             default:
               if (data && data.code > 1) {
-                toast.error(data.message)
+                return handleErrorWithToast(data.message, data)
               }
               console.error('HTTP error: ', resp)
               break

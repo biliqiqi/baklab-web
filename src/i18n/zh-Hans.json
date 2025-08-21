@@ -551,5 +551,7 @@
   "doYouWantToApplyNewSettings": "是否要应用新的设置？",
   "apply": "应用",
   "publicVisibilityDescription": "对互联网上的所有人公开",
-  "privateVisibilityDescription": "只有加入站点后才能查看内容"
+  "privateVisibilityDescription": "只有加入站点后才能查看内容",
+  "oauthCancelled": "第三方登录已取消",
+  "oauthLoginFailed": "第三方登录失败"
 }

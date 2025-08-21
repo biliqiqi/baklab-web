@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 
 import { postOAuthAuthorize, postOAuthCallback } from '@/api'
 import { OAUTH_PROVIDER, OAuthProvider } from '@/types/types'
 import { useAuthedUserStore } from '@/state/global'
+import { useTheme } from './theme-provider'
 
 import { Button } from './ui/button'
 
@@ -23,8 +25,30 @@ export const OAuthButton: React.FC<OAuthButtonProps> = ({
   disabled = false,
 }) => {
   const [loading, setLoading] = useState(false)
+  const [isDark, setIsDark] = useState(false)
   const updateAuthState = useAuthedUserStore((state) => state.update)
   const { t } = useTranslation()
+  const { theme } = useTheme()
+
+  // Check current actual theme (considering system preference)
+  useEffect(() => {
+    const checkTheme = () => {
+      if (theme === 'system') {
+        setIsDark(window.matchMedia('(prefers-color-scheme: dark)').matches)
+      } else {
+        setIsDark(theme === 'dark')
+      }
+    }
+
+    checkTheme()
+    
+    // Listen for system theme changes when using system theme
+    if (theme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+      mediaQuery.addEventListener('change', checkTheme)
+      return () => mediaQuery.removeEventListener('change', checkTheme)
+    }
+  }, [theme])
 
   const getProviderName = (provider: OAuthProvider) => {
     switch (provider) {
@@ -34,6 +58,17 @@ export const OAuthButton: React.FC<OAuthButtonProps> = ({
         return 'GitHub'
       default:
         return provider
+    }
+  }
+
+  const getProviderIcon = (provider: OAuthProvider) => {
+    switch (provider) {
+      case OAUTH_PROVIDER.GOOGLE:
+        return '/google.webp'
+      case OAUTH_PROVIDER.GITHUB:
+        return isDark ? '/github-mark-white.png' : '/github-mark.png'
+      default:
+        return null
     }
   }
 
@@ -59,10 +94,16 @@ export const OAuthButton: React.FC<OAuthButtonProps> = ({
         throw new Error('Popup blocked. Please allow popups for this site.')
       }
 
+      // Track if OAuth flow completed successfully
+      let oauthCompleted = false
+
       // Listen for OAuth callback
       const handleMessage = (event: MessageEvent) => {
         // Verify origin for security
-        if (event.origin !== window.location.origin) return
+        if (event.origin !== window.location.origin) {
+          console.warn('OAuth message from different origin:', event.origin)
+          return
+        }
 
         const { type, code, error } = event.data as {
           type?: string
@@ -71,10 +112,14 @@ export const OAuthButton: React.FC<OAuthButtonProps> = ({
         }
 
         if (type === 'oauth_callback') {
+          console.log('OAuth callback received:', { hasCode: !!code, error })
+          oauthCompleted = true // Mark as completed
           popup.close()
           window.removeEventListener('message', handleMessage)
 
           if (error) {
+            console.error('OAuth error:', error)
+            toast.error(error)
             onError?.(error)
             setLoading(false)
             return
@@ -102,7 +147,9 @@ export const OAuthButton: React.FC<OAuthButtonProps> = ({
               } catch (callbackError: unknown) {
                 const errorMessage = callbackError instanceof Error 
                   ? callbackError.message 
-                  : 'OAuth login failed'
+                  : t('oauthLoginFailed')
+                console.error('OAuth callback error:', callbackError)
+                toast.error(errorMessage)
                 onError?.(errorMessage)
               }
               setLoading(false)
@@ -115,23 +162,32 @@ export const OAuthButton: React.FC<OAuthButtonProps> = ({
 
       window.addEventListener('message', handleMessage)
 
-      // Check if popup was closed manually
+      // Check if popup was closed manually (not by OAuth completion)
       const checkClosed = setInterval(() => {
         if (popup.closed) {
           clearInterval(checkClosed)
           window.removeEventListener('message', handleMessage)
-          setLoading(false)
+          
+          // Only show cancellation message if OAuth didn't complete successfully
+          if (!oauthCompleted) {
+            console.log('Popup closed without OAuth completion')
+            setLoading(false)
+            toast.info(t('oauthCancelled'))
+          }
         }
       }, 1000)
 
     } catch (error: unknown) {
       const errorMessage = error instanceof Error 
         ? error.message 
-        : 'OAuth initialization failed'
+        : t('oauthLoginFailed')
+      toast.error(errorMessage)
       onError?.(errorMessage)
       setLoading(false)
     }
   }
+
+  const providerIcon = getProviderIcon(provider)
 
   return (
     <Button
@@ -143,7 +199,16 @@ export const OAuthButton: React.FC<OAuthButtonProps> = ({
       {loading ? (
         t('loading')
       ) : (
-        t('continueWith', { provider: getProviderName(provider) })
+        <div className="flex items-center justify-center gap-2">
+          {providerIcon && (
+            <img 
+              src={providerIcon} 
+              alt={`${getProviderName(provider)} icon`}
+              className="w-5 h-5"
+            />
+          )}
+          <span>{t('continueWith', { provider: getProviderName(provider) })}</span>
+        </div>
       )}
     </Button>
   )

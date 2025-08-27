@@ -7,15 +7,13 @@ import {
   MessageCircleIcon,
   MessageSquareXIcon,
   PackageIcon,
-  PencilIcon,
-  PlusIcon,
   ShieldCheckIcon,
   TrashIcon,
   UserIcon,
   UserRoundIcon,
   UserRoundXIcon,
 } from 'lucide-react'
-import React, { MouseEvent, useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
@@ -44,7 +42,6 @@ import { Category, FrontCategory, SITE_STATUS } from '@/types/types'
 import CategoryForm from '../CategoryForm'
 import SiteMenuButton from '../SiteMenuButton'
 import BIconCircle from '../icon/Circle'
-import { Button } from '../ui/button'
 import {
   Collapsible,
   CollapsibleContent,
@@ -65,7 +62,6 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
 } from '../ui/sidebar'
@@ -318,22 +314,6 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
     await fetchCategoryList(siteFrontId)
   }, [siteFrontId, fetchCategoryList])
 
-  const onCreateCategoryClick = (ev: MouseEvent<HTMLButtonElement>) => {
-    ev.preventDefault()
-    setShowCategoryForm(true)
-  }
-
-  const onEditCategoryClick = (
-    ev: MouseEvent<HTMLButtonElement>,
-    category: Category
-  ) => {
-    ev.preventDefault()
-    setEditCategory({
-      editting: true,
-      data: category,
-    })
-    setShowCategoryForm(true)
-  }
 
   return (
     <>

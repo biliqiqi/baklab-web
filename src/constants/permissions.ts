@@ -286,4 +286,5 @@ export const PERMISSION_MODULE_DATA = {
   activity: 'activityLog',
   category: 'category',
   site: 'site',
+  oauth: 'oauthApplications',
 }

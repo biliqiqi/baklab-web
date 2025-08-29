@@ -7,7 +7,7 @@ import { Site } from '@/types/types'
 // export type PermissionData = typeof PERMISSION_DATA
 
 // 保留 PermissionModule 类型定义，因为它仍在 getPermissionModuleName 中使用
-export type PermissionModule = 'article' | 'user' | 'manage' | 'platform_manage' | 'permission' | 'role' | 'activity' | 'category' | 'site'
+export type PermissionModule = 'article' | 'user' | 'manage' | 'platform_manage' | 'permission' | 'role' | 'activity' | 'category' | 'site' | 'oauth'
 
 // 注释：保留 PermissionAction 类型定义以维持兼容性，但基于硬编码值而不是 PERMISSION_DATA
 export type PermissionAction<_K extends PermissionModule> = string

@@ -14,6 +14,7 @@ import BlockedUserListPage from './BlockedUserListPage.tsx'
 import BlockedWordListPage from './BlockedWordListPage.tsx'
 import CategoryListPage from './CategoryListPage.tsx'
 import OAuthCallback from './components/OAuthCallback.tsx'
+import OAuthClientListPage from './OAuthClientListPage.tsx'
 import EditPage from './EditPage.tsx'
 import FeedPage from './FeedPage.tsx'
 import InvitePage from './InvitePage.tsx'
@@ -210,6 +211,11 @@ export const routes: RouteObject[] = [
         path: 'roles',
         Component: RoleManagePage,
         loader: needPermission('role', 'manage_platform'),
+      },
+      {
+        path: 'oauth_clients',
+        Component: OAuthClientListPage,
+        loader: needPermission('oauth', 'manage'),
       },
     ],
   },

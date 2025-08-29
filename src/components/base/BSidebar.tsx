@@ -3,6 +3,7 @@ import {
   ChartBarStackedIcon,
   ChevronDownIcon,
   GlobeIcon,
+  Grid2x2Icon,
   LockIcon,
   MessageCircleIcon,
   MessageSquareXIcon,
@@ -92,6 +93,7 @@ const platformSidebarMenus: () => (
   | SidebarMenuItem<'site'>
   | SidebarMenuItem<'activity'>
   | SidebarMenuItem<'article'>
+  | SidebarMenuItem<'oauth'>
 )[] = () => [
   {
     id: 'users',
@@ -116,6 +118,14 @@ const platformSidebarMenus: () => (
     name: i18n.t('role'),
     link: '/manage/roles',
     icon: <UserIcon size={18} />,
+  },
+  {
+    id: 'oauth_clients',
+    permitModule: 'oauth',
+    permitAction: 'manage',
+    name: i18n.t('oauthApplications'),
+    link: '/manage/oauth_clients',
+    icon: <Grid2x2Icon size={18} />,
   },
   {
     id: 'sites',

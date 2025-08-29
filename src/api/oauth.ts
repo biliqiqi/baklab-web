@@ -29,6 +29,7 @@ export const listOAuthClients = async (
   page?: number,
   pageSize?: number,
   active?: boolean,
+  keywords?: string,
   custom?: CustomRequestOptions
 ): Promise<ResponseData<OAuthClientListResponse>> => {
   const params = new URLSearchParams()
@@ -43,6 +44,10 @@ export const listOAuthClients = async (
   
   if (active !== undefined) {
     params.set('active', String(active))
+  }
+  
+  if (keywords) {
+    params.set('keywords', keywords)
   }
 
   return authRequest.get(

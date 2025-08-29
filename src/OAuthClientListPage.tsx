@@ -369,10 +369,10 @@ export default function OAuthClientListPage() {
           />
         </div>
         <div>
-          <Button size="sm" onClick={onResetClick} className="mr-3">
+          <Button variant="outline" size="sm" onClick={onResetClick} className="mr-3">
             {t('reset')}
           </Button>
-          <Button size="sm" onClick={onSearchClick} className="mr-3">
+          <Button variant="outline" size="sm" onClick={onSearchClick} className="mr-3">
             {t('search')}
           </Button>
           <Button size="sm" onClick={() => setShowForm(true)}>

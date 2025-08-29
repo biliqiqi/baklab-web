@@ -261,10 +261,10 @@ export default function ActivityPage() {
           </Select>
         </div>
         <div>
-          <Button size="sm" onClick={onResetClick} className="mr-3">
+          <Button variant="outline" size="sm" onClick={onResetClick} className="mr-3">
             {t('reset')}
           </Button>
-          <Button size="sm" onClick={onSearchClick}>
+          <Button variant="outline" size="sm" onClick={onSearchClick}>
             {t('search')}
           </Button>
         </div>

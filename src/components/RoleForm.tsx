@@ -632,7 +632,6 @@ const RoleForm: React.FC<RoleFormProps> = ({
             )}
             {isDetail && (
               <Button
-                variant="outline"
                 onClick={(e) => {
                   e.preventDefault()
                   setFormType('edit')

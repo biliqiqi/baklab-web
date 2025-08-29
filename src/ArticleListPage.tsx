@@ -217,7 +217,7 @@ const ArticleListPage: React.FC<ArticleListPageProps> = ({
         </div>
         <div>
           {siteFrontId && checkPermit('article', 'create') && (
-            <Button variant="outline" size="sm" asChild onClick={onSubmitClick}>
+            <Button size="sm" asChild onClick={onSubmitClick}>
               <Link to={submitPath}>+ {t('submit')}</Link>
             </Button>
           )}

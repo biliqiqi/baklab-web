@@ -91,7 +91,7 @@ export default function BankuaiPage() {
         >
           <div
             className="mx-auto"
-            style={{ maxWidth: `${innerContentWidth}px` }}
+            // style={{ maxWidth: `${innerContentWidth}px` }}
           >
             {!(currCate && isChat) && (
               <div className="flex justify-between items-center my-4">

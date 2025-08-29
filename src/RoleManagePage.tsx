@@ -442,7 +442,6 @@ export default function RoleManagePage() {
 
                 {!editDefaultRole && (
                   <Button
-                    variant="outline"
                     size="sm"
                     onClick={() => setEditDefaultRole(true)}
                   >
@@ -524,7 +523,6 @@ export default function RoleManagePage() {
 
               {!editSiteDefaultRole && (
                 <Button
-                  variant="outline"
                   size="sm"
                   onClick={() => setEditSiteDefaultRole(true)}
                 >

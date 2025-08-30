@@ -121,7 +121,7 @@ export const authorizeOAuth = async (
     searchParams.set('state', params.state)
   }
 
-  return request.get(
+  return authRequest.get(
     `oauth/authorize`,
     {
       searchParams,

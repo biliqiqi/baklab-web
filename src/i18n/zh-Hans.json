@@ -581,5 +581,19 @@
   "newClientSecret": "新的客户端密钥", 
   "clientSecretWarning": "这是您的客户端密钥。请立即复制，因为您将无法再次查看它。",
   "close": "关闭",
-  "noPermission": "您没有权限访问此页面"
+  "noPermission": "您没有权限访问此页面",
+  "oauthAuthorization": "OAuth 授权",
+  "oauthAuthorizeTitle": "授权应用",
+  "oauthRequestAccess": "正在请求访问您的账户",
+  "oauthWillHaveAccess": "此应用将有权限访问",
+  "oauthAccessProfile": "您的个人资料信息",
+  "oauthAccessBasicInfo": "您的基本账户信息",
+  "oauthSignedInAs": "您当前登录为",
+  "oauthAuthorize": "授权",
+  "oauthAuthorizationNote": "您可以随时在账户设置中撤销此授权。",
+  "oauthInvalidRequest": "无效的授权请求",
+  "oauthError": "授权过程中发生错误",
+  "processing": "处理中...",
+  "backToHome": "返回首页",
+  "redirectingToLogin": "正在跳转到登录页..."
 }

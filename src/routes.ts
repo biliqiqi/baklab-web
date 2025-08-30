@@ -13,6 +13,7 @@ import BannedUserListPage from './BannedUserListPage.tsx'
 import BlockedUserListPage from './BlockedUserListPage.tsx'
 import BlockedWordListPage from './BlockedWordListPage.tsx'
 import CategoryListPage from './CategoryListPage.tsx'
+import OAuthAuthorizePage from './OAuthAuthorizePage.tsx'
 import OAuthCallback from './components/OAuthCallback.tsx'
 import OAuthClientListPage from './OAuthClientListPage.tsx'
 import EditPage from './EditPage.tsx'
@@ -31,12 +32,10 @@ import UserPage from './UserPage.tsx'
 import { getSiteWithFrontId } from './api/site.ts'
 import { PermissionAction, PermissionModule } from './constants/types.ts'
 import {
-  ensureLogin,
   isLogined,
   useAuthedUserStore,
   useSiteStore,
 } from './state/global.ts'
-import { Site } from './types/types.ts'
 
 const notAtAuthed = () => {
   const data = useAuthedUserStore.getState()
@@ -54,10 +53,17 @@ const redirectToSignin = (returnUrl?: string) => {
 }
 
 const mustAuthed = async ({ request }: { request: Request }) => {
-  await ensureLogin()
+  // 给应用一点时间来初始化用户状态
+  await new Promise(resolve => setTimeout(resolve, 100))
+  
   const authState = useAuthedUserStore.getState()
   if (!authState.isLogined()) {
-    return redirectToSignin(request.url)
+    // 再给一次机会，等待可能正在进行的token刷新
+    await new Promise(resolve => setTimeout(resolve, 500))
+    const finalAuthState = useAuthedUserStore.getState()
+    if (!finalAuthState.isLogined()) {
+      return redirectToSignin(request.url)
+    }
   }
   return null
 }
@@ -69,23 +75,28 @@ const needPermission =
   ): LoaderFunction =>
     async ({ request, params: { siteFrontId } }) => {
       try {
-        const logined = await ensureLogin()
-        const checkPermit = useAuthedUserStore.getState().permit
-        const checkPermitUnderSite = useAuthedUserStore.getState().permitUnderSite
-
-        if (!logined) {
-          return redirectToSignin(request.url)
+        // 给应用一点时间来初始化用户状态
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
+        let authState = useAuthedUserStore.getState()
+        if (!authState.isLogined()) {
+          // 再给一次机会，等待可能正在进行的token刷新
+          await new Promise(resolve => setTimeout(resolve, 500))
+          authState = useAuthedUserStore.getState()
+          if (!authState.isLogined()) {
+            return redirectToSignin(request.url)
+          }
         }
 
-        if (siteFrontId) {
-          let site: Site | null | undefined = null
-          const siteStore = useSiteStore.getState()
-          site = siteStore.site
-          if (!site) {
-            site = await siteStore.fetchSiteData(siteFrontId)
-          }
+        const checkPermit = authState.permit
+        const checkPermitUnderSite = authState.permitUnderSite
 
-          if (!site || !checkPermitUnderSite(site, module, action)) {
+        if (siteFrontId) {
+          const siteStore = useSiteStore.getState()
+          const site = siteStore.site
+          
+          // 如果站点数据未加载，跳过权限检查，让页面处理
+          if (site && !checkPermitUnderSite(site, module, action)) {
             return redirect(`/${siteFrontId}`)
           }
         } else {
@@ -156,6 +167,11 @@ export const routes: RouteObject[] = [
     path: '/signin',
     Component: SigninPage,
     loader: notAtAuthed,
+  },
+  {
+    path: '/oauth/authorize',
+    Component: OAuthAuthorizePage,
+    loader: mustAuthed,
   },
   {
     path: '/oauth_callback',

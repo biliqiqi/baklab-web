@@ -581,5 +581,19 @@
   "newClientSecret": "New Client Secret",
   "clientSecretWarning": "This is your client secret. Copy it now as you won't be able to see it again.",
   "close": "Close",
-  "noPermission": "You don't have permission to access this page"
+  "noPermission": "You don't have permission to access this page",
+  "oauthAuthorization": "OAuth Authorization",
+  "oauthAuthorizeTitle": "Authorize Application",
+  "oauthRequestAccess": "is requesting access to your account",
+  "oauthWillHaveAccess": "This application will have access to",
+  "oauthAccessProfile": "Your profile information",
+  "oauthAccessBasicInfo": "Your basic account information",
+  "oauthSignedInAs": "You are signed in as",
+  "oauthAuthorize": "Authorize",
+  "oauthAuthorizationNote": "You can revoke this authorization at any time from your account settings.",
+  "oauthInvalidRequest": "Invalid authorization request",
+  "oauthError": "Authorization error occurred",
+  "processing": "Processing...",
+  "backToHome": "Back to Home",
+  "redirectingToLogin": "Redirecting to login..."
 }

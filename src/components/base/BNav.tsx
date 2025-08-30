@@ -624,6 +624,14 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                    asChild
+                  >
+                    <Link to={'/settings/authorizations'}>
+                      {t('authorizationManagement')}
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                     onClick={onUserUISettingClick}
                   >
                     {t('personalizationUI')}

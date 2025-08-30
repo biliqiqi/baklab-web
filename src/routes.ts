@@ -14,6 +14,7 @@ import BlockedUserListPage from './BlockedUserListPage.tsx'
 import BlockedWordListPage from './BlockedWordListPage.tsx'
 import CategoryListPage from './CategoryListPage.tsx'
 import OAuthAuthorizePage from './OAuthAuthorizePage.tsx'
+import OAuthAuthorizationManagePage from './OAuthAuthorizationManagePage.tsx'
 import OAuthCallback from './components/OAuthCallback.tsx'
 import OAuthClientListPage from './OAuthClientListPage.tsx'
 import EditPage from './EditPage.tsx'
@@ -188,6 +189,11 @@ export const routes: RouteObject[] = [
   {
     path: '/messages',
     Component: MessagePage,
+    loader: mustAuthed,
+  },
+  {
+    path: '/settings/authorizations',
+    Component: OAuthAuthorizationManagePage,
     loader: mustAuthed,
   },
   {

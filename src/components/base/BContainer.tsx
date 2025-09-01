@@ -51,6 +51,7 @@ import ArticleHistory from '../ArticleHistory'
 import Invite from '../Invite'
 import NotFound from '../NotFound'
 import ReplyBox from '../ReplyBox'
+import SettingsSidebar from '../SettingsSidebar.tsx'
 import SigninForm from '../SigninForm'
 import SignupForm from '../SignupForm'
 import SiteForm from '../SiteForm'
@@ -86,10 +87,21 @@ export interface BContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   category?: FrontCategory
   goBack?: boolean
   loading?: boolean
+  sidebarType?: 'default' | 'settings'
 }
 
 const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
-  ({ children, category, goBack = false, loading = false, ...props }, ref) => {
+  (
+    {
+      children,
+      category,
+      goBack = false,
+      loading = false,
+      sidebarType = 'default',
+      ...props
+    },
+    ref
+  ) => {
     const [regEmail, setRegEmail] = useState('')
     const [siteFormDirty, setSiteFormDirty] = useState(false)
     const [userUIFormDirty, setUserUIFormDirty] = useState(false)
@@ -614,7 +626,11 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               maxHeight: siteMode == 'top_nav' ? bodyHeight : '',
             }}
           >
-            <BSidebar category={category} />
+            {sidebarType === 'settings' ? (
+              <SettingsSidebar />
+            ) : (
+              <BSidebar category={category} />
+            )}
           </div>
           <main
             id="main"

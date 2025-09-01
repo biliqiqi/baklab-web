@@ -402,7 +402,7 @@ export default function UserPage() {
                   </div>
                 </div>
               </div>
-              <div className="text-sm">{user.introduction}</div>
+              <div className="text-sm text-gray-700">{user.introduction}</div>
             </Card>
             <Tabs defaultValue="oldest" value={tab} onValueChange={onTabChange}>
               <TabsList className="overflow-x-auto overflow-y-hidden max-w-full">

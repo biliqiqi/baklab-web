@@ -441,10 +441,7 @@ export default function RoleManagePage() {
                 )}
 
                 {!editDefaultRole && (
-                  <Button
-                    size="sm"
-                    onClick={() => setEditDefaultRole(true)}
-                  >
+                  <Button size="sm" onClick={() => setEditDefaultRole(true)}>
                     {t('settings')}
                   </Button>
                 )}
@@ -522,10 +519,7 @@ export default function RoleManagePage() {
               )}
 
               {!editSiteDefaultRole && (
-                <Button
-                  size="sm"
-                  onClick={() => setEditSiteDefaultRole(true)}
-                >
+                <Button size="sm" onClick={() => setEditSiteDefaultRole(true)}>
                   {t('settings')}
                 </Button>
               )}

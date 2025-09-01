@@ -5,6 +5,8 @@ import {
   replace,
 } from 'react-router-dom'
 
+import OAuthCallback from './components/OAuthCallback.tsx'
+
 import ActivityPage from './ActivityPage.tsx'
 import ArticlePage from './ArticlePage.tsx'
 import { ArticleReviewPage } from './ArticleReviewPage.tsx'
@@ -13,15 +15,14 @@ import BannedUserListPage from './BannedUserListPage.tsx'
 import BlockedUserListPage from './BlockedUserListPage.tsx'
 import BlockedWordListPage from './BlockedWordListPage.tsx'
 import CategoryListPage from './CategoryListPage.tsx'
-import OAuthAuthorizePage from './OAuthAuthorizePage.tsx'
-import OAuthAuthorizationManagePage from './OAuthAuthorizationManagePage.tsx'
-import OAuthCallback from './components/OAuthCallback.tsx'
-import OAuthClientListPage from './OAuthClientListPage.tsx'
 import EditPage from './EditPage.tsx'
 import FeedPage from './FeedPage.tsx'
 import InvitePage from './InvitePage.tsx'
 import MessagePage from './MessagePage.tsx'
 import NotFoundPage from './NotFoundPage.tsx'
+import OAuthAuthorizationManagePage from './OAuthAuthorizationManagePage.tsx'
+import OAuthAuthorizePage from './OAuthAuthorizePage.tsx'
+import OAuthClientListPage from './OAuthClientListPage.tsx'
 import RoleManagePage from './RoleManagePage.tsx'
 import SigninPage from './SigninPage.tsx'
 import SignupPage from './SignupPage.tsx'
@@ -30,13 +31,10 @@ import SubmitPage from './SubmitPage.tsx'
 import TrashPage from './TrashPage.tsx'
 import UserListPage from './UserListPage.tsx'
 import UserPage from './UserPage.tsx'
+import UserProfileSettingsPage from './UserProfileSettingsPage.tsx'
 import { getSiteWithFrontId } from './api/site.ts'
 import { PermissionAction, PermissionModule } from './constants/types.ts'
-import {
-  isLogined,
-  useAuthedUserStore,
-  useSiteStore,
-} from './state/global.ts'
+import { isLogined, useAuthedUserStore, useSiteStore } from './state/global.ts'
 
 const notAtAuthed = () => {
   const data = useAuthedUserStore.getState()
@@ -55,12 +53,12 @@ const redirectToSignin = (returnUrl?: string) => {
 
 const mustAuthed = async ({ request }: { request: Request }) => {
   // 给应用一点时间来初始化用户状态
-  await new Promise(resolve => setTimeout(resolve, 100))
-  
+  await new Promise((resolve) => setTimeout(resolve, 100))
+
   const authState = useAuthedUserStore.getState()
   if (!authState.isLogined()) {
     // 再给一次机会，等待可能正在进行的token刷新
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await new Promise((resolve) => setTimeout(resolve, 500))
     const finalAuthState = useAuthedUserStore.getState()
     if (!finalAuthState.isLogined()) {
       return redirectToSignin(request.url)
@@ -74,43 +72,43 @@ const needPermission =
     module: T,
     action: PermissionAction<T>
   ): LoaderFunction =>
-    async ({ request, params: { siteFrontId } }) => {
-      try {
-        // 给应用一点时间来初始化用户状态
-        await new Promise(resolve => setTimeout(resolve, 100))
-        
-        let authState = useAuthedUserStore.getState()
+  async ({ request, params: { siteFrontId } }) => {
+    try {
+      // 给应用一点时间来初始化用户状态
+      await new Promise((resolve) => setTimeout(resolve, 100))
+
+      let authState = useAuthedUserStore.getState()
+      if (!authState.isLogined()) {
+        // 再给一次机会，等待可能正在进行的token刷新
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        authState = useAuthedUserStore.getState()
         if (!authState.isLogined()) {
-          // 再给一次机会，等待可能正在进行的token刷新
-          await new Promise(resolve => setTimeout(resolve, 500))
-          authState = useAuthedUserStore.getState()
-          if (!authState.isLogined()) {
-            return redirectToSignin(request.url)
-          }
+          return redirectToSignin(request.url)
         }
-
-        const checkPermit = authState.permit
-        const checkPermitUnderSite = authState.permitUnderSite
-
-        if (siteFrontId) {
-          const siteStore = useSiteStore.getState()
-          const site = siteStore.site
-          
-          // 如果站点数据未加载，跳过权限检查，让页面处理
-          if (site && !checkPermitUnderSite(site, module, action)) {
-            return redirect(`/${siteFrontId}`)
-          }
-        } else {
-          if (!checkPermit(module, action)) {
-            return redirect('/')
-          }
-        }
-      } catch (err) {
-        console.error('permission check error in router: ', err)
       }
 
-      return null
+      const checkPermit = authState.permit
+      const checkPermitUnderSite = authState.permitUnderSite
+
+      if (siteFrontId) {
+        const siteStore = useSiteStore.getState()
+        const site = siteStore.site
+
+        // 如果站点数据未加载，跳过权限检查，让页面处理
+        if (site && !checkPermitUnderSite(site, module, action)) {
+          return redirect(`/${siteFrontId}`)
+        }
+      } else {
+        if (!checkPermit(module, action)) {
+          return redirect('/')
+        }
+      }
+    } catch (err) {
+      console.error('permission check error in router: ', err)
     }
+
+    return null
+  }
 
 const checkHomepageAuth = () => {
   const authState = useAuthedUserStore.getState()
@@ -124,26 +122,26 @@ const somePermissions =
   <T extends PermissionModule>(
     ...pairs: [T, PermissionAction<T>][]
   ): LoaderFunction =>
-    ({ request, params: { siteFrontId } }) => {
-      const authState = useAuthedUserStore.getState()
+  ({ request, params: { siteFrontId } }) => {
+    const authState = useAuthedUserStore.getState()
 
-      if (!authState.isLogined()) {
-        return redirectToSignin(request.url)
-      }
-
-      const permitted = pairs.some(([module, action]) =>
-        authState.permit(module, action)
-      )
-      if (!permitted) {
-        if (siteFrontId) {
-          return redirect(`/${siteFrontId}`)
-        } else {
-          return redirect('/')
-        }
-      }
-
-      return null
+    if (!authState.isLogined()) {
+      return redirectToSignin(request.url)
     }
+
+    const permitted = pairs.some(([module, action]) =>
+      authState.permit(module, action)
+    )
+    if (!permitted) {
+      if (siteFrontId) {
+        return redirect(`/${siteFrontId}`)
+      } else {
+        return redirect('/')
+      }
+    }
+
+    return null
+  }
 
 export const routes: RouteObject[] = [
   {
@@ -189,6 +187,15 @@ export const routes: RouteObject[] = [
   {
     path: '/messages',
     Component: MessagePage,
+    loader: mustAuthed,
+  },
+  {
+    path: '/settings',
+    loader: () => redirect('/settings/profile'),
+  },
+  {
+    path: '/settings/profile',
+    Component: UserProfileSettingsPage,
     loader: mustAuthed,
   },
   {

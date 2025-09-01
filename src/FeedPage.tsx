@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
-import { useTranslation } from 'react-i18next'
 
 import { Skeleton } from './components/ui/skeleton'
 
@@ -26,8 +26,8 @@ export default function FeedPage() {
   )
 
   const feedTitle = siteFrontId ? t('siteFeed') : t('feed')
-  const feedDescription = siteFrontId 
-    ? t('siteFeedDescription') 
+  const feedDescription = siteFrontId
+    ? t('siteFeedDescription')
     : t('feedDescription')
 
   // Clear state immediately when route params change

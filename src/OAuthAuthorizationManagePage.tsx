@@ -1,11 +1,12 @@
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Badge } from './components/ui/badge'
-import { Button } from './components/ui/button'
-import { Card } from './components/ui/card'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './components/ui/tooltip'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,6 +17,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from './components/ui/alert-dialog'
+import { Badge } from './components/ui/badge'
+import { Button } from './components/ui/button'
+import { Card } from './components/ui/card'
 import {
   Table,
   TableBody,
@@ -24,15 +28,22 @@ import {
   TableHeader,
   TableRow,
 } from './components/ui/table'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from './components/ui/tooltip'
 
 import BContainer from './components/base/BContainer'
+
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 
 import {
   getUserAuthorizations,
-  revokeUserAuthorization,
   revokeAllUserAuthorizations,
+  revokeUserAuthorization,
 } from './api/oauth'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
@@ -46,25 +57,27 @@ const getDefaultScopes = (): string[] => {
 }
 
 // 权限显示组件
-const PermissionBadges = ({ authorization }: { 
+const PermissionBadges = ({
+  authorization,
+}: {
   authorization: UserOAuthAuthorization
 }) => {
   const { t } = useTranslation()
-  
+
   // 权限范围映射（精简去重后的核心权限）
   const getScopeDisplayName = (scope: string): string => {
     const scopeMap: Record<string, string> = {
-      'profile': t('oauthScopeProfile'),  // 访问基本个人信息
-      'email': t('oauthScopeEmail'),      // 访问邮箱地址
-      'write': t('oauthScopeWrite'),      // 修改个人信息权限
+      profile: t('oauthScopeProfile'), // 访问基本个人信息
+      email: t('oauthScopeEmail'), // 访问邮箱地址
+      write: t('oauthScopeWrite'), // 修改个人信息权限
     }
-    
+
     return scopeMap[scope] || scope
   }
-  
+
   // 使用存储的权限或默认权限
   const scopes = authorization.scopes || getDefaultScopes()
-  
+
   if (scopes.length === 0) {
     return (
       <Badge variant="secondary" className="text-xs">
@@ -72,7 +85,7 @@ const PermissionBadges = ({ authorization }: {
       </Badge>
     )
   }
-  
+
   return (
     <TooltipProvider>
       <Tooltip>
@@ -103,7 +116,7 @@ const PermissionBadges = ({ authorization }: {
 export default function OAuthAuthorizationManagePage() {
   const [list, setList] = useState<UserOAuthAuthorization[]>([])
   const [showRevokeAllDialog, setShowRevokeAllDialog] = useState(false)
-  
+
   const { setLoading } = useLoading()
   const { t } = useTranslation()
   const alertDialog = useAlertDialogStore()
@@ -123,7 +136,7 @@ export default function OAuthAuthorizationManagePage() {
         }
 
         const resp = await getUserAuthorizations(page, size, true)
-        
+
         if (!resp.code) {
           const { data } = resp
           if (data.list) {
@@ -157,7 +170,9 @@ export default function OAuthAuthorizationManagePage() {
     async (authorization: UserOAuthAuthorization) => {
       const confirmed = await alertDialog.confirm(
         t('confirm'),
-        t('oauthRevokeAuthorizationConfirm', { name: authorization.clientName }),
+        t('oauthRevokeAuthorizationConfirm', {
+          name: authorization.clientName,
+        }),
         'danger'
       )
       if (!confirmed) return
@@ -172,7 +187,7 @@ export default function OAuthAuthorizationManagePage() {
 
   const onRevokeAllClick = useCallback(async () => {
     setShowRevokeAllDialog(false)
-    
+
     const { code } = await revokeAllUserAuthorizations()
     if (!code) {
       await fetchAuthorizationList(false)
@@ -227,9 +242,7 @@ export default function OAuthAuthorizationManagePage() {
     {
       accessorKey: 'permissions',
       header: t('oauthPermissions'),
-      cell: ({ row }) => (
-        <PermissionBadges authorization={row.original} />
-      ),
+      cell: ({ row }) => <PermissionBadges authorization={row.original} />,
     },
     {
       accessorKey: 'isActive',
@@ -272,10 +285,11 @@ export default function OAuthAuthorizationManagePage() {
     <BContainer
       category={{
         isFront: true,
-        frontId: 'oauthAuthorizations',
+        frontId: 'settingsAuthorizations',
         name: t('oauthAuthorizations'),
         describe: t('oauthAuthorizationsDescribe'),
       }}
+      sidebarType="settings"
     >
       <div className="flex justify-between items-center mb-4">
         <div>
@@ -283,9 +297,9 @@ export default function OAuthAuthorizationManagePage() {
             {t('oauthAuthorizationCount', { num: pageState.total })}
           </Badge>
         </div>
-        
+
         {list.length > 0 && (
-          <Button 
+          <Button
             variant="destructive"
             size="sm"
             onClick={() => setShowRevokeAllDialog(true)}
@@ -354,7 +368,10 @@ export default function OAuthAuthorizationManagePage() {
         </Card>
       )}
 
-      <AlertDialog open={showRevokeAllDialog} onOpenChange={setShowRevokeAllDialog}>
+      <AlertDialog
+        open={showRevokeAllDialog}
+        onOpenChange={setShowRevokeAllDialog}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t('confirm')}</AlertDialogTitle>

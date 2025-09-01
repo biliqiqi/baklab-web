@@ -626,8 +626,8 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                     className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                     asChild
                   >
-                    <Link to={'/settings/authorizations'}>
-                      {t('authorizationManagement')}
+                    <Link to={'/settings'}>
+                      {t('settings')}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem

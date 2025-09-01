@@ -170,3 +170,11 @@ export const showUserRoleName = (username: string, show: boolean) =>
   authRequest.post<ResponseData<null>>(`users/${username}/show_role_name`, {
     json: { show },
   })
+
+export const updateUserProfile = (data: {
+  introduction?: string
+  showRoleName?: boolean
+}) =>
+  authRequest.patch<ResponseData<UserData>>(`users/profile`, {
+    json: data,
+  })

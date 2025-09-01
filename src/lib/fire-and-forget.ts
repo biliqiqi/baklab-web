@@ -6,7 +6,7 @@ import { noop } from './utils'
  * @param thenHandler Handler to register to original .then()
  * @param finallyHandler Handler to register to original .finally()
  * @param errorHandler Handler to register to original .catch()
- * @returns The converted sync function, recieve same args as the original function
+ * @returns The converted sync function, receive same args as the original function
  */
 // eslint-disable-next-line
 export function toSync<T extends (...args: any[]) => Promise<any>>(

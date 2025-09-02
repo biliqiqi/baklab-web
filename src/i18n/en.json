@@ -637,5 +637,9 @@
   "manageSubscriptionsAndContent": "Manage subscriptions and content",
   "customizeInterfaceAppearance": "Customize interface appearance",
   "manageConnectedApplications": "Manage connected applications",
-  "exportOrDeleteYourData": "Export or delete your data"
+  "exportOrDeleteYourData": "Export or delete your data",
+  "selectCategoriesToSubscribe": "Select Bankuais to Subscribe",
+  "chooseCategoriesToFollow": "Choose bankuais you want to follow to personalize your feed",
+  "skip": "Skip",
+  "complete": "Complete"
 }

@@ -1002,3 +1002,21 @@ export const useEventSourceStore = create<EventSourceState>((set) => ({
     }))
   },
 }))
+
+export interface CategorySelectionModalState {
+  open: boolean
+  siteFrontId: string | null
+  setOpen: (open: boolean) => void
+  show: (siteFrontId: string) => void
+}
+
+export const useCategorySelectionModalStore = create<CategorySelectionModalState>((set) => ({
+  open: false,
+  siteFrontId: null,
+  setOpen(open) {
+    set((state) => ({ ...state, open }))
+  },
+  show(siteFrontId) {
+    set(() => ({ open: true, siteFrontId }))
+  },
+}))

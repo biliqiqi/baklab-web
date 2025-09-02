@@ -637,5 +637,9 @@
   "manageSubscriptionsAndContent": "管理订阅和内容",
   "customizeInterfaceAppearance": "自定义界面外观",
   "manageConnectedApplications": "管理已连接的应用",
-  "exportOrDeleteYourData": "导出或删除您的数据"
+  "exportOrDeleteYourData": "导出或删除您的数据",
+  "selectCategoriesToSubscribe": "选择要订阅的板块",
+  "chooseCategoriesToFollow": "选择您想要关注的板块以个性化您的信息流",
+  "skip": "跳过",
+  "complete": "完成"
 }

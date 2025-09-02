@@ -32,6 +32,7 @@ import {
   useAlertDialogStore,
   useArticleHistoryStore,
   useAuthedUserStore,
+  useCategorySelectionModalStore,
   useCategoryStore,
   useDialogStore,
   useForceUpdate,
@@ -48,6 +49,7 @@ import {
 import { FrontCategory, SITE_VISIBLE } from '@/types/types'
 
 import ArticleHistory from '../ArticleHistory'
+import CategorySelectionModal from '../CategorySelectionModal'
 import Invite from '../Invite'
 import NotFound from '../NotFound'
 import ReplyBox from '../ReplyBox'
@@ -191,6 +193,15 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const { siteFrontId } = useParams()
 
     const alertDialog = useAlertDialogStore()
+    
+    const { categorySelectionModalOpen, categorySelectionModalSiteFrontId, setCategorySelectionModalOpen, showCategorySelectionModal } = useCategorySelectionModalStore(
+      useShallow(({ open, siteFrontId, setOpen, show }) => ({
+        categorySelectionModalOpen: open,
+        categorySelectionModalSiteFrontId: siteFrontId,
+        setCategorySelectionModalOpen: setOpen,
+        showCategorySelectionModal: show,
+      }))
+    )
 
     const forceUpdate = useForceUpdate((state) => state.forceUpdate)
 
@@ -366,9 +377,10 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             fetchSiteList(),
             fetchCategoryList(siteFrontId),
           ])
+          showCategorySelectionModal(siteFrontId)
         }
       },
-      [siteFrontId, fetchSiteData, fetchSiteList, fetchCategoryList]
+      [siteFrontId, fetchSiteData, fetchSiteList, fetchCategoryList, showCategorySelectionModal]
     )
 
     const onSiteFormClose = useCallback(async () => {
@@ -438,6 +450,11 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             await fetchSiteData(newSiteFrontId)
           })(),
         ])
+        
+        if (newSiteFrontId && !editting) {
+          showCategorySelectionModal(newSiteFrontId)
+        }
+        
         forceUpdate()
       },
       [
@@ -450,6 +467,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         navigate,
         setEditting,
         setEdittingData,
+        editting,
+        showCategorySelectionModal,
       ]
     )
 
@@ -976,6 +995,14 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             )}
           </DialogContent>
         </Dialog>
+
+        {categorySelectionModalSiteFrontId && (
+          <CategorySelectionModal
+            open={categorySelectionModalOpen}
+            onOpenChange={setCategorySelectionModalOpen}
+            siteFrontId={categorySelectionModalSiteFrontId}
+          />
+        )}
       </div>
     )
   }

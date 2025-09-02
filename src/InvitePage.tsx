@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
@@ -20,7 +20,9 @@ import { InviteCode, Site } from './types/types'
 export default function InvitePage() {
   const [site, setSite] = useState<Site | null>(null)
   const [inviteData, setInviteData] = useState<InviteCode | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [acceptingInvite, setAcceptingInvite] = useState(false)
+  const acceptedRef = useRef(false)
+  const lastClickTimeRef = useRef(0)
 
   const { inviteCode } = useParams()
   const [searchParams] = useSearchParams()
@@ -78,11 +80,13 @@ export default function InvitePage() {
         return
       }
 
-      if (loading) {
-        throw new Error('prevent duplicate request')
+      if (acceptingInvite || acceptedRef.current) {
+        return
       }
 
-      setLoading(true)
+      setAcceptingInvite(true)
+      acceptedRef.current = true
+      
       const { code } = await acceptSiteInvite(site.frontId, inviteData.code)
       if (!code) {
         await fetchSiteList()
@@ -91,12 +95,23 @@ export default function InvitePage() {
       }
     } catch (err) {
       console.error('accept invite error: ', err)
+      acceptedRef.current = false
     } finally {
-      setLoading(false)
+      setAcceptingInvite(false)
     }
-  }, [site, inviteData, loading, navigate, fetchSiteList, showCategorySelectionModal])
+  }, [site, inviteData, acceptingInvite, navigate, fetchSiteList, showCategorySelectionModal])
 
   const onAcceptInviteClick = useCallback(() => {
+    const now = Date.now()
+    if (now - lastClickTimeRef.current < 1000) {
+      return
+    }
+    lastClickTimeRef.current = now
+
+    if (acceptingInvite || acceptedRef.current) {
+      return
+    }
+
     const currUrl = new URL(location.href)
     currUrl.searchParams.set('accepted', '1')
 
@@ -109,7 +124,7 @@ export default function InvitePage() {
     } else {
       return acceptInvite()
     }
-  }, [acceptInvite, isLogined, navigate])
+  }, [acceptInvite, isLogined, navigate, acceptingInvite])
 
   useEffect(() => {
     fetchInvite()
@@ -121,10 +136,11 @@ export default function InvitePage() {
       inviteData &&
       isLogined() &&
       accepted == '1' &&
-      !loading
+      !acceptingInvite &&
+      !acceptedRef.current
     ) {
       toSync(getInvite, ({ code, data: { invite, site } }) => {
-        if (!code && invite && site) {
+        if (!code && invite && site && !acceptedRef.current) {
           if (site.currUserState.isMember) {
             navigate(`/${site.frontId}`, { replace: true })
           } else {
@@ -133,7 +149,7 @@ export default function InvitePage() {
         }
       })(inviteCode)
     }
-  }, [inviteCode, inviteData, expired, isLogined, accepted, loading, navigate])
+  }, [inviteCode, inviteData, expired, isLogined, accepted, acceptInvite, navigate])
 
   return (
     <div className="flex h-screen items-center justify-center">
@@ -158,11 +174,11 @@ export default function InvitePage() {
         ) : expired ? (
           <div className="mb-2">{t('invitationExpired')}</div>
         ) : (
-          !loading && <div className="mb-2">{t('invitationDataRequired')}</div>
+          <div className="mb-2">{t('invitationDataRequired')}</div>
         )}
         {site && !expired && (
-          <Button onClick={onAcceptInviteClick} disabled={loading}>
-            {loading ? <BLoader /> : t('acceptInvitation')}
+          <Button onClick={onAcceptInviteClick} disabled={acceptingInvite || acceptedRef.current}>
+            {acceptingInvite ? <BLoader /> : t('acceptInvitation')}
           </Button>
         )}
       </Card>

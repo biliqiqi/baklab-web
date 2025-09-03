@@ -641,5 +641,10 @@
   "selectCategoriesToSubscribe": "Select Bankuais to Subscribe",
   "chooseCategoriesToFollow": "Choose bankuais you want to follow to personalize your feed",
   "skip": "Skip",
-  "complete": "Complete"
+  "complete": "Complete",
+  "pleaseSelectImageFile": "Please select an image file",
+  "failedToUploadImage": "Failed to upload image",
+  "failedToReadFile": "Failed to read file",
+  "uploading": "Uploading...",
+  "addImage": "Add image"
 }

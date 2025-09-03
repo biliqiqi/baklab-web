@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowDownToLineIcon, XIcon } from 'lucide-react'
+import { AfterResponseHook } from 'ky'
+import { ArrowDownToLineIcon, ImageIcon, XIcon } from 'lucide-react'
 import { escapeHtml } from 'markdown-it/lib/common/utils.mjs'
 import {
   MouseEvent,
@@ -12,6 +13,7 @@ import {
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { useShallow } from 'zustand/react/shallow'
 
 import { toSync } from '@/lib/fire-and-forget'
@@ -19,6 +21,7 @@ import { bus, cn, md2text, renderMD, summryText } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { submitArticle, submitReply, updateReply } from '@/api/article'
+import { uploadFileBase64 } from '@/api/file'
 import {
   ARTICLE_MAX_CONTENT_LEN,
   DEFAULT_INNER_CONTENT_WIDTH,
@@ -40,8 +43,8 @@ import TipTap, { TipTapRef } from './TipTap'
 import BLoader from './base/BLoader'
 import { Button } from './ui/button'
 import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form'
+import { Input } from './ui/input'
 import { Textarea } from './ui/textarea'
-import { AfterResponseHook } from 'ky'
 
 const contentSchema = (i: I18n) =>
   z
@@ -93,6 +96,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   const [targetInputEl, setTargetInputEl] = useState<HTMLElement | null>(null)
   const [justSubmitted, setJustSubmitted] = useState(false)
   const [rateLimitResetSeconds, setRateLimitResetSeconds] = useState(0)
+  const [imageUploading, setImageUploading] = useState(false)
 
   const { siteFrontId } = useParams()
 
@@ -107,6 +111,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const tiptapRef = useRef<TipTapRef | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const replyBoxRef = useRef<ReplyBoxData>({
     ...defaultBoxRef,
@@ -153,20 +158,23 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   })
 
   /* const isReplyToRoot = () => replyToArticle && replyToArticle.replyToId == '0' */
-  const readRateLimitData: AfterResponseHook = useCallback((_req, _opt, resp) => {
-    const rateLimitRemainingStr = resp.headers.get('X-Ratelimit-Remaining')
+  const readRateLimitData: AfterResponseHook = useCallback(
+    (_req, _opt, resp) => {
+      const rateLimitRemainingStr = resp.headers.get('X-Ratelimit-Remaining')
 
-    if (rateLimitRemainingStr && rateLimitRemainingStr == '0') {
-      const rateLimitResetSecondsStr = resp.headers.get('X-Ratelimit-Reset')
-      if (!rateLimitResetSecondsStr) return
-      
-      const remainSeconds = parseInt(rateLimitResetSecondsStr, 10)
-      if (isNaN(remainSeconds) || remainSeconds <= 0) return
-      
-      form.reset()
-      setRateLimitResetSeconds(remainSeconds)
-    }
-  }, [form])
+      if (rateLimitRemainingStr && rateLimitRemainingStr == '0') {
+        const rateLimitResetSecondsStr = resp.headers.get('X-Ratelimit-Reset')
+        if (!rateLimitResetSecondsStr) return
+
+        const remainSeconds = parseInt(rateLimitResetSecondsStr, 10)
+        if (isNaN(remainSeconds) || remainSeconds <= 0) return
+
+        form.reset()
+        setRateLimitResetSeconds(remainSeconds)
+      }
+    },
+    [form]
+  )
 
   const onSubmit = useCallback(
     async ({ content }: ArticleSchema) => {
@@ -186,7 +194,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
             false,
             {
               siteFrontId: edittingArticle.siteFrontId,
-              afterResponseHooks: [readRateLimitData]
+              afterResponseHooks: [readRateLimitData],
             }
           )
         } else if (editType == 'reply') {
@@ -195,7 +203,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
 
           resp = await submitReply(replyToArticle.id, content, {
             siteFrontId,
-            afterResponseHooks: [readRateLimitData]
+            afterResponseHooks: [readRateLimitData],
           })
         } else {
           if (!category || category.contentForm?.frontId != 'chat')
@@ -209,7 +217,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
             category.contentForm.id,
             {
               siteFrontId,
-              afterResponseHooks: [readRateLimitData]
+              afterResponseHooks: [readRateLimitData],
             }
           )
         }
@@ -306,7 +314,9 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
 
     // 如果 targetInputEl 还未设置，立即更新
     if (!targetInputEl) {
-      const currentElement = markdownMode ? textareaRef.current : tiptapRef.current?.element
+      const currentElement = markdownMode
+        ? textareaRef.current
+        : tiptapRef.current?.element
       if (currentElement) {
         setTargetInputEl(currentElement)
       }
@@ -327,6 +337,81 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
       setMarkdownMode(!markdownMode)
     },
     [markdownMode]
+  )
+
+  const onFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!e.currentTarget.files?.length) return
+
+      const file = e.currentTarget.files[0]
+      if (!file.type.startsWith('image/')) {
+        toast.error(t('pleaseSelectImageFile'))
+        return
+      }
+
+      setImageUploading(true)
+
+      try {
+        const reader = new FileReader()
+        reader.onload = async (event) => {
+          const imageData = event.target?.result as string
+          if (!imageData) {
+            setImageUploading(false)
+            return
+          }
+
+          try {
+            // 上传图片到服务器
+            const uploadResponse = await uploadFileBase64(imageData)
+
+            if (uploadResponse?.success && uploadResponse.data?.customUrl) {
+              const imageUrl = uploadResponse.data.customUrl
+
+              if (markdownMode) {
+                // 在 Markdown 模式下直接插入 Markdown 语法
+                const currentContent = form.getValues('content')
+                const imageMarkdown = `![image](${imageUrl})`
+                form.setValue('content', currentContent + imageMarkdown)
+              } else {
+                // 在富文本模式下使用 TipTap 插入图片
+                if (tiptapRef.current?.insertImage) {
+                  tiptapRef.current.insertImage(imageUrl, 'image')
+                }
+              }
+            } else {
+              throw new Error('Upload failed')
+            }
+          } catch (error) {
+            console.error('Upload error:', error)
+            toast.error(t('failedToUploadImage'))
+          } finally {
+            setImageUploading(false)
+          }
+        }
+
+        reader.readAsDataURL(file)
+      } catch (error) {
+        console.error('File read error:', error)
+        toast.error(t('failedToReadFile'))
+        setImageUploading(false)
+      }
+
+      // 清空文件输入框的值，以便下次选择同一文件也能触发
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    },
+    [markdownMode, form, t]
+  )
+
+  const onImageUploadClick = useCallback(
+    (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault()
+      if (!imageUploading && fileInputRef.current) {
+        fileInputRef.current.click()
+      }
+    },
+    [imageUploading]
   )
 
   const createSetupForm = (isMarkdownMode: boolean) => {
@@ -514,8 +599,6 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
     }
   }, [rateLimitResetSeconds])
 
-
-
   return (
     <div
       className={cn(
@@ -539,7 +622,12 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
             <form
               onSubmit={form.handleSubmit(onSubmit)}
               onKeyUp={(e) => {
-                if (e.ctrlKey && e.key == 'Enter' && !disabled && rateLimitResetSeconds <= 0) {
+                if (
+                  e.ctrlKey &&
+                  e.key == 'Enter' &&
+                  !disabled &&
+                  rateLimitResetSeconds <= 0
+                ) {
                   toSync(form.handleSubmit(onSubmit))()
                 }
               }}
@@ -596,7 +684,13 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
                           }}
                           onFocus={onTextareaFocus}
                           disabled={disabled || rateLimitResetSeconds > 0}
-                          placeholder={rateLimitResetSeconds > 0 ? t('availableInSeconds', { seconds: rateLimitResetSeconds }) : ''}
+                          placeholder={
+                            rateLimitResetSeconds > 0
+                              ? t('availableInSeconds', {
+                                  seconds: rateLimitResetSeconds,
+                                })
+                              : ''
+                          }
                         />
 
                         <TipTap
@@ -614,7 +708,13 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
                           hideBubble={markdownMode}
                           disabled={disabled || rateLimitResetSeconds > 0}
                           className={cn(isActive && 'resize-y overflow-auto')}
-                          placeholder={rateLimitResetSeconds > 0 ? t('availableInSeconds', { seconds: rateLimitResetSeconds }) : ''}
+                          placeholder={
+                            rateLimitResetSeconds > 0
+                              ? t('availableInSeconds', {
+                                  seconds: rateLimitResetSeconds,
+                                })
+                              : ''
+                          }
                         />
                       </>
                     </FormControl>
@@ -637,31 +737,55 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
 
               {isActive && (
                 <div className="flex justify-between mt-1 items-center">
-                  <div>
+                  <div className="flex items-center">
                     {!isPreview && (
                       <>
-                        <Button
-                          variant="link"
-                          size="sm"
+                        {/* <Button
+                          variant="ghost"
+                          size="icon"
                           onClick={() => setIsActive(false)}
                           title={t('collape')}
                           className="h-[24px] text-gray-500 px-0 align-middle"
                         >
-                          <ArrowDownToLineIcon size={18} /> {t('collape')}
-                        </Button>
+                          <ArrowDownToLineIcon size={20} />
+                        </Button> */}
                         <Button
-                          variant={markdownMode ? 'default' : 'ghost'}
+                          variant={markdownMode ? 'default' : 'outline'}
                           size="icon"
                           onClick={onMarkdownModeClick}
                           title={t('xMode', { name: 'Markdown' })}
-                          className="mx-2 w-8 h-[24px] align-middle"
+                          className={cn(
+                            'mr-2 w-8 h-[24px] align-middle leading-5',
+                            markdownMode
+                              ? 'text-white dark:text-black'
+                              : 'text-gray-500'
+                          )}
                         >
                           M
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={onImageUploadClick}
+                          disabled={imageUploading}
+                          title={
+                            imageUploading ? t('uploading') : t('addImage')
+                          }
+                          className="w-8 h-[24px] text-gray-500"
+                        >
+                          {imageUploading ? (
+                            <BLoader
+                              className="inline-block"
+                              style={{ fontSize: '2px' }}
+                            />
+                          ) : (
+                            <ImageIcon size={20} />
+                          )}
                         </Button>
                       </>
                     )}
                   </div>
-                  <div>
+                  <div className="flex items-center">
                     <Button
                       variant="outline"
                       disabled={loading}
@@ -673,7 +797,9 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
                     </Button>
                     <Button
                       type="submit"
-                      disabled={loading || disabled || rateLimitResetSeconds > 0}
+                      disabled={
+                        loading || disabled || rateLimitResetSeconds > 0
+                      }
                       className="mt-2 ml-2"
                       size="sm"
                     >
@@ -685,6 +811,16 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
             </form>
           </Form>
         )}
+
+        {/* 隐藏的文件输入框 */}
+        <Input
+          type="file"
+          ref={fileInputRef}
+          onChange={onFileChange}
+          accept="image/*"
+          className="hidden"
+          style={{ display: 'none' }}
+        />
       </div>
     </div>
   )

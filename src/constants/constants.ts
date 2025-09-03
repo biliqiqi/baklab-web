@@ -8,12 +8,12 @@ export const SITE_LOGO_IMAGE =
 // export const SITE_LOGO_IMAGE =
 //   'https://static.biliqiqi.net/WHqTOjf6jVraf1VPGpLwxkf-pNTNW3Nz'
 
-export const FRONTEND_HOST = import.meta.env.VITE_FRONTEND_HOST || 'http://localhost:5173'
+export const FRONTEND_HOST = (import.meta.env.VITE_FRONTEND_HOST as string) || 'http://localhost:5173'
 
-export const API_HOST = import.meta.env.VITE_API_HOST || 'https://192.168.31.51:3443'
-export const API_PATH_PREFIX = import.meta.env.VITE_API_PATH_PREFIX || '/api/'
+export const API_HOST = (import.meta.env.VITE_API_HOST as string) || 'https://192.168.31.51:3443'
+export const API_PATH_PREFIX = (import.meta.env.VITE_API_PATH_PREFIX as string) || '/api/'
 
-export const STATIC_HOST = import.meta.env.VITE_STATIC_HOST || 'https://static.biliqiqi.net'
+export const STATIC_HOST = (import.meta.env.VITE_STATIC_HOST as string) || 'https://static.biliqiqi.net'
 
 export const SERVER_ERR_ACCOUNT_EXIST = 1000
 

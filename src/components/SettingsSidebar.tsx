@@ -1,10 +1,5 @@
 import {
-  BellIcon,
-  DatabaseIcon,
-  HeartIcon,
   KeyIcon,
-  PaintbrushIcon,
-  ShieldIcon,
   UserIcon,
 } from 'lucide-react'
 import React, { useMemo } from 'react'

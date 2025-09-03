@@ -641,5 +641,10 @@
   "selectCategoriesToSubscribe": "选择要订阅的板块",
   "chooseCategoriesToFollow": "选择您想要关注的板块以个性化您的信息流",
   "skip": "跳过",
-  "complete": "完成"
+  "complete": "完成",
+  "pleaseSelectImageFile": "请选择图片文件",
+  "failedToUploadImage": "图片上传失败",
+  "failedToReadFile": "文件读取失败",
+  "uploading": "上传中...",
+  "addImage": "添加图片"
 }

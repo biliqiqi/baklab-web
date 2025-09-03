@@ -2,6 +2,7 @@ import Bold from '@tiptap/extension-bold'
 import CodeBlock from '@tiptap/extension-code-block'
 import Document from '@tiptap/extension-document'
 import History from '@tiptap/extension-history'
+import Image from '@tiptap/extension-image'
 import Paragraph from '@tiptap/extension-paragraph'
 import Placeholder from '@tiptap/extension-placeholder'
 import Strike from '@tiptap/extension-strike'
@@ -68,6 +69,7 @@ export interface TipTapProps
 export interface TipTapRef {
   editor: Editor | null
   element: HTMLDivElement | null
+  insertImage: (url: string, alt?: string) => void
 }
 
 const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
@@ -124,6 +126,10 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
         CodeBlockTab,
         Strike,
         History,
+        Image.configure({
+          inline: true,
+          allowBase64: true,
+        }),
         Markdown,
         Placeholder.configure({
           placeholder,
@@ -166,13 +172,23 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
       }
     }
 
+    const insertImage = React.useCallback(
+      (url: string, alt?: string) => {
+        if (editor && url) {
+          editor.chain().focus().setImage({ src: url, alt }).run()
+        }
+      },
+      [editor]
+    )
+
     React.useImperativeHandle(
       ref,
       () => ({
         editor,
         element: elementRef.current,
+        insertImage,
       }),
-      [editor]
+      [editor, insertImage]
     )
 
     React.useEffect(() => {

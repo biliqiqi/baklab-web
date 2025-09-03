@@ -1,7 +1,6 @@
 import { STATIC_HOST } from '@/constants/constants'
+import { useAuthedUserStore } from '@/state/global'
 import { UploadResponse } from '@/types/types'
-
-const UPLOAD_AUTH_TOKEN = '2e9353af-b210-40ae-baa4-76b220296aec'
 
 export const uploadFileBase64 = async (dataUrl: string) => {
   try {
@@ -12,12 +11,17 @@ export const uploadFileBase64 = async (dataUrl: string) => {
 
     formData.append('file', blob)
 
+    const authToken = useAuthedUserStore.getState().authToken
+    const headers: Record<string, string> = {}
+
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`
+    }
+
     const response = await fetch(STATIC_HOST, {
       method: 'POST',
       body: formData,
-      headers: {
-        'X-Custom-Auth-Key': UPLOAD_AUTH_TOKEN,
-      },
+      headers,
     })
 
     if (!response.ok) {

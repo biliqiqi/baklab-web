@@ -14,7 +14,7 @@ import { z } from '@/lib/zod-custom'
 import { getArticleList } from '@/api/article'
 import { uploadFileBase64 } from '@/api/file'
 import { checkSiteExists, deleteSite, submitSite, updateSite } from '@/api/site'
-import { STATIC_HOST_NAME } from '@/constants/constants'
+import { STATIC_HOST } from '@/constants/constants'
 import { defaultSite } from '@/constants/defaults'
 import { I18n } from '@/constants/types'
 import i18n from '@/i18n'
@@ -390,13 +390,13 @@ const SiteForm: React.FC<SiteFormProps> = ({
         const { success, data } = resp
 
         if (success) {
-          /* setImgUrl(data) */
+          /* setImgUrl(data.customUrl) */
           if (logoType == 'logo') {
-            form.setValue('logoUrl', data, { shouldDirty: true })
+            form.setValue('logoUrl', data.customUrl, { shouldDirty: true })
           } else {
             form.setValue(
               'logoBrandHTML',
-              `<img alt="${formVals.name}" title="${formVals.name}" src="${data}" style="max-height:100%;max-width:100%;" />`,
+              `<img alt="${formVals.name}" title="${formVals.name}" src="${data.customUrl}" style="max-height:100%;max-width:100%;" />`,
               { shouldDirty: true }
             )
           }
@@ -422,9 +422,10 @@ const SiteForm: React.FC<SiteFormProps> = ({
       divEl.innerHTML = cleanHtml
       const imgEls = divEl.getElementsByTagName('img')
       if (imgEls.length > 0) {
+        const allowedHost = new URL(STATIC_HOST).hostname
         for (const imgEl of imgEls) {
           const imgUrl = new URL(imgEl.src)
-          if (imgUrl.hostname != STATIC_HOST_NAME) {
+          if (imgUrl.hostname !== allowedHost) {
             imgEl.src = ''
             cleanHtml = divEl.innerHTML
           }

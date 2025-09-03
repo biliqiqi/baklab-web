@@ -595,7 +595,9 @@ export interface SiteListResponse extends ListPageState {
 }
 
 export interface UploadResponse {
-  data: string
+  data: {
+    customUrl: string
+  }
   success: boolean
 }
 

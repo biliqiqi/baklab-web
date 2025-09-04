@@ -42,6 +42,7 @@ import {
 import { ListPageState, Message, SUBSCRIBE_ACTION } from '@/types/types'
 
 import { ListPagination } from './ListPagination'
+import BSiteIcon from './base/BSiteIcon'
 import { Badge } from './ui/badge'
 
 interface MessageFront extends Message {
@@ -237,19 +238,61 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
               key={item.id}
               onClick={(e) => onMessageClick(e, item)}
             >
-              <div className="p-3 mb-2 rounded-sm bg-white hover:opacity-80">
-                <div className="flex justify-between items-start mb-2">
-                  <div
-                    className={cn(
-                      'flex-grow',
-                      listType == 'list_page' && !item.isRead && 'font-bold'
-                    )}
-                  >
-                    &nbsp;
-                    {item.targetData.authorId == authState.userID ? (
-                      item.targetData.title ? (
+              <div className="flex items-center p-3 mb-2 rounded-sm bg-white hover:opacity-80">
+                {item.siteFrontId && (
+                  <BSiteIcon
+                    className="mr-4"
+                    logoUrl={item.siteLogoUrl}
+                    name={item.siteName}
+                    size={42}
+                  />
+                )}
+                <div className="flex-grow">
+                  <div className="flex justify-between items-start mb-2">
+                    <div
+                      className={cn(
+                        'flex-grow',
+                        listType == 'list_page' && !item.isRead && 'font-bold'
+                      )}
+                    >
+                      &nbsp;
+                      {item.targetData.authorId == authState.userID ? (
+                        item.targetData.title &&
+                        item.targetData.contentForm?.frontId != 'chat' ? (
+                          <Trans
+                            i18nKey={'replyUnderPost'}
+                            values={{
+                              title: item.targetData.title,
+                            }}
+                            components={{
+                              userAvartar: (
+                                <BAvatar
+                                  size={listType == 'list_page' ? 22 : 20}
+                                  fontSize={12}
+                                  username={item.senderUserName}
+                                  showUsername
+                                />
+                              ),
+                            }}
+                          />
+                        ) : (
+                          <Trans
+                            i18nKey={'replyToYou'}
+                            components={{
+                              userAvartar: (
+                                <BAvatar
+                                  size={listType == 'list_page' ? 22 : 20}
+                                  fontSize={12}
+                                  username={item.senderUserName}
+                                  showUsername
+                                />
+                              ),
+                            }}
+                          />
+                        )
+                      ) : (
                         <Trans
-                          i18nKey={'replyUnderPost'}
+                          i18nKey={'replyToPost'}
                           values={{
                             title: item.targetData.title,
                           }}
@@ -264,88 +307,57 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
                             ),
                           }}
                         />
-                      ) : (
-                        <Trans
-                          i18nKey={'replyToYou'}
-                          components={{
-                            userAvartar: (
-                              <BAvatar
-                                size={listType == 'list_page' ? 22 : 20}
-                                fontSize={12}
-                                username={item.senderUserName}
-                                showUsername
-                              />
-                            ),
-                          }}
-                        />
-                      )
-                    ) : (
-                      <Trans
-                        i18nKey={'replyToPost'}
-                        values={{
-                          title: item.targetData.title,
-                        }}
-                        components={{
-                          userAvartar: (
-                            <BAvatar
-                              size={listType == 'list_page' ? 22 : 20}
-                              fontSize={12}
-                              username={item.senderUserName}
-                              showUsername
-                            />
-                          ),
-                        }}
-                      />
-                    )}
-                  </div>
-                  <div className="flex pl-2">
-                    {!item.isRead && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="py-0 px-0 w-[24px] h-[24px]"
-                        title={t('markAsRead')}
-                        onClick={(e) =>
-                          onReadMessageClick(e, item.contentArticle.id)
-                        }
-                      >
-                        <CheckIcon size={18} />
-                      </Button>
-                    )}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+                      )}
+                    </div>
+                    <div className="flex pl-2">
+                      {!item.isRead && (
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="py-0 px-0 w-[24px] h-[24px] ml-1"
-                          title={t('settings')}
-                        >
-                          <EllipsisVerticalIcon size={18} />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        className="px-0"
-                        align="end"
-                        sideOffset={-2}
-                      >
-                        <DropdownMenuItem
-                          className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                          className="py-0 px-0 w-[24px] h-[24px]"
+                          title={t('markAsRead')}
                           onClick={(e) =>
-                            onUnsubscribeClick(
-                              e,
-                              item.contentArticle.id,
-                              item.targetID
-                            )
+                            onReadMessageClick(e, item.contentArticle.id)
                           }
                         >
-                          {t('noReminders')}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          <CheckIcon size={18} />
+                        </Button>
+                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="py-0 px-0 w-[24px] h-[24px] ml-1"
+                            title={t('settings')}
+                          >
+                            <EllipsisVerticalIcon size={18} />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          className="px-0"
+                          align="end"
+                          sideOffset={-2}
+                        >
+                          <DropdownMenuItem
+                            className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                            onClick={(e) =>
+                              onUnsubscribeClick(
+                                e,
+                                item.contentArticle.id,
+                                item.targetID
+                              )
+                            }
+                          >
+                            {t('noReminders')}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
-                </div>
-                <div className="text-gray-500">
-                  {item.contentArticle.content}
+                  <div className="text-gray-500">
+                    {item.contentArticle.content}
+                  </div>
                 </div>
               </div>
             </Link>

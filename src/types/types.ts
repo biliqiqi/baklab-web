@@ -470,6 +470,10 @@ export interface Message<T = Article> {
   isRead: boolean
   createdAt: string
   type: string
+  siteId: string
+  siteFrontId: string
+  siteName: string
+  siteLogoUrl: string
 }
 
 export interface NotificationUnreadCount {

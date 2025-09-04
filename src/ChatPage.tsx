@@ -573,6 +573,11 @@ const ChatPage: React.FC<ChatPageProps> = ({
 
   // init data
   useEffect(() => {
+    // Only initialize when currCate is available
+    if (!currCate || !currCate.frontId) {
+      return
+    }
+
     onReady()
     toSync(fetchChatList, () => {
       const chatListState: Partial<ChatListState> = {
@@ -618,7 +623,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
       // Give React time to render the components
       setTimeout(tryScrollToMessage, 0)
     })(false, true, false, true)
-  }, [siteFrontId, categoryFrontId, location])
+  }, [siteFrontId, categoryFrontId, location, currCate])
 
   useEffect(() => {
     /* console.log('reply success: ', replySuccess) */
@@ -655,7 +660,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
   }, [location.hash, chatList.initialized])
 
   useEffect(() => {
-    if (!siteFrontId || !categoryFrontId) return
+    if (!siteFrontId || !categoryFrontId || !currCate) return
     const currentPath = `/${siteFrontId}/bankuai/${categoryFrontId}`
     
     // Only load local data if the path matches current route
@@ -670,7 +675,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
     setTimeout(() => {
       getLocalChatList(siteFrontId, categoryFrontId)
     }, 0)
-  }, [siteFrontId, categoryFrontId])
+  }, [siteFrontId, categoryFrontId, currCate])
 
   return (
     <div style={{ paddingBottom: `${REPLY_BOX_PLACEHOLDER_HEIGHT}px` }}>

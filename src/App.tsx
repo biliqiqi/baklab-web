@@ -229,16 +229,28 @@ const App = () => {
   }, [refreshTokenSync, reconnectEventSource])
 
   useEffect(() => {
-    if (!authToken) {
-      refreshTokenSync(true)
-    } else {
-      fetchNotiCount()
-      toSync(fetchSiteList)()
+    const initializeApp = async () => {
+      if (!authToken) {
+        const {
+          data: { token, username, userID, user },
+          code,
+        } = await refreshToken(true)
+
+        if (!code) {
+          updateBaseData(token, username, userID)
+          updateUserData(user)
+        }
+      } else {
+        fetchNotiCount()
+        toSync(fetchSiteList)()
+      }
+
+      setRouter(createBrowserRouter(routes))
+      setInitialized(true)
     }
 
-    setRouter(createBrowserRouter(routes))
-    setInitialized(true)
-  }, [authToken, routes, fetchSiteList, forceUpdate])
+    initializeApp()
+  }, [authToken, routes, fetchSiteList, forceUpdate, updateBaseData, updateUserData])
 
   useEffect(() => {
     if (isMobile) {

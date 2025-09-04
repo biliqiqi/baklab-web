@@ -168,7 +168,7 @@ export const routes: RouteObject[] = [
     loader: notAtAuthed,
   },
   {
-    path: '/oauth/authorize',
+    path: '/oauth_provider/authorize',
     Component: OAuthAuthorizePage,
     loader: mustAuthed,
   },

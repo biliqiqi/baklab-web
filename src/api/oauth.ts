@@ -23,7 +23,7 @@ export const createOAuthClient = async (
   data: CreateOAuthClientRequest,
   custom?: CustomRequestOptions
 ): Promise<ResponseData<OAuthClientResponse>> =>
-  authRequest.post(`oauth/clients`, { json: data }, custom)
+  authRequest.post(`oauth_provider/clients`, { json: data }, custom)
 
 export const listOAuthClients = async (
   page?: number,
@@ -51,7 +51,7 @@ export const listOAuthClients = async (
   }
 
   return authRequest.get(
-    `oauth/clients`,
+    `oauth_provider/clients`,
     {
       searchParams: params,
     },
@@ -63,44 +63,44 @@ export const getOAuthClient = async (
   clientId: string,
   custom?: CustomRequestOptions
 ): Promise<ResponseData<OAuthClient>> =>
-  authRequest.get(`oauth/clients/${clientId}`, {}, custom)
+  authRequest.get(`oauth_provider/clients/${clientId}`, {}, custom)
 
 export const updateOAuthClient = async (
   clientId: string,
   data: UpdateOAuthClientRequest,
   custom?: CustomRequestOptions
 ): Promise<ResponseData<null>> =>
-  authRequest.put(`oauth/clients/${clientId}`, { json: data }, custom)
+  authRequest.put(`oauth_provider/clients/${clientId}`, { json: data }, custom)
 
 export const deleteOAuthClient = async (
   clientId: string,
   custom?: CustomRequestOptions
 ): Promise<ResponseData<null>> =>
-  authRequest.delete(`oauth/clients/${clientId}`, {}, custom)
+  authRequest.delete(`oauth_provider/clients/${clientId}`, {}, custom)
 
 export const regenerateClientSecret = async (
   clientId: string,
   custom?: CustomRequestOptions
 ): Promise<ResponseData<RegenerateSecretResponse>> =>
-  authRequest.post(`oauth/clients/${clientId}/regenerate-secret`, {}, custom)
+  authRequest.post(`oauth_provider/clients/${clientId}/regenerate-secret`, {}, custom)
 
 export const setClientActive = async (
   clientId: string,
   data: SetClientActiveRequest,
   custom?: CustomRequestOptions
 ): Promise<ResponseData<null>> =>
-  authRequest.put(`oauth/clients/${clientId}/active`, { json: data }, custom)
+  authRequest.put(`oauth_provider/clients/${clientId}/active`, { json: data }, custom)
 
 export const getClientStats = async (
   clientId: string,
   custom?: CustomRequestOptions
 ): Promise<ResponseData<OAuthClientStats>> =>
-  authRequest.get(`oauth/clients/${clientId}/stats`, {}, custom)
+  authRequest.get(`oauth_provider/clients/${clientId}/stats`, {}, custom)
 
 export const cleanupExpiredCodes = async (
   custom?: CustomRequestOptions
 ): Promise<ResponseData<{ message: string }>> =>
-  authRequest.post(`oauth/cleanup-expired-codes`, {}, custom)
+  authRequest.post(`oauth_provider/cleanup-expired-codes`, {}, custom)
 
 // OAuth标准授权流程接口
 
@@ -122,7 +122,7 @@ export const authorizeOAuth = async (
   }
 
   return authRequest.get(
-    `oauth/authorize`,
+    `oauth_provider/authorize`,
     {
       searchParams,
     },
@@ -134,14 +134,14 @@ export const handleAuthorizeConfirm = async (
   data: OAuthAuthorizeConfirmRequest,
   custom?: CustomRequestOptions
 ): Promise<ResponseData<{ redirect_url: string }>> =>
-  authRequest.post(`oauth/authorize`, { json: data }, custom)
+  authRequest.post(`oauth_provider/authorize`, { json: data }, custom)
 
 export const exchangeToken = async (
   data: OAuthTokenRequest,
   custom?: CustomRequestOptions
 ): Promise<OAuthTokenResponse> => {
   // 这个接口可能需要支持form格式，根据后端实现调整
-  const response = await request.post(`oauth/token`, { json: data }, custom) as unknown
+  const response = await request.post(`oauth_provider/token`, { json: data }, custom) as unknown
   return response as OAuthTokenResponse
 }
 
@@ -157,7 +157,7 @@ export const exchangeTokenForm = async (
   formData.set('client_id', data.client_id)
   formData.set('client_secret', data.client_secret)
 
-  const response = await request.post(`oauth/token`, {
+  const response = await request.post(`oauth_provider/token`, {
     body: formData,
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -190,7 +190,7 @@ export const getUserAuthorizations = async (
   }
 
   return authRequest.get(
-    `oauth/authorizations`,
+    `oauth_provider/authorizations`,
     {
       searchParams: params,
     },
@@ -202,9 +202,9 @@ export const revokeUserAuthorization = async (
   clientId: string,
   custom?: CustomRequestOptions
 ): Promise<ResponseData<null>> =>
-  authRequest.delete(`oauth/authorizations/${clientId}`, {}, custom)
+  authRequest.delete(`oauth_provider/authorizations/${clientId}`, {}, custom)
 
 export const revokeAllUserAuthorizations = async (
   custom?: CustomRequestOptions
 ): Promise<ResponseData<null>> =>
-  authRequest.delete(`oauth/authorizations`, {}, custom)
+  authRequest.delete(`oauth_provider/authorizations`, {}, custom)

@@ -45,13 +45,13 @@ export const postSignin = async (
 export const postOAuthAuthorize = async (
   provider: OAuthProvider
 ): Promise<ResponseData<{ authUrl: string }>> =>
-  request.post(`oauth/authorize`, { json: { provider } })
+  request.post(`oauth_client/authorize`, { json: { provider } })
 
 export const postOAuthCallback = async (
   provider: OAuthProvider,
   code: string
 ): Promise<ResponseData<AuthedDataResponse>> =>
-  request.post(`oauth/callback`, {
+  request.post(`oauth_client/callback`, {
     credentials: 'include',
     json: { provider, code },
   })
@@ -61,7 +61,7 @@ export const postOAuthCompleteRegistration = async (
   email: string,
   username: string
 ): Promise<ResponseData<AuthedDataResponse>> =>
-  request.post(`oauth/complete-registration`, {
+  request.post(`oauth_client/complete-registration`, {
     credentials: 'include',
     json: { provider, email, username },
   })

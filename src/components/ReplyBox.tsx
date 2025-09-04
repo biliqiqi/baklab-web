@@ -740,15 +740,15 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
                   <div className="flex items-center">
                     {!isPreview && (
                       <>
-                        {/* <Button
-                          variant="ghost"
+                        <Button
+                          variant="outline"
                           size="icon"
                           onClick={() => setIsActive(false)}
                           title={t('collape')}
-                          className="h-[24px] text-gray-500 px-0 align-middle"
+                          className="mr-2 w-8 h-[24px] text-gray-500 px-0 align-middle"
                         >
                           <ArrowDownToLineIcon size={20} />
-                        </Button> */}
+                        </Button>
                         <Button
                           variant={markdownMode ? 'default' : 'outline'}
                           size="icon"

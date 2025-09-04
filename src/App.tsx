@@ -23,6 +23,7 @@ import {
   RIGHT_SIDEBAR_STATE_KEY,
   TOP_DRAWER_STATE_KEY,
 } from './constants/constants.ts'
+import { setFaviconBadge } from './lib/favicon.ts'
 import { useIsMobile } from './hooks/use-mobile.tsx'
 import './i18n'
 import { toSync } from './lib/fire-and-forget.ts'
@@ -170,6 +171,7 @@ const App = () => {
   const setSettingsType = useRightSidebarStore((state) => state.setSettingsType)
 
   const setUserUIState = useUserUIStore((state) => state.setState)
+  const unreadCount = useNotificationStore((state) => state.unreadCount)
 
   const isMobile = useIsMobile()
   const { forceState, forceUpdate } = useForceUpdate(
@@ -230,17 +232,30 @@ const App = () => {
 
   useEffect(() => {
     const initializeApp = async () => {
-      if (!authToken) {
-        const {
-          data: { token, username, userID, user },
-          code,
-        } = await refreshToken(true)
+      let isLoggedIn = false
 
-        if (!code) {
-          updateBaseData(token, username, userID)
-          updateUserData(user)
+      if (!authToken) {
+        try {
+          const {
+            data: { token, username, userID, user },
+            code,
+          } = await refreshToken(true)
+
+          if (!code) {
+            updateBaseData(token, username, userID)
+            updateUserData(user)
+            isLoggedIn = true
+          }
+        } catch (error) {
+          console.error('Failed to refresh token:', error)
+          // Continue initialization even if token refresh fails
         }
       } else {
+        isLoggedIn = true
+      }
+
+      // Only fetch authenticated data if user is logged in
+      if (isLoggedIn) {
         fetchNotiCount()
         toSync(fetchSiteList)()
       }
@@ -250,7 +265,14 @@ const App = () => {
     }
 
     void initializeApp()
-  }, [authToken, routes, fetchSiteList, forceUpdate, updateBaseData, updateUserData])
+  }, [
+    authToken,
+    routes,
+    fetchSiteList,
+    forceUpdate,
+    updateBaseData,
+    updateUserData,
+  ])
 
   useEffect(() => {
     if (isMobile) {
@@ -296,6 +318,10 @@ const App = () => {
     setShowTopDrawer(showDock)
   }, [setShowTopDrawer])
 
+  useEffect(() => {
+    setFaviconBadge(unreadCount).catch(console.error)
+  }, [unreadCount])
+
   /* console.log('initialized: ', initialized)
    * console.log('authToken: ', authToken) */
   {/* prettier-ignore */}
@@ -304,8 +330,8 @@ const App = () => {
       {initialized && router ? (
         <RouterProvider router={router} key={forceState} />
       ) : (
-        <div className="flex justify-center py-4">
-          <BLoader />
+        <div className="flex h-screen items-center justify-center">
+          <BLoader className="-mt-8" />
         </div>
       )}
       <Toaster

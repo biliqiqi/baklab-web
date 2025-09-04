@@ -249,7 +249,7 @@ const App = () => {
       setInitialized(true)
     }
 
-    initializeApp()
+    void initializeApp()
   }, [authToken, routes, fetchSiteList, forceUpdate, updateBaseData, updateUserData])
 
   useEffect(() => {

@@ -110,6 +110,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
   const [markdownMode, setMarkdownMode] = useState(false)
   const [isPreview, setPreview] = useState(false)
   const [imageUploading, setImageUploading] = useState(false)
+  const [showLinkField, setShowLinkField] = useState(false)
   /* const [isDragging, setDragging] = useState(false) */
 
   /* const [selectedCategory, setSelectedCategory] = useState<Category | null>(
@@ -130,6 +131,11 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
   const notFound = useNotFoundStore()
 
   const { t } = useTranslation()
+
+  const filteredCateList = useMemo(
+    () => cateList.filter((item) => item.contentForm?.frontId != 'chat'),
+    [cateList]
+  )
 
   const categoryNameMap: CategoryNameMap = useMemo(() => {
     return cateList.reduce((obj: CategoryNameMap, item) => {
@@ -476,7 +482,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-4 max-w-[800px] mx-auto"
+          className="space-y-4 mx-auto"
         >
           {isReply && article ? (
             <h1 className="bg-gray-100 rounded-sm py-1 px-2 text-gray-500 text-sm cursor-pointer">
@@ -506,13 +512,16 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                   </FormItem>
                 )}
               />
-              <div className="flex flex-wrap justify-between items-start">
+              <div className="flex flex-wrap items-start">
                 <FormField
                   control={form.control}
                   name="category"
                   key="category"
                   render={({ fieldState }) => (
-                    <FormItem style={{ display: isPreview ? 'none' : '' }}>
+                    <FormItem
+                      className="mr-4 my-1"
+                      style={{ display: isPreview ? 'none' : '' }}
+                    >
                       <div>
                         <FormLabel className="text-gray-500 mr-2">
                           {t('publishTo')}
@@ -538,7 +547,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                                 size={'sm'}
                               >
                                 {categoryVal()
-                                  ? cateList.find(
+                                  ? filteredCateList.find(
                                       (cate) => cate.id === categoryVal()
                                     )?.name
                                   : t('pleaseSelect')}
@@ -559,7 +568,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                                     {t('noCategoryFound')}
                                   </CommandEmpty>
                                   <CommandGroup>
-                                    {cateList.map((cate) => (
+                                    {filteredCateList.map((cate) => (
                                       <CommandItem
                                         key={cate.id}
                                         value={cate.id}
@@ -600,50 +609,71 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                   name="contentFormId"
                   key="contentFormId"
                   render={({ field }) => (
+                    <FormItem
+                      className="mr-4 my-1"
+                      style={{ display: isPreview ? 'none' : '' }}
+                    >
+                      <div>
+                        <FormLabel className="text-gray-500 mr-2">
+                          {t('contentForm')}
+                        </FormLabel>
+                        <FormControl>
+                          <ContentFormSelector
+                            value={field.value || '0'}
+                            onChange={field.onChange}
+                            ref={field.ref}
+                            disabled={Boolean(
+                              categoryMap[formVals.category]?.contentFormId &&
+                                categoryMap[formVals.category]?.contentFormId !=
+                                  '0'
+                            )}
+                            selectedCategory={
+                              categoryMap[formVals.category] || null
+                            }
+                            filterChatBasedOnCategory={true}
+                          />
+                        </FormControl>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mr-2 my-1"
+                  style={{ display: isPreview ? 'none' : '' }}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setShowLinkField((state) => !state)
+                  }}
+                >
+                  + {t('sourceLink')}
+                </Button>
+              </div>
+              {showLinkField && (
+                <FormField
+                  control={form.control}
+                  name="link"
+                  key="link"
+                  render={({ field, fieldState }) => (
                     <FormItem style={{ display: isPreview ? 'none' : '' }}>
-                      <FormLabel className="text-gray-500 mr-2">
-                        {t('contentForm')}
-                      </FormLabel>
                       <FormControl>
-                        <ContentFormSelector
-                          value={field.value || '0'}
-                          onChange={field.onChange}
-                          ref={field.ref}
-                          disabled={Boolean(
-                            categoryMap[formVals.category]?.contentFormId &&
-                              categoryMap[formVals.category]?.contentFormId !=
-                                '0'
-                          )}
-                          selectedCategory={
-                            categoryMap[formVals.category] || null
-                          }
-                          filterChatBasedOnCategory={true}
+                        <Input
+                          placeholder={t('inputTip', {
+                            field: t('sourceLink'),
+                          })}
+                          autoComplete="off"
+                          type="url"
+                          state={fieldState.invalid ? 'invalid' : 'default'}
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </div>
-              <FormField
-                control={form.control}
-                name="link"
-                key="link"
-                render={({ field, fieldState }) => (
-                  <FormItem style={{ display: isPreview ? 'none' : '' }}>
-                    <FormControl>
-                      <Input
-                        placeholder={t('inputTip', { field: t('sourceLink') })}
-                        autoComplete="off"
-                        type="url"
-                        state={fieldState.invalid ? 'invalid' : 'default'}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              )}
             </>
           )}
           <FormField

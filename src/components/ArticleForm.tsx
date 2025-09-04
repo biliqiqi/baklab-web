@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Check, ChevronsUpDown } from 'lucide-react'
+import { Check, ChevronsUpDown, ImageIcon } from 'lucide-react'
 import { escapeHtml } from 'markdown-it/lib/common/utils.mjs'
 import {
   MouseEvent,
@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { submitArticle, updateArticle, updateReply } from '@/api/article'
+import { uploadFileBase64 } from '@/api/file'
 import {
   ARTICLE_MAX_CONTENT_LEN,
   ARTICLE_MAX_TITILE_LEN,
@@ -40,7 +41,7 @@ import {
 
 import ArticleCard from './ArticleCard'
 import ContentFormSelector from './ContentFormSelector'
-import TipTap from './TipTap'
+import TipTap, { TipTapRef } from './TipTap'
 import BAvatar from './base/BAvatar'
 import BLoader from './base/BLoader'
 import { Button } from './ui/button'
@@ -108,6 +109,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
   const [loading, setLoading] = useState(false)
   const [markdownMode, setMarkdownMode] = useState(false)
   const [isPreview, setPreview] = useState(false)
+  const [imageUploading, setImageUploading] = useState(false)
   /* const [isDragging, setDragging] = useState(false) */
 
   /* const [selectedCategory, setSelectedCategory] = useState<Category | null>(
@@ -154,6 +156,8 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
     inputType: 'tiptap',
     dragging: isEdit,
   })
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const tiptapRef = useRef<TipTapRef | null>(null)
 
   const checkPermit = useAuthedUserStore((state) => state.permit)
 
@@ -369,6 +373,77 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
     draggingRef.current.dragging = false
   }
 
+  const onFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!e.currentTarget.files?.length) return
+
+      const file = e.currentTarget.files[0]
+      if (!file.type.startsWith('image/')) {
+        toast.error(t('pleaseSelectImageFile'))
+        return
+      }
+
+      setImageUploading(true)
+
+      try {
+        const reader = new FileReader()
+        reader.onload = async (event) => {
+          const imageData = event.target?.result as string
+          if (!imageData) {
+            setImageUploading(false)
+            return
+          }
+
+          try {
+            const uploadResponse = await uploadFileBase64(imageData)
+
+            if (uploadResponse?.success && uploadResponse.data?.customUrl) {
+              const imageUrl = uploadResponse.data.customUrl
+
+              if (markdownMode) {
+                const currentContent = form.getValues('content')
+                const imageMarkdown = `![image](${imageUrl})`
+                form.setValue('content', currentContent + imageMarkdown)
+              } else {
+                if (tiptapRef.current?.insertImage) {
+                  tiptapRef.current.insertImage(imageUrl, 'image')
+                }
+              }
+            } else {
+              throw new Error('Upload failed')
+            }
+          } catch (error) {
+            console.error('Upload error:', error)
+            toast.error(t('failedToUploadImage'))
+          } finally {
+            setImageUploading(false)
+          }
+        }
+
+        reader.readAsDataURL(file)
+      } catch (error) {
+        console.error('File read error:', error)
+        toast.error(t('failedToReadFile'))
+        setImageUploading(false)
+      }
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    },
+    [markdownMode, form, t]
+  )
+
+  const onImageUploadClick = useCallback(
+    (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault()
+      if (!imageUploading && fileInputRef.current) {
+        fileInputRef.current.click()
+      }
+    },
+    [imageUploading]
+  )
+
   useDocumentTitle(isEdit ? t('editPost') : t('createPost'))
 
   useEffect(() => {
@@ -539,7 +614,9 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                               categoryMap[formVals.category]?.contentFormId !=
                                 '0'
                           )}
-                          selectedCategory={categoryMap[formVals.category] || null}
+                          selectedCategory={
+                            categoryMap[formVals.category] || null
+                          }
                           filterChatBasedOnCategory={true}
                         />
                       </FormControl>
@@ -595,6 +672,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                     <TipTap
                       placeholder={t('inputTip', { field: t('content') })}
                       {...field}
+                      ref={tiptapRef}
                       state={fieldState.invalid ? 'invalid' : 'default'}
                       style={{
                         display: markdownMode ? 'none' : '',
@@ -640,17 +718,40 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
           )}
 
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex items-center">
               {!isPreview && (
                 <>
                   <Button
-                    variant={markdownMode ? 'default' : 'ghost'}
+                    variant={markdownMode ? 'default' : 'outline'}
                     size="icon"
                     onClick={onMarkdownModeClick}
-                    title={t('markdownMode')}
-                    className="w-8 h-[24px] align-middle"
+                    title={t('xMode', { name: 'Markdown' })}
+                    className={cn(
+                      'mr-2 w-8 h-[24px] align-middle leading-5',
+                      markdownMode
+                        ? 'text-white dark:text-black'
+                        : 'text-gray-500'
+                    )}
                   >
                     M
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onImageUploadClick}
+                    disabled={imageUploading}
+                    title={imageUploading ? t('uploading') : t('addImage')}
+                    className="w-8 h-[24px] text-gray-500"
+                  >
+                    {imageUploading ? (
+                      <BLoader
+                        className="inline-block"
+                        style={{ fontSize: '2px' }}
+                      />
+                    ) : (
+                      <ImageIcon size={20} />
+                    )}
                   </Button>
                 </>
               )}
@@ -677,6 +778,15 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
           </div>
         </form>
       </Form>
+
+      <Input
+        type="file"
+        ref={fileInputRef}
+        onChange={onFileChange}
+        accept="image/*"
+        className="hidden"
+        style={{ display: 'none' }}
+      />
     </Card>
   )
 }

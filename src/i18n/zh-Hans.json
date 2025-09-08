@@ -483,6 +483,7 @@
   "activityCount": "{{num}} 条活动记录",
   "acType": "类型",
   "ipAddress": "IP 地址",
+  "countryCode": "国家代码",
   "deviceInfo": "设备信息",
   "otherInfo": "其他数据",
   "view": "查看",

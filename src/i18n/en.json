@@ -483,6 +483,7 @@
   "activityCount": "{{num}} activity records",
   "acType": "Type",
   "ipAddress": "IP Address",
+  "countryCode": "Country Code",
   "deviceInfo": "Device Info",
   "otherInfo": "Other Data",
   "view": "View",

@@ -421,6 +421,7 @@ export interface Activity {
   createdAt: string
   ipAddr: string
   deviceInfo: string
+  countryCode: string
   details: ActivityDetails
   // formattedText: string
   extraInfo: JSONMap

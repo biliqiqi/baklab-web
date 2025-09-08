@@ -567,6 +567,12 @@ export const ActivityList: React.FC<ActivityListProps> = ({
                 </div>
                 <div className="flex">
                   <div className="flex-shrink-0 w-[80px]">
+                    <b>{t('countryCode')}：</b>
+                  </div>
+                  <div>{item.countryCode || '-'}</div>
+                </div>
+                <div className="flex">
+                  <div className="flex-shrink-0 w-[80px]">
                     <b>{t('deviceInfo')}：</b>
                   </div>
                   <div>{item.deviceInfo}</div>

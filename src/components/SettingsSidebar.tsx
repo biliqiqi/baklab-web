@@ -1,8 +1,5 @@
-import {
-  KeyIcon,
-  UserIcon,
-} from 'lucide-react'
-import React, { useMemo } from 'react'
+import { KeyIcon, UserIcon } from 'lucide-react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router-dom'
 

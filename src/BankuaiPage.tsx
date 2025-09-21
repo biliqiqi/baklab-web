@@ -41,11 +41,11 @@ export default function BankuaiPage() {
     [currCate]
   )
 
-  const { innerContentWidth } = useUserUIStore(
-    useShallow(({ innerContentWidth }) => ({
-      innerContentWidth: innerContentWidth || DEFAULT_INNER_CONTENT_WIDTH,
-    }))
-  )
+  // const { innerContentWidth } = useUserUIStore(
+  //   useShallow(({ innerContentWidth }) => ({
+  //     innerContentWidth: innerContentWidth || DEFAULT_INNER_CONTENT_WIDTH,
+  //   }))
+  // )
 
   // Clear state immediately when route params change
   useEffect(() => {

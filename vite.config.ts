@@ -1,16 +1,17 @@
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import { defineConfig } from 'vite'
-import { analyzer } from 'vite-bundle-analyzer'
+
+// import { analyzer } from 'vite-bundle-analyzer'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   base: process.env.VITE_BASE_URL || '/',
   plugins: [
     react(),
-    analyzer({
-      openAnalyzer: true,
-    }),
+    // analyzer({
+    //   openAnalyzer: false,
+    // }),
   ],
   build: {
     target: 'esnext',

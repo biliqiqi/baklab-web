@@ -162,7 +162,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       }))
     )
 
-    const { siteListMode, contentWidth, innerContentWidth } = useUserUIStore(
+    const { siteListMode, contentWidth } = useUserUIStore(
       useShallow(({ siteListMode, contentWidth, innerContentWidth }) => ({
         siteListMode,
         contentWidth: contentWidth || DEFAULT_CONTENT_WIDTH,
@@ -193,8 +193,13 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const { siteFrontId } = useParams()
 
     const alertDialog = useAlertDialogStore()
-    
-    const { categorySelectionModalOpen, categorySelectionModalSiteFrontId, setCategorySelectionModalOpen, showCategorySelectionModal } = useCategorySelectionModalStore(
+
+    const {
+      categorySelectionModalOpen,
+      categorySelectionModalSiteFrontId,
+      setCategorySelectionModalOpen,
+      showCategorySelectionModal,
+    } = useCategorySelectionModalStore(
       useShallow(({ open, siteFrontId, setOpen, show }) => ({
         categorySelectionModalOpen: open,
         categorySelectionModalSiteFrontId: siteFrontId,
@@ -380,7 +385,13 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           showCategorySelectionModal(siteFrontId)
         }
       },
-      [siteFrontId, fetchSiteData, fetchSiteList, fetchCategoryList, showCategorySelectionModal]
+      [
+        siteFrontId,
+        fetchSiteData,
+        fetchSiteList,
+        fetchCategoryList,
+        showCategorySelectionModal,
+      ]
     )
 
     const onSiteFormClose = useCallback(async () => {
@@ -450,11 +461,11 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             await fetchSiteData(newSiteFrontId)
           })(),
         ])
-        
+
         if (newSiteFrontId && !editting) {
           showCategorySelectionModal(newSiteFrontId)
         }
-        
+
         forceUpdate()
       },
       [

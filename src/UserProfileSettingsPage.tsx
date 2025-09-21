@@ -49,7 +49,7 @@ export default function UserProfileSettingsPage() {
     },
   })
 
-  // 当用户信息加载完成后，设置表单默认值
+  // Set form default values after user info loads
   useEffect(() => {
     if (user) {
       form.reset({
@@ -72,7 +72,6 @@ export default function UserProfileSettingsPage() {
         })
 
         if (!resp.code) {
-          // 更新本地用户信息
           if (user) {
             updateUserData({
               ...user,
@@ -82,7 +81,7 @@ export default function UserProfileSettingsPage() {
           }
 
           toast.success(t('profileUpdatedSuccessfully'))
-          form.reset(data) // 重置表单状态，清除dirty状态
+          form.reset(data)
         }
       } catch (error) {
         console.error('Update profile error:', error)
@@ -107,14 +106,14 @@ export default function UserProfileSettingsPage() {
       <Card className="p-4 text-sm mb-4">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* 用户名显示（只读） */}
+            {/* Username display (readonly) */}
             <div className="space-y-2">
               <FormLabel>{t('username')}</FormLabel>
               <Input value={username || ''} disabled className="bg-muted" />
               <FormDescription>{t('usernameCannotBeChanged')}</FormDescription>
             </div>
 
-            {/* 用户简介 */}
+            {/* User introduction */}
             <FormField
               control={form.control}
               name="introduction"
@@ -140,7 +139,7 @@ export default function UserProfileSettingsPage() {
               )}
             />
 
-            {/* 角色名称显示设置 */}
+            {/* Role name display settings */}
             {/* <FormField
               control={form.control}
               name="showRoleName"
@@ -169,7 +168,7 @@ export default function UserProfileSettingsPage() {
               )}
             */}
 
-            {/* 提交按钮 */}
+            {/* Submit button */}
             <div className="flex justify-end">
               <Button
                 type="submit"

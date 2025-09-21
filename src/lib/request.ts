@@ -67,14 +67,12 @@ const defaultOptions: Options = {
             console.error('parse response data error: ', e)
           }
 
-          // 创建成功响应来阻止错误传播的辅助函数
           const createSuccessResponse = (responseData: ResponseData<unknown> | null) =>
             new Response(JSON.stringify(responseData || {}), {
               status: 200,
               headers: { 'Content-Type': 'application/json' }
             })
 
-          // 显示错误消息并返回成功响应来阻止传播
           const handleErrorWithToast = (message: string, responseData: ResponseData<unknown> | null) => {
             toast.error(message)
             return createSuccessResponse(responseData)
@@ -88,7 +86,7 @@ const defaultOptions: Options = {
                 data
               )
             case status == 401:
-              // if refresh request failed, then is refresh token expired, log out directly for re-signin
+              // If refresh request failed, refresh token is expired, logout for re-signin
               if (isRefreshRequest(req)) {
                 useAuthedUserStore.getState().logout()
               }

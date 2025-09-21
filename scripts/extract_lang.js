@@ -3,72 +3,72 @@ import { glob } from 'glob'
 import { Command } from 'commander'
 const program = new Command()
 
-// 设置命令行参数
+// Setup command line arguments
 program
   .name('extract-lang')
-  .description('提取文件中的匹配文本并生成 JavaScript 文件')
+  .description('Extract matching text from files and generate JavaScript file')
   .option(
     '-f, --files <glob>',
-    '要扫描的文件 (glob 模式)',
+    'Files to scan (glob pattern)',
     (value, previous) => {
       return previous.concat([value])
     },
     []
   )
-  .option('-o, --out <file>', '输出文件路径', 'src/i18n/lang_text.js')
-  .option('-r, --regex <pattern>', '用于匹配的正则表达式', '\\p{Script=Han}+')
+  .option('-o, --out <file>', 'Output file path', 'src/i18n/lang_text.js')
+  .option('-r, --regex <pattern>', 'Regular expression for matching', '\\p{Script=Han}+')
   .option(
     '-c, --current <file>',
-    '当前已提取的语言数据文件(JSON)',
+    'Current extracted language data file (JSON)',
     'src/i18n/zh-Hans.json'
   )
   .parse(process.argv)
 
 const options = program.opts()
 
-// 检查必要的参数
+// Check required parameters
 if (options.files.length === 0) {
-  console.error('错误: 请至少提供一个文件 glob 模式 (-f 或 --files)')
+  console.error('Error: Please provide at least one file glob pattern (-f or --files)')
   process.exit(1)
 }
 
-// 确保正则表达式有效
+// Ensure regex is valid
 let matchRegex
 try {
-  // 添加全局和 Unicode 标志
+  // Add global and Unicode flags
   matchRegex = new RegExp(options.regex, 'gu')
 } catch (err) {
-  console.error(`错误: 无效的正则表达式 "${options.regex}": ${err.message}`)
+  console.error(`Error: Invalid regex "${options.regex}": ${err.message}`)
   process.exit(1)
 }
 
-// 主处理函数
+// Main processing function
 async function processFiles() {
-  // 用于跨文件去重的全局集合
-  const allUniqueMatches = new Map() // 匹配文本 -> key 的映射
-  const fileMatches = new Map() // 文件 -> 匹配集合 的映射
+  // Global set for cross-file deduplication
+  const allUniqueMatches = new Map() // Match text -> key mapping
+  const fileMatches = new Map() // File -> match set mapping
   let keyCounter = 0
 
-  // 加载当前已提取的数据(如果存在)
-  const existingEntries = new Map() // 现有文本 -> key 的映射
-  const existingKeys = new Set() // 已使用的key集合
+  // Load current extracted data (if exists)
+  const existingEntries = new Map() // Existing text -> key mapping
+  const existingKeys = new Set() // Used key set
 
   if (options.current) {
     try {
-      // 检查文件是否存在
+      // Check if file exists
       if (fs.existsSync(options.current)) {
         const currentContent = fs.readFileSync(options.current, 'utf8')
         let currentData
 
-        // 尝试作为JavaScript模块解析(export default {...})
+        // Try to parse as JavaScript module (export default {...})
         if (currentContent.includes('export default')) {
-          // 提取大括号内的内容
+          // Extract content within braces
           const match = currentContent.match(
             /export\s+default\s+(\{[\s\S]*\})/m
           )
           if (match && match[1]) {
             try {
-              // 将提取的对象字符串转换为JSON格式(替换键中的引号)
+              // Convert extracted object string to JSON format (replace quotes in keys)
               const jsonStr = match[1].replace(/(\w+):/g, '"$1":')
               currentData = JSON.parse(jsonStr)
             } catch (e) {
@@ -77,7 +77,7 @@ async function processFiles() {
           }
         }
 
-        // 如果上述方法失败，尝试直接作为JSON解析
+        // If above method fails, try parsing directly as JSON
         if (!currentData) {
           try {
             currentData = JSON.parse(currentContent)
@@ -89,16 +89,16 @@ async function processFiles() {
           }
         }
 
-        // 填充现有条目映射
+        // Populate existing entries mapping
         if (currentData) {
-          // 反转键值对来构建文本->键的映射
+          // Reverse key-value pairs to build text->key mapping
           for (const [key, value] of Object.entries(currentData)) {
             existingEntries.set(value, key)
             existingKeys.add(key)
           }
-          console.log(`已加载 ${existingEntries.size} 个现有条目`)
+          console.log(`Loaded ${existingEntries.size} existing entries`)
 
-          // 找出现有的最大key数字
+          // Find maximum existing key number
           if (existingKeys.size > 0) {
             const keyNumbers = Array.from(existingKeys)
               .filter((k) => k.startsWith('key') && /^key\d+$/.test(k))
@@ -106,7 +106,7 @@ async function processFiles() {
 
             if (keyNumbers.length > 0) {
               keyCounter = Math.max(...keyNumbers) + 1
-              console.log(`继续从 key${keyCounter} 开始生成新键`)
+              console.log(`Continue generating new keys from key${keyCounter}`)
             }
           }
         }
@@ -114,14 +114,14 @@ async function processFiles() {
         console.warn(`警告: 指定的当前数据文件 ${options.current} 不存在`)
       }
     } catch (err) {
-      console.error(`处理当前数据文件时发生错误:`, err)
+      console.error(`Error processing current data file:`, err)
     }
   }
 
-  // 第一阶段：扫描所有文件收集匹配
+  // Phase 1: Scan all files to collect matches
   for (const pattern of options.files) {
     try {
-      // 使用 glob.sync 而不是 await，因为 glob 是同步 API
+      // Use glob.sync instead of await, as glob is a synchronous API
       const files = glob.sync(pattern, { nodir: true })
       if (files.length === 0) {
         console.warn(`警告: 模式 "${pattern}" 没有匹配到任何文件`)
@@ -131,38 +131,38 @@ async function processFiles() {
         try {
           const content = fs.readFileSync(file, 'utf8')
           const fileMatchSet = new Set()
-          // 重置正则表达式的 lastIndex
+          // Reset regex lastIndex
           matchRegex.lastIndex = 0
           let match
           while ((match = matchRegex.exec(content)) !== null) {
             const matchText = match[0]
             fileMatchSet.add(matchText)
 
-            // 在全局集合中记录这个匹配文本，优先使用现有的键
+            // Record this match text in global set, prioritize using existing keys
             if (!allUniqueMatches.has(matchText)) {
-              // 检查是否已存在于当前数据中
+              // Check if already exists in current data
               if (existingEntries.has(matchText)) {
                 allUniqueMatches.set(matchText, existingEntries.get(matchText))
               } else {
-                // 生成一个新键
+                // Generate a new key
                 allUniqueMatches.set(matchText, `key${keyCounter++}`)
               }
             }
           }
-          // 只保存有匹配的文件
+          // Only save files with matches
           if (fileMatchSet.size > 0) {
             fileMatches.set(file, fileMatchSet)
           }
         } catch (err) {
-          console.error(`处理文件 ${file} 时发生错误:`, err)
+          console.error(`Error processing file ${file}:`, err)
         }
       }
     } catch (err) {
-      console.error(`处理 glob 模式 "${pattern}" 时发生错误:`, err)
+      console.error(`Error processing glob pattern "${pattern}":`, err)
     }
   }
 
-  // 检查是否有新的匹配项
+  // Check if there are new matches
   const newMatchesCount = Array.from(allUniqueMatches.entries()).filter(
     ([text, key]) => !existingEntries.has(text)
   ).length
@@ -171,50 +171,50 @@ async function processFiles() {
     `找到 ${allUniqueMatches.size} 个匹配项，其中 ${newMatchesCount} 个是新的`
   )
 
-  // 如果没有找到任何匹配
+  // If no matches found
   if (allUniqueMatches.size === 0) {
-    console.warn('警告: 没有找到任何匹配项')
-    // 创建一个空对象作为输出
+    console.warn('Warning: No matches found')
+    // Create empty object as output
     fs.writeFileSync(options.out, 'export default {};\n', 'utf8')
-    console.log(`已生成空的 JavaScript 模块: ${options.out}`)
+    console.log(`Generated empty JavaScript module: ${options.out}`)
     return
   }
 
-  // 第二阶段：生成输出文件
-  // 组织输出结构：按文件分组但保持唯一键
+  // Phase 2: Generate output file
+  // Organize output structure: group by file but maintain unique keys
   const outputLines = ['export default {']
 
-  // 按文件生成分组注释和键值对
+  // Generate grouped comments and key-value pairs by file
   for (const [file, matchSet] of fileMatches.entries()) {
-    // 添加文件注释
-    outputLines.push(`\n  // 来源: ${file}`)
-    // 为此文件中的每个匹配添加键值对
+    // Add file comment
+    outputLines.push(`\n  // Source: ${file}`)
+    // Add key-value pairs for each match in this file
     for (const matchText of matchSet) {
       const key = allUniqueMatches.get(matchText)
       outputLines.push(`  "${key}": "${escapeString(matchText)}",`)
     }
   }
 
-  // 移除最后一个逗号
+  // Remove last comma
   if (outputLines[outputLines.length - 1].endsWith(',')) {
     outputLines[outputLines.length - 1] = outputLines[
       outputLines.length - 1
     ].slice(0, -1)
   }
 
-  // 关闭对象
+  // Close object
   outputLines.push('};')
 
-  // 写入文件
+  // Write to file
   const output = outputLines.join('\n')
   fs.writeFileSync(options.out, output, 'utf8')
-  console.log(`已生成 JavaScript 模块: ${options.out}`)
+  console.log(`Generated JavaScript module: ${options.out}`)
   console.log(
     `共输出 ${allUniqueMatches.size} 个条目，其中 ${newMatchesCount} 个是新添加的`
   )
 }
 
-// 转义字符串中的特殊字符
+// Escape special characters in string
 function escapeString(str) {
   return str
     .replace(/\\/g, '\\\\')
@@ -224,8 +224,8 @@ function escapeString(str) {
     .replace(/\t/g, '\\t')
 }
 
-// 运行主流程
+// Run main process
 processFiles().catch((err) => {
-  console.error('发生错误:', err)
+  console.error('Error occurred:', err)
   process.exit(1)
 })

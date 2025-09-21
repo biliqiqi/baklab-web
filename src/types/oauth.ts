@@ -81,7 +81,7 @@ export interface UserOAuthAuthorization {
   updatedAt: string
   user?: UserData | null
   client?: OAuthClient | null
-  scopes?: string[] // OAuth权限范围
+  scopes?: string[] // OAuth permission scopes
 }
 
 export interface UserOAuthAuthorizationListResponse extends ListPageState {

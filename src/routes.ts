@@ -52,12 +52,12 @@ const redirectToSignin = (returnUrl?: string) => {
 }
 
 const mustAuthed = async ({ request }: { request: Request }) => {
-  // 给应用一点时间来初始化用户状态
+  // Give app time to initialize user state
   await new Promise((resolve) => setTimeout(resolve, 100))
 
   const authState = useAuthedUserStore.getState()
   if (!authState.isLogined()) {
-    // 再给一次机会，等待可能正在进行的token刷新
+    // Give one more chance, wait for possible ongoing token refresh
     await new Promise((resolve) => setTimeout(resolve, 500))
     const finalAuthState = useAuthedUserStore.getState()
     if (!finalAuthState.isLogined()) {
@@ -74,12 +74,12 @@ const needPermission =
   ): LoaderFunction =>
   async ({ request, params: { siteFrontId } }) => {
     try {
-      // 给应用一点时间来初始化用户状态
+      // Give app time to initialize user state
       await new Promise((resolve) => setTimeout(resolve, 100))
 
       let authState = useAuthedUserStore.getState()
       if (!authState.isLogined()) {
-        // 再给一次机会，等待可能正在进行的token刷新
+        // Give one more chance, wait for possible ongoing token refresh
         await new Promise((resolve) => setTimeout(resolve, 500))
         authState = useAuthedUserStore.getState()
         if (!authState.isLogined()) {
@@ -94,7 +94,7 @@ const needPermission =
         const siteStore = useSiteStore.getState()
         const site = siteStore.site
 
-        // 如果站点数据未加载，跳过权限检查，让页面处理
+        // If site data not loaded, skip permission check, let page handle
         if (site && !checkPermitUnderSite(site, module, action)) {
           return redirect(`/${siteFrontId}`)
         }

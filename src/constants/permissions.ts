@@ -1,5 +1,6 @@
-// 注释：这个权限数据已被后端翻译系统替代，后端通过 LocalWithLocalizer 方法返回已翻译的权限名称
-// 前端现在直接使用 Permission.name 字段，无需客户端翻译
+// This permission data has been replaced by backend translation system
+// Backend returns translated permission names via LocalWithLocalizer method
+// Frontend now uses Permission.name field directly, no client-side translation needed
 /* const PERMISSION_DATA = {
   article: {
     create: {

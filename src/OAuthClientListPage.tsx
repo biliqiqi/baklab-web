@@ -191,7 +191,7 @@ export default function OAuthClientListPage() {
     setEditingClient(null)
     fetchClientList(false)
     
-    // 如果是新创建的客户端且有密钥，显示密钥
+    // If new client with secret, show secret
     if (isNewClient && client?.clientSecret) {
       setIsNewSecret(true)
       setShowSecret(client.clientSecret)

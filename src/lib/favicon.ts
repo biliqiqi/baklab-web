@@ -49,14 +49,12 @@ const drawBadge = async (count: number) => {
 
   ctx.clearRect(0, 0, 32, 32)
   
-  // 先绘制原始favicon作为基底
   if (originalFavicon) {
     try {
       const img = await loadImage(originalFavicon)
       ctx.drawImage(img, 0, 0, 32, 32)
     } catch (error) {
       console.warn('Failed to load original favicon:', error)
-      // 如果加载失败，绘制一个简单的默认图标
       ctx.fillStyle = '#4f46e5'
       ctx.fillRect(0, 0, 32, 32)
     }
@@ -67,27 +65,23 @@ const drawBadge = async (count: number) => {
     const isDoubleDigit = text.length === 2
     const fontSize = isDoubleDigit ? 18 : 22
     
-    // 根据数字位数调整背景大小
     if (isDoubleDigit) {
-      // 两位数：使用椭圆形背景，宽度增加
       ctx.fillStyle = '#ef4444'
       ctx.beginPath()
-      ctx.ellipse(16, 20, 15, 12, 0, 0, 2 * Math.PI)  // 宽度半径15px，高度半径12px
+      ctx.ellipse(16, 20, 15, 12, 0, 0, 2 * Math.PI)
       ctx.fill()
     } else {
-      // 单位数：使用圆形背景
       ctx.fillStyle = '#ef4444'
       ctx.beginPath()
       ctx.arc(16, 20, 12, 0, 2 * Math.PI)
       ctx.fill()
     }
     
-    // 绘制数字到底部居中
     ctx.fillStyle = '#ffffff'
     ctx.font = `bold ${fontSize}px Arial, sans-serif`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillText(text, 16, 20)  // 数字位置与背景中心一致
+    ctx.fillText(text, 16, 20)
   }
   
   return canvas.toDataURL('image/png')

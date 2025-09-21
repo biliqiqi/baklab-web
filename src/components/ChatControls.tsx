@@ -205,11 +205,10 @@ const ChatControls: React.FC<ChatControlsProps> = ({
     [article, onSuccess]
   )
 
-  // 使用 children render pattern 来动态检查菜单项
+  // Use children render pattern to dynamically check menu items
   const renderMenuItems = useCallback(() => {
     const items = []
 
-    // 编辑选项
     if (
       ((isMyself(article.authorId) && checkPermit('article', 'edit_mine')) ||
         checkPermit('article', 'edit_others')) &&
@@ -231,7 +230,6 @@ const ChatControls: React.FC<ChatControlsProps> = ({
       )
     }
 
-    // 删除选项
     if (
       ((isMyself(article.authorId) && checkPermit('article', 'delete_mine')) ||
         checkPermit('article', 'delete_others')) &&
@@ -252,7 +250,6 @@ const ChatControls: React.FC<ChatControlsProps> = ({
       )
     }
 
-    // 锁定选项
     if (checkPermit('article', 'lock')) {
       items.push(
         <DropdownMenuItem
@@ -273,7 +270,6 @@ const ChatControls: React.FC<ChatControlsProps> = ({
       )
     }
 
-    // 历史选项
     if (checkPermit('article', 'manage')) {
       items.push(
         <DropdownMenuItem

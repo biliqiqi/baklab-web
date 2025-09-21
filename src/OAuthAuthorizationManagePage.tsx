@@ -51,12 +51,12 @@ import { useAlertDialogStore, useLoading } from './state/global'
 import { UserOAuthAuthorization } from './types/oauth'
 import { ListPageState } from './types/types'
 
-// 精简的默认权限范围（去重和优化后）
+// Simplified default permission scopes (deduplicated and optimized)
 const getDefaultScopes = (): string[] => {
   return ['profile', 'email']
 }
 
-// 权限显示组件
+// Permission display component
 const PermissionBadges = ({
   authorization,
 }: {
@@ -64,18 +64,18 @@ const PermissionBadges = ({
 }) => {
   const { t } = useTranslation()
 
-  // 权限范围映射（精简去重后的核心权限）
+  // Permission scope mapping (simplified core permissions after deduplication)
   const getScopeDisplayName = (scope: string): string => {
     const scopeMap: Record<string, string> = {
-      profile: t('oauthScopeProfile'), // 访问基本个人信息
-      email: t('oauthScopeEmail'), // 访问邮箱地址
-      write: t('oauthScopeWrite'), // 修改个人信息权限
+      profile: t('oauthScopeProfile'),
+      email: t('oauthScopeEmail'),
+      write: t('oauthScopeWrite'),
     }
 
     return scopeMap[scope] || scope
   }
 
-  // 使用存储的权限或默认权限
+  // Use stored permissions or default permissions
   const scopes = authorization.scopes || getDefaultScopes()
 
   if (scopes.length === 0) {

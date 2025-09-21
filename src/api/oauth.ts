@@ -17,7 +17,7 @@ import {
   SetClientActiveRequest,
 } from '@/types/oauth'
 
-// OAuth客户端管理接口（管理员权限）
+// OAuth client management interfaces (admin permissions)
 
 export const createOAuthClient = async (
   data: CreateOAuthClientRequest,
@@ -102,7 +102,7 @@ export const cleanupExpiredCodes = async (
 ): Promise<ResponseData<{ message: string }>> =>
   authRequest.post(`oauth_provider/cleanup-expired-codes`, {}, custom)
 
-// OAuth标准授权流程接口
+// OAuth standard authorization flow interfaces
 
 export const authorizeOAuth = async (
   params: OAuthAuthorizeParams,
@@ -140,7 +140,7 @@ export const exchangeToken = async (
   data: OAuthTokenRequest,
   custom?: CustomRequestOptions
 ): Promise<OAuthTokenResponse> => {
-  // 这个接口可能需要支持form格式，根据后端实现调整
+  // This interface may need to support form format, adjust based on backend implementation
   const response = await request.post(`oauth_provider/token`, { json: data }, custom) as unknown
   return response as OAuthTokenResponse
 }
@@ -149,7 +149,7 @@ export const exchangeTokenForm = async (
   data: OAuthTokenRequest,
   custom?: CustomRequestOptions
 ): Promise<OAuthTokenResponse> => {
-  // 使用form格式发送请求
+  // Send request using form format
   const formData = new URLSearchParams()
   formData.set('grant_type', data.grant_type)
   formData.set('code', data.code)
@@ -167,7 +167,7 @@ export const exchangeTokenForm = async (
   return response as OAuthTokenResponse
 }
 
-// 用户OAuth授权管理接口
+// User OAuth authorization management interfaces
 
 export const getUserAuthorizations = async (
   page?: number,

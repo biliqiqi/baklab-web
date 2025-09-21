@@ -312,7 +312,6 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   const onTextareaFocus = () => {
     setIsActive(true)
 
-    // 如果 targetInputEl 还未设置，立即更新
     if (!targetInputEl) {
       const currentElement = markdownMode
         ? textareaRef.current
@@ -361,19 +360,16 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
           }
 
           try {
-            // 上传图片到服务器
             const uploadResponse = await uploadFileBase64(imageData)
 
             if (uploadResponse?.success && uploadResponse.data?.customUrl) {
               const imageUrl = uploadResponse.data.customUrl
 
               if (markdownMode) {
-                // 在 Markdown 模式下直接插入 Markdown 语法
                 const currentContent = form.getValues('content')
                 const imageMarkdown = `![image](${imageUrl})`
                 form.setValue('content', currentContent + imageMarkdown)
               } else {
-                // 在富文本模式下使用 TipTap 插入图片
                 if (tiptapRef.current?.insertImage) {
                   tiptapRef.current.insertImage(imageUrl, 'image')
                 }
@@ -396,7 +392,6 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
         setImageUploading(false)
       }
 
-      // 清空文件输入框的值，以便下次选择同一文件也能触发
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
@@ -462,7 +457,6 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
     /* console.log('replyBoxHeight: ', replyBoxHeight) */
 
     if (isActive) {
-      // 只要高度小于目标高度就进行调整
       const targetHeight = 80
       if (replyBoxHeight < targetHeight) {
         targetInputEl.classList.add('duration-200', 'transition-all')
@@ -573,7 +567,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
 
     updateTargetElement()
 
-    // 如果是 TipTap 模式但元素还未准备好，延迟重试
+    // If TipTap mode but element not ready, retry with delay
     if (!markdownMode && !tiptapRef.current?.element) {
       const retryTimer = setTimeout(() => {
         updateTargetElement()
@@ -812,7 +806,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
           </Form>
         )}
 
-        {/* 隐藏的文件输入框 */}
+        {/* Hidden file input */}
         <Input
           type="file"
           ref={fileInputRef}

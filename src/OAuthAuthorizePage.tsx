@@ -51,7 +51,7 @@ export default function OAuthAuthorizePage() {
   useDocumentTitle(t('oauthAuthorization'))
 
   const handleAuthorization = useCallback(async () => {
-    // 检查必要参数
+    // Check required parameters
     if (!responseType || !clientId || !redirectUri) {
       setError(t('oauthInvalidRequest'))
       setLoading(false)
@@ -75,7 +75,6 @@ export default function OAuthAuthorizePage() {
 
       const { data } = response
 
-      // 如果有错误，显示错误信息并重定向
       if (data.error) {
         setError(data.error_description || data.error)
         if (data.redirect_url) {
@@ -88,17 +87,14 @@ export default function OAuthAuthorizePage() {
         return
       }
 
-      // 如果已经授权，直接重定向
       if (data.success && data.redirect_url) {
         window.location.href = data.redirect_url
         return
       }
 
-      // 需要用户授权确认
       if (data.needsAuthorization) {
         setAuthData(data)
       } else {
-        // 如果没有明确的授权需求，可能是服务器错误
         setError(t('oauthError'))
       }
     } catch (err) {
@@ -141,16 +137,16 @@ export default function OAuthAuthorizePage() {
     [clientId, redirectUri, state, submitting, t]
   )
 
-  // 初始化OAuth授权流程
+  // Initialize OAuth authorization flow
   useEffect(() => {
-    // 检查必要参数
+    // Check required parameters
     if (!responseType || !clientId || !redirectUri) {
       setError(t('oauthInvalidRequest'))
       setLoading(false)
       return
     }
 
-    // 路由已经保证用户已登录，直接处理授权
+    // Route ensures user is logged in, handle authorization directly
     handleAuthorization().catch((err) => {
       console.error('Authorization initialization error:', err)
       setError(t('oauthError'))
@@ -165,7 +161,7 @@ export default function OAuthAuthorizePage() {
     redirectUri,
   ])
 
-  // 清理定时器和标记组件卸载
+  // Cleanup timer and mark component unmount
   useEffect(() => {
     mountedRef.current = true
     return () => {
@@ -177,7 +173,7 @@ export default function OAuthAuthorizePage() {
     }
   }, [location])
 
-  // 简化的导航组件
+  // Simplified navigation component
   const renderNav = () => (
     <div
       className="flex justify-between items-center py-2 px-4 bg-white dark:bg-slate-900 sticky top-0 z-10 border-b-2 shadow-sm"
@@ -204,7 +200,7 @@ export default function OAuthAuthorizePage() {
     </div>
   )
 
-  // 路由已经保证用户已登录，无需再检查登录状态
+  // Route ensures user is logged in, no need to check login status again
 
   if (error) {
     return (
@@ -237,7 +233,7 @@ export default function OAuthAuthorizePage() {
     )
   }
 
-  // 如果没有授权数据且没有错误，显示加载状态
+  // If no authorization data and no error, show loading state
   if (!authData?.needsAuthorization && !error) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
@@ -256,7 +252,7 @@ export default function OAuthAuthorizePage() {
     )
   }
 
-  // 如果没有需要授权的数据，说明出现了问题
+  // If no authorization data needed, something went wrong
   if (!authData?.needsAuthorization) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
@@ -309,7 +305,7 @@ export default function OAuthAuthorizePage() {
           </CardHeader>
 
           <CardContent className="space-y-6">
-            {/* 应用信息 */}
+            {/* Application info */}
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 {client?.logoURL && (
@@ -354,7 +350,7 @@ export default function OAuthAuthorizePage() {
 
             <Separator />
 
-            {/* 用户信息 */}
+            {/* User info */}
             <div className="text-sm">
               <p className="text-muted-foreground mb-2">
                 {t('oauthSignedInAs')}:
@@ -366,7 +362,7 @@ export default function OAuthAuthorizePage() {
 
             <Separator />
 
-            {/* 操作按钮 */}
+            {/* Action buttons */}
             <div className="space-y-3">
               <Button
                 className="w-full"

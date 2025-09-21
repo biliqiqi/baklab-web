@@ -26,7 +26,6 @@ export default function SettingsSidebar({ activeKey }: SettingsSidebarProps) {
   const { t } = useTranslation()
   const location = useLocation()
 
-  // 设置菜单项配置
   const settingsMenuItems = useMemo(
     () => [
       {
@@ -69,7 +68,6 @@ export default function SettingsSidebar({ activeKey }: SettingsSidebarProps) {
     [t]
   )
 
-  // 根据当前路径或传入的activeKey确定活动的设置项
   const currentActiveKey = useMemo(() => {
     if (activeKey) return activeKey
 

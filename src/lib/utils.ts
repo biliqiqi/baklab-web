@@ -7,12 +7,12 @@ import { twMerge } from 'tailwind-merge'
 import { DEFAULT_FONT_SIZE } from '@/constants/constants'
 import { SITE_STATUS_COLOR_MAP } from '@/constants/maps'
 import {
-  // PERMISSION_DATA, // 注释：已被后端翻译系统替代
+  // PERMISSION_DATA,
   PERMISSION_MODULE_DATA,
 } from '@/constants/permissions'
 import {
-  // PermissionAction, // 注释：已被后端翻译系统替代
-  // PermissionItem, // 注释：已被后端翻译系统替代
+  // PermissionAction,
+  // PermissionItem,
   PermissionModule,
 } from '@/constants/types'
 import i18n from '@/i18n'
@@ -70,8 +70,8 @@ export const extractDomain = (url: string) => new URL(url).hostname
 //   return ROLE_DATA[roleFrontId]
 // }
 
-// 注释：此函数已被弃用，现在直接使用后端返回的 Permission.name 字段
-// 后端通过 LocalWithLocalizer 方法返回已翻译的权限名称，前端无需再进行翻译
+// This function is deprecated, now uses backend returned Permission.name field directly
+// Backend returns translated permission names via LocalWithLocalizer method
 /* export const getPermissionName = <K extends PermissionModule>(
   permissFrontId: string
 ): string | undefined => {

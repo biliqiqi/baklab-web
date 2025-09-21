@@ -60,7 +60,6 @@ const BCropper = forwardRef<BCropperObj, BCropperProps>(
     },
     ref
   ) => {
-    /* 'https://static.biliqiqi.net/eO_-WF8KXDNrLJWw_e_wBDPlhWsJAlID' */
     const [imgUrl, setImgUrl] = useState('')
     const [crop, setCrop] = useState({ x: 0, y: 0 })
     const [zoom, setZoom] = useState(1)

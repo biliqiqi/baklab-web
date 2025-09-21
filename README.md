@@ -1,50 +1,96 @@
-# React + TypeScript + Vite
+# BakLab Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+BakLab is a modern discussion platform similar to Reddit/Hacker News, built for online community discussions and content sharing.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Discussion Forums**: Create and participate in topic-based discussions
+- **SEO Optimized**: Search engine friendly with server-side rendering support
+- **Real-time Chat**: Live messaging and notifications
+- **Category System**: Organize content with customizable bankuai (categories)
+- **User Management**: Comprehensive user roles and permissions system
+- **OAuth Integration**: Support for third-party authentication
+- **Internationalization**: Multi-language support
 
-## Expanding the ESLint configuration
+## Prerequisites
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- Node.js >= 20.16.0
+- npm or yarn
 
-- Configure the top-level `parserOptions` property like this:
+## Getting Started
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+### 1. Clone the repository
+
+```bash
+git clone <repository-url>
+cd baklab/frontend
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+### 2. Install dependencies
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+```bash
+npm install
 ```
+
+### 3. Configure environment
+
+Copy the example environment file and configure it:
+
+```bash
+cp .env.example .env.local
+```
+
+Edit `.env.local` with your settings:
+
+```env
+# API configuration
+VITE_API_HOST=http://localhost:3000
+VITE_API_PATH_PREFIX=/api/
+
+# Static file service
+VITE_STATIC_HOST=https://static.example.com
+
+# Frontend host
+VITE_FRONTEND_HOST=http://localhost:5173
+```
+
+### 4. Start development server
+
+```bash
+npm run dev
+```
+
+The application will be available at `http://localhost:5173`.
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint and TypeScript checks
+- `npm run type-check` - Run TypeScript type checking
+- `npm run test` - Run tests with Vitest
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `VITE_API_HOST` | Backend API host | `http://localhost:3000` |
+| `VITE_API_PATH_PREFIX` | API path prefix | `/api/` |
+| `VITE_STATIC_HOST` | Static file server | `https://static.example.com` |
+| `VITE_FRONTEND_HOST` | Frontend host URL | `http://localhost:5173` |
+| `VITE_BASE_URL` | Base URL for assets | `/` |
+
+## Building for Production
+
+```bash
+npm run build
+```
+
+The built files will be in the `dist/` directory.
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.

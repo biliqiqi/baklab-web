@@ -6,12 +6,12 @@ export const FRONTEND_HOST =
   (import.meta.env.VITE_FRONTEND_HOST as string) || 'http://localhost:5173'
 
 export const API_HOST =
-  (import.meta.env.VITE_API_HOST as string) || 'https://192.168.31.51:3443'
+  (import.meta.env.VITE_API_HOST as string) || 'http://localhost:3000'
 export const API_PATH_PREFIX =
   (import.meta.env.VITE_API_PATH_PREFIX as string) || '/api/'
 
 export const STATIC_HOST =
-  (import.meta.env.VITE_STATIC_HOST as string) || 'https://static.biliqiqi.net'
+  (import.meta.env.VITE_STATIC_HOST as string) || 'https://static.example.com'
 
 export const SERVER_ERR_ACCOUNT_EXIST = 1000
 

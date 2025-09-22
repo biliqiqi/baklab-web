@@ -16,12 +16,10 @@ import { Separator } from './components/ui/separator'
 import BAvatar from './components/base/BAvatar'
 import BSiteIcon from './components/base/BSiteIcon'
 
+import SITE_LOGO_IMAGE from '@/assets/logo.png'
+
 import { authorizeOAuth, handleAuthorizeConfirm } from './api/oauth'
-import {
-  NAV_HEIGHT,
-  PLATFORM_NAME,
-  SITE_LOGO_IMAGE,
-} from './constants/constants'
+import { NAV_HEIGHT, PLATFORM_NAME } from './constants/constants'
 import useDocumentTitle from './hooks/use-page-title'
 import { useAuthedUserStore, useLoading } from './state/global'
 import { OAuthAuthorizeResponse } from './types/oauth'
@@ -179,8 +177,8 @@ export default function OAuthAuthorizePage() {
       className="flex justify-between items-center py-2 px-4 bg-white dark:bg-slate-900 sticky top-0 z-10 border-b-2 shadow-sm"
       style={{ height: `${NAV_HEIGHT - 2}px` }}
     >
-      <Link 
-        className="flex-shrink-0 font-bold text-2xl leading-3" 
+      <Link
+        className="flex-shrink-0 font-bold text-2xl leading-3"
         to="/"
         onClick={() => {
           mountedRef.current = false

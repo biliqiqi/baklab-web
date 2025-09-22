@@ -4,11 +4,8 @@ import { useShallow } from 'zustand/react/shallow'
 
 import { cn } from '@/lib/utils'
 
-import {
-  DEFAULT_CONTENT_WIDTH,
-  DOCK_HEIGHT,
-  SITE_LOGO_IMAGE,
-} from '@/constants/constants'
+import SITE_LOGO_IMAGE from '@/assets/logo.png'
+import { DEFAULT_CONTENT_WIDTH, DOCK_HEIGHT } from '@/constants/constants'
 import {
   useAuthedUserStore,
   useSiteStore,

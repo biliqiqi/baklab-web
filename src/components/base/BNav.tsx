@@ -17,11 +17,8 @@ import { useShallow } from 'zustand/react/shallow'
 import { cn, summryText } from '@/lib/utils'
 
 import { logoutToken } from '@/api'
-import {
-  NAV_HEIGHT,
-  PLATFORM_NAME,
-  SITE_LOGO_IMAGE,
-} from '@/constants/constants'
+import SITE_LOGO_IMAGE from '@/assets/logo.png'
+import { NAV_HEIGHT, PLATFORM_NAME } from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
   useAlertDialogStore,

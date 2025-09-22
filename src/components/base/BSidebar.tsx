@@ -21,11 +21,8 @@ import { useShallow } from 'zustand/react/shallow'
 
 import { cn, getSiteStatusColor, getSiteStatusName } from '@/lib/utils'
 
-import {
-  NAV_HEIGHT,
-  PLATFORM_NAME,
-  SITE_LOGO_IMAGE,
-} from '@/constants/constants'
+import SITE_LOGO_IMAGE from '@/assets/logo.png'
+import { NAV_HEIGHT, PLATFORM_NAME } from '@/constants/constants'
 import { PermissionAction, PermissionModule } from '@/constants/types'
 import { buildRoutePath, useRouteMatch } from '@/hooks/use-route-match'
 import i18n from '@/i18n'
@@ -323,7 +320,6 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _ }) => {
     if (!siteFrontId) return
     await fetchCategoryList(siteFrontId)
   }, [siteFrontId, fetchCategoryList])
-
 
   return (
     <>

@@ -9,6 +9,10 @@ import { useTheme } from './theme-provider'
 
 import { Button } from './ui/button'
 
+import googleIcon from '@/assets/google.webp'
+import githubMarkIcon from '@/assets/github-mark.png'
+import githubMarkWhiteIcon from '@/assets/github-mark-white.png'
+
 interface OAuthButtonProps {
   provider: OAuthProvider
   onSuccess?: () => void
@@ -64,9 +68,9 @@ export const OAuthButton: React.FC<OAuthButtonProps> = ({
   const getProviderIcon = (provider: OAuthProvider) => {
     switch (provider) {
       case OAUTH_PROVIDER.GOOGLE:
-        return '/google.webp'
+        return googleIcon
       case OAUTH_PROVIDER.GITHUB:
-        return isDark ? '/github-mark-white.png' : '/github-mark.png'
+        return isDark ? githubMarkWhiteIcon : githubMarkIcon
       default:
         return null
     }

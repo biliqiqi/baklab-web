@@ -7,12 +7,9 @@ import { twMerge } from 'tailwind-merge'
 import { DEFAULT_FONT_SIZE } from '@/constants/constants'
 import { SITE_STATUS_COLOR_MAP } from '@/constants/maps'
 import {
-  // PERMISSION_DATA,
   PERMISSION_MODULE_DATA,
 } from '@/constants/permissions'
 import {
-  // PermissionAction,
-  // PermissionItem,
   PermissionModule,
 } from '@/constants/types'
 import i18n from '@/i18n'
@@ -62,29 +59,7 @@ export const deleteCookie = (
 
 export const extractDomain = (url: string) => new URL(url).hostname
 
-// export const getRoleName = (roleFrontId: FrontRole) => {
-//   return ROLE_DATA[roleFrontId]?.name || ''
-// }
 
-// export const getRoleItem = (roleFrontId: FrontRole): RoleItem | undefined => {
-//   return ROLE_DATA[roleFrontId]
-// }
-
-// This function is deprecated, now uses backend returned Permission.name field directly
-// Backend returns translated permission names via LocalWithLocalizer method
-/* export const getPermissionName = <K extends PermissionModule>(
-  permissFrontId: string
-): string | undefined => {
-  const [module, action] = permissFrontId.split('.') as [K, PermissionAction<K>]
-
-  try {
-    const permit = PERMISSION_DATA[module][action] as PermissionItem
-    // @ts-expect-error permission name keys
-    return i18n.t(permit?.name || 'unknow permission name')
-  } catch (_err) {
-    return undefined
-  }
-} */
 
 export const getPermissionModuleName = (moduleId: PermissionModule): string => {
   return (

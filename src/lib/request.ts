@@ -150,13 +150,6 @@ const authToastHook: AfterResponseHook = (_req, _opt, resp) => {
   }
 }
 
-// export const authRequest = request.extend({
-//   credentials: 'include',
-//   hooks: {
-//     beforeRequest: [addAuthToHeaders],
-//     afterResponse: [refreshTokenHook],
-//   },
-// })
 
 const makeAuthRequestConfigs = (
   custom: CustomRequestOptions = { showAuthToast: true }

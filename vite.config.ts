@@ -1,6 +1,6 @@
 import react from '@vitejs/plugin-react'
 import path from 'path'
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 
 // import { analyzer } from 'vite-bundle-analyzer'
 

@@ -90,6 +90,7 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "glob": "^11.0.2",
     "globals": "^15.15.0",
+    "jsdom": "^27.0.0",
     "postcss": "^8.5.3",
     "prettier": "3.3.3",
     "prettier-plugin-merge": "^0.7.3",

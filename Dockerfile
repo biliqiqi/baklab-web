@@ -12,37 +12,31 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Create production env file with placeholders
-COPY .env.template .env.production
+# Create docker env file with non-shell placeholders
+COPY .env.template .env.docker
 
-# Build the application
-RUN npm run build
+# Build the application with docker mode (will embed placeholders)
+RUN npm run build -- --mode docker
 
-# Production stage
-FROM nginx:alpine
+# Production stage - lightweight Alpine for processing only
+FROM alpine:latest
 
-# Install gettext for envsubst
-RUN apk add --no-cache gettext
+# Install sed and other basic utilities
+RUN apk add --no-cache sed
 
 # Copy built assets
 COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
 
 # Copy environment replacement script
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
 # Environment variables that can be passed to the container
-# These correspond to .env.example variables without VITE_ prefix
-ENV STATIC_HOST=""
-ENV BASE_URL=""
 ENV API_HOST=""
 ENV API_PATH_PREFIX=""
 ENV FRONTEND_HOST=""
-
-EXPOSE 80
+ENV STATIC_HOST=""
+ENV BASE_URL=""
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["sh", "-c", "echo 'Frontend processing complete' && sleep 5"]

@@ -118,6 +118,14 @@ const checkHomepageAuth = () => {
   return null
 }
 
+const checkSiteFeedAuth = ({ params }: { params: { siteFrontId?: string } }) => {
+  const authState = useAuthedUserStore.getState()
+  if (!authState.isLogined()) {
+    return redirect(`/${params.siteFrontId}/all`)
+  }
+  return null
+}
+
 const somePermissions =
   <T extends PermissionModule>(
     ...pairs: [T, PermissionAction<T>][]
@@ -278,6 +286,7 @@ export const routes: RouteObject[] = [
   {
     path: '/:siteFrontId/feed',
     Component: FeedPage,
+    loader: checkSiteFeedAuth,
   },
   {
     path: '/:siteFrontId/all',

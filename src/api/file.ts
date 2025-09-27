@@ -4,8 +4,14 @@ import { UploadResponse } from '@/types/types'
 
 export const uploadFileBase64 = async (dataUrl: string) => {
   try {
-    const resp = await fetch(dataUrl)
-    const blob = await resp.blob()
+    const [header, base64Data] = dataUrl.split(',')
+    const mime = header.match(/:(.*?);/)?.[1] || 'image/png'
+    const binary = atob(base64Data)
+    const array = new Uint8Array(binary.length)
+    for (let i = 0; i < binary.length; i++) {
+      array[i] = binary.charCodeAt(i)
+    }
+    const blob = new Blob([array], { type: mime })
 
     const formData = new FormData()
 

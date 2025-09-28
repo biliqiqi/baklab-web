@@ -462,9 +462,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           })(),
         ])
 
-        if (newSiteFrontId && !editting) {
-          showCategorySelectionModal(newSiteFrontId)
-        }
 
         forceUpdate()
       },

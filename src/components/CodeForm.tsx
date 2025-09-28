@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 
+import { DEBUG } from '@/constants/constants'
+
 const REGEXP_CODE = /^\d{6}$/
 
 const codeSchema = z.object({
@@ -30,6 +32,8 @@ interface CodeFormProps {
   onSubmit?: SubmitHandler<CodeSchema>
   onResendClick?: () => void
 }
+
+const DEBUG_CODE = '686868'
 
 const CodeForm: React.FC<CodeFormProps> = ({
   isPhone,
@@ -48,8 +52,7 @@ const CodeForm: React.FC<CodeFormProps> = ({
       })
     ),
     defaultValues: {
-      // TODO for debug
-      code: '686868',
+      code: DEBUG ? DEBUG_CODE : '',
     },
   })
 

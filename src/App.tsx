@@ -200,6 +200,11 @@ const App = () => {
   const routes = useRoutesStore(useShallow((state) => state.routes))
 
   const reconnectEventSource = useCallback(() => {
+    // Check if connection is still alive before reconnecting
+    if (eventSource && eventSource.readyState === EventSource.OPEN) {
+      return
+    }
+
     if (eventSource) {
       eventSource.close()
       setEventSource(null)
@@ -220,13 +225,21 @@ const App = () => {
   }, [currUsername, setEventSource])
 
   useEffect(() => {
+    let debounceTimer: NodeJS.Timeout
+
     window.onfocus = () => {
-      reconnectEventSource()
-      refreshTokenSync(true)
-      fetchNotiCount()
+      // Debounce to avoid frequent reconnections
+      clearTimeout(debounceTimer)
+      debounceTimer = setTimeout(() => {
+        reconnectEventSource()
+        refreshTokenSync(true)
+        fetchNotiCount()
+      }, 1000) // 1 second debounce
     }
+
     return () => {
       window.onfocus = null
+      clearTimeout(debounceTimer)
     }
   }, [refreshTokenSync, reconnectEventSource])
 

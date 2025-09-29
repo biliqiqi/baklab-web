@@ -34,6 +34,7 @@ services:
       - API_PATH_PREFIX=/api/
       - FRONTEND_HOST=https://frontend.example.com
       - STATIC_HOST=https://cdn.example.com
+      - OAUTH_PROVIDERS=google,github
     volumes:
       - ./frontend_dist:/output
     restart: "no"
@@ -52,6 +53,7 @@ services:
 | `FRONTEND_HOST` | `VITE_FRONTEND_HOST` | 前端服务器地址 | `http://localhost:5173` | `https://app.example.com` |
 | `STATIC_HOST` | `VITE_STATIC_HOST` | 静态资源服务器地址 | `https://static.example.com` | `https://cdn.example.com` |
 | `BASE_URL` | `VITE_BASE_URL` | 静态资源基础路径 | `/` | `/static/frontend/` |
+| `OAUTH_PROVIDERS` | `VITE_OAUTH_PROVIDERS` | 逗号分隔的OAuth提供商列表 | `''` (空值) | `google,github` |
 | `OUTPUT_DIR` | - | 输出目录路径 | `/output` | `/custom/output/path` |
 
 **说明**：对应构建变量列显示了 baklab-web 项目 `.env.example` 中的相应变量名。在构建阶段，Vite 使用 `VITE_*` 前缀变量将占位符嵌入构建结果；在运行阶段，Docker 容器使用无前缀变量替换这些占位符为实际运行时值。
@@ -98,7 +100,8 @@ services:
     "API_PATH_PREFIX": "/api/",
     "FRONTEND_HOST": "https://app.example.com",
     "STATIC_HOST": "https://cdn.example.com",
-    "BASE_URL": "/static/frontend/"
+    "BASE_URL": "/static/frontend/",
+    "OAUTH_PROVIDERS": "google,github"
   }
 }
 

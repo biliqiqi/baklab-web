@@ -34,6 +34,7 @@ services:
       - API_PATH_PREFIX=/api/
       - FRONTEND_HOST=https://frontend.example.com
       - STATIC_HOST=https://cdn.example.com
+      - OAUTH_PROVIDERS=google,github
     volumes:
       - ./frontend_dist:/output
     restart: "no"
@@ -52,6 +53,7 @@ The image supports the following environment variables for runtime replacement o
 | `FRONTEND_HOST` | `VITE_FRONTEND_HOST` | Frontend server address | `http://localhost:5173` | `https://app.example.com` |
 | `STATIC_HOST` | `VITE_STATIC_HOST` | Static resource server address | `https://static.example.com` | `https://cdn.example.com` |
 | `BASE_URL` | `VITE_BASE_URL` | Static resource base path | `/` | `/static/frontend/` |
+| `OAUTH_PROVIDERS` | `VITE_OAUTH_PROVIDERS` | Comma-separated OAuth provider list | `''` (empty) | `google,github` |
 | `OUTPUT_DIR` | - | Output directory path | `/output` | `/custom/output/path` |
 
 **Note**: The "Corresponding Build Variable" column shows the corresponding variable names from the baklab-web project's `.env.example`. During build phase, Vite uses `VITE_*` prefixed variables to embed placeholders into build results; during runtime phase, Docker containers use non-prefixed variables to replace these placeholders with actual runtime values.
@@ -98,7 +100,8 @@ Detailed JSON format resource manifest containing processed resource information
     "API_PATH_PREFIX": "/api/",
     "FRONTEND_HOST": "https://app.example.com",
     "STATIC_HOST": "https://cdn.example.com",
-    "BASE_URL": "/static/frontend/"
+    "BASE_URL": "/static/frontend/",
+    "OAUTH_PROVIDERS": "google,github"
   }
 }
 ```

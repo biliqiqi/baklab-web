@@ -49,3 +49,7 @@ export const REPLY_BOX_PLACEHOLDER_HEIGHT = 180
 export const MOBILE_BREAKPOINT = 1024
 
 export const DEBUG = (import.meta.env.VITE_DEBUG as string) == 'true'
+
+export const OAUTH_PROVIDERS = (
+  import.meta.env.VITE_OAUTH_PROVIDERS as string
+).split(',')

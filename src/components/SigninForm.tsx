@@ -10,6 +10,7 @@ import { z } from '@/lib/zod-custom'
 
 import { postSignin } from '@/api'
 import { getSiteWithFrontId } from '@/api/site'
+import { OAUTH_PROVIDERS } from '@/constants/constants'
 import useDocumentTitle from '@/hooks/use-page-title'
 import {
   useAuthedUserStore,
@@ -30,6 +31,10 @@ const signinSchema = z.object({
   account: accountRule,
   password: z.string(),
 })
+
+const oauthProverConfigList = OAUTH_PROVIDERS.filter((provider) =>
+  Object.values(OAUTH_PROVIDER).includes(provider)
+)
 
 type SigninSchema = z.infer<typeof signinSchema>
 
@@ -244,33 +249,32 @@ const SigninForm: React.FC<SigninFromProps> = ({
         </Form>
 
         {/* OAuth login section */}
-        <div className="space-y-4">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
+        {oauthProverConfigList.length > 0 && (
+          <div className="space-y-4">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-dialog px-2">{t('or')}</span>
+              </div>
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-dialog px-2">{t('or')}</span>
-            </div>
-          </div>
 
-          <div className="space-y-4 pt-3">
-            <OAuthButton
-              provider={OAUTH_PROVIDER.GOOGLE}
-              onSuccess={onSuccess}
-              onError={(error) => console.error('Google OAuth error:', error)}
-              onUsernameRequired={handleOAuthUsernameRequired}
-              disabled={loading}
-            />
-            <OAuthButton
-              provider={OAUTH_PROVIDER.GITHUB}
-              onSuccess={onSuccess}
-              onError={(error) => console.error('GitHub OAuth error:', error)}
-              onUsernameRequired={handleOAuthUsernameRequired}
-              disabled={loading}
-            />
+            <div className="space-y-4 pt-3">
+              {oauthProverConfigList.map((provider) => (
+                <OAuthButton
+                  provider={provider}
+                  onSuccess={onSuccess}
+                  onError={(error) =>
+                    console.error(`${provider} oauth error:`, error)
+                  }
+                  onUsernameRequired={handleOAuthUsernameRequired}
+                  disabled={loading}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="text-sm">
           <Trans

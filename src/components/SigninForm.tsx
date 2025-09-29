@@ -32,8 +32,8 @@ const signinSchema = z.object({
   password: z.string(),
 })
 
-const oauthProverConfigList = OAUTH_PROVIDERS.filter((provider) =>
-  Object.values(OAUTH_PROVIDER).includes(provider)
+const oauthProverConfigList = (OAUTH_PROVIDERS as OAuthProvider[]).filter(
+  (provider) => Object.values(OAUTH_PROVIDER).includes(provider)
 )
 
 type SigninSchema = z.infer<typeof signinSchema>

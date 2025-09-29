@@ -462,7 +462,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           })(),
         ])
 
-
         forceUpdate()
       },
       [
@@ -719,7 +718,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                       )
                     ) : (
                       <Card className="sticky bottom-0 p-2 -mx-2 text-sm mt-4 text-center">
-                        {t('signinTip')}
+                        <span>{t('signinTip')}</span>&nbsp;&nbsp;
                         <Button
                           variant="default"
                           size="sm"

@@ -444,7 +444,7 @@
   "viewAnswer": "View solution",
   "solved": "Solved",
   "replyToUser": "Reply to <userLink/>",
-  "userPublishInfo": "<userLink/> <actionTag/> at <placeLink/>",
+  "userPublishInfo": "<userLink/> <actionTag/> · <placeLink/>",
   "replyCount": "{{num}} replies",
   "deleteCofirm": "Confirm delete?",
   "irrevocableDeleteConfirm": "Deletion cannot be undone.",

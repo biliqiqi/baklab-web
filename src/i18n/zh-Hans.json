@@ -444,7 +444,7 @@
   "viewAnswer": "查看答案",
   "solved": "已解决",
   "replyToUser": "回复 <userLink/>",
-  "userPublishInfo": "<userLink/> <actionTag/> 于 <placeLink/>",
+  "userPublishInfo": "<userLink/> <actionTag/> · <placeLink/>",
   "replyCount": "{{num}} 回复",
   "deleteCofirm": "确定删除",
   "irrevocableDeleteConfirm": "删除后无法撤销",

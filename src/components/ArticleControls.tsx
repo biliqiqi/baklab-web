@@ -184,13 +184,13 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
     async (e: MouseEvent<HTMLButtonElement>, voteType: VoteType) => {
       try {
         e.preventDefault()
-        
+
         // Check if user is logged in
         if (!isLogined()) {
           await loginWithDialog()
           return
         }
-        
+
         const resp = await toggleVoteArticle(article.id, voteType, {
           siteFrontId: article.siteFrontId,
         })
@@ -342,7 +342,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                 ),
                 actionTag:
                   article.replyToId == '0' || !article.replyToArticle ? (
-                    <span>{t('lowerCase', { val: t('published') })}</span>
+                    <span></span>
                   ) : (
                     <Trans
                       i18nKey={'replyToUser'}

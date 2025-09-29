@@ -303,3 +303,13 @@ a:hover {
     box-shadow: 0 2.5em 0 0;
   }
 }
+
+@media (min-width: 1024px) {
+  .b-chat-card:hover .b-chat-controls__btns{
+    visibility: hidden;
+  }
+  
+  .b-chat-card__card:focus-within .b-chat-controls__btns {
+    visibility: visible;
+  }
+}

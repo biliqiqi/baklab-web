@@ -46,6 +46,6 @@ export const MAX_BLOCKED_WORD_LEN = 20
 
 export const REPLY_BOX_PLACEHOLDER_HEIGHT = 180
 
-export const MOBILE_BREAKPOINT = 1000
+export const MOBILE_BREAKPOINT = 1024
 
 export const DEBUG = (import.meta.env.VITE_DEBUG as string) == 'true'

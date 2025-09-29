@@ -37,6 +37,7 @@ ENV API_PATH_PREFIX=""
 ENV FRONTEND_HOST=""
 ENV STATIC_HOST=""
 ENV BASE_URL=""
+ENV OAUTH_PROVIDERS=""
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["sh", "-c", "echo 'Frontend processing complete' && sleep 5"]

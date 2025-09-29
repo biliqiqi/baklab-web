@@ -20,6 +20,7 @@ API_PATH_PREFIX_VALUE="${API_PATH_PREFIX:-/api/}"
 FRONTEND_HOST_VALUE="${FRONTEND_HOST:-http://localhost:5173}"
 STATIC_HOST_VALUE="${STATIC_HOST:-https://static.example.com}"
 BASE_URL_VALUE="${BASE_URL:-/}"
+OAUTH_PROVIDERS_VALUE="${OAUTH_PROVIDERS:-''}"
 
 # Process files in the output directory with environment variable replacement
 echo "Processing files with environment variables..."
@@ -28,6 +29,7 @@ find "$OUTPUT_DIR" -type f \( -name "*.js" -o -name "*.css" -o -name "*.html" \)
   API_PATH_PREFIX_VALUE="'"$API_PATH_PREFIX_VALUE"'"
   FRONTEND_HOST_VALUE="'"$FRONTEND_HOST_VALUE"'"
   STATIC_HOST_VALUE="'"$STATIC_HOST_VALUE"'"
+  OAUTH_PROVIDERS_VALUE="'"$OAUTH_PROVIDERS_VALUE"'"
   BASE_URL_VALUE="'"$BASE_URL_VALUE"'"
 
   for file do
@@ -39,6 +41,7 @@ find "$OUTPUT_DIR" -type f \( -name "*.js" -o -name "*.css" -o -name "*.html" \)
       s|__API_PATH_PREFIX_PLACEHOLDER__|${API_PATH_PREFIX_VALUE}|g
       s|__FRONTEND_HOST_PLACEHOLDER__|${FRONTEND_HOST_VALUE}|g
       s|__STATIC_HOST_PLACEHOLDER__|${STATIC_HOST_VALUE}|g
+      s|__OAUTH_PROVIDERS_PLACEHOLDER__|${OAUTH_PROVIDERS_VALUE}|g
       s|/__BASE_URL_PLACEHOLDER__/|${BASE_URL_VALUE}|g
     " "$file" > "$temp_file" && mv "$temp_file" "$file" || {
       echo "Warning: Could not process $file"

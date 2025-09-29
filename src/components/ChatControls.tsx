@@ -32,6 +32,7 @@ import {
   toggleVoteArticle,
 } from '@/api/article'
 import { ArticleContext } from '@/contexts/ArticleContext'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { useArticleHistoryStore, useAuthedUserStore } from '@/state/global'
 import {
   Article,
@@ -101,6 +102,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
 
   const isRootArticle = useMemo(() => article.replyToId == '0', [article])
   const isPublished = useMemo(() => article.status == 'published', [article])
+  const isMobile = useIsMobile()
 
   const articleHistory = useArticleHistoryStore()
   const checkPermit = useAuthedUserStore((state) => state.permit)
@@ -407,7 +409,11 @@ const ChatControls: React.FC<ChatControlsProps> = ({
               )}
             {isLogined() && hasMenuOptions && (
               <DropdownMenu open={showChatMenu} onOpenChange={setShowChatMenu}>
-                <DropdownMenuTrigger asChild>
+                <DropdownMenuTrigger
+                  asChild
+                  onMouseUp={(e) => e.preventDefault()}
+                  onTouchEnd={(e) => e.preventDefault()}
+                >
                   <Button
                     variant="ghost"
                     size="sm"
@@ -417,7 +423,13 @@ const ChatControls: React.FC<ChatControlsProps> = ({
                     <EllipsisIcon size={20} className="inline-block" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="px-0" align="end">
+                <DropdownMenuContent
+                  className="px-0"
+                  align="end"
+                  side="bottom"
+                  sideOffset={isMobile ? -46 : 10}
+                  alignOffset={isMobile ? 46 : 0}
+                >
                   {renderMenuItems()}
                 </DropdownMenuContent>
               </DropdownMenu>

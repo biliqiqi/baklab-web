@@ -339,7 +339,7 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
                 onDeleteClick={onDelClick}
                 onToggleLockClick={onToggleLockClick}
                 onSuccess={onSuccess}
-                className="absolute left-[calc(100%+theme(space.1))] max-md:left-auto max-md:right-[theme(space.1)] bottom-2"
+                className="absolute left-[calc(100%+theme(space.1))] max-md:left-auto max-md:right-[theme(space.1)] bottom-2 max-md:-bottom-[46px] z-50"
                 tabIndex={0}
               />
             )}

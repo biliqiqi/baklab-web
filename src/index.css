@@ -304,7 +304,7 @@ a:hover {
   }
 }
 
-@media (min-width: 1024px) {
+@media (max-width: 1024px) {
   .b-chat-card:hover .b-chat-controls__btns{
     visibility: hidden;
   }

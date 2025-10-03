@@ -7,6 +7,7 @@ import {
 
 import OAuthCallback from './components/OAuthCallback.tsx'
 
+import AboutPage from './AboutPage.tsx'
 import ActivityPage from './ActivityPage.tsx'
 import ArticlePage from './ArticlePage.tsx'
 import { ArticleReviewPage } from './ArticleReviewPage.tsx'
@@ -304,6 +305,10 @@ export const routes: RouteObject[] = [
   {
     path: '/:siteFrontId/bankuai/:categoryFrontId',
     Component: BankuaiPage,
+  },
+  {
+    path: '/:siteFrontId/about',
+    Component: AboutPage,
   },
   {
     path: '/:siteFrontId/b/:categoryFrontId',

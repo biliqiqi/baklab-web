@@ -7,7 +7,7 @@ import React, {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { cn } from '@/lib/utils'
@@ -63,7 +63,7 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
     setShowSiteForm,
     setSiteEditting,
     setSiteEdittingData,
-    setShowSiteAbout,
+    // setShowSiteAbout,
     fetchSiteData,
     fetchSiteList,
   } = useSiteStore(
@@ -83,7 +83,7 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
         setShowSiteForm,
         setSiteEdittingData: setEdittingData,
         setSiteEditting: setEditting,
-        setShowSiteAbout,
+        // setShowSiteAbout,
         fetchSiteData,
         fetchSiteList,
       })
@@ -272,11 +272,10 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
             {t('invite')}
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem
-          className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
-          onClick={() => setShowSiteAbout(true)}
-        >
-          {t('about')}
+        <DropdownMenuItem asChild>
+          <Link to={`/${siteFrontId}/about`} className="py-2 px-2">
+            {t('about')}
+          </Link>
         </DropdownMenuItem>
         {!isMySite && currSite.currUserState.isMember && (
           <DropdownMenuItem

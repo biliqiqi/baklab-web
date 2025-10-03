@@ -215,8 +215,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       updateCurrSite,
       fetchSiteList,
       fetchSiteData,
-      showSiteAbout,
-      setShowSiteAbout,
+      // showSiteAbout,
+      // setShowSiteAbout,
       showSiteForm,
       setShowSiteForm,
       editting,
@@ -245,8 +245,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           updateCurrSite: update,
           fetchSiteList,
           fetchSiteData,
-          showSiteAbout,
-          setShowSiteAbout,
+          // showSiteAbout,
+          // setShowSiteAbout,
           showSiteForm,
           setShowSiteForm,
           editting,
@@ -585,13 +585,13 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         if (isMobile) {
           setSidebarOpenMobile(false)
         }
-        setShowSiteAbout(false)
+        // setShowSiteAbout(false)
       }
     }, [
       location,
       isMobile,
       updateNotFound,
-      setShowSiteAbout,
+      // setShowSiteAbout,
       setSidebarOpenMobile,
     ])
 
@@ -924,7 +924,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           </DialogContent>
         </Dialog>
 
-        <Dialog open={showSiteAbout} onOpenChange={setShowSiteAbout}>
+        {/* <Dialog open={showSiteAbout} onOpenChange={setShowSiteAbout}>
           <DialogContent>
             {currSite && (
               <>
@@ -958,7 +958,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               </>
             )}
           </DialogContent>
-        </Dialog>
+        </Dialog> */}
 
         <Dialog open={showSiteForm} onOpenChange={onSiteFormClose}>
           <DialogContent className="max-md:max-h-[90vh]">

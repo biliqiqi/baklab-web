@@ -7,7 +7,6 @@ import React, {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { Badge } from './components/ui/badge'
@@ -86,68 +85,73 @@ const ArticleListPage: React.FC<ArticleListPageProps> = ({
 
   const { setLoading } = useLoading()
 
-  const fetchArticles = useCallback(async () => {
-    try {
-      const page = Number(params.get('page')) || 1
-      const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
-      const sort = (params.get('sort') as ArticleListSort | null) || 'best'
+  const fetchArticles = useCallback(
+    async (showLoading = true) => {
+      try {
+        const page = Number(params.get('page')) || 1
+        const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
+        const sort = (params.get('sort') as ArticleListSort | null) || 'best'
 
-      setLoading(true)
-
-      /* if (!siteFrontId) return */
-
-      const resp = await getArticleList(
-        page,
-        pageSize,
-        sort,
-        categoryFrontId,
-        '',
-        undefined,
-        '',
-        undefined,
-        { siteFrontId }
-      )
-      if (!resp.code) {
-        const { data } = resp
-        let category: FrontCategory | undefined
-        if (data.category) {
-          const { frontId, name, describe, siteFrontId } = data.category
-          setCurrCate({ ...data.category })
-          category = { frontId, name, describe, siteFrontId } as FrontCategory
-        } else {
-          setCurrCate(null)
+        if (showLoading) {
+          setLoading(true)
         }
 
-        if (data.articles) {
-          updateList([...data.articles])
-          setPageState({
-            currPage: data.currPage,
-            pageSize: data.pageSize,
-            total: data.articleTotal,
-            totalPage: data.totalPage,
-            category,
-            prevCursor: data.prevCursor,
-            nextCursor: data.nextCursor,
-          })
-        } else {
-          updateList([])
-          setPageState({
-            currPage: 1,
-            pageSize: data.pageSize,
-            total: data.articleTotal,
-            totalPage: data.totalPage,
-            category,
-            prevCursor: data.prevCursor,
-            nextCursor: data.nextCursor,
-          })
+        /* if (!siteFrontId) return */
+
+        const resp = await getArticleList(
+          page,
+          pageSize,
+          sort,
+          categoryFrontId,
+          '',
+          undefined,
+          '',
+          undefined,
+          { siteFrontId }
+        )
+        if (!resp.code) {
+          const { data } = resp
+          let category: FrontCategory | undefined
+          if (data.category) {
+            const { frontId, name, describe, siteFrontId } = data.category
+            setCurrCate({ ...data.category })
+            category = { frontId, name, describe, siteFrontId } as FrontCategory
+          } else {
+            setCurrCate(null)
+          }
+
+          if (data.articles) {
+            updateList([...data.articles])
+            setPageState({
+              currPage: data.currPage,
+              pageSize: data.pageSize,
+              total: data.articleTotal,
+              totalPage: data.totalPage,
+              category,
+              prevCursor: data.prevCursor,
+              nextCursor: data.nextCursor,
+            })
+          } else {
+            updateList([])
+            setPageState({
+              currPage: 1,
+              pageSize: data.pageSize,
+              total: data.articleTotal,
+              totalPage: data.totalPage,
+              category,
+              prevCursor: data.prevCursor,
+              nextCursor: data.nextCursor,
+            })
+          }
         }
+      } catch (e) {
+        console.error('get article list error: ', e)
+      } finally {
+        setLoading(false)
       }
-    } catch (e) {
-      console.error('get article list error: ', e)
-    } finally {
-      setLoading(false)
-    }
-  }, [params, siteFrontId, categoryFrontId, setLoading, setCurrCate])
+    },
+    [params, siteFrontId, categoryFrontId, setLoading, setCurrCate]
+  )
 
   const onSwitchTab = (tab: string) => {
     setParams((prevParams) => {
@@ -292,7 +296,7 @@ const ArticleListPage: React.FC<ArticleListPageProps> = ({
                 bookmark={false}
                 notify={false}
                 history={false}
-                onSuccess={fetchArticles}
+                onSuccess={() => fetchArticles(false)}
               />
             </Card>
           ))

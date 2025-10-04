@@ -21,6 +21,7 @@ import {
 import { getArticle } from './api/article'
 import { ArticleContext } from './contexts/ArticleContext'
 import useDocumentTitle from './hooks/use-page-title'
+import { updateArticleState } from './lib/article-utils'
 import { toSync } from './lib/fire-and-forget'
 import { bus, scrollToBottom } from './lib/utils'
 import {
@@ -335,7 +336,13 @@ export default function ArticlePage() {
               key={article.id}
               article={article}
               className="mb-4"
-              onSuccess={() => fetchArticleSync(false)}
+              onSuccess={(action) => {
+                if (['up', 'down', 'save', 'subscribe'].includes(action)) {
+                  setArticle((prev) => prev ? updateArticleState(prev, action) : prev)
+                } else {
+                  fetchArticleSync(false)
+                }
+              }}
             />
             {article.totalReplyCount > 0 && (
               <div id="comments" className="py-3 mb-4">
@@ -365,7 +372,26 @@ export default function ArticlePage() {
                   <ArticleCard
                     key={item.id}
                     article={item}
-                    onSuccess={() => fetchArticleSync(false)}
+                    onSuccess={(action) => {
+                      if (['up', 'down', 'save', 'subscribe'].includes(action)) {
+                        setArticle((prev) => {
+                          if (!prev?.replies) return prev
+                          return {
+                            ...prev,
+                            replies: {
+                              ...prev.replies,
+                              list: prev.replies.list.map((reply) =>
+                                reply.id === item.id
+                                  ? updateArticleState(reply, action)
+                                  : reply
+                              ),
+                            },
+                          }
+                        })
+                      } else {
+                        fetchArticleSync(false)
+                      }
+                    }}
                   />
                 ))
             )}

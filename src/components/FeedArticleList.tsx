@@ -15,6 +15,7 @@ import {
   useSearchParams,
 } from 'react-router-dom'
 
+import { updateArticleState } from '@/lib/article-utils'
 import { toSync } from '@/lib/fire-and-forget'
 import {
   extractDomain,
@@ -79,45 +80,50 @@ const FeedArticleLis: React.FC<FeedArticleLisProps> = ({
 
   const { setLoading } = useLoading()
 
-  const fetchFeedArticles = useCallback(async () => {
-    try {
-      const page = Number(params.get('page')) || 1
-      const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
-      const sort = (params.get('sort') as ArticleListSort | null) || 'best'
-      const keywords = params.get('keywords') || ''
+  const fetchFeedArticles = useCallback(
+    async (showLaoding = true) => {
+      try {
+        const page = Number(params.get('page')) || 1
+        const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
+        const sort = (params.get('sort') as ArticleListSort | null) || 'best'
+        const keywords = params.get('keywords') || ''
 
-      setLoading(true)
-
-      const resp = await getFeedList(page, pageSize, sort, keywords, {
-        siteFrontId,
-      })
-
-      if (!resp.code) {
-        const { data } = resp
-        if (data.articles) {
-          updateList([...data.articles])
-          setPageState({
-            currPage: data.currPage,
-            pageSize: data.pageSize,
-            total: data.articleTotal,
-            totalPage: data.totalPage,
-          })
-        } else {
-          updateList([])
-          setPageState({
-            currPage: 1,
-            pageSize: data.pageSize,
-            total: data.articleTotal,
-            totalPage: data.totalPage,
-          })
+        if (showLaoding) {
+          setLoading(true)
         }
+
+        const resp = await getFeedList(page, pageSize, sort, keywords, {
+          siteFrontId,
+        })
+
+        if (!resp.code) {
+          const { data } = resp
+          if (data.articles) {
+            updateList([...data.articles])
+            setPageState({
+              currPage: data.currPage,
+              pageSize: data.pageSize,
+              total: data.articleTotal,
+              totalPage: data.totalPage,
+            })
+          } else {
+            updateList([])
+            setPageState({
+              currPage: 1,
+              pageSize: data.pageSize,
+              total: data.articleTotal,
+              totalPage: data.totalPage,
+            })
+          }
+        }
+      } catch (e) {
+        console.error('get feed list error: ', e)
+      } finally {
+        setLoading(false)
       }
-    } catch (e) {
-      console.error('get feed list error: ', e)
-    } finally {
-      setLoading(false)
-    }
-  }, [params, siteFrontId, setLoading])
+    },
+    [params, siteFrontId, setLoading]
+  )
 
   const onSwitchTab = (tab: string) => {
     setParams((prevParams) => {
@@ -260,7 +266,15 @@ const FeedArticleLis: React.FC<FeedArticleLisProps> = ({
                 bookmark={false}
                 notify={false}
                 history={false}
-                onSuccess={fetchFeedArticles}
+                onSuccess={(action) => {
+                  updateList((prevList) =>
+                    prevList.map((article) =>
+                      article.id === item.id
+                        ? updateArticleState(article, action)
+                        : article
+                    )
+                  )
+                }}
               />
             </Card>
           ))

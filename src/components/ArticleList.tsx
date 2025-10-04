@@ -9,6 +9,7 @@ import React, {
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
+import { updateArticleState } from '@/lib/article-utils'
 import { toSync } from '@/lib/fire-and-forget'
 import {
   extractDomain,
@@ -297,7 +298,15 @@ const ArticleList: React.FC<ArticleListProps> = ({
                 bookmark={false}
                 notify={false}
                 history={false}
-                onSuccess={() => fetchArticles(false)}
+                onSuccess={(action) => {
+                  updateList((prevList) =>
+                    prevList.map((article) =>
+                      article.id === item.id
+                        ? updateArticleState(article, action)
+                        : article
+                    )
+                  )
+                }}
               />
             </Card>
           ))

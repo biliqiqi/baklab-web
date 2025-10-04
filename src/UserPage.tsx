@@ -23,6 +23,7 @@ import { getArticleList } from './api/article'
 import { getUser, getUserActivityList, getUserPunishedList } from './api/user'
 import { ARTICLE_STATUS_COLOR_MAP } from './constants/maps'
 import i18n from './i18n'
+import { updateArticleState } from './lib/article-utils'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
 import { genArticlePath, noop } from './lib/utils'
@@ -35,6 +36,7 @@ import {
   Activity,
   ActivityListResponse,
   Article,
+  ArticleAction,
   ArticleListSort,
   ArticleListState,
   ArticleListType,
@@ -87,7 +89,7 @@ interface ArticleListProps {
   list: Article[]
   tab: UserTab
   pageState: ArticleListState
-  onSuccess?: () => void
+  onSuccess?: (id: string, action: ArticleAction) => void
 }
 
 const ArticleList: React.FC<ArticleListProps> = ({
@@ -139,7 +141,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
             ctype="list"
             bookmark={tab == 'saved'}
             notify={tab == 'subscribed'}
-            onSuccess={onSuccess}
+            onSuccess={(action) => onSuccess(item.id, action)}
           />
         </Card>
       ))}
@@ -443,7 +445,15 @@ export default function UserPage() {
               list={list}
               tab={tab}
               pageState={pageState}
-              onSuccess={() => fetchList()}
+              onSuccess={(id, action) => {
+                updateList((prevList) =>
+                  prevList.map((article) =>
+                    article.id === id
+                      ? updateArticleState(article, action)
+                      : article
+                  )
+                )
+              }}
             />
           )}
         </div>

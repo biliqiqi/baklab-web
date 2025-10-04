@@ -273,7 +273,10 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
           </DropdownMenuItem>
         )}
         <DropdownMenuItem asChild>
-          <Link to={`/${siteFrontId}/about`} className="py-2 px-2">
+          <Link
+            to={`/${siteFrontId}/about`}
+            className="py-2 px-2 cursor-pointer"
+          >
             {t('about')}
           </Link>
         </DropdownMenuItem>

@@ -7,8 +7,9 @@ import { Skeleton } from './components/ui/skeleton'
 
 import BContainer from './components/base/BContainer'
 
-import { ArticleListItemSkeleton } from './ArticleListPage'
-import FeedArticleListPage from './FeedArticleListPage'
+import { ArticleListItemSkeleton } from './components/ArticleList'
+import FeedArticleList from './components/FeedArticleList'
+
 import { DEFAULT_INNER_CONTENT_WIDTH, NAV_HEIGHT } from './constants/constants'
 import { useUserUIStore } from './state/global'
 
@@ -72,7 +73,7 @@ export default function FeedPage() {
       )}
 
       {initialized && (
-        <FeedArticleListPage
+        <FeedArticleList
           key={`feed-${siteFrontId || 'global'}`}
           onLoad={() => setShowSkeleton(false)}
           onReady={() => setShowSkeleton(true)}

@@ -2,12 +2,12 @@ import { Trans, useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
+import { timeFmt } from '@/lib/dayjs-custom'
+
 import { Card } from './components/ui/card'
 
-import BContainer from './components/base/BContainer'
 import BAvatar from './components/base/BAvatar'
-
-import { timeFmt } from '@/lib/dayjs-custom'
+import BContainer from './components/base/BContainer'
 
 import { useSiteStore } from './state/global'
 
@@ -54,16 +54,11 @@ export default function AboutPage() {
                         to={`/users/${currSite.creatorName}`}
                         className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
                       >
-                        <BAvatar
-                          username={currSite.creatorName}
-                          showUsername
-                        />
+                        <BAvatar username={currSite.creatorName} showUsername />
                       </Link>
                     ),
                     timeTag: (
-                      <time>
-                        {timeFmt(currSite.createdAt, 'YYYY-M-D')}
-                      </time>
+                      <time>{timeFmt(currSite.createdAt, 'YYYY-M-D')}</time>
                     ),
                   }}
                 />

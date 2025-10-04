@@ -577,7 +577,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       authToken,
     ])
 
-    useDocumentTitle('')
+    useDocumentTitle(category?.name || '')
 
     useEffect(() => {
       updateNotFound(false)

@@ -7,51 +7,48 @@ import React, {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom'
 
-import { Badge } from './components/ui/badge'
-import { Button } from './components/ui/button'
-import { Skeleton } from './components/ui/skeleton'
-import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
-import { Card } from '@/components/ui/card'
-
-import ArticleControls from './components/ArticleControls'
-import { Empty } from './components/Empty'
-import { ListPagination } from './components/ListPagination'
-
-import { getArticleList } from './api/article'
-import { DEFAULT_PAGE_SIZE } from './constants/constants'
-import { defaultPageState } from './constants/defaults'
-import { toSync } from './lib/fire-and-forget'
+import { toSync } from '@/lib/fire-and-forget'
 import {
   extractDomain,
   genArticlePath,
   getArticleStatusName,
   noop,
   renderMD,
-} from './lib/utils'
-import { isLogined, useAuthedUserStore, useLoading } from './state/global'
-import {
-  Article,
-  ArticleListSort,
-  ArticleListState,
-  Category,
-  FrontCategory,
-} from './types/types'
+} from '@/lib/utils'
 
-/* const articleList = mockArticleList as Article[] */
+import { Card } from '@/components/ui/card'
 
-interface ArticleListPageProps {
+import { getFeedList } from '@/api/article'
+import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
+import { defaultPageState } from '@/constants/defaults'
+import { isLogined, useAuthedUserStore, useLoading } from '@/state/global'
+import { Article, ArticleListSort, ArticleListState } from '@/types/types'
+
+import ArticleControls from './ArticleControls'
+import { Empty } from './Empty'
+import { ListPagination } from './ListPagination'
+import { Badge } from './ui/badge'
+import { Button } from './ui/button'
+import { Tabs, TabsList, TabsTrigger } from './ui/tabs'
+
+interface FeedArticleLisProps {
   onLoad?: () => void
   onReady?: () => void
 }
 
-const ArticleListPage: React.FC<ArticleListPageProps> = ({
+const FeedArticleLis: React.FC<FeedArticleLisProps> = ({
   onLoad = noop,
   onReady = noop,
 }) => {
   const [showSummary] = useState(false)
-  const [currCate, setCurrCate] = useState<Category | null>(null)
   const [list, updateList] = useState<Article[]>([])
   const [isFirstLoad, setIsFirstLoad] = useState(true)
   const [pageState, setPageState] = useState<ArticleListState>({
@@ -67,91 +64,60 @@ const ArticleListPage: React.FC<ArticleListPageProps> = ({
   const checkIsLogined = useAuthedUserStore((state) => state.isLogined)
 
   const [params, setParams] = useSearchParams()
-  const { siteFrontId, categoryFrontId } = useParams()
+  const { siteFrontId } = useParams()
 
   const navigate = useNavigate()
-  /* const siteStore = useSiteStore() */
+  const location = useLocation()
   const { t } = useTranslation()
 
   const sort = (params.get('sort') as ArticleListSort | null) || 'best'
 
   const submitPath = useMemo(
-    () =>
-      categoryFrontId && currCate
-        ? `/${siteFrontId}/submit?category_id=` + currCate.id
-        : `/${siteFrontId}/submit`,
-    [currCate, siteFrontId, categoryFrontId]
+    () => (siteFrontId ? `/${siteFrontId}/submit` : `/submit`),
+    [siteFrontId]
   )
 
   const { setLoading } = useLoading()
 
-  const fetchArticles = useCallback(
-    async (showLoading = true) => {
-      try {
-        const page = Number(params.get('page')) || 1
-        const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
-        const sort = (params.get('sort') as ArticleListSort | null) || 'best'
+  const fetchFeedArticles = useCallback(async () => {
+    try {
+      const page = Number(params.get('page')) || 1
+      const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
+      const sort = (params.get('sort') as ArticleListSort | null) || 'best'
+      const keywords = params.get('keywords') || ''
 
-        if (showLoading) {
-          setLoading(true)
+      setLoading(true)
+
+      const resp = await getFeedList(page, pageSize, sort, keywords, {
+        siteFrontId,
+      })
+
+      if (!resp.code) {
+        const { data } = resp
+        if (data.articles) {
+          updateList([...data.articles])
+          setPageState({
+            currPage: data.currPage,
+            pageSize: data.pageSize,
+            total: data.articleTotal,
+            totalPage: data.totalPage,
+          })
+        } else {
+          updateList([])
+          setPageState({
+            currPage: 1,
+            pageSize: data.pageSize,
+            total: data.articleTotal,
+            totalPage: data.totalPage,
+          })
         }
-
-        /* if (!siteFrontId) return */
-
-        const resp = await getArticleList(
-          page,
-          pageSize,
-          sort,
-          categoryFrontId,
-          '',
-          undefined,
-          '',
-          undefined,
-          { siteFrontId }
-        )
-        if (!resp.code) {
-          const { data } = resp
-          let category: FrontCategory | undefined
-          if (data.category) {
-            const { frontId, name, describe, siteFrontId } = data.category
-            setCurrCate({ ...data.category })
-            category = { frontId, name, describe, siteFrontId } as FrontCategory
-          } else {
-            setCurrCate(null)
-          }
-
-          if (data.articles) {
-            updateList([...data.articles])
-            setPageState({
-              currPage: data.currPage,
-              pageSize: data.pageSize,
-              total: data.articleTotal,
-              totalPage: data.totalPage,
-              category,
-              prevCursor: data.prevCursor,
-              nextCursor: data.nextCursor,
-            })
-          } else {
-            updateList([])
-            setPageState({
-              currPage: 1,
-              pageSize: data.pageSize,
-              total: data.articleTotal,
-              totalPage: data.totalPage,
-              category,
-              prevCursor: data.prevCursor,
-              nextCursor: data.nextCursor,
-            })
-          }
-        }
-      } catch (e) {
-        console.error('get article list error: ', e)
-      } finally {
-        setLoading(false)
       }
-    },
-    [params, siteFrontId, categoryFrontId, setLoading, setCurrCate]
-  )
+    } catch (e) {
+      console.error('get feed list error: ', e)
+    } finally {
+      setLoading(false)
+    }
+  }, [params, siteFrontId, setLoading])
 
   const onSwitchTab = (tab: string) => {
     setParams((prevParams) => {
@@ -171,7 +137,6 @@ const ArticleListPage: React.FC<ArticleListPageProps> = ({
 
       try {
         const authData = await loginWithDialog()
-        /* console.log('authData success', authData) */
         if (isLogined(authData)) {
           setTimeout(() => {
             navigate(submitPath)
@@ -184,12 +149,11 @@ const ArticleListPage: React.FC<ArticleListPageProps> = ({
     [submitPath, navigate, checkIsLogined, loginWithDialog]
   )
 
-  /* console.log('list: ', list) */
   useEffect(() => {
     if (isFirstLoad) {
       onReady()
     }
-    toSync(fetchArticles, () => {
+    toSync(fetchFeedArticles, () => {
       setTimeout(() => {
         if (isFirstLoad) {
           setIsFirstLoad(false)
@@ -203,7 +167,7 @@ const ArticleListPage: React.FC<ArticleListPageProps> = ({
         ...defaultPageState,
       })
     }
-  }, [params, siteFrontId, categoryFrontId, location])
+  }, [params, siteFrontId, location])
 
   return (
     <>
@@ -227,7 +191,7 @@ const ArticleListPage: React.FC<ArticleListPageProps> = ({
           )}
         </div>
       </div>
-      <div className="mt-4" key={categoryFrontId}>
+      <div className="mt-4">
         {list.length == 0 ? (
           <Empty />
         ) : (
@@ -237,7 +201,7 @@ const ArticleListPage: React.FC<ArticleListPageProps> = ({
               className="p-3 my-2 hover:bg-slate-50 dark:hover:bg-slate-900"
             >
               <div className="mb-3">
-                <div className="mb-1 ">
+                <div className="mb-1">
                   <Link className="mr-2" to={genArticlePath(item)}>
                     {item.title}
                   </Link>
@@ -296,7 +260,7 @@ const ArticleListPage: React.FC<ArticleListPageProps> = ({
                 bookmark={false}
                 notify={false}
                 history={false}
-                onSuccess={() => fetchArticles(false)}
+                onSuccess={fetchFeedArticles}
               />
             </Card>
           ))
@@ -310,8 +274,4 @@ const ArticleListPage: React.FC<ArticleListPageProps> = ({
   )
 }
 
-export const ArticleListItemSkeleton = () => (
-  <Skeleton className="p-3 my-2 h-[107px]"></Skeleton>
-)
-
-export default ArticleListPage
+export default FeedArticleLis

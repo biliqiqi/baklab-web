@@ -7,9 +7,9 @@ import { Skeleton } from './components/ui/skeleton'
 
 import BContainer from './components/base/BContainer'
 
+import ArticleList, { ArticleListItemSkeleton } from './components/ArticleList'
 import { ChatCardSkeleton } from './components/ChatCard'
 
-import ArticleListPage, { ArticleListItemSkeleton } from './ArticleListPage'
 import ChatPage from './ChatPage'
 import { getCategoryWithFrontId } from './api/category'
 import { DEFAULT_INNER_CONTENT_WIDTH, NAV_HEIGHT } from './constants/constants'
@@ -120,7 +120,7 @@ export default function BankuaiPage() {
             onReady={() => setShowSkeleton(true)}
           />
         ) : (
-          <ArticleListPage
+          <ArticleList
             onLoad={() => setShowSkeleton(false)}
             onReady={() => setShowSkeleton(true)}
           />

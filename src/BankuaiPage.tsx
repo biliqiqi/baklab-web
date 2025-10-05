@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useParams } from 'react-router-dom'
-import { useShallow } from 'zustand/react/shallow'
 
 import { Skeleton } from './components/ui/skeleton'
 
@@ -12,9 +11,8 @@ import { ChatCardSkeleton } from './components/ChatCard'
 
 import ChatPage from './ChatPage'
 import { getCategoryWithFrontId } from './api/category'
-import { DEFAULT_INNER_CONTENT_WIDTH, NAV_HEIGHT } from './constants/constants'
+import { NAV_HEIGHT } from './constants/constants'
 import { toSync } from './lib/fire-and-forget'
-import { useUserUIStore } from './state/global'
 import { Category } from './types/types'
 
 export default function BankuaiPage() {
@@ -41,12 +39,6 @@ export default function BankuaiPage() {
     [currCate]
   )
 
-  // const { innerContentWidth } = useUserUIStore(
-  //   useShallow(({ innerContentWidth }) => ({
-  //     innerContentWidth: innerContentWidth || DEFAULT_INNER_CONTENT_WIDTH,
-  //   }))
-  // )
-
   // Clear state immediately when route params change
   useEffect(() => {
     setServerCate(null)
@@ -64,10 +56,6 @@ export default function BankuaiPage() {
     } else {
       setInitialized(true)
     }
-
-    /* return () => {
-     *   setShowSkeleton(true)
-     * } */
   }, [currCate, categoryFrontId, siteFrontId])
 
   return (
@@ -89,10 +77,7 @@ export default function BankuaiPage() {
           className="absolute top-0 left-0 w-full z-10 bg-background"
           style={{ height: `calc(100vh - ${NAV_HEIGHT}px)` }}
         >
-          <div
-            className="mx-auto"
-            // style={{ maxWidth: `${innerContentWidth}px` }}
-          >
+          <div className="mx-auto container p-4">
             {!(currCate && isChat) && (
               <div className="flex justify-between items-center my-4">
                 <Skeleton className="w-[180px] h-[44px]" />

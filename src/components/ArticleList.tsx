@@ -55,7 +55,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
   const [showSummary] = useState(false)
   const [currCate, setCurrCate] = useState<Category | null>(null)
   const [list, updateList] = useState<Article[]>([])
-  const [isFirstLoad, setIsFirstLoad] = useState(true)
+  /* const [isFirstLoad, setIsFirstLoad] = useState(true) */
   const [pageState, setPageState] = useState<ArticleListState>({
     currPage: 1,
     pageSize: DEFAULT_PAGE_SIZE,
@@ -186,16 +186,9 @@ const ArticleList: React.FC<ArticleListProps> = ({
     [submitPath, navigate, checkIsLogined, loginWithDialog]
   )
 
-  /* console.log('list: ', list) */
   useEffect(() => {
-    if (isFirstLoad) {
-      onReady()
-    }
     toSync(fetchArticles, () => {
       setTimeout(() => {
-        if (isFirstLoad) {
-          setIsFirstLoad(false)
-        }
         onLoad()
       }, 0)
     })()
@@ -207,19 +200,21 @@ const ArticleList: React.FC<ArticleListProps> = ({
     }
   }, [params, siteFrontId, categoryFrontId, location])
 
+  useEffect(() => {
+    onReady()
+  }, [siteFrontId, categoryFrontId])
+
   return (
     <>
       <div className="flex justify-between items-center">
         <div>
-          {list.length > 0 && (
-            <Tabs defaultValue="best" value={sort} onValueChange={onSwitchTab}>
-              <TabsList>
-                <TabsTrigger value="best">{t('best')}</TabsTrigger>
-                <TabsTrigger value="latest">{t('latest')}</TabsTrigger>
-                <TabsTrigger value="list_hot">{t('hot')}</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          )}
+          <Tabs defaultValue="best" value={sort} onValueChange={onSwitchTab}>
+            <TabsList>
+              <TabsTrigger value="best">{t('best')}</TabsTrigger>
+              <TabsTrigger value="latest">{t('latest')}</TabsTrigger>
+              <TabsTrigger value="list_hot">{t('hot')}</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
         <div>
           {siteFrontId && checkPermit('article', 'create') && (

@@ -1,6 +1,7 @@
-import { Router } from '@remix-run/router'
 import { useCallback, useEffect, useState } from 'react'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
+
+type Router = ReturnType<typeof createBrowserRouter>
 import { useShallow } from 'zustand/react/shallow'
 
 import { Toaster } from './components/ui/sonner.tsx'

@@ -25,7 +25,7 @@ BRAND_NAME_VALUE="${BRAND_NAME:-BakLab}"
 
 # Process files in the output directory with environment variable replacement
 echo "Processing files with environment variables..."
-find "$OUTPUT_DIR" -type f \( -name "*.js" -o -name "*.css" -o -name "*.html" \) -exec sh -c '
+find "$OUTPUT_DIR" -type f \( -name "*.js" -o -name "*.css" -o -name "*.html" -o -name "*.webmanifest" -o -name "manifest.json" \) -exec sh -c '
   API_HOST_VALUE="'"$API_HOST_VALUE"'"
   API_PATH_PREFIX_VALUE="'"$API_PATH_PREFIX_VALUE"'"
   FRONTEND_HOST_VALUE="'"$FRONTEND_HOST_VALUE"'"

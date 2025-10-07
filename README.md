@@ -15,7 +15,7 @@ BakLab is a modern discussion platform similar to Reddit/Hacker News, built for 
 ## Prerequisites
 
 - Node.js >= 20.16.0
-- npm or yarn
+- npm or pnpm
 
 ## Getting Started
 

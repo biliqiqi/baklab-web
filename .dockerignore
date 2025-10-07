@@ -1,0 +1,27 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+dist
+*.log
+
+# Development files
+.git
+.gitignore
+*.md
+.vscode
+.idea
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Test files
+coverage
+.nyc_output
+
+# Misc
+.DS_Store
+Thumbs.db

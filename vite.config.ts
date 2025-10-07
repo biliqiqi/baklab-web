@@ -50,7 +50,7 @@ export default defineConfig(({ mode }) => {
       devSwMiddleware(),
       VitePWA({
         registerType: 'autoUpdate',
-        injectRegister: false,
+        injectRegister: 'auto',
         devOptions: {
           enabled: true,
           type: 'classic',
@@ -64,12 +64,18 @@ export default defineConfig(({ mode }) => {
           display: 'standalone',
           icons: [
             {
-              src: '/android-chrome-192x192.png',
+              src: path.resolve(
+                env.VITE_BASE_URL,
+                '/android-chrome-192x192.png'
+              ),
               sizes: '192x192',
               type: 'image/png',
             },
             {
-              src: '/android-chrome-512x512.png',
+              src: path.resolve(
+                env.VITE_BASE_URL,
+                '/android-chrome-512x512.png'
+              ),
               sizes: '512x512',
               type: 'image/png',
             },

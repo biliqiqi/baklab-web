@@ -66,12 +66,18 @@ export default defineConfig(({ mode }) => {
           scope: '/',
           icons: [
             {
-              src: path.join(env.VITE_BASE_URL, '/android-chrome-192x192.png'),
+              src: `/${env.VITE_BASE_URL}/android-chrome-192x192.png`.replace(
+                '//',
+                '/'
+              ),
               sizes: '192x192',
               type: 'image/png',
             },
             {
-              src: path.join(env.VITE_BASE_URL, '/android-chrome-512x512.png'),
+              src: `/${env.VITE_BASE_URL}/android-chrome-512x512.png`.replace(
+                '//',
+                '/'
+              ),
               sizes: '512x512',
               type: 'image/png',
             },

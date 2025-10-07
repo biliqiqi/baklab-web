@@ -21,6 +21,7 @@ FRONTEND_HOST_VALUE="${FRONTEND_HOST:-http://localhost:5173}"
 STATIC_HOST_VALUE="${STATIC_HOST:-https://static.example.com}"
 BASE_URL_VALUE="${BASE_URL:-/}"
 OAUTH_PROVIDERS_VALUE="${OAUTH_PROVIDERS:-''}"
+BRAND_NAME_VALUE="${BRAND_NAME:-BakLab}"
 
 # Process files in the output directory with environment variable replacement
 echo "Processing files with environment variables..."
@@ -31,6 +32,7 @@ find "$OUTPUT_DIR" -type f \( -name "*.js" -o -name "*.css" -o -name "*.html" \)
   STATIC_HOST_VALUE="'"$STATIC_HOST_VALUE"'"
   OAUTH_PROVIDERS_VALUE="'"$OAUTH_PROVIDERS_VALUE"'"
   BASE_URL_VALUE="'"$BASE_URL_VALUE"'"
+  BRAND_NAME_VALUE="'"$BRAND_NAME_VALUE"'"
 
   for file do
     # Use temporary file for safe replacement
@@ -43,6 +45,7 @@ find "$OUTPUT_DIR" -type f \( -name "*.js" -o -name "*.css" -o -name "*.html" \)
       s|__STATIC_HOST_PLACEHOLDER__|${STATIC_HOST_VALUE}|g
       s|__OAUTH_PROVIDERS_PLACEHOLDER__|${OAUTH_PROVIDERS_VALUE}|g
       s|/__BASE_URL_PLACEHOLDER__/|${BASE_URL_VALUE}|g
+      s|__BRAND_NAME_PLACEHOLDER__|${BRAND_NAME_VALUE}|g
     " "$file" > "$temp_file" && mv "$temp_file" "$file" || {
       echo "Warning: Could not process $file"
       rm -f "$temp_file"
@@ -86,7 +89,8 @@ cat > "$OUTPUT_DIR/.frontend-manifest.json" << EOF
     "API_PATH_PREFIX": "${API_PATH_PREFIX_VALUE}",
     "FRONTEND_HOST": "${FRONTEND_HOST_VALUE}",
     "STATIC_HOST": "${STATIC_HOST_VALUE}",
-    "BASE_URL": "${BASE_URL_VALUE}"
+    "BASE_URL": "${BASE_URL_VALUE}",
+    "BRAND_NAME": "${BRAND_NAME_VALUE}"
   }
 }
 EOF

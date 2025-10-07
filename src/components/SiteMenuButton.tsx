@@ -73,7 +73,7 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
         setShowSiteForm,
         setEdittingData,
         setEditting,
-        setShowSiteAbout,
+        setShowSiteAbout: _setShowSiteAbout,
         update,
         fetchSiteData,
         fetchSiteList,

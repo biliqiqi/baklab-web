@@ -7,11 +7,9 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import { Trans, useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
-
-import { timeFmt } from '@/lib/dayjs-custom'
 import { toSync } from '@/lib/fire-and-forget'
 import { cn, isInnerURL, summryText } from '@/lib/utils'
 
@@ -79,7 +77,6 @@ import {
   DialogTitle,
 } from '../ui/dialog'
 import { Sidebar, SidebarContent, SidebarProvider } from '../ui/sidebar'
-import BAvatar from './BAvatar'
 import BNav from './BNav'
 import BSidebar from './BSidebar'
 import BTopDrawer from './BTopDrawer'
@@ -98,7 +95,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       children,
       category,
       goBack = false,
-      loading = false,
+      loading: _loading = false,
       sidebarType = 'default',
       ...props
     },
@@ -156,7 +153,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     )
 
     const { showReplyBox, ...replyBoxProps } = useReplyBoxStore(
-      useShallow(({ show, setShow, setState, ...replyBoxProps }) => ({
+      useShallow(({ show, setShow: _setShow, setState: _setState, ...replyBoxProps }) => ({
         showReplyBox: show,
         ...replyBoxProps,
       }))
@@ -231,8 +228,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           update,
           fetchSiteList,
           fetchSiteData,
-          showSiteAbout,
-          setShowSiteAbout,
+          showSiteAbout: _showSiteAbout,
+          setShowSiteAbout: _setShowSiteAbout,
           showSiteForm,
           setShowSiteForm,
           editting,

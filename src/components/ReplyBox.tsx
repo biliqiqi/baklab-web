@@ -101,7 +101,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   const { siteFrontId } = useParams()
 
   /* const authStore = useAuthedUserStore() */
-  const { innerContentWidth } = useUserUIStore(
+  const { innerContentWidth: _innerContentWidth } = useUserUIStore(
     useShallow(({ innerContentWidth }) => ({
       innerContentWidth: innerContentWidth || DEFAULT_INNER_CONTENT_WIDTH,
     }))

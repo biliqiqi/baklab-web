@@ -8,14 +8,13 @@ import { noop } from './utils'
  * @param errorHandler Handler to register to original .catch()
  * @returns The converted sync function, receive same args as the original function
  */
-// eslint-disable-next-line
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function toSync<T extends (...args: any[]) => Promise<any>>(
   asyncFn: T,
-  // eslint-disable-next-line
   thenHandler: (resp: Awaited<ReturnType<T>>) => void = noop,
-  // eslint-disable-next-line
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   finallyHandler: (...args: any[]) => void = noop,
-  // eslint-disable-next-line
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errorHandler?: (error: any) => void
 ): (...args: Parameters<T>) => void {
   return (...args: Parameters<T>): void => {

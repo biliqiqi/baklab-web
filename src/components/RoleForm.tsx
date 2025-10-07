@@ -87,9 +87,9 @@ const createRoleSchema = (i: I18n) => z.object({
   path: ['rateLimitInterval'],
 })
 
-const roleSchema = createRoleSchema(i18n)
+const _roleSchema = createRoleSchema(i18n)
 
-type RoleSchema = z.infer<typeof roleSchema>
+type RoleSchema = z.infer<typeof _roleSchema>
 
 const defaultRoleData: RoleSchema = {
   name: '',

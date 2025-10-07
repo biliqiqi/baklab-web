@@ -62,20 +62,16 @@ export default defineConfig(({ mode }) => {
           theme_color: '#1e73ca',
           background_color: '#ffffff',
           display: 'standalone',
+          start_url: '/',
+          scope: '/',
           icons: [
             {
-              src: path.resolve(
-                env.VITE_BASE_URL,
-                '/android-chrome-192x192.png'
-              ),
+              src: path.join(env.VITE_BASE_URL, '/android-chrome-192x192.png'),
               sizes: '192x192',
               type: 'image/png',
             },
             {
-              src: path.resolve(
-                env.VITE_BASE_URL,
-                '/android-chrome-512x512.png'
-              ),
+              src: path.join(env.VITE_BASE_URL, '/android-chrome-512x512.png'),
               sizes: '512x512',
               type: 'image/png',
             },

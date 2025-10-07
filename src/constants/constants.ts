@@ -1,4 +1,5 @@
-export const PLATFORM_NAME = 'BakLab'
+export const PLATFORM_NAME =
+  (import.meta.env.VITE_BRAND_NAME as string) || 'BakLab'
 
 export const FRONTEND_HOST =
   (import.meta.env.VITE_FRONTEND_HOST as string) || 'http://localhost:5173'

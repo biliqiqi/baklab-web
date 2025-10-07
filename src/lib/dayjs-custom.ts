@@ -1,8 +1,8 @@
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
+import duration from 'dayjs/plugin/duration'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import updateLocale from 'dayjs/plugin/updateLocale'
-import duration from 'dayjs/plugin/duration'
 
 dayjs.extend(relativeTime)
 dayjs.extend(updateLocale)
@@ -25,8 +25,6 @@ dayjs.updateLocale('zh-cn', {
     yy: '%d 年',
   },
 })
-
-console.log('dayjs initialized')
 
 const timeAgo = (timeStr: string, formatTpl?: string) => {
   const time = dayjs(timeStr)

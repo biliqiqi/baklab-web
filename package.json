@@ -108,6 +108,7 @@
     "typescript-eslint": "^8.46.0",
     "vite": "^6.3.6",
     "vite-bundle-analyzer": "^0.18.1",
+    "vite-plugin-pwa": "^1.0.3",
     "vitest": "^3.2.4"
   }
 }

@@ -111,6 +111,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
   const [isPreview, setPreview] = useState(false)
   const [imageUploading, setImageUploading] = useState(false)
   const [showLinkField, setShowLinkField] = useState(false)
+  const [isComposing, setIsComposing] = useState(false)
   /* const [isDragging, setDragging] = useState(false) */
 
   /* const [selectedCategory, setSelectedCategory] = useState<Category | null>(
@@ -331,11 +332,17 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
     [isPreview]
   )
 
+  const isComposingRef = useRef(false)
+
+  useEffect(() => {
+    isComposingRef.current = isComposing
+  }, [isComposing])
+
   const onContentBoxResize = useCallback((_width: number, height: number) => {
     /* console.log('content height: ', height)
      * console.log('draggingRef: ', draggingRef.current) */
 
-    if (!draggingRef.current.dragging) return
+    if (!draggingRef.current.dragging || isComposingRef.current) return
 
     if (height < MIN_CONTENT_BOX_HEIGHT) {
       setContentBoxHeight(MIN_CONTENT_BOX_HEIGHT)
@@ -697,6 +704,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                       }}
                       onResize={onContentBoxResize}
                       onMouseDown={onMouseDown('textarea')}
+                      onComposingChange={setIsComposing}
                     />
 
                     <TipTap
@@ -720,6 +728,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                       className={cn('resize-y overflow-auto min-h-[40px]')}
                       onResize={onContentBoxResize}
                       onMouseDown={onMouseDown('tiptap')}
+                      onComposingChange={setIsComposing}
                     />
                   </>
                 </FormControl>

@@ -1,6 +1,7 @@
 import { VariantProps, cva } from 'class-variance-authority'
-import * as React from 'react'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from 'react'
 
+import { useComposition } from '@/hooks/use-composition'
 import { cn, noop } from '@/lib/utils'
 
 const textareaVariant = cva(
@@ -23,16 +24,46 @@ export interface TextareaProps
   extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'onResize'>,
     VariantProps<typeof textareaVariant> {
   onResize?: (width: number, height: number) => void
+  onComposingChange?: (isComposing: boolean) => void
 }
 
-const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, state, onResize = noop, ...props }, ref) => {
-    const elRef = React.useRef<HTMLTextAreaElement>(null)
+const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
+  ({ className, state, onResize = noop, onComposingChange, ...props }, ref) => {
+    const elRef = useRef<HTMLTextAreaElement>(null)
+    const composition = useComposition()
+
+    const onComposingChangeRef = useRef(onComposingChange)
+    const propsCompositionStartRef = useRef(props.onCompositionStart)
+    const propsCompositionEndRef = useRef(props.onCompositionEnd)
+
+    useEffect(() => {
+      onComposingChangeRef.current = onComposingChange
+      propsCompositionStartRef.current = props.onCompositionStart
+      propsCompositionEndRef.current = props.onCompositionEnd
+    })
 
     /* @ts-expect-error no error */
-    React.useImperativeHandle(ref, () => elRef.current)
+    useImperativeHandle(ref, () => elRef.current)
 
-    React.useEffect(() => {
+    const handleCompositionStart = useCallback(
+      (e: React.CompositionEvent<HTMLTextAreaElement>) => {
+        composition.onCompositionStart()
+        onComposingChangeRef.current?.(true)
+        propsCompositionStartRef.current?.(e)
+      },
+      [composition]
+    )
+
+    const handleCompositionEnd = useCallback(
+      (e: React.CompositionEvent<HTMLTextAreaElement>) => {
+        composition.onCompositionEnd()
+        onComposingChangeRef.current?.(false)
+        propsCompositionEndRef.current?.(e)
+      },
+      [composition]
+    )
+
+    useEffect(() => {
       let resizeObserver: ResizeObserver | null = null
 
       if (elRef.current) {
@@ -52,11 +83,19 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
       }
     }, [onResize])
 
+    const {
+      onCompositionStart: _onCompositionStart,
+      onCompositionEnd: _onCompositionEnd,
+      ...restProps
+    } = props
+
     return (
       <textarea
         className={cn(textareaVariant({ state, className }))}
         ref={elRef}
-        {...props}
+        onCompositionStart={handleCompositionStart}
+        onCompositionEnd={handleCompositionEnd}
+        {...restProps}
       />
     )
   }

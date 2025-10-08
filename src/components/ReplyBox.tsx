@@ -97,6 +97,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   const [justSubmitted, setJustSubmitted] = useState(false)
   const [rateLimitResetSeconds, setRateLimitResetSeconds] = useState(0)
   const [imageUploading, setImageUploading] = useState(false)
+  const [isComposing, setIsComposing] = useState(false)
 
   const { siteFrontId } = useParams()
 
@@ -453,7 +454,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
 
   useEffect(() => {
     /* console.log('targetInputEl: ', targetInputEl) */
-    if (!targetInputEl) return
+    if (!targetInputEl || isComposing) return
     /* console.log('replyBoxHeight: ', replyBoxHeight) */
 
     if (isActive) {
@@ -481,7 +482,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
         }, 200)
       }
     }
-  }, [isActive, replyBoxHeight, targetInputEl, form, loading, justSubmitted])
+  }, [isActive, replyBoxHeight, targetInputEl, form, loading, justSubmitted, isComposing])
 
   useEffect(() => {
     /* console.log('editting: ', isEditting) */
@@ -677,6 +678,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
                             display: isPreview || !markdownMode ? 'none' : '',
                           }}
                           onFocus={onTextareaFocus}
+                          onComposingChange={setIsComposing}
                           disabled={disabled || rateLimitResetSeconds > 0}
                           placeholder={
                             rateLimitResetSeconds > 0
@@ -697,6 +699,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
                             marginTop: 0,
                           }}
                           onFocus={onTextareaFocus}
+                          onComposingChange={setIsComposing}
                           onChange={field.onChange}
                           value={escapeHtml(field.value)}
                           hideBubble={markdownMode}

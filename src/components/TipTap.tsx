@@ -18,12 +18,20 @@ import {
 import { VariantProps, cva } from 'class-variance-authority'
 import { CodeIcon } from 'lucide-react'
 import { unescapeAll } from 'markdown-it/lib/common/utils.mjs'
-import * as React from 'react'
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import { Markdown } from 'tiptap-markdown'
 import { useDebouncedCallback } from 'use-debounce'
 
 import { cn, noop } from '@/lib/utils'
+
+import { useComposition } from '@/hooks/use-composition'
 
 import {
   AutoBreak,
@@ -64,6 +72,7 @@ export interface TipTapProps
   value?: string
   hideBubble?: boolean
   onResize?: (width: number, height: number) => void
+  onComposingChange?: (isComposing: boolean) => void
 }
 
 export interface TipTapRef {
@@ -72,7 +81,7 @@ export interface TipTapRef {
   insertImage: (url: string, alt?: string) => void
 }
 
-const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
+const TipTap = forwardRef<TipTapRef, TipTapProps>(
   (
     {
       state,
@@ -82,13 +91,21 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
       value,
       placeholder,
       onResize = noop,
+      onComposingChange,
       ...props
     },
     ref
   ) => {
-    const elementRef = React.useRef<HTMLDivElement>(null)
-    const lastContentRef = React.useRef<string>('')
+    const elementRef = useRef<HTMLDivElement>(null)
+    const lastContentRef = useRef<string>('')
     const { t } = useTranslation()
+    const composition = useComposition()
+
+    const onComposingChangeRef = useRef(onComposingChange)
+
+    useEffect(() => {
+      onComposingChangeRef.current = onComposingChange
+    })
 
     const debouncedOnChange = useDebouncedCallback((content: string) => {
       if (content !== value) {
@@ -96,7 +113,7 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
       }
     }, 100)
 
-    const handleUpdate = React.useCallback(
+    const handleUpdate = useCallback(
       ({ editor }: { editor: Editor }) => {
         /* eslint-disable-next-line */
         const rawMarkdown: string = editor.storage.markdown.getMarkdown() || ''
@@ -159,12 +176,9 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
       onUpdate: handleUpdate,
     })
 
-    const onKeyUp = React.useCallback(
-      (_e: React.KeyboardEvent<HTMLDivElement>) => {
-        /* e.stopPropagation() */
-      },
-      []
-    )
+    const onKeyUp = useCallback((_e: React.KeyboardEvent<HTMLDivElement>) => {
+      /* e.stopPropagation() */
+    }, [])
 
     const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (e.ctrlKey && e.key.toLowerCase() == 'b') {
@@ -172,7 +186,7 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
       }
     }
 
-    const insertImage = React.useCallback(
+    const insertImage = useCallback(
       (url: string, alt?: string) => {
         if (editor && url) {
           editor.chain().focus().setImage({ src: url, alt }).run()
@@ -181,7 +195,17 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
       [editor]
     )
 
-    React.useImperativeHandle(
+    const handleCompositionStart = useCallback(() => {
+      composition.onCompositionStart()
+      onComposingChangeRef.current?.(true)
+    }, [composition])
+
+    const handleCompositionEnd = useCallback(() => {
+      composition.onCompositionEnd()
+      onComposingChangeRef.current?.(false)
+    }, [composition])
+
+    useImperativeHandle(
       ref,
       () => ({
         editor,
@@ -191,19 +215,21 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
       [editor, insertImage]
     )
 
-    React.useEffect(() => {
-      /* console.log('value change: ', value) */
-      if (
-        editor &&
-        editor.storage.markdown &&
-        /* eslint-disable-next-line */
-        value != editor.storage.markdown.getMarkdown()
-      ) {
-        editor.commands.setContent(value || '')
-      }
-    }, [value, editor])
+    useEffect(() => {
+      if (!editor || !editor.storage.markdown) return
 
-    React.useEffect(() => {
+      /* eslint-disable-next-line */
+      const currentContent = editor.storage.markdown.getMarkdown()
+
+      // Skip if content is already in sync or composing
+      if (value === currentContent || composition.isComposing()) return
+
+      // Update editor content
+      lastContentRef.current = value || ''
+      editor.commands.setContent(value || '')
+    }, [value, editor, composition])
+
+    useEffect(() => {
       let resizeObserver: ResizeObserver | null = null
 
       if (elementRef.current) {
@@ -226,7 +252,7 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
       }
     }, [editor, onResize])
 
-    React.useEffect(() => {
+    useEffect(() => {
       if (editor !== null) {
         const placeholderExt = editor.extensionManager.extensions.find(
           (extension) => extension.name === 'placeholder'
@@ -292,6 +318,8 @@ const TipTap = React.forwardRef<TipTapRef, TipTapProps>(
           editor={editor}
           onKeyDown={onKeyDown}
           onKeyUp={onKeyUp}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
           className="b-article-content"
           {...props}
         />

@@ -9,6 +9,7 @@ export default tseslint.config(
   {
     ignores: [
       'dist',
+      'dev-dist',
       '.nvm',
       'node_modules',
       'public',

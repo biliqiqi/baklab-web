@@ -98,6 +98,7 @@ const TipTap = forwardRef<TipTapRef, TipTapProps>(
   ) => {
     const elementRef = useRef<HTMLDivElement>(null)
     const lastContentRef = useRef<string>('')
+    const lastValueRef = useRef<string>(value || '')
     const { t } = useTranslation()
     const composition = useComposition()
 
@@ -108,9 +109,8 @@ const TipTap = forwardRef<TipTapRef, TipTapProps>(
     })
 
     const debouncedOnChange = useDebouncedCallback((content: string) => {
-      if (content !== value) {
-        onChange(content)
-      }
+      lastValueRef.current = content
+      onChange(content)
     }, 100)
 
     const handleUpdate = useCallback(
@@ -120,11 +120,17 @@ const TipTap = forwardRef<TipTapRef, TipTapProps>(
 
         if (rawMarkdown !== lastContentRef.current) {
           lastContentRef.current = rawMarkdown
+
+          // Don't trigger onChange during composition to avoid breaking IME
+          if (composition.isComposing()) {
+            return
+          }
+
           const mdVal = unescapeAll(rawMarkdown)
           debouncedOnChange(mdVal)
         }
       },
-      [debouncedOnChange]
+      [debouncedOnChange, composition]
     )
 
     const editor = useEditor({
@@ -203,7 +209,13 @@ const TipTap = forwardRef<TipTapRef, TipTapProps>(
     const handleCompositionEnd = useCallback(() => {
       composition.onCompositionEnd()
       onComposingChangeRef.current?.(false)
-    }, [composition])
+
+      // Sync content after composition ends
+      if (editor && lastContentRef.current) {
+        const mdVal = unescapeAll(lastContentRef.current)
+        debouncedOnChange(mdVal)
+      }
+    }, [composition, editor, debouncedOnChange])
 
     useImperativeHandle(
       ref,
@@ -218,13 +230,14 @@ const TipTap = forwardRef<TipTapRef, TipTapProps>(
     useEffect(() => {
       if (!editor || !editor.storage.markdown) return
 
-      /* eslint-disable-next-line */
-      const currentContent = editor.storage.markdown.getMarkdown()
+      // Only update if value changed externally (not from user input)
+      if (value === lastValueRef.current) return
 
-      // Skip if content is already in sync or composing
-      if (value === currentContent || composition.isComposing()) return
+      // Don't update during composition
+      if (composition.isComposing()) return
 
-      // Update editor content
+      // External update detected
+      lastValueRef.current = value || ''
       lastContentRef.current = value || ''
       editor.commands.setContent(value || '')
     }, [value, editor, composition])

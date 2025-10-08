@@ -205,7 +205,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
               {article.link && (
                 <span className="text-gray-500 text-base font-normal">
-                  &nbsp; ({t('source')}&nbsp;
+                  &nbsp; (
                   <a
                     href={article.link}
                     target="_blank"

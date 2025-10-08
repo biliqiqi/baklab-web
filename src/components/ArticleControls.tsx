@@ -469,7 +469,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             {cornerLink && (
               <Button size="sm" variant="link">
                 <a href={article.link} target="_blank">
-                  {t('source')} {article.link}
+                  {article.link}
                 </a>
               </Button>
             )}

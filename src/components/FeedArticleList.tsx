@@ -212,9 +212,8 @@ const FeedArticleLis: React.FC<FeedArticleLisProps> = ({
                     {item.title}
                   </Link>
                   {item.link && (
-                    <span className="text-sm">
-                      (<span className="text-gray-500">{t('source')}</span>
-                      &nbsp;
+                    <span className="text-sm text-gray-500">
+                      (
                       <a
                         href={item.link}
                         target="_blank"

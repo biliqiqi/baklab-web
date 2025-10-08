@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
+import { Skeleton } from './components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 
 import BContainer from './components/base/BContainer'
@@ -15,6 +16,7 @@ import {
   DEFAULT_PAGE_SIZE,
   EV_ON_EDIT_CLICK,
   EV_ON_REPLY_CLICK,
+  NAV_HEIGHT,
   REPLY_BOX_PLACEHOLDER_HEIGHT,
 } from '@/constants/constants'
 
@@ -324,6 +326,27 @@ export default function ArticlePage() {
         style={{ paddingBottom: `${REPLY_BOX_PLACEHOLDER_HEIGHT}px` }}
         loading={loading}
       >
+        {!initialized && (
+          <div
+            className="absolute top-0 left-0 w-full z-10 bg-background"
+            style={{ height: `calc(100vh - ${NAV_HEIGHT}px)` }}
+          >
+            <div className="mx-auto container p-4">
+              <div className="mb-3">
+                <Skeleton className="w-full h-[168px] p-3 my-2 mb-3"></Skeleton>
+              </div>
+              <div className="py-1 mb-3">
+                <Skeleton className="w-[210px] h-[44px]"></Skeleton>
+              </div>
+              <div className="mb-3">
+                <Skeleton className="w-full h-[168px] p-3 my-2 mb-3"></Skeleton>
+              </div>
+              <div className="mb-3">
+                <Skeleton className="w-full h-[168px] p-3 my-2 mb-3"></Skeleton>
+              </div>
+            </div>
+          </div>
+        )}
         {article && (
           <ArticleContext.Provider
             value={{
@@ -335,17 +358,19 @@ export default function ArticlePage() {
               isTop
               key={article.id}
               article={article}
-              className="mb-4"
+              className="mb-3"
               onSuccess={(action) => {
                 if (['up', 'down', 'save', 'subscribe'].includes(action)) {
-                  setArticle((prev) => prev ? updateArticleState(prev, action) : prev)
+                  setArticle((prev) =>
+                    prev ? updateArticleState(prev, action) : prev
+                  )
                 } else {
                   fetchArticleSync(false)
                 }
               }}
             />
             {article.totalReplyCount > 0 && (
-              <div id="comments" className="py-3 mb-4">
+              <div id="comments" className="py-1 mb-3">
                 <Tabs
                   defaultValue="oldest"
                   value={sort}
@@ -373,7 +398,9 @@ export default function ArticlePage() {
                     key={item.id}
                     article={item}
                     onSuccess={(action) => {
-                      if (['up', 'down', 'save', 'subscribe'].includes(action)) {
+                      if (
+                        ['up', 'down', 'save', 'subscribe'].includes(action)
+                      ) {
                         setArticle((prev) => {
                           if (!prev?.replies) return prev
                           return {

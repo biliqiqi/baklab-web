@@ -6,7 +6,11 @@ import {
   EllipsisVerticalIcon,
   GripIcon,
   Loader,
+  LogOutIcon,
   MenuIcon,
+  PaletteIcon,
+  SettingsIcon,
+  UserRoundIcon,
 } from 'lucide-react'
 import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -503,14 +507,14 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                       }
                     }}
                   >
-                    {t('siteList')}
+                    <GripIcon size={20} /> {t('siteList')}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem
                   className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                   onClick={onUserUISettingClick}
                 >
-                  {t('personalizationUI')}
+                  <PaletteIcon size={20} /> {t('personalizationUI')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -593,7 +597,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                         }
                       }}
                     >
-                      {t('siteList')}
+                      <GripIcon size={20} /> {t('siteList')}
                     </DropdownMenuItem>
                   )}
                   {isMobile && (
@@ -602,7 +606,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                       asChild
                     >
                       <Link to={'/messages'}>
-                        {t('notifications')}{' '}
+                        <BellIcon size={20} /> {t('notifications')}{' '}
                         {notiStore.unreadCount > 0 && (
                           <Badge className="inline-block bg-pink-600 hover:bg-pink-600 text-xs px-[4px] py-[0px]">
                             {notiStore.unreadCount}
@@ -616,26 +620,29 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                     asChild
                   >
                     <Link to={'/users/' + currUsername}>
-                      {t('personalHomePage')}
+                      <UserRoundIcon size={20} /> {t('personalHomePage')}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                     onClick={onUserUISettingClick}
                   >
-                    {t('personalizationUI')}
+                    <PaletteIcon size={20} /> {t('personalizationUI')}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                     asChild
                   >
-                    <Link to={'/settings'}>{t('settings')}</Link>
+                    <Link to={'/settings'}>
+                      <SettingsIcon size={20} /> {t('settings')}
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                     onClick={logout}
                     disabled={loading}
                   >
+                    <LogOutIcon size={20} />{' '}
                     {loading ? <Loader /> : t('logout')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>

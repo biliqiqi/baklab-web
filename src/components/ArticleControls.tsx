@@ -28,6 +28,8 @@ import {
   toggleVoteArticle,
 } from '@/api/article'
 import { ArticleContext } from '@/contexts/ArticleContext'
+import { useIsMobile } from '@/hooks/use-mobile'
+import { useRem2PxNum } from '@/hooks/use-rem-num'
 import { useArticleHistoryStore, useAuthedUserStore } from '@/state/global'
 import {
   Article,
@@ -99,6 +101,8 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   const isLogined = useAuthedUserStore((state) => state.isLogined)
   const loginWithDialog = useAuthedUserStore((state) => state.loginWithDialog)
   const { t } = useTranslation()
+  const rem2pxNum = useRem2PxNum()
+  const isMobile = useIsMobile()
 
   /* console.log('curr article history: ', articleHistory) */
 
@@ -219,14 +223,13 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
               <Button
                 variant="ghost"
                 size="sm"
-                className="mr-1 p-0 w-[36px] h-[36px]"
+                className="mr-1 p-0 h-[1.5rem]"
                 onClick={(e) => onVoteClick(e, 'up')}
                 disabled={disabled}
                 title={t('upVotePost')}
               >
-                {/* <ThumbsUp size={20} className="inline-block mr-1" /> */}
                 <BIconTriangleUp
-                  size={28}
+                  size={rem2pxNum(1.8)}
                   variant={userState?.voteType == 'up' ? 'full' : 'default'}
                 />
                 {article.voteUp > 0 && article.voteUp}
@@ -236,13 +239,13 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
               <Button
                 variant="ghost"
                 size="sm"
-                className="mr-1 p-0 w-[36px] h-[36px]"
+                className="mr-1 p-0 h-[1.5rem]"
                 onClick={(e) => onVoteClick(e, 'down')}
                 disabled={disabled}
                 title={t('downVotePost')}
               >
                 <BIconTriangleDown
-                  size={28}
+                  size={rem2pxNum(1.8)}
                   variant={userState?.voteType == 'down' ? 'full' : 'default'}
                 />
                 {article.voteDown > 0 && article.voteDown}
@@ -259,11 +262,17 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
               >
                 {ctype == 'list' ? (
                   <Link to={genArticlePath(article)}>
-                    <MessageSquare size={20} className="inline-block mr-1" />
+                    <MessageSquare
+                      size={rem2pxNum(1.25)}
+                      className="inline-block mr-1"
+                    />
                     {article.totalReplyCount > 0 && article.totalReplyCount}
                   </Link>
                 ) : (
-                  <MessageSquare size={20} className="inline-block mr-1" />
+                  <MessageSquare
+                    size={rem2pxNum(1.25)}
+                    className="inline-block mr-1"
+                  />
                 )}
               </Button>
             )}
@@ -276,7 +285,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                 title={t('savePost')}
               >
                 <BookmarkIcon
-                  size={20}
+                  size={rem2pxNum(1.25)}
                   fill={userState?.saved ? 'currentColor' : 'transparent'}
                   className={cn('mr-1', userState?.saved && 'text-primary')}
                 />
@@ -296,7 +305,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                   title={t('subscribePost')}
                 >
                   <BellIcon
-                    size={20}
+                    size={rem2pxNum(1.25)}
                     fill={
                       userState?.subscribed ? 'currentColor' : 'transparent'
                     }
@@ -323,79 +332,52 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             className="mr-1"
             title={t('editHistory')}
           >
-            <HistoryIcon size={20} className="mr-1" />
+            <HistoryIcon size={rem2pxNum(1.25)} className="mr-1" />
           </Button>
         )}
 
         {ctype == 'list' && (
           <>
-            <Trans
-              i18nKey={'userPublishInfo'}
-              components={{
-                userLink: (
+            <Link to={'/users/' + article.authorName} className="text-gray-700">
+              {article.authorName}
+            </Link>
+            {!isMobile && (
+              <>
+                &nbsp;·
+                {siteFrontId ? (
                   <Link
-                    to={'/users/' + article.authorName}
-                    className="text-gray-700"
+                    to={`/${article.siteFrontId}/bankuai/${article.category.frontId}`}
                   >
-                    {article.authorName}&nbsp;
-                  </Link>
-                ),
-                actionTag:
-                  article.replyToId == '0' || !article.replyToArticle ? (
-                    <span></span>
-                  ) : (
-                    <Trans
-                      i18nKey={'replyToUser'}
-                      components={{
-                        userLink: (
-                          <Link
-                            to={'/users/' + article.replyToArticle.authorName}
-                            className="text-gray-700"
-                          >
-                            {article.replyToArticle.authorName}
-                          </Link>
-                        ),
-                      }}
+                    <BIconColorChar
+                      iconId={article.categoryFrontId}
+                      char={article.category.iconContent}
+                      color={article.category.iconBgColor}
+                      size={rem2pxNum(1.25)}
+                      fontSize={12}
+                      className="align-[-5px] mx-1"
                     />
-                  ),
-                placeLink: (
-                  <span className="whitespace-nowrap">
-                    {siteFrontId ? (
-                      <Link
-                        to={`/${article.siteFrontId}/bankuai/${article.category.frontId}`}
-                      >
-                        <BIconColorChar
-                          iconId={article.categoryFrontId}
-                          char={article.category.iconContent}
-                          color={article.category.iconBgColor}
-                          size={20}
-                          fontSize={12}
-                          className="align-[-5px] mx-1"
-                        />
-                        {article.category.name}
-                      </Link>
-                    ) : (
-                      <Link
-                        to={`/${article.siteFrontId}`}
-                        className="leading-3 mx-1"
-                      >
-                        <BSiteIcon
-                          logoUrl={article.site.logoUrl}
-                          name={article.site.name}
-                          size={20}
-                          fontSize={12}
-                          showSiteName
-                        />
-                      </Link>
-                    )}
-                    &nbsp;·&nbsp;
-                    <span title={timeFmt(article.createdAt, 'YYYY-M-D H:m:s')}>
-                      {timeAgo(article.createdAt)}
-                    </span>
-                  </span>
-                ),
-              }}
-            />
+                    {article.category.name}
+                  </Link>
+                ) : (
+                  <Link
+                    to={`/${article.siteFrontId}`}
+                    className="leading-3 mx-1"
+                  >
+                    <BSiteIcon
+                      logoUrl={article.site.logoUrl}
+                      name={article.site.name}
+                      size={rem2pxNum(1.25)}
+                      fontSize={12}
+                      showSiteName
+                    />
+                  </Link>
+                )}
+              </>
+            )}
+            &nbsp;·&nbsp;
+            <span title={timeFmt(article.createdAt, 'YYYY-M-D H:m:s')}>
+              {timeAgo(article.createdAt)}
+            </span>
           </>
         )}
         {isTopArticle && (
@@ -420,7 +402,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             <Link
               to={`/${article.siteFrontId}/articles/${(articleCtx.root || article).acceptAnswerId}`}
             >
-              <CheckIcon size={20} className="mr-1" />
+              <CheckIcon size={rem2pxNum(1.25)} className="mr-1" />
               &nbsp;
               <span className="text-sm font-normal">{t('solved')}</span>
             </Link>
@@ -439,7 +421,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
               disabled={disabled}
               className="mr-1"
             >
-              <CheckIcon size={20} className="mr-1" />
+              <CheckIcon size={rem2pxNum(1.25)} className="mr-1" />
               &nbsp;
               <span className="text-sm text-gray-500 font-normal">
                 {t('markAsSolution')}
@@ -452,7 +434,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           checkContentForm(articleCtx.root, 'qna') &&
           articleCtx.root.acceptAnswerId == article.id && (
             <span className="inline-flex items-center mr-2 text-green-500 text-sm whitespace-nowrap">
-              <CheckIcon size={20} className="mr-1 inline" />
+              <CheckIcon size={rem2pxNum(1.25)} className="mr-1 inline" />
               &nbsp;<span>{t('markedAsSolution')}</span>
             </span>
           )}
@@ -463,7 +445,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           <>
             {linkQrCode && (
               <Button size="sm" variant="ghost">
-                <QrCode size={20} />
+                <QrCode size={rem2pxNum(1.25)} />
               </Button>
             )}
             {cornerLink && (

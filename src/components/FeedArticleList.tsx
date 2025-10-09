@@ -30,12 +30,16 @@ import { Card } from '@/components/ui/card'
 import { getFeedList } from '@/api/article'
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 import { defaultPageState } from '@/constants/defaults'
+import { useIsMobile } from '@/hooks/use-mobile'
+import { useRem2PxNum } from '@/hooks/use-rem-num'
 import { isLogined, useAuthedUserStore, useLoading } from '@/state/global'
 import { Article, ArticleListSort, ArticleListState } from '@/types/types'
 
 import ArticleControls from './ArticleControls'
 import { Empty } from './Empty'
 import { ListPagination } from './ListPagination'
+import BIconColorChar from './base/BIconColorChar'
+import BSiteIcon from './base/BSiteIcon'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs'
@@ -70,6 +74,9 @@ const FeedArticleLis: React.FC<FeedArticleLisProps> = ({
   const navigate = useNavigate()
   const location = useLocation()
   const { t } = useTranslation()
+
+  const rem2pxNum = useRem2PxNum()
+  const isMobile = useIsMobile()
 
   const sort = (params.get('sort') as ArticleListSort | null) || 'best'
 
@@ -206,6 +213,39 @@ const FeedArticleLis: React.FC<FeedArticleLisProps> = ({
               key={item.id}
               className="p-3 my-2 hover:bg-slate-50 dark:hover:bg-slate-900"
             >
+              {isMobile && (
+                <div className="mb-3 text-sm text-gray-500">
+                  {siteFrontId ? (
+                    <Link
+                      to={`/${item.siteFrontId}/bankuai/${item.category.frontId}`}
+                    >
+                      <BIconColorChar
+                        iconId={item.categoryFrontId}
+                        char={item.category.iconContent}
+                        color={item.category.iconBgColor}
+                        size={rem2pxNum(1.25)}
+                        fontSize={12}
+                        className="align-[-5px] mx-1"
+                      />
+                      {item.category.name}
+                    </Link>
+                  ) : (
+                    <Link
+                      to={`/${item.siteFrontId}`}
+                      className="leading-3 mx-1"
+                    >
+                      <BSiteIcon
+                        logoUrl={item.site.logoUrl}
+                        name={item.site.name}
+                        size={rem2pxNum(1.25)}
+                        fontSize={12}
+                        showSiteName
+                      />
+                    </Link>
+                  )}
+                </div>
+              )}
+
               <div className="mb-3">
                 <div className="mb-1">
                   <Link className="mr-2" to={genArticlePath(item)}>

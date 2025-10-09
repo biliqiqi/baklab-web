@@ -1,5 +1,7 @@
 # BakLab Frontend Docker Image Usage Guide
 
+English | [简体中文](DOCKER_USAGE.zh.md)
+
 ## Overview
 
 BakLab Frontend Docker provides packaged BakLab Web frontend static assets with runtime environment variable replacement and resource manifest generation support.

@@ -1,5 +1,7 @@
 # BakLab Frontend Docker 镜像使用说明
 
+[English](DOCKER_USAGE.md) | 简体中文
+
 ## 概述
 
 BakLab Frontend Docker 提供打包好的 BakLab Web 前端静态资源，支持运行时环境变量替换和资源清单生成。

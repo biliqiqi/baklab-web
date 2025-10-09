@@ -1,6 +1,8 @@
-# BakLab Frontend
+# BakLab Web Frontend
 
-BakLab is a modern discussion platform similar to Reddit/Hacker News, built for online community discussions and content sharing.
+English | [简体中文](README.zh.md)
+
+This is the web frontend for BakLab, built with React, TypeScript, and Vite.
 
 ## Prerequisites
 
@@ -12,7 +14,7 @@ BakLab is a modern discussion platform similar to Reddit/Hacker News, built for 
 ### 1. Clone the repository
 
 ```bash
-git clone <repository-url>
+git clone git@github.com:biliqiqi/baklab-web.git
 cd baklab-web
 ```
 

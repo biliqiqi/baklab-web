@@ -1,48 +1,14 @@
-import { SquareArrowOutUpRightIcon } from 'lucide-react'
-import React, {
-  MouseEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
-import { useTranslation } from 'react-i18next'
-import {
-  Link,
-  useLocation,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from 'react-router-dom'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useParams, useSearchParams } from 'react-router-dom'
 
-import { updateArticleState } from '@/lib/article-utils'
-import { toSync } from '@/lib/fire-and-forget'
-import {
-  extractDomain,
-  genArticlePath,
-  getArticleStatusName,
-  noop,
-  renderMD,
-} from '@/lib/utils'
-
-import { Card } from '@/components/ui/card'
+import { noop } from '@/lib/utils'
 
 import { getFeedList } from '@/api/article'
-import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
-import { defaultPageState } from '@/constants/defaults'
-import { useIsMobile } from '@/hooks/use-mobile'
-import { useRem2PxNum } from '@/hooks/use-rem-num'
-import { isLogined, useAuthedUserStore, useLoading } from '@/state/global'
-import { Article, ArticleListSort, ArticleListState } from '@/types/types'
 
-import ArticleControls from './ArticleControls'
-import { Empty } from './Empty'
-import { ListPagination } from './ListPagination'
-import BIconColorChar from './base/BIconColorChar'
-import BSiteIcon from './base/BSiteIcon'
-import { Badge } from './ui/badge'
-import { Button } from './ui/button'
-import { Tabs, TabsList, TabsTrigger } from './ui/tabs'
+import BaseArticleList, {
+  FetchArticlesParams,
+  FetchArticlesResponse,
+} from './BaseArticleList'
 
 interface FeedArticleLisProps {
   onLoad?: () => void
@@ -53,277 +19,73 @@ const FeedArticleLis: React.FC<FeedArticleLisProps> = ({
   onLoad = noop,
   onReady = noop,
 }) => {
-  const [showSummary] = useState(false)
-  const [list, updateList] = useState<Article[]>([])
   const [isFirstLoad, setIsFirstLoad] = useState(true)
-  const [pageState, setPageState] = useState<ArticleListState>({
-    currPage: 1,
-    pageSize: DEFAULT_PAGE_SIZE,
-    total: 0,
-    totalPage: 0,
-  })
-
-  const isMySelf = useAuthedUserStore((state) => state.isMySelf)
-  const checkPermit = useAuthedUserStore((state) => state.permit)
-  const loginWithDialog = useAuthedUserStore((state) => state.loginWithDialog)
-  const checkIsLogined = useAuthedUserStore((state) => state.isLogined)
-
-  const [params, setParams] = useSearchParams()
+  const [listLength, setListLength] = useState(0)
+  const [params] = useSearchParams()
   const { siteFrontId } = useParams()
-
-  const navigate = useNavigate()
-  const location = useLocation()
-  const { t } = useTranslation()
-
-  const rem2pxNum = useRem2PxNum()
-  const isMobile = useIsMobile()
-
-  const sort = (params.get('sort') as ArticleListSort | null) || 'best'
 
   const submitPath = useMemo(
     () => (siteFrontId ? `/${siteFrontId}/submit` : `/submit`),
     [siteFrontId]
   )
 
-  const { setLoading } = useLoading()
-
-  const fetchFeedArticles = useCallback(
-    async (showLaoding = true) => {
-      try {
-        const page = Number(params.get('page')) || 1
-        const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
-        const sort = (params.get('sort') as ArticleListSort | null) || 'best'
-        const keywords = params.get('keywords') || ''
-
-        if (showLaoding) {
-          setLoading(true)
-        }
-
-        const resp = await getFeedList(page, pageSize, sort, keywords, {
-          siteFrontId,
-        })
-
-        if (!resp.code) {
-          const { data } = resp
-          if (data.articles) {
-            updateList([...data.articles])
-            setPageState({
-              currPage: data.currPage,
-              pageSize: data.pageSize,
-              total: data.articleTotal,
-              totalPage: data.totalPage,
-            })
-          } else {
-            updateList([])
-            setPageState({
-              currPage: 1,
-              pageSize: data.pageSize,
-              total: data.articleTotal,
-              totalPage: data.totalPage,
-            })
-          }
-        }
-      } catch (e) {
-        console.error('get feed list error: ', e)
-      } finally {
-        setLoading(false)
+  const fetchArticles = useCallback(
+    async (
+      fetchParams: FetchArticlesParams
+    ): Promise<FetchArticlesResponse> => {
+      const keywords = params.get('keywords') || ''
+      const resp = await getFeedList(
+        fetchParams.page,
+        fetchParams.pageSize,
+        fetchParams.sort,
+        keywords,
+        { siteFrontId }
+      )
+      const { category, ...rest } = resp.data
+      return {
+        ...resp,
+        data: {
+          ...rest,
+          category: category
+            ? {
+                frontId: category.frontId,
+                name: category.name,
+                describe: category.describe,
+                siteFrontId: category.siteFrontId,
+                isFront: true,
+              }
+            : undefined,
+        },
       }
     },
-    [params, siteFrontId, setLoading]
+    [siteFrontId, params]
   )
 
-  const onSwitchTab = (tab: string) => {
-    setParams((prevParams) => {
-      prevParams.set('sort', tab)
-      return prevParams
-    })
-  }
-
-  const onSubmitClick = useCallback(
-    async (e: MouseEvent<HTMLButtonElement>) => {
-      e.preventDefault()
-
-      if (checkIsLogined()) {
-        navigate(submitPath)
-        return
-      }
-
-      try {
-        const authData = await loginWithDialog()
-        if (isLogined(authData)) {
-          setTimeout(() => {
-            navigate(submitPath)
-          }, 0)
-        }
-      } catch (err) {
-        console.error('submit click error: ', err)
-      }
-    },
-    [submitPath, navigate, checkIsLogined, loginWithDialog]
-  )
+  const handleLoad = useCallback(() => {
+    if (isFirstLoad) {
+      setIsFirstLoad(false)
+    }
+    onLoad()
+  }, [isFirstLoad, onLoad])
 
   useEffect(() => {
     if (isFirstLoad) {
       onReady()
     }
-    toSync(fetchFeedArticles, () => {
-      setTimeout(() => {
-        if (isFirstLoad) {
-          setIsFirstLoad(false)
-        }
-        onLoad()
-      }, 0)
-    })()
-    return () => {
-      updateList([])
-      setPageState({
-        ...defaultPageState,
-      })
-    }
-  }, [params, siteFrontId, location])
+  }, [isFirstLoad])
 
   return (
-    <>
-      <div className="flex justify-between items-center">
-        <div>
-          {list.length > 0 && (
-            <Tabs defaultValue="best" value={sort} onValueChange={onSwitchTab}>
-              <TabsList>
-                <TabsTrigger value="best">{t('best')}</TabsTrigger>
-                <TabsTrigger value="latest">{t('latest')}</TabsTrigger>
-                <TabsTrigger value="list_hot">{t('hot')}</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          )}
-        </div>
-        <div>
-          {siteFrontId && checkPermit('article', 'create') && (
-            <Button size="sm" asChild onClick={onSubmitClick}>
-              <Link to={submitPath}>+ {t('submit')}</Link>
-            </Button>
-          )}
-        </div>
-      </div>
-      <div className="mt-4">
-        {list.length == 0 ? (
-          <Empty />
-        ) : (
-          list.map((item) => (
-            <Card
-              key={item.id}
-              className="p-3 my-2 hover:bg-slate-50 dark:hover:bg-slate-900"
-            >
-              {isMobile && (
-                <div className="mb-3 text-sm text-gray-500">
-                  {siteFrontId ? (
-                    <Link
-                      to={`/${item.siteFrontId}/bankuai/${item.category.frontId}`}
-                    >
-                      <BIconColorChar
-                        iconId={item.categoryFrontId}
-                        char={item.category.iconContent}
-                        color={item.category.iconBgColor}
-                        size={rem2pxNum(1.25)}
-                        fontSize={12}
-                        className="align-[-5px] mx-1"
-                      />
-                      {item.category.name}
-                    </Link>
-                  ) : (
-                    <Link
-                      to={`/${item.siteFrontId}`}
-                      className="leading-3 mx-1"
-                    >
-                      <BSiteIcon
-                        logoUrl={item.site.logoUrl}
-                        name={item.site.name}
-                        size={rem2pxNum(1.25)}
-                        fontSize={12}
-                        showSiteName
-                      />
-                    </Link>
-                  )}
-                </div>
-              )}
-
-              <div className="mb-3">
-                <div className="mb-1">
-                  <Link className="mr-2" to={genArticlePath(item)}>
-                    {item.title}
-                  </Link>
-                  {item.link && (
-                    <span className="text-sm text-gray-500">
-                      (
-                      <a
-                        href={item.link}
-                        target="_blank"
-                        title={item.link}
-                        className="break-all"
-                      >
-                        <SquareArrowOutUpRightIcon
-                          size={14}
-                          className="inline"
-                        />
-                        &nbsp;
-                        {extractDomain(item.link)}...
-                      </a>
-                      )
-                    </span>
-                  )}
-                </div>
-                <div>{isMySelf(item.authorId)}</div>
-                {(isMySelf(item.authorId) ||
-                  checkPermit('article', 'manage')) &&
-                  item.status != 'published' && (
-                    <div className="py-1">
-                      <Badge variant={'secondary'}>
-                        {getArticleStatusName(item.status)}
-                      </Badge>
-                    </div>
-                  )}
-                {showSummary && (
-                  <div
-                    className="mb-1 break-words"
-                    dangerouslySetInnerHTML={{ __html: renderMD(item.summary) }}
-                  ></div>
-                )}
-                {item.picURL && (
-                  <div className="w-[120px] h-[120px] rounded mr-4 bg-gray-200 shrink-0 overflow-hidden">
-                    <a href="#">
-                      <img
-                        alt={item.title}
-                        src={item.picURL}
-                        className="max-w-full"
-                      />
-                    </a>
-                  </div>
-                )}
-              </div>
-              <ArticleControls
-                article={item}
-                ctype="list"
-                bookmark={false}
-                notify={false}
-                history={false}
-                onSuccess={(action) => {
-                  updateList((prevList) =>
-                    prevList.map((article) =>
-                      article.id === item.id
-                        ? updateArticleState(article, action)
-                        : article
-                    )
-                  )
-                }}
-              />
-            </Card>
-          ))
-        )}
-      </div>
-
-      {pageState.totalPage > 1 && (
-        <ListPagination pageState={pageState} autoScrollTop />
-      )}
-    </>
+    <BaseArticleList
+      fetchArticles={fetchArticles}
+      siteFrontId={siteFrontId}
+      submitPath={submitPath}
+      showTabsCondition={listLength > 0}
+      onLoad={handleLoad}
+      onReady={noop}
+      onPageStateChange={(pageState) => {
+        setListLength(pageState.total)
+      }}
+    />
   )
 }
 

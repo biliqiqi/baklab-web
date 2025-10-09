@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
-
-type Router = ReturnType<typeof createBrowserRouter>
 import { useShallow } from 'zustand/react/shallow'
 
 import { Toaster } from './components/ui/sonner.tsx'
@@ -24,9 +22,9 @@ import {
   RIGHT_SIDEBAR_STATE_KEY,
   TOP_DRAWER_STATE_KEY,
 } from './constants/constants.ts'
-import { setFaviconBadge } from './lib/favicon.ts'
 import { useIsMobile } from './hooks/use-mobile.tsx'
 import './i18n'
+import { setFaviconBadge } from './lib/favicon.ts'
 import { toSync } from './lib/fire-and-forget.ts'
 import { refreshAuthState, refreshToken } from './lib/request.ts'
 import { setRootFontSize } from './lib/utils.ts'
@@ -44,6 +42,8 @@ import {
 } from './state/global.ts'
 import { useRoutesStore } from './state/routes.ts'
 import { Article, SSE_EVENT, SettingsType } from './types/types.ts'
+
+type Router = ReturnType<typeof createBrowserRouter>
 
 const fetchNotiCount = toSync(async () => {
   const notiState = useNotificationStore.getState()
@@ -299,8 +299,6 @@ const App = () => {
       ) as SettingsType | null
 
       const userUISettings = getLocalUserUISettings()
-
-      /* console.log('local ui settings: ', userUISettings) */
 
       if (userUISettings) {
         setUserUIState(userUISettings)

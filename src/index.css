@@ -305,6 +305,10 @@ a:hover {
 }
 
 @media (max-width: 1024px) {
+  :root {
+    font-size: 14px;
+  }
+  
   .b-chat-card:hover .b-chat-controls__btns{
     visibility: hidden;
   }

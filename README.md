@@ -2,16 +2,6 @@
 
 BakLab is a modern discussion platform similar to Reddit/Hacker News, built for online community discussions and content sharing.
 
-## Features
-
-- **Discussion Forums**: Create and participate in topic-based discussions
-- **SEO Optimized**: Search engine friendly with server-side rendering support
-- **Real-time Chat**: Live messaging and notifications
-- **Category System**: Organize content with customizable bankuai (categories)
-- **User Management**: Comprehensive user roles and permissions system
-- **OAuth Integration**: Support for third-party authentication
-- **Internationalization**: Multi-language support
-
 ## Prerequisites
 
 - Node.js >= 20.16.0
@@ -23,7 +13,7 @@ BakLab is a modern discussion platform similar to Reddit/Hacker News, built for 
 
 ```bash
 git clone <repository-url>
-cd baklab/frontend
+cd baklab-web
 ```
 
 ### 2. Install dependencies
@@ -52,6 +42,12 @@ VITE_STATIC_HOST=https://static.example.com
 
 # Frontend host
 VITE_FRONTEND_HOST=http://localhost:5173
+
+# Brand name
+VITE_BRAND_NAME=BakLab
+
+# OAuth providers (comma-separated)
+VITE_OAUTH_PROVIDERS=google,github
 ```
 
 ### 4. Start development server
@@ -62,26 +58,19 @@ npm run dev
 
 The application will be available at `http://localhost:5173`.
 
-## Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint and TypeScript checks
-- `npm run type-check` - Run TypeScript type checking
-- `npm run test` - Run tests with Vitest
-
 ## Configuration
 
 ### Environment Variables
 
-| Variable               | Description         | Default                      |
-| ---------------------- | ------------------- | ---------------------------- |
-| `VITE_API_HOST`        | Backend API host    | `http://localhost:3000`      |
-| `VITE_API_PATH_PREFIX` | API path prefix     | `/api/`                      |
-| `VITE_STATIC_HOST`     | Static file server  | `https://static.example.com` |
-| `VITE_FRONTEND_HOST`   | Frontend host URL   | `http://localhost:5173`      |
-| `VITE_BASE_URL`        | Base URL for assets | `/`                          |
+| Variable               | Description                       | Default                      |
+| ---------------------- | --------------------------------- | ---------------------------- |
+| `VITE_API_HOST`        | Backend API host                  | `http://localhost:3000`      |
+| `VITE_API_PATH_PREFIX` | API path prefix                   | `/api/`                      |
+| `VITE_STATIC_HOST`     | Static file server                | `https://static.example.com` |
+| `VITE_FRONTEND_HOST`   | Frontend host URL                 | `http://localhost:5173`      |
+| `VITE_BASE_URL`        | Base URL for assets               | `/`                          |
+| `VITE_BRAND_NAME`      | Application brand name            | `BakLab`                     |
+| `VITE_OAUTH_PROVIDERS` | OAuth providers (comma-separated) | (empty)                      |
 
 ## Building for Production
 
@@ -90,6 +79,10 @@ npm run build
 ```
 
 The built files will be in the `dist/` directory.
+
+## Docker Deployment
+
+For Docker deployment instructions, see [DOCKER_USAGE.md](DOCKER_USAGE.md).
 
 ## License
 

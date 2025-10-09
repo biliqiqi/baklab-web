@@ -2,8 +2,8 @@ import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { postOAuthCompleteRegistration } from '@/api'
-import { OAuthProvider } from '@/types/types'
 import { useAuthedUserStore } from '@/state/global'
+import { OAuthProvider } from '@/types/types'
 
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -42,7 +42,11 @@ export const OAuthUsernameSetup: React.FC<OAuthUsernameSetupProps> = ({
     setError('')
 
     try {
-      const response = await postOAuthCompleteRegistration(provider, email, username.trim())
+      const response = await postOAuthCompleteRegistration(
+        provider,
+        email,
+        username.trim()
+      )
 
       if (response.data) {
         const { token, userID, username: finalUsername, user } = response.data
@@ -50,9 +54,8 @@ export const OAuthUsernameSetup: React.FC<OAuthUsernameSetupProps> = ({
         onSuccess?.()
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error
-        ? error.message
-        : 'Registration failed'
+      const errorMessage =
+        error instanceof Error ? error.message : 'Registration failed'
       // setError(errorMessage)
       onError?.(errorMessage)
     } finally {
@@ -97,9 +100,7 @@ export const OAuthUsernameSetup: React.FC<OAuthUsernameSetupProps> = ({
             disabled={loading}
             autoFocus
           />
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
 
         <Button

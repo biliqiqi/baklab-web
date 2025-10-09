@@ -10,6 +10,7 @@ import React, {
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
+
 import { toSync } from '@/lib/fire-and-forget'
 import { cn, isInnerURL, summryText } from '@/lib/utils'
 
@@ -153,10 +154,17 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     )
 
     const { showReplyBox, ...replyBoxProps } = useReplyBoxStore(
-      useShallow(({ show, setShow: _setShow, setState: _setState, ...replyBoxProps }) => ({
-        showReplyBox: show,
-        ...replyBoxProps,
-      }))
+      useShallow(
+        ({
+          show,
+          setShow: _setShow,
+          setState: _setState,
+          ...replyBoxProps
+        }) => ({
+          showReplyBox: show,
+          ...replyBoxProps,
+        })
+      )
     )
 
     const { siteListMode, contentWidth } = useUserUIStore(

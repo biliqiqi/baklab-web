@@ -6,12 +6,8 @@ import { twMerge } from 'tailwind-merge'
 
 import { DEFAULT_FONT_SIZE } from '@/constants/constants'
 import { SITE_STATUS_COLOR_MAP } from '@/constants/maps'
-import {
-  PERMISSION_MODULE_DATA,
-} from '@/constants/permissions'
-import {
-  PermissionModule,
-} from '@/constants/types'
+import { PERMISSION_MODULE_DATA } from '@/constants/permissions'
+import { PermissionModule } from '@/constants/types'
 import i18n from '@/i18n'
 import { Article, ArticleStatus, SITE_STATUS, SiteStatus } from '@/types/types'
 
@@ -58,8 +54,6 @@ export const deleteCookie = (
 }
 
 export const extractDomain = (url: string) => new URL(url).hostname
-
-
 
 export const getPermissionModuleName = (moduleId: PermissionModule): string => {
   return (

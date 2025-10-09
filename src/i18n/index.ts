@@ -8,7 +8,6 @@ import { initReactI18next } from 'react-i18next'
 import zodEn from 'zod-i18n-map/locales/en/zod.json'
 import zodZhCN from 'zod-i18n-map/locales/zh-CN/zod.json'
 
-
 import enRes from './en.json'
 import zhHansRes from './zh-Hans.json'
 

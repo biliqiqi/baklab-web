@@ -29,7 +29,11 @@ import {
 import { getContentForms } from '@/api/site'
 import { defaultContentForm } from '@/constants/defaults'
 import i18n from '@/i18n'
-import { ContentForm, StringFn, SYSTEM_ARTICLE_CONTENT_FORM } from '@/types/types'
+import {
+  ContentForm,
+  SYSTEM_ARTICLE_CONTENT_FORM,
+  StringFn,
+} from '@/types/types'
 
 import { BLoaderBlock } from './base/BLoader'
 import { Button } from './ui/button'
@@ -97,16 +101,18 @@ const ContentFormSelector = forwardRef<
       if (!filterChatBasedOnCategory) {
         return contentFormOptions
       }
-      
-      const isCurrentCategoryChat = selectedCategory?.contentForm?.frontId === SYSTEM_ARTICLE_CONTENT_FORM.Chat
-      
+
+      const isCurrentCategoryChat =
+        selectedCategory?.contentForm?.frontId ===
+        SYSTEM_ARTICLE_CONTENT_FORM.Chat
+
       // If current category is not chat type, remove chat content form options
       if (!isCurrentCategoryChat) {
         return contentFormOptions.filter(
-          option => option.frontId !== SYSTEM_ARTICLE_CONTENT_FORM.Chat
+          (option) => option.frontId !== SYSTEM_ARTICLE_CONTENT_FORM.Chat
         )
       }
-      
+
       return contentFormOptions
     }, [contentFormOptions, selectedCategory, filterChatBasedOnCategory])
 

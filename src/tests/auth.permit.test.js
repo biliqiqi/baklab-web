@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest'
+
 import { useAuthedUserStore } from '../state/global'
 
 const authStore = useAuthedUserStore.getState()
@@ -21,7 +22,7 @@ const userData = {
       id: '1',
       frontId: 'common_user',
       name: 'Common User',
-      level: 1
+      level: 1,
     },
     siteRole: null,
     permissions: [
@@ -30,8 +31,8 @@ const userData = {
         frontId: 'article.create',
         name: 'Create Article',
         createdAt: '2024-01-01T00:00:00Z',
-        module: 'article'
-      }
+        module: 'article',
+      },
     ],
     super: false,
     authFrom: 'self',
@@ -41,9 +42,9 @@ const userData = {
     bannedMinutes: 0,
     bannedCount: 0,
     uiSettings: null,
-    showRoleName: true
+    showRoleName: true,
   },
-  currRole: null
+  currRole: null,
 }
 
 test('common user create article should be permitted', () => {
@@ -55,7 +56,6 @@ test("common user edit others article shouldn't be permitted", () => {
   authStore.updateObj(() => userData)
   expect(authStore.permit('article', 'edit_others')).toBe(false)
 })
-
 
 test("non-existent module create article shouldn't be permitted", () => {
   authStore.updateObj(() => userData)

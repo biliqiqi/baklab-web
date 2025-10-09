@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --mode dev",
     "build": "tsc -b && vite build",
+    "format": "prettier . --write",
     "lint": "eslint . && npm run type-check",
     "type-check": "tsc --noEmit -p tsconfig.app.json --noUnusedLocals false",
     "preview": "vite preview",

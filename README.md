@@ -75,13 +75,13 @@ The application will be available at `http://localhost:5173`.
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `VITE_API_HOST` | Backend API host | `http://localhost:3000` |
-| `VITE_API_PATH_PREFIX` | API path prefix | `/api/` |
-| `VITE_STATIC_HOST` | Static file server | `https://static.example.com` |
-| `VITE_FRONTEND_HOST` | Frontend host URL | `http://localhost:5173` |
-| `VITE_BASE_URL` | Base URL for assets | `/` |
+| Variable               | Description         | Default                      |
+| ---------------------- | ------------------- | ---------------------------- |
+| `VITE_API_HOST`        | Backend API host    | `http://localhost:3000`      |
+| `VITE_API_PATH_PREFIX` | API path prefix     | `/api/`                      |
+| `VITE_STATIC_HOST`     | Static file server  | `https://static.example.com` |
+| `VITE_FRONTEND_HOST`   | Frontend host URL   | `http://localhost:5173`      |
+| `VITE_BASE_URL`        | Base URL for assets | `/`                          |
 
 ## Building for Production
 

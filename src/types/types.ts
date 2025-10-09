@@ -1,4 +1,4 @@
-import { AfterResponseHook } from "ky"
+import { AfterResponseHook } from 'ky'
 
 export interface ResponseData<T> {
   code: number
@@ -719,12 +719,12 @@ export interface ReplyBoxProps {
   edittingArticle?: Article | null
   disabled?: boolean
   onSuccess?:
-  | ((
-    data: ResponseData<ArticleSubmitResponse>,
-    type?: ReplyBoxType,
-    boxHeight?: number
-  ) => void)
-  | (() => Promise<void>)
+    | ((
+        data: ResponseData<ArticleSubmitResponse>,
+        type?: ReplyBoxType,
+        boxHeight?: number
+      ) => void)
+    | (() => Promise<void>)
   onRemoveReply?: (() => void) | (() => Promise<void>)
 }
 

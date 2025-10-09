@@ -37,7 +37,7 @@ services:
       - OAUTH_PROVIDERS=google,github
     volumes:
       - ./frontend_dist:/output
-    restart: "no"
+    restart: 'no'
 ```
 
 ## 环境变量
@@ -46,15 +46,15 @@ services:
 
 镜像支持以下环境变量，用于运行时替换前端代码中的占位符：
 
-| 环境变量 | 对应构建变量 | 描述 | 默认值 | 示例 |
-|---------|-------------|------|--------|------|
-| `API_HOST` | `VITE_API_HOST` | API 服务器地址 | `http://localhost:3000` | `https://api.example.com` |
-| `API_PATH_PREFIX` | `VITE_API_PATH_PREFIX` | API 路径前缀 | `/api/` | `/v1/api/` |
-| `FRONTEND_HOST` | `VITE_FRONTEND_HOST` | 前端服务器地址 | `http://localhost:5173` | `https://app.example.com` |
-| `STATIC_HOST` | `VITE_STATIC_HOST` | 静态资源服务器地址 | `https://static.example.com` | `https://cdn.example.com` |
-| `BASE_URL` | `VITE_BASE_URL` | 静态资源基础路径 | `/` | `/static/frontend/` |
-| `OAUTH_PROVIDERS` | `VITE_OAUTH_PROVIDERS` | 逗号分隔的OAuth提供商列表 | `''` (空值) | `google,github` |
-| `OUTPUT_DIR` | - | 输出目录路径 | `/output` | `/custom/output/path` |
+| 环境变量          | 对应构建变量           | 描述                      | 默认值                       | 示例                      |
+| ----------------- | ---------------------- | ------------------------- | ---------------------------- | ------------------------- |
+| `API_HOST`        | `VITE_API_HOST`        | API 服务器地址            | `http://localhost:3000`      | `https://api.example.com` |
+| `API_PATH_PREFIX` | `VITE_API_PATH_PREFIX` | API 路径前缀              | `/api/`                      | `/v1/api/`                |
+| `FRONTEND_HOST`   | `VITE_FRONTEND_HOST`   | 前端服务器地址            | `http://localhost:5173`      | `https://app.example.com` |
+| `STATIC_HOST`     | `VITE_STATIC_HOST`     | 静态资源服务器地址        | `https://static.example.com` | `https://cdn.example.com` |
+| `BASE_URL`        | `VITE_BASE_URL`        | 静态资源基础路径          | `/`                          | `/static/frontend/`       |
+| `OAUTH_PROVIDERS` | `VITE_OAUTH_PROVIDERS` | 逗号分隔的OAuth提供商列表 | `''` (空值)                  | `google,github`           |
+| `OUTPUT_DIR`      | -                      | 输出目录路径              | `/output`                    | `/custom/output/path`     |
 
 **说明**：对应构建变量列显示了 baklab-web 项目 `.env.example` 中的相应变量名。在构建阶段，Vite 使用 `VITE_*` 前缀变量将占位符嵌入构建结果；在运行阶段，Docker 容器使用无前缀变量替换这些占位符为实际运行时值。
 
@@ -104,4 +104,4 @@ services:
     "OAUTH_PROVIDERS": "google,github"
   }
 }
-
+```

@@ -1,23 +1,26 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { postOAuthAuthorize, postOAuthCallback } from '@/api'
-import { OAUTH_PROVIDER, OAuthProvider } from '@/types/types'
-import { useAuthedUserStore } from '@/state/global'
-import { useTheme } from './theme-provider'
-
-import { Button } from './ui/button'
-
-import googleIcon from '@/assets/google.webp'
-import githubMarkIcon from '@/assets/github-mark.png'
 import githubMarkWhiteIcon from '@/assets/github-mark-white.png'
+import githubMarkIcon from '@/assets/github-mark.png'
+import googleIcon from '@/assets/google.webp'
+import { useAuthedUserStore } from '@/state/global'
+import { OAUTH_PROVIDER, OAuthProvider } from '@/types/types'
+
+import { useTheme } from './theme-provider'
+import { Button } from './ui/button'
 
 interface OAuthButtonProps {
   provider: OAuthProvider
   onSuccess?: () => void
   onError?: (error: string) => void
-  onUsernameRequired?: (email: string, provider: OAuthProvider, suggestedName: string) => void
+  onUsernameRequired?: (
+    email: string,
+    provider: OAuthProvider,
+    suggestedName: string
+  ) => void
   disabled?: boolean
 }
 
@@ -45,7 +48,7 @@ export const OAuthButton: React.FC<OAuthButtonProps> = ({
     }
 
     checkTheme()
-    
+
     // Listen for system theme changes when using system theme
     if (theme === 'system') {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
@@ -134,24 +137,31 @@ export const OAuthButton: React.FC<OAuthButtonProps> = ({
               try {
                 // Exchange code for user data
                 const callbackResponse = await postOAuthCallback(provider, code)
-                
+
                 if (callbackResponse.data) {
-                  const { needsUsername, email, provider: oauthProvider, suggestedName } = callbackResponse.data
-                  
+                  const {
+                    needsUsername,
+                    email,
+                    provider: oauthProvider,
+                    suggestedName,
+                  } = callbackResponse.data
+
                   if (needsUsername) {
                     // User needs to set username
                     onUsernameRequired?.(email, oauthProvider, suggestedName)
                   } else {
                     // Regular login flow
-                    const { token, userID, username, user } = callbackResponse.data
+                    const { token, userID, username, user } =
+                      callbackResponse.data
                     updateAuthState(token, username, userID, user)
                     onSuccess?.()
                   }
                 }
               } catch (callbackError: unknown) {
-                const errorMessage = callbackError instanceof Error 
-                  ? callbackError.message 
-                  : t('oauthLoginFailed')
+                const errorMessage =
+                  callbackError instanceof Error
+                    ? callbackError.message
+                    : t('oauthLoginFailed')
                 console.error('OAuth callback error:', callbackError)
                 toast.error(errorMessage)
                 onError?.(errorMessage)
@@ -171,7 +181,7 @@ export const OAuthButton: React.FC<OAuthButtonProps> = ({
         if (popup.closed) {
           clearInterval(checkClosed)
           window.removeEventListener('message', handleMessage)
-          
+
           // Only show cancellation message if OAuth didn't complete successfully
           if (!oauthCompleted) {
             console.log('Popup closed without OAuth completion')
@@ -180,11 +190,9 @@ export const OAuthButton: React.FC<OAuthButtonProps> = ({
           }
         }
       }, 1000)
-
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : t('oauthLoginFailed')
+      const errorMessage =
+        error instanceof Error ? error.message : t('oauthLoginFailed')
       toast.error(errorMessage)
       onError?.(errorMessage)
       setLoading(false)
@@ -205,13 +213,15 @@ export const OAuthButton: React.FC<OAuthButtonProps> = ({
       ) : (
         <div className="flex items-center justify-center gap-2">
           {providerIcon && (
-            <img 
-              src={providerIcon} 
+            <img
+              src={providerIcon}
               alt={`${getProviderName(provider)} icon`}
               className="w-5 h-5"
             />
           )}
-          <span>{t('continueWith', { provider: getProviderName(provider) })}</span>
+          <span>
+            {t('continueWith', { provider: getProviderName(provider) })}
+          </span>
         </div>
       )}
     </Button>

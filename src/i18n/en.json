@@ -578,7 +578,7 @@
   "deactivate": "Deactivate",
   "active": "Active",
   "inactive": "Inactive",
-  "clientSecret": "Client Secret", 
+  "clientSecret": "Client Secret",
   "newClientSecret": "New Client Secret",
   "clientSecretWarning": "This is your client secret. Copy it now as you won't be able to see it again.",
   "close": "Close",

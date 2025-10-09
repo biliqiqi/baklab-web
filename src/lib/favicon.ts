@@ -13,7 +13,7 @@ const initCanvas = () => {
 
 const getFaviconElement = (): HTMLLinkElement => {
   let faviconEl = document.querySelector('link[rel*="icon"]') as HTMLLinkElement
-  
+
   if (!faviconEl) {
     faviconEl = document.createElement('link')
     faviconEl.rel = 'shortcut icon'
@@ -48,7 +48,7 @@ const drawBadge = async (count: number) => {
   if (!ctx || !canvas) return
 
   ctx.clearRect(0, 0, 32, 32)
-  
+
   if (originalFavicon) {
     try {
       const img = await loadImage(originalFavicon)
@@ -59,12 +59,12 @@ const drawBadge = async (count: number) => {
       ctx.fillRect(0, 0, 32, 32)
     }
   }
-  
+
   if (count > 0) {
     const text = formatCount(count)
     const isDoubleDigit = text.length === 2
     const fontSize = isDoubleDigit ? 18 : 22
-    
+
     if (isDoubleDigit) {
       ctx.fillStyle = '#ef4444'
       ctx.beginPath()
@@ -76,14 +76,14 @@ const drawBadge = async (count: number) => {
       ctx.arc(16, 20, 12, 0, 2 * Math.PI)
       ctx.fill()
     }
-    
+
     ctx.fillStyle = '#ffffff'
     ctx.font = `bold ${fontSize}px Arial, sans-serif`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     ctx.fillText(text, 16, 20)
   }
-  
+
   return canvas.toDataURL('image/png')
 }
 
@@ -91,7 +91,7 @@ export const setFaviconBadge = async (count: number) => {
   initCanvas()
   const faviconEl = getFaviconElement()
   const dataUrl = await drawBadge(count)
-  
+
   if (dataUrl) {
     faviconEl.href = dataUrl
   }

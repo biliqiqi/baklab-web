@@ -37,7 +37,7 @@ services:
       - OAUTH_PROVIDERS=google,github
     volumes:
       - ./frontend_dist:/output
-    restart: "no"
+    restart: 'no'
 ```
 
 ## Environment Variables
@@ -46,15 +46,15 @@ services:
 
 The image supports the following environment variables for runtime replacement of placeholders in frontend code:
 
-| Environment Variable | Corresponding Build Variable | Description | Default Value | Example |
-|---------------------|------------------------------|-------------|---------------|---------|
-| `API_HOST` | `VITE_API_HOST` | API server address | `http://localhost:3000` | `https://api.example.com` |
-| `API_PATH_PREFIX` | `VITE_API_PATH_PREFIX` | API path prefix | `/api/` | `/v1/api/` |
-| `FRONTEND_HOST` | `VITE_FRONTEND_HOST` | Frontend server address | `http://localhost:5173` | `https://app.example.com` |
-| `STATIC_HOST` | `VITE_STATIC_HOST` | Static resource server address | `https://static.example.com` | `https://cdn.example.com` |
-| `BASE_URL` | `VITE_BASE_URL` | Static resource base path | `/` | `/static/frontend/` |
-| `OAUTH_PROVIDERS` | `VITE_OAUTH_PROVIDERS` | Comma-separated OAuth provider list | `''` (empty) | `google,github` |
-| `OUTPUT_DIR` | - | Output directory path | `/output` | `/custom/output/path` |
+| Environment Variable | Corresponding Build Variable | Description                         | Default Value                | Example                   |
+| -------------------- | ---------------------------- | ----------------------------------- | ---------------------------- | ------------------------- |
+| `API_HOST`           | `VITE_API_HOST`              | API server address                  | `http://localhost:3000`      | `https://api.example.com` |
+| `API_PATH_PREFIX`    | `VITE_API_PATH_PREFIX`       | API path prefix                     | `/api/`                      | `/v1/api/`                |
+| `FRONTEND_HOST`      | `VITE_FRONTEND_HOST`         | Frontend server address             | `http://localhost:5173`      | `https://app.example.com` |
+| `STATIC_HOST`        | `VITE_STATIC_HOST`           | Static resource server address      | `https://static.example.com` | `https://cdn.example.com` |
+| `BASE_URL`           | `VITE_BASE_URL`              | Static resource base path           | `/`                          | `/static/frontend/`       |
+| `OAUTH_PROVIDERS`    | `VITE_OAUTH_PROVIDERS`       | Comma-separated OAuth provider list | `''` (empty)                 | `google,github`           |
+| `OUTPUT_DIR`         | -                            | Output directory path               | `/output`                    | `/custom/output/path`     |
 
 **Note**: The "Corresponding Build Variable" column shows the corresponding variable names from the baklab-web project's `.env.example`. During build phase, Vite uses `VITE_*` prefixed variables to embed placeholders into build results; during runtime phase, Docker containers use non-prefixed variables to replace these placeholders with actual runtime values.
 

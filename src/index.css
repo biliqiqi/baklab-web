@@ -308,11 +308,11 @@ a:hover {
   :root {
     font-size: 14px;
   }
-  
-  .b-chat-card:hover .b-chat-controls__btns{
+
+  .b-chat-card:hover .b-chat-controls__btns {
     visibility: hidden;
   }
-  
+
   .b-chat-card__card:focus-within .b-chat-controls__btns {
     visibility: visible;
   }

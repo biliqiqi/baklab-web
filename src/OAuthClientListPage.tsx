@@ -1,20 +1,14 @@
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
-import { Badge } from './components/ui/badge'
-import { Button } from './components/ui/button'
-import { Card } from './components/ui/card'
-import { Input } from './components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from './components/ui/dialog'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +18,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from './components/ui/alert-dialog'
+import { Badge } from './components/ui/badge'
+import { Button } from './components/ui/button'
+import { Card } from './components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from './components/ui/dialog'
+import { Input } from './components/ui/input'
 import {
   Table,
   TableBody,
@@ -34,20 +39,25 @@ import {
 } from './components/ui/table'
 
 import BContainer from './components/base/BContainer'
+
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 import OAuthClientForm from './components/OAuthClientForm'
 
 import {
-  listOAuthClients,
   deleteOAuthClient,
-  setClientActive,
+  listOAuthClients,
   regenerateClientSecret,
+  setClientActive,
 } from './api/oauth'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
-import { useAlertDialogStore, useAuthedUserStore, useLoading } from './state/global'
+import {
+  useAlertDialogStore,
+  useAuthedUserStore,
+  useLoading,
+} from './state/global'
 import { OAuthClient, OAuthClientResponse } from './types/oauth'
 import { ListPageState } from './types/types'
 
@@ -65,7 +75,7 @@ export default function OAuthClientListPage() {
   const [showSecret, setShowSecret] = useState<string | null>(null)
   const [isNewSecret, setIsNewSecret] = useState(false)
   const [list, setList] = useState<OAuthClient[]>([])
-  
+
   const [params, setParams] = useSearchParams()
   const [searchData, setSearchData] = useState<SearchFields>({
     ...defaultSearchData,
@@ -103,7 +113,12 @@ export default function OAuthClientListPage() {
 
           setSearchData((state) => ({ ...state, keywords }))
 
-          const resp = await listOAuthClients(page, pageSize, undefined, keywords)
+          const resp = await listOAuthClients(
+            page,
+            pageSize,
+            undefined,
+            keywords
+          )
           if (!resp.code) {
             const { data } = resp
             if (data.list) {
@@ -160,7 +175,9 @@ export default function OAuthClientListPage() {
       )
       if (!confirmed) return
 
-      const { code } = await setClientActive(client.clientID, { isActive: !client.isActive })
+      const { code } = await setClientActive(client.clientID, {
+        isActive: !client.isActive,
+      })
       if (!code) {
         fetchClientList(false)
       }
@@ -186,17 +203,20 @@ export default function OAuthClientListPage() {
     [alertDialog, t]
   )
 
-  const onFormSuccess = useCallback((client?: OAuthClientResponse, isNewClient?: boolean) => {
-    setShowForm(false)
-    setEditingClient(null)
-    fetchClientList(false)
-    
-    // If new client with secret, show secret
-    if (isNewClient && client?.clientSecret) {
-      setIsNewSecret(true)
-      setShowSecret(client.clientSecret)
-    }
-  }, [fetchClientList])
+  const onFormSuccess = useCallback(
+    (client?: OAuthClientResponse, isNewClient?: boolean) => {
+      setShowForm(false)
+      setEditingClient(null)
+      fetchClientList(false)
+
+      // If new client with secret, show secret
+      if (isNewClient && client?.clientSecret) {
+        setIsNewSecret(true)
+        setShowSecret(client.clientSecret)
+      }
+    },
+    [fetchClientList]
+  )
 
   const resetParams = useCallback(() => {
     setParams((params) => {
@@ -302,7 +322,9 @@ export default function OAuthClientListPage() {
             variant="secondary"
             size="sm"
             onClick={() => onToggleActiveClick(row.original)}
-            className={row.original.isActive ? 'text-orange-600' : 'text-green-600'}
+            className={
+              row.original.isActive ? 'text-orange-600' : 'text-green-600'
+            }
           >
             {row.original.isActive ? t('deactivate') : t('activate')}
           </Button>
@@ -369,10 +391,20 @@ export default function OAuthClientListPage() {
           />
         </div>
         <div>
-          <Button variant="outline" size="sm" onClick={onResetClick} className="mr-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onResetClick}
+            className="mr-3"
+          >
             {t('reset')}
           </Button>
-          <Button variant="outline" size="sm" onClick={onSearchClick} className="mr-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onSearchClick}
+            className="mr-3"
+          >
             {t('search')}
           </Button>
           <Button size="sm" onClick={() => setShowForm(true)}>

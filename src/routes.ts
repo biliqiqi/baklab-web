@@ -119,7 +119,11 @@ const checkHomepageAuth = () => {
   return null
 }
 
-const checkSiteFeedAuth = ({ params }: { params: { siteFrontId?: string } }) => {
+const checkSiteFeedAuth = ({
+  params,
+}: {
+  params: { siteFrontId?: string }
+}) => {
   const authState = useAuthedUserStore.getState()
   if (!authState.isLogined()) {
     return redirect(`/${params.siteFrontId}/all`)

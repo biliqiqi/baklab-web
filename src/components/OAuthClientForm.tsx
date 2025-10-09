@@ -42,12 +42,13 @@ const logoURLSchema = z.string().url().optional().or(z.literal(''))
 
 const descriptionSchema = z.string()
 
-const oauthClientSchema = (i: I18n) => z.object({
-  name: nameSchema(i),
-  description: descriptionSchema,
-  redirectURI: redirectURISchema(i),
-  logoURL: logoURLSchema,
-})
+const oauthClientSchema = (i: I18n) =>
+  z.object({
+    name: nameSchema(i),
+    description: descriptionSchema,
+    redirectURI: redirectURISchema(i),
+    logoURL: logoURLSchema,
+  })
 
 type OAuthClientSchema = z.infer<ReturnType<typeof oauthClientSchema>>
 
@@ -97,7 +98,7 @@ const OAuthClientForm: React.FC<OAuthClientFormProps> = ({
             redirectURI: vals.redirectURI,
             logoURL: vals.logoURL || '',
           })
-          
+
           if (!resp?.code) {
             onSuccess(undefined, false)
           }
@@ -108,7 +109,7 @@ const OAuthClientForm: React.FC<OAuthClientFormProps> = ({
             redirectURI: vals.redirectURI,
             logoURL: vals.logoURL || '',
           })
-          
+
           if (!resp?.code) {
             onSuccess(resp?.data, true)
           }
@@ -190,7 +191,9 @@ const OAuthClientForm: React.FC<OAuthClientFormProps> = ({
           name="logoURL"
           render={({ field, fieldState }) => (
             <FormItem>
-              <FormLabel>{t('logoURL')} ({t('optional')})</FormLabel>
+              <FormLabel>
+                {t('logoURL')} ({t('optional')})
+              </FormLabel>
               <FormControl>
                 <Input
                   placeholder="https://example.com/logo.png"
@@ -212,11 +215,7 @@ const OAuthClientForm: React.FC<OAuthClientFormProps> = ({
             type="submit"
             disabled={!form.formState.isDirty || submitting}
           >
-            {submitting
-              ? t('submitting')
-              : isEdit
-              ? t('update')
-              : t('create')}
+            {submitting ? t('submitting') : isEdit ? t('update') : t('create')}
           </Button>
         </div>
       </form>

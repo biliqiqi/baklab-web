@@ -1,6 +1,7 @@
 import { clone } from 'remeda'
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
+
 import { refreshAuthState } from '@/lib/request'
 import { noop, setRootFontSize } from '@/lib/utils'
 
@@ -8,7 +9,6 @@ import { getCategoryList } from '@/api/category'
 import { getNotificationUnreadCount } from '@/api/message'
 import { getJoinedSiteList, getSiteWithFrontId } from '@/api/site'
 import { DEFAULT_CONTENT_WIDTH, DEFAULT_FONT_SIZE } from '@/constants/constants'
-import i18n from '@/i18n'
 import {
   LEFT_SIDEBAR_DEFAULT_OPEN,
   LEFT_SIDEBAR_STATE_KEY,
@@ -17,6 +17,7 @@ import {
   USER_UI_SETTINGS_KEY,
 } from '@/constants/constants'
 import { PermitFn, PermitUnderSiteFn } from '@/constants/types'
+import i18n from '@/i18n'
 import {
   Article,
   ArticleLog,
@@ -277,9 +278,12 @@ const isUserUIFormActive = () => {
   return rightSidebarState.open && rightSidebarState.settingsType === 'user_ui'
 }
 
-let pendingUISettingsCallback: ((settings: BackendUISettings) => void) | null = null
+let pendingUISettingsCallback: ((settings: BackendUISettings) => void) | null =
+  null
 
-export const registerUISettingsCallback = (callback: (settings: BackendUISettings) => void) => {
+export const registerUISettingsCallback = (
+  callback: (settings: BackendUISettings) => void
+) => {
   pendingUISettingsCallback = callback
 }
 
@@ -338,20 +342,26 @@ useAuthedUserStore.subscribe(
       const localUISettings = getLocalUserUISettings()
       const backendTimestamp = (user.uiSettings.updatedAt as number) || 0
       const localTimestamp = localUISettings?.updatedAt || 0
-      
+
       // Use timestamp-based sync: apply settings from the most recent source
       if (!localUISettings || backendTimestamp > localTimestamp) {
         // Backend settings are newer, apply all backend settings
         applyBackendUISettings(user.uiSettings as BackendUISettings)
-        
+
         // Update local cache with backend settings
         const backendSettings = user.uiSettings as BackendUISettings
         const currentState = useUserUIStore.getState()
         setLocalUserUISettings({
           siteListMode: backendSettings.mode || currentState.siteListMode,
           theme: backendSettings.theme || currentState.theme,
-          fontSize: backendSettings.fontSize || currentState.fontSize || Number(DEFAULT_FONT_SIZE),
-          contentWidth: backendSettings.contentWidth || currentState.contentWidth || Number(DEFAULT_CONTENT_WIDTH),
+          fontSize:
+            backendSettings.fontSize ||
+            currentState.fontSize ||
+            Number(DEFAULT_FONT_SIZE),
+          contentWidth:
+            backendSettings.contentWidth ||
+            currentState.contentWidth ||
+            Number(DEFAULT_CONTENT_WIDTH),
           updatedAt: backendTimestamp,
         })
       }
@@ -1010,13 +1020,14 @@ export interface CategorySelectionModalState {
   show: (siteFrontId: string) => void
 }
 
-export const useCategorySelectionModalStore = create<CategorySelectionModalState>((set) => ({
-  open: false,
-  siteFrontId: null,
-  setOpen(open) {
-    set((state) => ({ ...state, open }))
-  },
-  show(siteFrontId) {
-    set(() => ({ open: true, siteFrontId }))
-  },
-}))
+export const useCategorySelectionModalStore =
+  create<CategorySelectionModalState>((set) => ({
+    open: false,
+    siteFrontId: null,
+    setOpen(open) {
+      set((state) => ({ ...state, open }))
+    },
+    show(siteFrontId) {
+      set(() => ({ open: true, siteFrontId }))
+    },
+  }))

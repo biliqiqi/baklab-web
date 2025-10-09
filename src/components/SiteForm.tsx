@@ -587,7 +587,9 @@ const SiteForm: React.FC<SiteFormProps> = ({
                     <FormLabel className="font-normal mr-1">
                       {t('public')}
                     </FormLabel>
-                    <FormDescription>{t('publicVisibilityDescription')}</FormDescription>
+                    <FormDescription>
+                      {t('publicVisibilityDescription')}
+                    </FormDescription>
                   </FormItem>
                   <FormItem
                     className="flex items-center space-y-0 mr-4 mb-4"

@@ -10,12 +10,12 @@ import {
 import { UseFormReturn, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { useShallow } from 'zustand/react/shallow'
 import z from 'zod'
+import { useShallow } from 'zustand/react/shallow'
 
 import { noop, setRootFontSize } from '@/lib/utils'
-import { saveUserUISettings } from '@/api/user'
 
+import { saveUserUISettings } from '@/api/user'
 import {
   DEFAULT_CONTENT_WIDTH,
   DEFAULT_FONT_SIZE,
@@ -25,9 +25,9 @@ import i18n from '@/i18n'
 import {
   BackendUISettings,
   forceApplyUISettings,
+  getLocalUserUISettings,
   registerUISettingsCallback,
   setLocalUserUISettings,
-  getLocalUserUISettings,
   unregisterUISettingsCallback,
   useForceUpdate,
   useSiteStore,
@@ -288,7 +288,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
             fontSize: Number(fs) || Number(DEFAULT_FONT_SIZE),
             contentWidth: Number(cw) || Number(DEFAULT_CONTENT_WIDTH),
             lang,
-            updatedAt: timestamp
+            updatedAt: timestamp,
           })
         } catch (err) {
           console.error('save UI settings error: ', err)
@@ -374,15 +374,22 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
               forceApplyUISettings(settings)
 
               // Then update form to reflect the new values
-              const newFontSizeStr = String(settings.fontSize || Number(DEFAULT_FONT_SIZE))
-              const newContentWidthStr = String(settings.contentWidth || Number(DEFAULT_CONTENT_WIDTH))
+              const newFontSizeStr = String(
+                settings.fontSize || Number(DEFAULT_FONT_SIZE)
+              )
+              const newContentWidthStr = String(
+                settings.contentWidth || Number(DEFAULT_CONTENT_WIDTH)
+              )
 
-              const newFontSizeVal = fontSizeSchema.safeParse(newFontSizeStr).success
-                ? newFontSizeStr as FontSizeSchema
+              const newFontSizeVal = fontSizeSchema.safeParse(newFontSizeStr)
+                .success
+                ? (newFontSizeStr as FontSizeSchema)
                 : 'custom'
 
-              const newContentWidthVal = contentWidthSchema.safeParse(newContentWidthStr).success
-                ? newContentWidthStr as ContentWidthSchema
+              const newContentWidthVal = contentWidthSchema.safeParse(
+                newContentWidthStr
+              ).success
+                ? (newContentWidthStr as ContentWidthSchema)
                 : 'custom'
 
               form.reset({
@@ -390,9 +397,11 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                 mode: settings.mode || SITE_LIST_MODE.TopDrawer,
                 theme: (settings.theme || DEFAULT_THEME) as ThemeSchema,
                 fontSize: newFontSizeVal,
-                customFontSize: newFontSizeVal === 'custom' ? newFontSizeStr : '',
+                customFontSize:
+                  newFontSizeVal === 'custom' ? newFontSizeStr : '',
                 contentWidth: newContentWidthVal,
-                customContentWidth: newContentWidthVal === 'custom' ? newContentWidthStr : '',
+                customContentWidth:
+                  newContentWidthVal === 'custom' ? newContentWidthStr : '',
                 lang: (settings.lang || i18n.language) as LanguageSchema,
               })
             },

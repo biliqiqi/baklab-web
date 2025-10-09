@@ -77,26 +77,26 @@ const ChatPage: React.FC<ChatPageProps> = ({
   const editHandlerRef = useRef<((x: Article) => void) | null>(null)
   const newMessageHandlerRef = useRef<
     | ((
-      atBottom: boolean,
-      siteFrontId: string,
-      categoryFrontId: string
-    ) => (data: ChatMessage) => void)
+        atBottom: boolean,
+        siteFrontId: string,
+        categoryFrontId: string
+      ) => (data: ChatMessage) => void)
     | null
   >(null)
 
   const refreshChatListHandlerRef = useRef<
     | ((
-      siteFrontId: string,
-      categoryFrontId: string
-    ) => (roomData: ChatRoom, _messageList?: ChatMessage[]) => void)
+        siteFrontId: string,
+        categoryFrontId: string
+      ) => (roomData: ChatRoom, _messageList?: ChatMessage[]) => void)
     | null
   >(null)
 
   const deleteMessageHandlerRef = useRef<
     | ((
-      siteFrontId: string,
-      categoryFrontId: string
-    ) => (messageId: string, roomPath: string) => void)
+        siteFrontId: string,
+        categoryFrontId: string
+      ) => (messageId: string, roomPath: string) => void)
     | null
   >(null)
 
@@ -240,7 +240,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
   const getLocalChatList = toSync(getIDBChatList, (data) => {
     /* console.log('getLocalChatList: ', data) */
     const currentPath = `/${siteFrontId}/bankuai/${categoryFrontId}`
-    
+
     if (data && data.path === currentPath) {
       setChatList((state) => ({ ...state, ...data }))
     } else {
@@ -251,31 +251,32 @@ const ChatPage: React.FC<ChatPageProps> = ({
   useEffect(() => {
     const CreateOnNewMessage =
       (atBottom: boolean, siteFrontId: string, categoryFrontId: string) =>
-        (data: ChatMessage) => {
-          if (data.roomPath != `/${siteFrontId}/bankuai/${categoryFrontId}`)
-            return
-          /* console.log('new message: ', data) */
-          getLocalChatList(siteFrontId, categoryFrontId)
-          if (atBottom) {
-            setTimeout(() => {
-              scrollToBottom('smooth')
-            }, 0)
-          }
+      (data: ChatMessage) => {
+        if (data.roomPath != `/${siteFrontId}/bankuai/${categoryFrontId}`)
+          return
+        /* console.log('new message: ', data) */
+        getLocalChatList(siteFrontId, categoryFrontId)
+        if (atBottom) {
+          setTimeout(() => {
+            scrollToBottom('smooth')
+          }, 0)
         }
+      }
 
     const CreateRefreshChatList =
       (siteFrontId: string, categoryFrontId: string) =>
-        (roomData: ChatRoom, _messageList?: ChatMessage[]) => {
-          if (roomData.path != `/${siteFrontId}/bankuai/${categoryFrontId}`) return
-          getLocalChatList(siteFrontId, categoryFrontId)
-        }
+      (roomData: ChatRoom, _messageList?: ChatMessage[]) => {
+        if (roomData.path != `/${siteFrontId}/bankuai/${categoryFrontId}`)
+          return
+        getLocalChatList(siteFrontId, categoryFrontId)
+      }
 
     const CreateDeleteMessageHandler =
       (siteFrontId: string, categoryFrontId: string) =>
-        (_messageId: string, roomPath: string) => {
-          if (roomPath != `/${siteFrontId}/bankuai/${categoryFrontId}`) return
-          getLocalChatList(siteFrontId, categoryFrontId)
-        }
+      (_messageId: string, roomPath: string) => {
+        if (roomPath != `/${siteFrontId}/bankuai/${categoryFrontId}`) return
+        getLocalChatList(siteFrontId, categoryFrontId)
+      }
 
     replyHandlerRef.current = onReplyClick
     editHandlerRef.current = onEditClick
@@ -448,9 +449,9 @@ const ChatPage: React.FC<ChatPageProps> = ({
                 ...item,
                 currUserState: item.currUserState
                   ? {
-                    ...item.currUserState,
-                    isRead: true,
-                  }
+                      ...item.currUserState,
+                      isRead: true,
+                    }
                   : null,
               }
 
@@ -627,14 +628,20 @@ const ChatPage: React.FC<ChatPageProps> = ({
 
       const tryScrollToMessage = (retries = 5) => {
         if (messageId) {
-          const targetMessageEl = document.querySelector(`${messageId}`) as HTMLElement
+          const targetMessageEl = document.querySelector(
+            `${messageId}`
+          ) as HTMLElement
           if (targetMessageEl) {
-            scrollToElement(targetMessageEl, () => {
-              cb()
-              setTimeout(() => {
-                highlightElement(targetMessageEl, 'b-chat-highlight')
-              }, 100)
-            }, 'instant')
+            scrollToElement(
+              targetMessageEl,
+              () => {
+                cb()
+                setTimeout(() => {
+                  highlightElement(targetMessageEl, 'b-chat-highlight')
+                }, 100)
+              },
+              'instant'
+            )
           } else if (retries > 0) {
             // Element not found, retry after DOM update
             setTimeout(() => tryScrollToMessage(retries - 1), 100)
@@ -664,19 +671,23 @@ const ChatPage: React.FC<ChatPageProps> = ({
   useEffect(() => {
     if (!chatList.initialized) return
 
-    const messageId = /^#message\d+$/.test(location.hash)
-      ? location.hash
-      : null
+    const messageId = /^#message\d+$/.test(location.hash) ? location.hash : null
 
     if (messageId) {
       const tryScrollToMessage = (retries = 3) => {
-        const targetMessageEl = document.querySelector(`${messageId}`) as HTMLElement
+        const targetMessageEl = document.querySelector(
+          `${messageId}`
+        ) as HTMLElement
         if (targetMessageEl) {
-          scrollToElement(targetMessageEl, () => {
-            setTimeout(() => {
-              highlightElement(targetMessageEl, 'b-chat-highlight')
-            }, 100)
-          }, 'smooth')
+          scrollToElement(
+            targetMessageEl,
+            () => {
+              setTimeout(() => {
+                highlightElement(targetMessageEl, 'b-chat-highlight')
+              }, 100)
+            },
+            'smooth'
+          )
         } else if (retries > 0) {
           setTimeout(() => tryScrollToMessage(retries - 1), 100)
         }
@@ -689,7 +700,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
   useEffect(() => {
     if (!siteFrontId || !categoryFrontId || !currCate) return
     const currentPath = `/${siteFrontId}/bankuai/${categoryFrontId}`
-    
+
     // Only load local data if the path matches current route
     setChatList((prevState) => {
       if (prevState.path && prevState.path !== currentPath) {
@@ -697,7 +708,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
       }
       return prevState
     })
-    
+
     // Delay loading local data to ensure state is cleared first
     setTimeout(() => {
       getLocalChatList(siteFrontId, categoryFrontId)

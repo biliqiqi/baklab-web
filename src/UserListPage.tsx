@@ -547,7 +547,12 @@ export default function UserListPage() {
           />
         </div>
         <div>
-          <Button variant="outline" size="sm" onClick={onResetClick} className="mr-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onResetClick}
+            className="mr-3"
+          >
             {t('reset')}
           </Button>
           <Button variant="outline" size="sm" onClick={onSearchClick}>

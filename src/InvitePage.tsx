@@ -14,7 +14,11 @@ import { getInvite } from './api/invite-code'
 import { acceptSiteInvite } from './api/site'
 import { SINGUP_RETURN_COOKIE_NAME } from './constants/constants'
 import { toSync } from './lib/fire-and-forget'
-import { useAuthedUserStore, useCategorySelectionModalStore, useSiteStore } from './state/global'
+import {
+  useAuthedUserStore,
+  useCategorySelectionModalStore,
+  useSiteStore,
+} from './state/global'
 import { InviteCode, Site } from './types/types'
 
 export default function InvitePage() {
@@ -37,7 +41,7 @@ export default function InvitePage() {
   const { fetchSiteList } = useSiteStore(
     useShallow(({ fetchSiteList }) => ({ fetchSiteList }))
   )
-  
+
   const { showCategorySelectionModal } = useCategorySelectionModalStore(
     useShallow(({ show }) => ({ showCategorySelectionModal: show }))
   )
@@ -86,7 +90,7 @@ export default function InvitePage() {
 
       setAcceptingInvite(true)
       acceptedRef.current = true
-      
+
       const { code } = await acceptSiteInvite(site.frontId, inviteData.code)
       if (!code) {
         await fetchSiteList()
@@ -99,7 +103,14 @@ export default function InvitePage() {
     } finally {
       setAcceptingInvite(false)
     }
-  }, [site, inviteData, acceptingInvite, navigate, fetchSiteList, showCategorySelectionModal])
+  }, [
+    site,
+    inviteData,
+    acceptingInvite,
+    navigate,
+    fetchSiteList,
+    showCategorySelectionModal,
+  ])
 
   const onAcceptInviteClick = useCallback(() => {
     const now = Date.now()
@@ -149,7 +160,15 @@ export default function InvitePage() {
         }
       })(inviteCode)
     }
-  }, [inviteCode, inviteData, expired, isLogined, accepted, acceptInvite, navigate])
+  }, [
+    inviteCode,
+    inviteData,
+    expired,
+    isLogined,
+    accepted,
+    acceptInvite,
+    navigate,
+  ])
 
   return (
     <div className="flex h-screen items-center justify-center">
@@ -177,7 +196,10 @@ export default function InvitePage() {
           <div className="mb-2">{t('invitationDataRequired')}</div>
         )}
         {site && !expired && (
-          <Button onClick={onAcceptInviteClick} disabled={acceptingInvite || acceptedRef.current}>
+          <Button
+            onClick={onAcceptInviteClick}
+            disabled={acceptingInvite || acceptedRef.current}
+          >
             {acceptingInvite ? <BLoader /> : t('acceptInvitation')}
           </Button>
         )}

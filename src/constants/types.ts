@@ -2,8 +2,17 @@ import i18next from 'i18next'
 
 import { Site } from '@/types/types'
 
-
-export type PermissionModule = 'article' | 'user' | 'manage' | 'platform_manage' | 'permission' | 'role' | 'activity' | 'category' | 'site' | 'oauth'
+export type PermissionModule =
+  | 'article'
+  | 'user'
+  | 'manage'
+  | 'platform_manage'
+  | 'permission'
+  | 'role'
+  | 'activity'
+  | 'category'
+  | 'site'
+  | 'oauth'
 
 export type PermissionAction<_K extends PermissionModule> = string
 

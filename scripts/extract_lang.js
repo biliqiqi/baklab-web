@@ -1,6 +1,7 @@
+import { Command } from 'commander'
 import fs from 'fs'
 import { glob } from 'glob'
-import { Command } from 'commander'
+
 const program = new Command()
 
 // Setup command line arguments
@@ -16,7 +17,11 @@ program
     []
   )
   .option('-o, --out <file>', 'Output file path', 'src/i18n/lang_text.js')
-  .option('-r, --regex <pattern>', 'Regular expression for matching', '\\p{Script=Han}+')
+  .option(
+    '-r, --regex <pattern>',
+    'Regular expression for matching',
+    '\\p{Script=Han}+'
+  )
   .option(
     '-c, --current <file>',
     'Current extracted language data file (JSON)',
@@ -28,7 +33,9 @@ const options = program.opts()
 
 // Check required parameters
 if (options.files.length === 0) {
-  console.error('Error: Please provide at least one file glob pattern (-f or --files)')
+  console.error(
+    'Error: Please provide at least one file glob pattern (-f or --files)'
+  )
   process.exit(1)
 }
 

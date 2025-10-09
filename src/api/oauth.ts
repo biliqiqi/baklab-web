@@ -1,21 +1,22 @@
 import request, { authRequest } from '@/lib/request'
-import { ResponseData, CustomRequestOptions } from '@/types/types'
+
 import {
-  OAuthClient,
-  OAuthClientResponse,
-  OAuthClientListResponse,
   CreateOAuthClientRequest,
-  UpdateOAuthClientRequest,
+  OAuthAuthorizeConfirmRequest,
   OAuthAuthorizeParams,
   OAuthAuthorizeResponse,
-  OAuthAuthorizeConfirmRequest,
+  OAuthClient,
+  OAuthClientListResponse,
+  OAuthClientResponse,
+  OAuthClientStats,
   OAuthTokenRequest,
   OAuthTokenResponse,
-  UserOAuthAuthorizationListResponse,
-  OAuthClientStats,
   RegenerateSecretResponse,
   SetClientActiveRequest,
+  UpdateOAuthClientRequest,
+  UserOAuthAuthorizationListResponse,
 } from '@/types/oauth'
+import { CustomRequestOptions, ResponseData } from '@/types/types'
 
 // OAuth client management interfaces (admin permissions)
 
@@ -33,19 +34,19 @@ export const listOAuthClients = async (
   custom?: CustomRequestOptions
 ): Promise<ResponseData<OAuthClientListResponse>> => {
   const params = new URLSearchParams()
-  
+
   if (page) {
     params.set('page', String(page))
   }
-  
+
   if (pageSize) {
     params.set('pageSize', String(pageSize))
   }
-  
+
   if (active !== undefined) {
     params.set('active', String(active))
   }
-  
+
   if (keywords) {
     params.set('keywords', keywords)
   }
@@ -82,14 +83,22 @@ export const regenerateClientSecret = async (
   clientId: string,
   custom?: CustomRequestOptions
 ): Promise<ResponseData<RegenerateSecretResponse>> =>
-  authRequest.post(`oauth_provider/clients/${clientId}/regenerate-secret`, {}, custom)
+  authRequest.post(
+    `oauth_provider/clients/${clientId}/regenerate-secret`,
+    {},
+    custom
+  )
 
 export const setClientActive = async (
   clientId: string,
   data: SetClientActiveRequest,
   custom?: CustomRequestOptions
 ): Promise<ResponseData<null>> =>
-  authRequest.put(`oauth_provider/clients/${clientId}/active`, { json: data }, custom)
+  authRequest.put(
+    `oauth_provider/clients/${clientId}/active`,
+    { json: data },
+    custom
+  )
 
 export const getClientStats = async (
   clientId: string,
@@ -112,11 +121,11 @@ export const authorizeOAuth = async (
   searchParams.set('response_type', params.response_type)
   searchParams.set('client_id', params.client_id)
   searchParams.set('redirect_uri', params.redirect_uri)
-  
+
   if (params.scope) {
     searchParams.set('scope', params.scope)
   }
-  
+
   if (params.state) {
     searchParams.set('state', params.state)
   }
@@ -141,7 +150,11 @@ export const exchangeToken = async (
   custom?: CustomRequestOptions
 ): Promise<OAuthTokenResponse> => {
   // This interface may need to support form format, adjust based on backend implementation
-  const response = await request.post(`oauth_provider/token`, { json: data }, custom) as unknown
+  const response = (await request.post(
+    `oauth_provider/token`,
+    { json: data },
+    custom
+  )) as unknown
   return response as OAuthTokenResponse
 }
 
@@ -157,13 +170,17 @@ export const exchangeTokenForm = async (
   formData.set('client_id', data.client_id)
   formData.set('client_secret', data.client_secret)
 
-  const response = await request.post(`oauth_provider/token`, {
-    body: formData,
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
+  const response = (await request.post(
+    `oauth_provider/token`,
+    {
+      body: formData,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
     },
-  }, custom) as unknown
-  
+    custom
+  )) as unknown
+
   return response as OAuthTokenResponse
 }
 
@@ -176,15 +193,15 @@ export const getUserAuthorizations = async (
   custom?: CustomRequestOptions
 ): Promise<ResponseData<UserOAuthAuthorizationListResponse>> => {
   const params = new URLSearchParams()
-  
+
   if (page) {
     params.set('page', String(page))
   }
-  
+
   if (pageSize) {
     params.set('pageSize', String(pageSize))
   }
-  
+
   if (active !== undefined) {
     params.set('active', String(active))
   }

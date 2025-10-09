@@ -1,4 +1,3 @@
-
 export const PERMISSION_MODULE_DATA = {
   article: 'post',
   user: 'user',

@@ -67,20 +67,29 @@ const defaultOptions: Options = {
             console.error('parse response data error: ', e)
           }
 
-          const createSuccessResponse = (responseData: ResponseData<unknown> | null) =>
+          const createSuccessResponse = (
+            responseData: ResponseData<unknown> | null
+          ) =>
             new Response(JSON.stringify(responseData || {}), {
               status: 200,
-              headers: { 'Content-Type': 'application/json' }
+              headers: { 'Content-Type': 'application/json' },
             })
 
-          const handleErrorWithToast = (message: string, responseData: ResponseData<unknown> | null) => {
+          const handleErrorWithToast = (
+            message: string,
+            responseData: ResponseData<unknown> | null
+          ) => {
             toast.error(message)
             return createSuccessResponse(responseData)
           }
 
           switch (true) {
             case status == 400:
-              console.log('Handling 400 error:', { data, message: data?.message, code: data?.code })
+              console.log('Handling 400 error:', {
+                data,
+                message: data?.message,
+                code: data?.code,
+              })
               return handleErrorWithToast(
                 data?.message || i18n.t('badRequestError'),
                 data
@@ -125,7 +134,7 @@ const addAuthToHeaders: BeforeRequestHook = (req, _opt) => {
 const refreshTokenHook: AfterResponseHook = async (req, _opt, resp) => {
   if (!resp.ok && resp.status == 401 && !isRefreshRequest(req)) {
     const refreshSuccess = await refreshAuthState()
-    
+
     if (refreshSuccess) {
       // Clone the original request and add the new token
       const newReq = req.clone()
@@ -133,7 +142,7 @@ const refreshTokenHook: AfterResponseHook = async (req, _opt, resp) => {
       if (newToken) {
         newReq.headers.set('Authorization', `Bearer ${newToken}`)
       }
-      
+
       // Retry the original request with the new token
       return fetch(newReq)
     }
@@ -149,7 +158,6 @@ const authToastHook: AfterResponseHook = (_req, _opt, resp) => {
     }
   }
 }
-
 
 const makeAuthRequestConfigs = (
   custom: CustomRequestOptions = { showAuthToast: true }
@@ -328,7 +336,7 @@ export const refreshAuthState = async (refreshUser = false) => {
       data: { token, username, userID, user },
       code,
     } = await refreshToken(refreshUser)
-    
+
     if (!code) {
       const updateBaseData = useAuthedUserStore.getState().updateBaseData
       updateBaseData(token, username, userID)

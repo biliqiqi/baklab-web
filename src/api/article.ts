@@ -3,21 +3,21 @@ import { Options } from 'ky'
 import { authRequest } from '@/lib/request'
 
 import {
-    ArticleDeleteResponse,
-    ArticleHistoryResponse,
-    ArticleItemResponse,
-    ArticleListResponse,
-    ArticleListSort,
-    ArticleListType,
-    ArticleLockAction,
-    ArticleResponse,
-    ArticleStatus,
-    ArticleSubmitResponse,
-    CustomRequestOptions,
-    ResponseData,
-    SUBSCRIBE_ACTION,
-    SubscribeAction,
-    VoteType,
+  ArticleDeleteResponse,
+  ArticleHistoryResponse,
+  ArticleItemResponse,
+  ArticleListResponse,
+  ArticleListSort,
+  ArticleListType,
+  ArticleLockAction,
+  ArticleResponse,
+  ArticleStatus,
+  ArticleSubmitResponse,
+  CustomRequestOptions,
+  ResponseData,
+  SUBSCRIBE_ACTION,
+  SubscribeAction,
+  VoteType,
 } from '@/types/types'
 
 export const submitArticle = (

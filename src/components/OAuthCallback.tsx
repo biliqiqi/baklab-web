@@ -18,7 +18,7 @@ const OAuthCallback: React.FC = () => {
         code,
         error: error || errorDescription,
       }
-      
+
       const opener = window.opener as Window
       opener.postMessage(message, window.location.origin)
       window.close()
@@ -32,7 +32,9 @@ const OAuthCallback: React.FC = () => {
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center">
-        <h2 className="text-lg font-semibold mb-2">Processing OAuth login...</h2>
+        <h2 className="text-lg font-semibold mb-2">
+          Processing OAuth login...
+        </h2>
         <p className="text-sm text-muted-foreground">
           This window will close automatically.
         </p>

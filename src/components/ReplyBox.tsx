@@ -482,7 +482,15 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
         }, 200)
       }
     }
-  }, [isActive, replyBoxHeight, targetInputEl, form, loading, justSubmitted, isComposing])
+  }, [
+    isActive,
+    replyBoxHeight,
+    targetInputEl,
+    form,
+    loading,
+    justSubmitted,
+    isComposing,
+  ])
 
   useEffect(() => {
     /* console.log('editting: ', isEditting) */

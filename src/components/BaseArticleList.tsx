@@ -200,7 +200,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
         ...defaultPageState,
       })
     }
-  }, [params, setLoading])
+  }, [params, setLoading, fetchArticles])
 
   return (
     <>

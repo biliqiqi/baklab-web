@@ -4,13 +4,11 @@ English | [简体中文](DOCKER_USAGE.zh.md)
 
 ## Overview
 
-BakLab Frontend Docker provides packaged BakLab Web frontend static assets with runtime environment variable replacement and resource manifest generation support.
+BakLab Frontend Docker provides packaged BakLab Web frontend static assets. It supports runtime environment variable replacement to configure the frontend at container runtime, automatically generates resource manifest files, and allows custom output directories for volume sharing.
 
-## Image Features
+**Note: This image is only for providing packaged static assets and does not handle static asset hosting.**
 
-- **Runtime Environment Variable Replacement**: Supports replacing environment variable placeholders in frontend code at container runtime
-- **Resource Manifest Generation**: Automatically generates detailed frontend resource manifest files
-- **Flexible Output Directory**: Supports custom output directories for volume sharing
+You can use the pre-built image directly from: `ghcr.io/biliqiqi/baklab-web:latest`
 
 ## Basic Usage
 

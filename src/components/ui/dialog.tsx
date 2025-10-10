@@ -43,7 +43,7 @@ const DialogContent = React.forwardRef<
         'gap-4 border bg-dialog p-6 shadow-lg ',
         'duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 md:data-[state=closed]:slide-out-to-left-1/2 md:data-[state=closed]:slide-out-to-top-[48%] md:data-[state=open]:slide-in-from-left-1/2 md:data-[state=open]:slide-in-from-top-[48%]',
         'sm:rounded-lg',
-        'max-md:sticky max-md:max-w-[100vw] max-md:max-h-[100vh] max-md:w-full max-md:h-full max-md:bottom-0 max-md:top-0 max-md:left-0 max-md:right-0 max-md:data-[state=open]:slide-in-from-bottom-[48%] max-md:data-[state=closed]:slide-out-to-bottom-[48%]',
+        'max-md:sticky max-md:max-w-[100vw] max-md:max-h-[100vh] max-md:w-full max-md:h-full max-md:bottom-0 max-md:top-0 max-md:left-0 max-md:right-0 max-md:data-[state=open]:slide-in-from-bottom-[48%] max-md:data-[state=closed]:slide-out-to-bottom-[48%] max-md:pb-12',
         className
       )}
       {...props}

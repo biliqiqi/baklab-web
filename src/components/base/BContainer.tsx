@@ -694,7 +694,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               }}
             >
               <div
-                className="container mx-auto p-4"
+                className="container mx-auto p-4 max-md:px-2"
                 {...props}
                 style={{
                   // maxWidth: `${innerContentWidth}px`,

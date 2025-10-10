@@ -4,11 +4,11 @@ import MarkdownIt from 'markdown-it'
 import { KeyboardEvent, KeyboardEventHandler } from 'react'
 import { twMerge } from 'tailwind-merge'
 
-import { DEFAULT_FONT_SIZE } from '@/constants/constants'
 import { SITE_STATUS_COLOR_MAP } from '@/constants/maps'
 import { PERMISSION_MODULE_DATA } from '@/constants/permissions'
 import { PermissionModule } from '@/constants/types'
 import i18n from '@/i18n'
+import { useDefaultFontSizeStore } from '@/state/global'
 import { Article, ArticleStatus, SITE_STATUS, SiteStatus } from '@/types/types'
 
 export function cn(...inputs: ClassValue[]) {
@@ -173,7 +173,8 @@ export const getFirstChar = (str: string) => {
 }
 
 export const setRootFontSize = (size: string) => {
-  const sizeNum = Number(size) || DEFAULT_FONT_SIZE
+  const defaultFontSize = useDefaultFontSizeStore.getState().defaultFontSize
+  const sizeNum = Number(size) || Number(defaultFontSize)
   document.documentElement.style.fontSize = `${sizeNum}px`
 }
 

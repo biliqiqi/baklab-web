@@ -15,10 +15,8 @@ import {
   API_HOST,
   API_PATH_PREFIX,
   DEFAULT_THEME,
-  DESKTOP_FONT_SIZE,
   LEFT_SIDEBAR_DEFAULT_OPEN,
   LEFT_SIDEBAR_STATE_KEY,
-  MOBILE_FONT_SIZE,
   RIGHT_SIDEBAR_SETTINGS_TYPE_KEY,
   RIGHT_SIDEBAR_STATE_KEY,
   TOP_DRAWER_STATE_KEY,
@@ -32,6 +30,7 @@ import { setRootFontSize } from './lib/utils.ts'
 import {
   getLocalUserUISettings,
   useAuthedUserStore,
+  useDefaultFontSizeStore,
   useEventSourceStore,
   useForceUpdate,
   useNotificationStore,
@@ -43,6 +42,9 @@ import {
 } from './state/global.ts'
 import { useRoutesStore } from './state/routes.ts'
 import { Article, SSE_EVENT, SettingsType } from './types/types.ts'
+
+const DESKTOP_FONT_SIZE = '16'
+const MOBILE_FONT_SIZE = '14'
 
 type Router = ReturnType<typeof createBrowserRouter>
 
@@ -176,6 +178,9 @@ const App = () => {
   const unreadCount = useNotificationStore((state) => state.unreadCount)
 
   const isMobile = useIsMobile()
+  const setDefaultFontSize = useDefaultFontSizeStore(
+    (state) => state.setDefaultFontSize
+  )
   const { forceState, forceUpdate } = useForceUpdate(
     useShallow(({ forceState, forceUpdate }) => ({ forceState, forceUpdate }))
   )
@@ -290,6 +295,9 @@ const App = () => {
   ])
 
   useEffect(() => {
+    const defaultFontSize = isMobile ? MOBILE_FONT_SIZE : DESKTOP_FONT_SIZE
+    setDefaultFontSize(defaultFontSize)
+
     const leftSidebarState = localStorage.getItem(LEFT_SIDEBAR_STATE_KEY)
     const rightSidebarState = localStorage.getItem(RIGHT_SIDEBAR_STATE_KEY)
     const rightSidebarSettingsType = localStorage.getItem(
@@ -301,12 +309,9 @@ const App = () => {
     if (userUISettings) {
       setUserUIState(userUISettings)
       setTheme(userUISettings.theme || DEFAULT_THEME)
-      setRootFontSize(
-        String(userUISettings.fontSize) ||
-          (isMobile ? MOBILE_FONT_SIZE : DESKTOP_FONT_SIZE)
-      )
+      setRootFontSize(String(userUISettings.fontSize) || defaultFontSize)
     } else {
-      setRootFontSize(isMobile ? MOBILE_FONT_SIZE : DESKTOP_FONT_SIZE)
+      setRootFontSize(defaultFontSize)
     }
 
     if (rightSidebarSettingsType) {
@@ -330,6 +335,7 @@ const App = () => {
     setSettingsType,
     setUserUIState,
     setTheme,
+    setDefaultFontSize,
   ])
 
   useEffect(() => {

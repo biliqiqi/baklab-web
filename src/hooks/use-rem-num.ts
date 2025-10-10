@@ -1,9 +1,9 @@
-import { DEFAULT_FONT_SIZE } from '@/constants/constants'
-import { useUserUIStore } from '@/state/global'
+import { useDefaultFontSizeStore, useUserUIStore } from '@/state/global'
 
 // calculate px number from rem
 export const useRem2PxNum = () => {
+  const defaultFontSize = useDefaultFontSizeStore.getState().defaultFontSize
   const rootFontSize =
-    useUserUIStore.getState().fontSize || Number(DEFAULT_FONT_SIZE)
+    useUserUIStore.getState().fontSize || Number(defaultFontSize)
   return (remNum: number) => rootFontSize * remNum
 }

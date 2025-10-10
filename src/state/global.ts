@@ -8,7 +8,7 @@ import { noop, setRootFontSize } from '@/lib/utils'
 import { getCategoryList } from '@/api/category'
 import { getNotificationUnreadCount } from '@/api/message'
 import { getJoinedSiteList, getSiteWithFrontId } from '@/api/site'
-import { DEFAULT_CONTENT_WIDTH, DEFAULT_FONT_SIZE } from '@/constants/constants'
+import { DEFAULT_CONTENT_WIDTH } from '@/constants/constants'
 import {
   LEFT_SIDEBAR_DEFAULT_OPEN,
   LEFT_SIDEBAR_STATE_KEY,
@@ -351,13 +351,15 @@ useAuthedUserStore.subscribe(
         // Update local cache with backend settings
         const backendSettings = user.uiSettings as BackendUISettings
         const currentState = useUserUIStore.getState()
+        const defaultFontSize =
+          useDefaultFontSizeStore.getState().defaultFontSize
         setLocalUserUISettings({
           siteListMode: backendSettings.mode || currentState.siteListMode,
           theme: backendSettings.theme || currentState.theme,
           fontSize:
             backendSettings.fontSize ||
             currentState.fontSize ||
-            Number(DEFAULT_FONT_SIZE),
+            Number(defaultFontSize),
           contentWidth:
             backendSettings.contentWidth ||
             currentState.contentWidth ||
@@ -921,7 +923,7 @@ export interface UserUIStateData
 export const useUserUIStore = create(
   subscribeWithSelector<UserUIState>((set) => ({
     siteListMode: SITE_LIST_MODE.TopDrawer,
-    fontSize: Number(DEFAULT_FONT_SIZE),
+    fontSize: undefined,
     contentWidth: Number(DEFAULT_CONTENT_WIDTH),
     setSiteListMode(mode) {
       set((state) => ({ ...state, siteListMode: mode }))
@@ -1031,3 +1033,15 @@ export const useCategorySelectionModalStore =
       set(() => ({ open: true, siteFrontId }))
     },
   }))
+
+export interface DefaultFontSizeState {
+  defaultFontSize: string
+  setDefaultFontSize: (size: string) => void
+}
+
+export const useDefaultFontSizeStore = create<DefaultFontSizeState>((set) => ({
+  defaultFontSize: '16',
+  setDefaultFontSize(size) {
+    set(() => ({ defaultFontSize: size }))
+  },
+}))

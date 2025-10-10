@@ -64,15 +64,15 @@ npm run dev
 
 ### 环境变量
 
-| 变量名                   | 说明                   | 默认值                       |
-| ------------------------ | ---------------------- | ---------------------------- |
-| `VITE_API_HOST`          | 后端 API 地址          | `http://localhost:3000`      |
-| `VITE_API_PATH_PREFIX`   | API 路径前缀           | `/api/`                      |
-| `VITE_STATIC_HOST`       | 静态文件服务器地址     | `https://static.example.com` |
-| `VITE_FRONTEND_HOST`     | 前端服务地址           | `http://localhost:5173`      |
-| `VITE_BASE_URL`          | 静态资源基础路径       | `/`                          |
-| `VITE_BRAND_NAME`        | 应用品牌名称           | `BakLab`                     |
-| `VITE_OAUTH_PROVIDERS`   | OAuth 提供商（逗号分隔） | （空）                       |
+| 变量名                 | 说明                     | 默认值                       |
+| ---------------------- | ------------------------ | ---------------------------- |
+| `VITE_API_HOST`        | 后端 API 地址            | `http://localhost:3000`      |
+| `VITE_API_PATH_PREFIX` | API 路径前缀             | `/api/`                      |
+| `VITE_STATIC_HOST`     | 静态文件服务器地址       | `https://static.example.com` |
+| `VITE_FRONTEND_HOST`   | 前端服务地址             | `http://localhost:5173`      |
+| `VITE_BASE_URL`        | 静态资源基础路径         | `/`                          |
+| `VITE_BRAND_NAME`      | 应用品牌名称             | `BakLab`                     |
+| `VITE_OAUTH_PROVIDERS` | OAuth 提供商（逗号分隔） | （空）                       |
 
 ## 生产环境构建
 

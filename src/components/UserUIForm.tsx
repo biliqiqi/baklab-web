@@ -16,11 +16,7 @@ import { useShallow } from 'zustand/react/shallow'
 import { noop, setRootFontSize } from '@/lib/utils'
 
 import { saveUserUISettings } from '@/api/user'
-import {
-  DEFAULT_CONTENT_WIDTH,
-  DEFAULT_FONT_SIZE,
-  DEFAULT_THEME,
-} from '@/constants/constants'
+import { DEFAULT_CONTENT_WIDTH, DEFAULT_THEME } from '@/constants/constants'
 import i18n from '@/i18n'
 import {
   BackendUISettings,
@@ -29,6 +25,7 @@ import {
   registerUISettingsCallback,
   setLocalUserUISettings,
   unregisterUISettingsCallback,
+  useDefaultFontSizeStore,
   useForceUpdate,
   useSiteStore,
   useTopDrawerStore,
@@ -145,7 +142,8 @@ type LanguageSchema = z.infer<typeof languageSchema>
 const defaultUserUIData: UserUISchema = {
   mode: SITE_LIST_MODE.TopDrawer,
   theme: DEFAULT_THEME,
-  fontSize: DEFAULT_FONT_SIZE,
+  fontSize: useDefaultFontSizeStore.getState()
+    .defaultFontSize as FontSizeSchema,
   customFontSize: '',
   contentWidth: DEFAULT_CONTENT_WIDTH,
   customContentWidth: '',
@@ -164,6 +162,10 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
   ({ onChange = noop }, ref) => {
     /* const [syncDevices, setSyncDevices] = useState<CheckedState>(false) */
     /* const [customFontSize, setCustomFontSize] = useState('') */
+    const defaultFontSize = useDefaultFontSizeStore(
+      (state) => state.defaultFontSize
+    )
+
     // Get all UI settings from userUIStore for consistency using useShallow
     const {
       siteListMode: currSiteListMode,
@@ -173,7 +175,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
     } = useUserUIStore(
       useShallow((state) => ({
         siteListMode: state.siteListMode,
-        fontSize: state.fontSize || Number(DEFAULT_FONT_SIZE),
+        fontSize: state.fontSize || Number(defaultFontSize),
         contentWidth: state.contentWidth || Number(DEFAULT_CONTENT_WIDTH),
         theme: state.theme,
       }))
@@ -256,7 +258,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
 
         // Use same timestamp for both local and backend storage
         const timestamp = Date.now()
-        const savedFontSize = Number(fs) || Number(DEFAULT_FONT_SIZE)
+        const savedFontSize = Number(fs) || Number(defaultFontSize)
         const savedContentWidth = Number(cw) || Number(DEFAULT_CONTENT_WIDTH)
 
         setLocalUserUISettings({
@@ -285,7 +287,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
           await saveUserUISettings({
             mode,
             theme,
-            fontSize: Number(fs) || Number(DEFAULT_FONT_SIZE),
+            fontSize: Number(fs) || Number(defaultFontSize),
             contentWidth: Number(cw) || Number(DEFAULT_CONTENT_WIDTH),
             lang,
             updatedAt: timestamp,
@@ -307,7 +309,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
 
         forceUpdate()
       },
-      [form, i18n, forceUpdate, setUserUIState]
+      [form, i18n, forceUpdate, setUserUIState, defaultFontSize]
     )
 
     useEffect(() => {
@@ -375,7 +377,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
 
               // Then update form to reflect the new values
               const newFontSizeStr = String(
-                settings.fontSize || Number(DEFAULT_FONT_SIZE)
+                settings.fontSize || Number(defaultFontSize)
               )
               const newContentWidthStr = String(
                 settings.contentWidth || Number(DEFAULT_CONTENT_WIDTH)
@@ -426,7 +428,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
       return () => {
         unregisterUISettingsCallback()
       }
-    }, [t, form, i18n.language])
+    }, [t, form, i18n.language, defaultFontSize])
 
     return (
       <Form {...form}>

@@ -34,9 +34,6 @@ export const USER_UI_SETTINGS_KEY = 'user_ui_settings'
 export const CHAT_DATA_CACHE_KEY = 'chat_data_cache'
 
 export const DEFAULT_THEME = 'system'
-export const DEFAULT_FONT_SIZE = '16'
-export const DESKTOP_FONT_SIZE = '16'
-export const MOBILE_FONT_SIZE = '14'
 export const DEFAULT_CONTENT_WIDTH = '1200'
 export const DEFAULT_INNER_CONTENT_WIDTH = '900'
 

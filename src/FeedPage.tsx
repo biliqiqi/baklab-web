@@ -35,7 +35,7 @@ export default function FeedPage() {
   return (
     <BContainer
       category={{
-        isFront: false,
+        isFront: true,
         siteFrontId,
         frontId: 'feed',
         name: feedTitle,

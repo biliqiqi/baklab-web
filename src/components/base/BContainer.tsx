@@ -336,15 +336,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       [location, siteFrontId]
     )
 
-    if (isFeedPage) {
-      category = {
-        frontId: 'feed',
-        name: t('feed'),
-        describe: t('contentOfSubscribtions'),
-        isFront: true,
-      }
-    }
-
     const onAlertDialogCancel = useCallback(() => {
       if (alertType == 'confirm') {
         alertDialog.setState((state) => ({

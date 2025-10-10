@@ -61,7 +61,7 @@ export default function BankuaiPage() {
   return (
     <BContainer
       category={{
-        isFront: false,
+        isFront: isAllPage,
         siteFrontId,
         frontId: isAllPage ? 'all' : currCate?.frontId || 'bankuai',
         name: isAllPage ? t('allPosts') : currCate?.name || '',

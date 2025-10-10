@@ -1,6 +1,6 @@
 # BakLab Web 前端
 
-[English](README.md) | 简体中文
+[English](README.md) | 中文
 
 这是 BakLab 的 Web 前端项目，使用 React、TypeScript 和 Vite 构建。
 

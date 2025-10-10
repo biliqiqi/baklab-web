@@ -1,6 +1,6 @@
 # BakLab Web Frontend
 
-English | [简体中文](README.zh.md)
+English | [中文](README.zh.md)
 
 This is the web frontend for BakLab, built with React, TypeScript, and Vite.
 

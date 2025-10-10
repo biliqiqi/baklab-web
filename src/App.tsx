@@ -14,10 +14,11 @@ import { deleteIDBMessage, saveIDBMessage } from '@/state/chat-db.ts'
 import {
   API_HOST,
   API_PATH_PREFIX,
-  DEFAULT_FONT_SIZE,
   DEFAULT_THEME,
+  DESKTOP_FONT_SIZE,
   LEFT_SIDEBAR_DEFAULT_OPEN,
   LEFT_SIDEBAR_STATE_KEY,
+  MOBILE_FONT_SIZE,
   RIGHT_SIDEBAR_SETTINGS_TYPE_KEY,
   RIGHT_SIDEBAR_STATE_KEY,
   TOP_DRAWER_STATE_KEY,
@@ -289,27 +290,32 @@ const App = () => {
   ])
 
   useEffect(() => {
+    const leftSidebarState = localStorage.getItem(LEFT_SIDEBAR_STATE_KEY)
+    const rightSidebarState = localStorage.getItem(RIGHT_SIDEBAR_STATE_KEY)
+    const rightSidebarSettingsType = localStorage.getItem(
+      RIGHT_SIDEBAR_SETTINGS_TYPE_KEY
+    ) as SettingsType | null
+
+    const userUISettings = getLocalUserUISettings()
+
+    if (userUISettings) {
+      setUserUIState(userUISettings)
+      setTheme(userUISettings.theme || DEFAULT_THEME)
+      setRootFontSize(
+        String(userUISettings.fontSize) ||
+          (isMobile ? MOBILE_FONT_SIZE : DESKTOP_FONT_SIZE)
+      )
+    } else {
+      setRootFontSize(isMobile ? MOBILE_FONT_SIZE : DESKTOP_FONT_SIZE)
+    }
+
+    if (rightSidebarSettingsType) {
+      setSettingsType(rightSidebarSettingsType)
+    }
+
     if (isMobile) {
       setSidebarOpen(false)
     } else {
-      const leftSidebarState = localStorage.getItem(LEFT_SIDEBAR_STATE_KEY)
-      const rightSidebarState = localStorage.getItem(RIGHT_SIDEBAR_STATE_KEY)
-      const rightSidebarSettingsType = localStorage.getItem(
-        RIGHT_SIDEBAR_SETTINGS_TYPE_KEY
-      ) as SettingsType | null
-
-      const userUISettings = getLocalUserUISettings()
-
-      if (userUISettings) {
-        setUserUIState(userUISettings)
-        setTheme(userUISettings.theme || DEFAULT_THEME)
-        setRootFontSize(String(userUISettings.fontSize) || DEFAULT_FONT_SIZE)
-      }
-
-      if (rightSidebarSettingsType) {
-        setSettingsType(rightSidebarSettingsType)
-      }
-
       setSidebarOpen(
         leftSidebarState
           ? leftSidebarState == 'true'
@@ -323,6 +329,7 @@ const App = () => {
     setRightSidebarOpen,
     setSettingsType,
     setUserUIState,
+    setTheme,
   ])
 
   useEffect(() => {

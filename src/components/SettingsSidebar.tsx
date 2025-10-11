@@ -17,9 +17,13 @@ import {
 
 interface SettingsSidebarProps {
   activeKey?: string
+  bodyHeight?: string
 }
 
-export default function SettingsSidebar({ activeKey }: SettingsSidebarProps) {
+export default function SettingsSidebar({
+  activeKey,
+  bodyHeight,
+}: SettingsSidebarProps) {
   const { t } = useTranslation()
   const location = useLocation()
 
@@ -77,7 +81,7 @@ export default function SettingsSidebar({ activeKey }: SettingsSidebarProps) {
 
   return (
     <Sidebar className="relative max-h-full" gap={false}>
-      <SidebarContent className="gap-0">
+      <SidebarContent className="gap-0" style={{ minHeight: bodyHeight || '' }}>
         <SidebarGroup>
           <SidebarGroupLabel>{t('settings')}</SidebarGroupLabel>
           <SidebarGroupContent>

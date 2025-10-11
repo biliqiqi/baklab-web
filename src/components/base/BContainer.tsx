@@ -647,7 +647,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             }}
           >
             {sidebarType === 'settings' ? (
-              <SettingsSidebar />
+              <SettingsSidebar bodyHeight={bodyHeight} />
             ) : (
               <BSidebar category={category} bodyHeight={bodyHeight} />
             )}

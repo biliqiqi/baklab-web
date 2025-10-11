@@ -633,7 +633,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           statePersistKey={LEFT_SIDEBAR_STATE_KEY}
           style={{
             minHeight: 'auto',
-            maxHeight: bodyHeight,
             maxWidth: contentWidth == -1 ? '' : `${contentWidth}px`,
           }}
         >
@@ -645,13 +644,12 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             )}
             style={{
               top: siteMode == 'top_nav' ? `${NAV_HEIGHT}px` : '',
-              maxHeight: siteMode == 'top_nav' ? bodyHeight : '',
             }}
           >
             {sidebarType === 'settings' ? (
               <SettingsSidebar />
             ) : (
-              <BSidebar category={category} />
+              <BSidebar category={category} bodyHeight={bodyHeight} />
             )}
           </div>
           <main
@@ -663,9 +661,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 sidebarOpen &&
                 'w-[calc(100%-var(--sidebar-width)*2)]'
             )}
-            style={{
-              height: bodyHeight,
-            }}
           >
             {siteMode == 'sidebar' && (
               <BNav
@@ -676,12 +671,9 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             )}
             <div
               id="outer-container"
-              className="overflow-y-auto h-full max-h-full"
               style={{
                 scrollbarColor: 'rgba(0, 0, 0, 0.5)',
                 scrollbarWidth: 'thin',
-                height: siteMode == 'top_nav' ? '' : outerContainerHeight,
-                maxHeight: siteMode == 'top_nav' ? '' : outerContainerHeight,
               }}
             >
               <div
@@ -755,23 +747,23 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             className="w-auto"
             statePersistKey={RIGHT_SIDEBAR_STATE_KEY}
             style={{
+              position: 'sticky',
+              top: siteMode == 'top_nav' ? `${NAV_HEIGHT}px` : '',
               minHeight: 'auto',
             }}
           >
             <div
               className={cn(
-                'w-0 sticky top-0 right-0 max-h-screen overflow-hidden',
+                'w-0 max-h-screen overflow-hidden',
                 !isMobile && 'duration-200 transition-[width] ease-linear',
                 !isMobile && openRightSidebar && 'w-[var(--sidebar-width)]'
               )}
-              style={{
-                top: siteMode == 'top_nav' ? `${NAV_HEIGHT}px` : '',
-                maxHeight:
-                  siteMode == 'top_nav' ? `calc(100vh - ${NAV_HEIGHT}px)` : '',
-              }}
             >
               <Sidebar side="right" className="relative max-h-full" gap={false}>
-                <SidebarContent className="gap-0 px-2">
+                <SidebarContent
+                  className="gap-0 px-2"
+                  style={{ minHeight: bodyHeight }}
+                >
                   <div
                     className="flex items-center justify-between mb-2"
                     style={{ height: `${NAV_HEIGHT}px` }}
@@ -903,10 +895,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                   </DialogTitle>
                   <DialogDescription></DialogDescription>
                 </DialogHeader>
-                <div
-                  className="overflow-y-auto break-words"
-                  style={{ maxHeight: `calc(100vh - 300px)` }}
-                >
+                <div className="overflow-y-auto break-words">
                   {articleHistory.history.map((item) => (
                     <ArticleHistory
                       key={item.id}

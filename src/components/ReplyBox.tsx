@@ -605,7 +605,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
   return (
     <div
       className={cn(
-        `container mx-auto bottom-0 flex justify-center absolute left-0 right-0 z-50`
+        `container mx-auto bottom-0 flex justify-center sticky left-0 right-0 z-50`
       )}
     >
       <div

@@ -263,6 +263,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
             <div className="space-y-4 pt-3">
               {oauthProverConfigList.map((provider) => (
                 <OAuthButton
+                  key={provider}
                   provider={provider}
                   onSuccess={onSuccess}
                   onError={(error) =>

@@ -276,7 +276,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                 size="sm"
                 asChild={ctype == 'list'}
                 onClick={ctype == 'list' ? noop : handleCommentClick}
-                className="mr-1"
+                className="mr-1 h-[1.5rem]"
                 title={t('replyPost')}
               >
                 {ctype == 'list' ? (
@@ -301,12 +301,13 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                 size="sm"
                 onClick={onSaveClick}
                 disabled={disabled}
+                className="mr-1 h-[1.5rem]"
                 title={t('savePost')}
               >
                 <BookmarkIcon
                   size={rem2pxNum(1.25)}
                   fill={userState?.saved ? 'currentColor' : 'transparent'}
-                  className={cn('mr-1', userState?.saved && 'text-primary')}
+                  className={cn(userState?.saved && 'text-primary')}
                 />
                 {article.totalSavedCount > 0 && article.totalSavedCount}
               </Button>
@@ -320,7 +321,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                   size="sm"
                   onClick={onSubscribeClick}
                   disabled={disabled}
-                  className="mr-1"
+                  className="mr-1 h-[1.5rem]"
                   title={t('subscribePost')}
                 >
                   <BellIcon
@@ -328,10 +329,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                     fill={
                       userState?.subscribed ? 'currentColor' : 'transparent'
                     }
-                    className={cn(
-                      'mr-1',
-                      userState?.subscribed && 'text-primary'
-                    )}
+                    className={cn(userState?.subscribed && 'text-primary')}
                   />
                 </Button>
               )}
@@ -348,10 +346,10 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             size="sm"
             onClick={onShowHistoryClick}
             disabled={disabled}
-            className="mr-1"
+            className="mr-1 h-[1.5rem]"
             title={t('editHistory')}
           >
-            <HistoryIcon size={rem2pxNum(1.25)} className="mr-1" />
+            <HistoryIcon size={rem2pxNum(1.25)} />
           </Button>
         )}
 
@@ -414,14 +412,14 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           <Button
             variant="ghost"
             size="sm"
-            className="mr-1 text-green-500"
+            className="mr-1 h-[1.5rem] text-green-500"
             asChild
             title={t('viewAnswer')}
           >
             <Link
               to={`/${article.siteFrontId}/articles/${(articleCtx.root || article).acceptAnswerId}`}
             >
-              <CheckIcon size={rem2pxNum(1.25)} className="mr-1" />
+              <CheckIcon size={rem2pxNum(1.25)} />
               &nbsp;
               <span className="text-sm font-normal">{t('solved')}</span>
             </Link>
@@ -438,9 +436,9 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
               size="sm"
               onClick={onAcceptAnswerClick}
               disabled={disabled}
-              className="mr-1"
+              className="mr-1 h-[1.5rem]"
             >
-              <CheckIcon size={rem2pxNum(1.25)} className="mr-1" />
+              <CheckIcon size={rem2pxNum(1.25)} />
               &nbsp;
               <span className="text-sm text-gray-500 font-normal">
                 {t('markAsSolution')}

@@ -225,21 +225,23 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
           )}
         </div>
       </div>
-      <Card className="mt-4">
+      <div className="mt-4">
         {list.length == 0 ? (
           <Empty />
         ) : (
-          list.map((item) => (
-            <ArticleListItem
-              key={item.id}
-              article={item}
-              showSummary={showSummary}
-              siteFrontId={siteFrontId}
-              onUpdate={handleArticleUpdate(item.id)}
-            />
-          ))
+          <Card>
+            {list.map((item) => (
+              <ArticleListItem
+                key={item.id}
+                article={item}
+                showSummary={showSummary}
+                siteFrontId={siteFrontId}
+                onUpdate={handleArticleUpdate(item.id)}
+              />
+            ))}
+          </Card>
         )}
-      </Card>
+      </div>
 
       {pageState.totalPage > 1 && (
         <ListPagination pageState={pageState} autoScrollTop />

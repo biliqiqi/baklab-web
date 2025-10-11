@@ -50,7 +50,7 @@ export default defineConfig(({ mode }) => {
       devSwMiddleware(),
       VitePWA({
         registerType: 'autoUpdate',
-        injectRegister: 'auto',
+        injectRegister: null,
         devOptions: {
           enabled: true,
           type: 'classic',

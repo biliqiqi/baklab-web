@@ -41,7 +41,7 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
   const isMobile = useIsMobile()
 
   return (
-    <Card className="p-3 my-2 hover:bg-slate-50 dark:hover:bg-slate-900">
+    <div className="p-3 hover:bg-slate-50 dark:hover:bg-slate-900 border-b-[1px]">
       {isMobile && (
         <div className="mb-3 text-sm text-gray-500">
           {siteFrontId ? (
@@ -133,7 +133,7 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
           }
         }}
       />
-    </Card>
+    </div>
   )
 }
 

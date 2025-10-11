@@ -107,6 +107,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
   const articleHistory = useArticleHistoryStore()
   const checkPermit = useAuthedUserStore((state) => state.permit)
   const isMyself = useAuthedUserStore((state) => state.isMySelf)
+  const loginWithDialog = useAuthedUserStore((state) => state.loginWithDialog)
   const isLogined = useAuthedUserStore((state) => state.isLogined)
   const { t } = useTranslation()
 
@@ -205,6 +206,25 @@ const ChatControls: React.FC<ChatControlsProps> = ({
       }
     },
     [article, onSuccess]
+  )
+
+  const handleCommentClick = useCallback(
+    async (e: MouseEvent<HTMLButtonElement>) => {
+      try {
+        e.preventDefault()
+
+        // Check if user is logged in
+        if (!isLogined()) {
+          await loginWithDialog()
+          return
+        }
+
+        onCommentClick(e)
+      } catch (err) {
+        console.error('toggle vote article failed: ', err)
+      }
+    },
+    [isLogined, loginWithDialog, onCommentClick]
   )
 
   // Use children render pattern to dynamically check menu items
@@ -351,7 +371,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={onCommentClick}
+                onClick={handleCommentClick}
                 className="mr-1 px-2.5"
                 tabIndex={0}
               >

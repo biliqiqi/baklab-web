@@ -208,6 +208,25 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
     [article, onSuccess, isLogined, loginWithDialog]
   )
 
+  const handleCommentClick = useCallback(
+    async (e: MouseEvent<HTMLButtonElement>) => {
+      try {
+        e.preventDefault()
+
+        // Check if user is logged in
+        if (!isLogined()) {
+          await loginWithDialog()
+          return
+        }
+
+        onCommentClick(e)
+      } catch (err) {
+        console.error('toggle vote article failed: ', err)
+      }
+    },
+    [isLogined, loginWithDialog, onCommentClick]
+  )
+
   return (
     <div
       className={cn(
@@ -256,7 +275,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                 variant="ghost"
                 size="sm"
                 asChild={ctype == 'list'}
-                onClick={onCommentClick}
+                onClick={ctype == 'list' ? noop : handleCommentClick}
                 className="mr-1"
                 title={t('replyPost')}
               >

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
+import { Card } from './components/ui/card'
 import { Skeleton } from './components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 
@@ -333,16 +334,16 @@ export default function ArticlePage() {
           >
             <div className="mx-auto container p-4">
               <div className="mb-3">
-                <Skeleton className="w-full h-[168px] p-3 my-2 mb-3"></Skeleton>
+                <Skeleton className="w-full h-[168px] p-3 my-2"></Skeleton>
               </div>
               <div className="py-1 mb-3">
                 <Skeleton className="w-[210px] h-[44px]"></Skeleton>
               </div>
-              <div className="mb-3">
-                <Skeleton className="w-full h-[168px] p-3 my-2 mb-3"></Skeleton>
+              <div className="mb-1">
+                <Skeleton className="w-full h-[168px] p-3"></Skeleton>
               </div>
-              <div className="mb-3">
-                <Skeleton className="w-full h-[168px] p-3 my-2 mb-3"></Skeleton>
+              <div className="mb-1">
+                <Skeleton className="w-full h-[168px] p-3"></Skeleton>
               </div>
             </div>
           </div>
@@ -354,21 +355,22 @@ export default function ArticlePage() {
               top: article,
             }}
           >
-            <ArticleCard
-              isTop
-              key={article.id}
-              article={article}
-              className="mb-3"
-              onSuccess={(action) => {
-                if (['up', 'down', 'save', 'subscribe'].includes(action)) {
-                  setArticle((prev) =>
-                    prev ? updateArticleState(prev, action) : prev
-                  )
-                } else {
-                  fetchArticleSync(false)
-                }
-              }}
-            />
+            <Card className="mb-3">
+              <ArticleCard
+                isTop
+                key={article.id}
+                article={article}
+                onSuccess={(action) => {
+                  if (['up', 'down', 'save', 'subscribe'].includes(action)) {
+                    setArticle((prev) =>
+                      prev ? updateArticleState(prev, action) : prev
+                    )
+                  } else {
+                    fetchArticleSync(false)
+                  }
+                }}
+              />
+            </Card>
             {article.totalReplyCount > 0 && (
               <div id="comments" className="py-1 mb-3">
                 <Tabs
@@ -385,43 +387,46 @@ export default function ArticlePage() {
               </div>
             )}
 
-            {loading ? (
-              <div className="flex justify-center py-2">
-                <BLoader />
-              </div>
-            ) : (
-              article.replies?.list &&
-              article.replies.list
-                .filter((item) => !(item.deleted && item.childrenCount == 0))
-                .map((item) => (
-                  <ArticleCard
-                    key={item.id}
-                    article={item}
-                    onSuccess={(action) => {
-                      if (
-                        ['up', 'down', 'save', 'subscribe'].includes(action)
-                      ) {
-                        setArticle((prev) => {
-                          if (!prev?.replies) return prev
-                          return {
-                            ...prev,
-                            replies: {
-                              ...prev.replies,
-                              list: prev.replies.list.map((reply) =>
-                                reply.id === item.id
-                                  ? updateArticleState(reply, action)
-                                  : reply
-                              ),
-                            },
-                          }
-                        })
-                      } else {
-                        fetchArticleSync(false)
-                      }
-                    }}
-                  />
-                ))
-            )}
+            <Card>
+              {loading ? (
+                <div className="flex justify-center py-2">
+                  <BLoader />
+                </div>
+              ) : (
+                article.replies?.list &&
+                article.replies.list
+                  .filter((item) => !(item.deleted && item.childrenCount == 0))
+                  .map((item) => (
+                    <ArticleCard
+                      key={item.id}
+                      article={item}
+                      className="border-b-[1px]"
+                      onSuccess={(action) => {
+                        if (
+                          ['up', 'down', 'save', 'subscribe'].includes(action)
+                        ) {
+                          setArticle((prev) => {
+                            if (!prev?.replies) return prev
+                            return {
+                              ...prev,
+                              replies: {
+                                ...prev.replies,
+                                list: prev.replies.list.map((reply) =>
+                                  reply.id === item.id
+                                    ? updateArticleState(reply, action)
+                                    : reply
+                                ),
+                              },
+                            }
+                          })
+                        } else {
+                          fetchArticleSync(false)
+                        }
+                      }}
+                    />
+                  ))
+              )}
+            </Card>
           </ArticleContext.Provider>
         )}
         {pageState.totalPage > 1 && <ListPagination pageState={pageState} />}

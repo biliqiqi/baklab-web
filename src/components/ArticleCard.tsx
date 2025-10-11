@@ -183,7 +183,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
   return (
     <div id={'comment' + article.id} {...props}>
-      <Card className="p-3 my-2 mb-3">
+      <div className="p-3">
         {article.asMainArticle && (
           <>
             <h1
@@ -352,7 +352,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             onSuccess={onSuccess}
           />
         )}
-      </Card>
+      </div>
 
       <AlertDialog
         defaultOpen={false}

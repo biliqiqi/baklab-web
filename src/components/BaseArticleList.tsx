@@ -24,6 +24,7 @@ import ArticleListItem from './ArticleListItem'
 import { Empty } from './Empty'
 import { ListPagination } from './ListPagination'
 import { Button } from './ui/button'
+import { Card } from './ui/card'
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs'
 
 export interface FetchArticlesParams {
@@ -224,7 +225,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
           )}
         </div>
       </div>
-      <div className="mt-4">
+      <Card className="mt-4">
         {list.length == 0 ? (
           <Empty />
         ) : (
@@ -238,7 +239,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
             />
           ))
         )}
-      </div>
+      </Card>
 
       {pageState.totalPage > 1 && (
         <ListPagination pageState={pageState} autoScrollTop />

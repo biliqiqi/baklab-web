@@ -62,9 +62,13 @@ const defaultOptions: Options = {
           let data: ResponseData<any> | null = null
           try {
             data = await resp.json()
-            console.log('Response error data:', { status, data })
+            if (import.meta.env.DEV) {
+              console.log('Response error data:', { status, data })
+            }
           } catch (e) {
-            console.error('parse response data error: ', e)
+            if (import.meta.env.DEV) {
+              console.error('parse response data error: ', e)
+            }
           }
 
           const createSuccessResponse = (

@@ -31,6 +31,8 @@
   "modLogDescribe": "站点内管理行为记录",
   "activityLog": "活动记录",
   "activityLogDescribe": "站点成员活动记录",
+  "accessReport": "访问报告",
+  "accessReportDescribe": "查看平台流量分析报告",
   "moderatorName": "管理者用户名",
   "modAction": "操作类别",
   "commonUser": "普通用户",

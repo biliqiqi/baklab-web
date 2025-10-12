@@ -1,6 +1,7 @@
 import {
   ActivityIcon,
   ChartBarStackedIcon,
+  ChartLineIcon,
   ChevronDownIcon,
   GlobeIcon,
   Grid2x2Icon,
@@ -92,6 +93,7 @@ const platformSidebarMenus: () => (
   | SidebarMenuItem<'activity'>
   | SidebarMenuItem<'article'>
   | SidebarMenuItem<'oauth'>
+  | SidebarMenuItem<'platform_manage'>
 )[] = () => [
   {
     id: 'users',
@@ -140,6 +142,14 @@ const platformSidebarMenus: () => (
     name: i18n.t('activityLog'),
     link: '/manage/activities',
     icon: <ActivityIcon size={18} />,
+  },
+  {
+    id: 'access_report',
+    permitModule: 'platform_manage',
+    permitAction: 'access',
+    name: i18n.t('accessReport'),
+    link: '/manage/access_report',
+    icon: <ChartLineIcon size={18} />,
   },
   {
     id: 'trash',
@@ -474,10 +484,21 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
                             asChild
                             isActive={location.pathname == link}
                           >
-                            <Link to={link}>
-                              <BIconCircle size={32}>{icon}</BIconCircle>
-                              {name}
-                            </Link>
+                            {id === 'access_report' ? (
+                              <a
+                                href={link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <BIconCircle size={32}>{icon}</BIconCircle>
+                                {name}
+                              </a>
+                            ) : (
+                              <Link to={link}>
+                                <BIconCircle size={32}>{icon}</BIconCircle>
+                                {name}
+                              </Link>
+                            )}
                           </SidebarMenuButton>
                         </SidebarMenuItem>
                       )

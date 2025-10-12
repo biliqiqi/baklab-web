@@ -31,6 +31,8 @@
   "modLogDescribe": "Record of moderation actions within the site",
   "activityLog": "Activity Log",
   "activityLogDescribe": "Record of site member activities",
+  "accessReport": "Access Report",
+  "accessReportDescribe": "View platform traffic analysis report",
   "moderatorName": "Moderator Username",
   "modAction": "Action Type",
   "commonUser": "Regular User",

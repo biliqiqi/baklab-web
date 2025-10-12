@@ -119,7 +119,6 @@
   background-color: hsl(var(--dialog-background));
 }
 
-a[target='_blank'],
 .b-article-content a {
   color: hsl(var(--primary));
 }

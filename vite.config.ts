@@ -52,6 +52,8 @@ export default defineConfig(({ mode }) => {
       legacy({
         targets: ['Chrome >= 87', 'Edge >= 88', 'Safari >= 13'],
         modernPolyfills: true,
+        renderLegacyChunks: true,
+        additionalLegacyPolyfills: ['regenerator-runtime/runtime'],
       }),
       VitePWA({
         registerType: 'autoUpdate',
@@ -59,6 +61,24 @@ export default defineConfig(({ mode }) => {
         devOptions: {
           enabled: true,
           type: 'classic',
+        },
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
+          navigateFallback: null,
+          inlineWorkboxRuntime: true,
+          runtimeCaching: [
+            {
+              urlPattern: /^https:\/\/.*\.(png|jpg|jpeg|svg|gif|webp)$/,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'images',
+                expiration: {
+                  maxEntries: 100,
+                  maxAgeSeconds: 60 * 60 * 24 * 30,
+                },
+              },
+            },
+          ],
         },
         manifest: {
           name: env.VITE_BRAND_NAME,

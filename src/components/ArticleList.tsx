@@ -52,6 +52,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
           ...rest,
           category: category
             ? {
+                id: category.id,
                 frontId: category.frontId,
                 name: category.name,
                 describe: category.describe,

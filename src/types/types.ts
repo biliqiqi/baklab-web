@@ -302,6 +302,7 @@ export interface CustomRequestOptions {
 }
 
 export type FrontCategory = Pick<Category, 'frontId' | 'name' | 'describe'> & {
+  id?: string
   isFront: boolean // defined at frontend
   siteFrontId?: string
 }

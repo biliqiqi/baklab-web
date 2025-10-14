@@ -254,7 +254,6 @@ const ChatPage: React.FC<ChatPageProps> = ({
       (data: ChatMessage) => {
         if (data.roomPath != `/${siteFrontId}/bankuai/${categoryFrontId}`)
           return
-        /* console.log('new message: ', data) */
         getLocalChatList(siteFrontId, categoryFrontId)
         if (atBottom) {
           setTimeout(() => {
@@ -363,7 +362,6 @@ const ChatPage: React.FC<ChatPageProps> = ({
         })
 
         if (actionType != 'edit') {
-          /* await fetchChatList(false, true, false) */
           setReplySuccess(true)
         }
       },
@@ -480,18 +478,14 @@ const ChatPage: React.FC<ChatPageProps> = ({
   }, [setShowReplyBox])
 
   useEffect(() => {
-    const container = document.querySelector('#outer-container')
-
-    if (!container) return
-
     let topObserver: IntersectionObserver | null = null
     let bottomObserver: IntersectionObserver | null = null
     let atBottomObserver: IntersectionObserver | null = null
 
     if (chatTopRef.current) {
       topObserver = new IntersectionObserver(topObserverHandler, {
-        root: container,
-        rootMargin: `${container.getBoundingClientRect().height / 2}px`,
+        root: null,
+        rootMargin: `${window.innerHeight / 2}px`,
       })
 
       topObserver.observe(chatTopRef.current)
@@ -499,8 +493,8 @@ const ChatPage: React.FC<ChatPageProps> = ({
 
     if (chatBottomRef.current) {
       bottomObserver = new IntersectionObserver(bottomObserverHandler, {
-        root: container,
-        rootMargin: `${container.getBoundingClientRect().height / 2}px`,
+        root: null,
+        rootMargin: `${window.innerHeight / 2}px`,
       })
 
       bottomObserver.observe(chatBottomRef.current)
@@ -509,16 +503,14 @@ const ChatPage: React.FC<ChatPageProps> = ({
         (entries) => {
           entries.forEach((ent) => {
             if (ent.target == chatBottomRef.current && ent.isIntersecting) {
-              /* console.log('touch bottom: ', true) */
               setAtBottom(true)
             } else {
-              /* console.log('touch bottom: ', false) */
               setAtBottom(false)
             }
           })
         },
         {
-          root: container,
+          root: null,
         }
       )
 
@@ -544,10 +536,6 @@ const ChatPage: React.FC<ChatPageProps> = ({
   }, [bottomObserverHandler, topObserverHandler])
 
   useEffect(() => {
-    const container = document.querySelector('#outer-container')
-
-    if (!container) return
-
     const inViewObserver: IntersectionObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((ent) => {
@@ -570,7 +558,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
         })
       },
       {
-        root: container,
+        root: null,
       }
     )
 
@@ -643,10 +631,8 @@ const ChatPage: React.FC<ChatPageProps> = ({
               'instant'
             )
           } else if (retries > 0) {
-            // Element not found, retry after DOM update
             setTimeout(() => tryScrollToMessage(retries - 1), 100)
           } else {
-            // Failed to find element, fallback to bottom
             scrollToBottom('instant', cb)
           }
         } else {
@@ -654,13 +640,11 @@ const ChatPage: React.FC<ChatPageProps> = ({
         }
       }
 
-      // Give React time to render the components
       setTimeout(tryScrollToMessage, 0)
     })(false, true, false, true)
   }, [siteFrontId, categoryFrontId, location, currCate])
 
   useEffect(() => {
-    /* console.log('reply success: ', replySuccess) */
     if (replySuccess) {
       setReplySuccess(false)
       scrollToBottom('smooth')

@@ -52,12 +52,9 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
   useEffect(() => {
     if (autoScrollTop) {
       setTimeout(() => {
-        const container = document.querySelector('#main')
-        if (container) {
-          container.scrollTo({
-            top: 0,
-          })
-        }
+        window.scrollTo({
+          top: 0,
+        })
       }, 200)
     }
   }, [autoScrollTop])

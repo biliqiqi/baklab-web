@@ -207,19 +207,16 @@ export const scrollToBottom = (
   scrollBehavior: ScrollBehavior,
   fn?: () => void
 ) => {
-  const container = document.querySelector('#outer-container')
-  if (container) {
-    setTimeout(() => {
-      container.scrollTo({
-        top: container.scrollHeight,
-        behavior: scrollBehavior,
-      })
+  setTimeout(() => {
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: scrollBehavior,
+    })
 
-      if (typeof fn == 'function') {
-        setTimeout(fn, 100)
-      }
-    }, 100)
-  }
+    if (typeof fn == 'function') {
+      setTimeout(fn, 100)
+    }
+  }, 100)
 }
 
 export const scrollToElement = (

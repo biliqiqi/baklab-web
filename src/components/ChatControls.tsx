@@ -511,7 +511,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
             title={t('viewAnswer')}
           >
             <Link
-              to={`/${siteFrontId}/articles/${(articleCtx.root || article).acceptAnswerId}`}
+              to={`/z/${siteFrontId}/articles/${(articleCtx.root || article).acceptAnswerId}`}
             >
               <CheckIcon size={20} className="mr-1" />
               &nbsp;

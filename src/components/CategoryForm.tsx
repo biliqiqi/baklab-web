@@ -344,7 +344,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
           />
           <div className="pl-4 flex-grow max-w-[calc(100%-82px)] overflow-hidden">
             <div className="text-sm text-gray-500 h-5">
-              {`/${siteFrontId}/bankuai/` +
+              {`/z/${siteFrontId}/bankuai/` +
                 (isEdit
                   ? category.frontId
                   : (formVals.frontID || '').toLowerCase())}

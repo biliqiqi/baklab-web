@@ -355,7 +355,7 @@ export default function SiteListPage() {
       accessorKey: 'name',
       header: t('siteName'),
       cell: ({ row }) => (
-        <Link to={'/' + row.original.frontId}>
+        <Link to={'/z/' + row.original.frontId}>
           <BSiteIcon
             logoUrl={row.original.logoUrl}
             name={row.original.name}

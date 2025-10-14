@@ -64,7 +64,7 @@ export default function InvitePage() {
       if (!code) {
         /* console.log('site: ', site) */
         if (site.currUserState.isMember) {
-          navigate(`/${site.frontId}`, { replace: true })
+          navigate(`/z/${site.frontId}`, { replace: true })
         } else {
           setSite(() => site)
           setInviteData(() => invite)
@@ -80,7 +80,7 @@ export default function InvitePage() {
       }
 
       if (site && site.currUserState.isMember) {
-        navigate(`/${site.frontId}`, { replace: true })
+        navigate(`/z/${site.frontId}`, { replace: true })
         return
       }
 
@@ -95,7 +95,7 @@ export default function InvitePage() {
       if (!code) {
         await fetchSiteList()
         showCategorySelectionModal(site.frontId)
-        navigate(`/${site.frontId}`, { replace: true })
+        navigate(`/z/${site.frontId}`, { replace: true })
       }
     } catch (err) {
       console.error('accept invite error: ', err)
@@ -153,7 +153,7 @@ export default function InvitePage() {
       toSync(getInvite, ({ code, data: { invite, site } }) => {
         if (!code && invite && site && !acceptedRef.current) {
           if (site.currUserState.isMember) {
-            navigate(`/${site.frontId}`, { replace: true })
+            navigate(`/z/${site.frontId}`, { replace: true })
           } else {
             toSync(acceptInvite)()
           }

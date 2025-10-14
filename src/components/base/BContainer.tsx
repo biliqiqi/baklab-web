@@ -332,7 +332,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     const location = useLocation()
     const isFeedPage = useMemo(
-      () => ['/', `/${siteFrontId}/feed`].includes(location.pathname),
+      () => ['/', `/z/${siteFrontId}/feed`].includes(location.pathname),
       [location, siteFrontId]
     )
 
@@ -441,7 +441,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         if (!code && data.list) {
           updateSiteList([...data.list])
           if (newSiteFrontId) {
-            navigate(`/${newSiteFrontId}`)
+            navigate(`/z/${newSiteFrontId}`)
           }
         }
 

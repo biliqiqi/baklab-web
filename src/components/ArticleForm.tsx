@@ -293,7 +293,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
           if (site?.reviewBeforePublish && !checkPermit('article', 'review')) {
             toast.info(t('postReviewTip'))
           }
-          navigate(`/${siteFrontId}/articles/${data.data.id}`, {
+          navigate(`/z/${siteFrontId}/articles/${data.data.id}`, {
             replace: true,
           })
         }

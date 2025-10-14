@@ -265,7 +265,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
               {(!sidebarExpanded || siteMode == 'top_nav') && (
                 <Link
                   className="flex-shrink-0 font-bold text-2xl leading-3 mr-2"
-                  to={siteFrontId && currSite ? `/${siteFrontId}` : `/`}
+                  to={siteFrontId && currSite ? `/z/${siteFrontId}` : `/`}
                 >
                   {siteFrontId && currSite ? (
                     currSite.logoHtmlStr ? (
@@ -329,7 +329,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                   </span>
                 ) : (
                   <Link
-                    to={`/${siteFrontId}/bankuai/${category.frontId}`}
+                    to={`/z/${siteFrontId}/bankuai/${category.frontId}`}
                     className="flex-shrink-0 text-ellipsis overflow-hidden whitespace-nowrap"
                   >
                     {category.name}
@@ -411,7 +411,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                     {siteList &&
                       siteList.map((site) => (
                         <Link
-                          to={`/${site.frontId}`}
+                          to={`/z/${site.frontId}`}
                           key={site.frontId}
                           className={cn(
                             'flex justify-center w-[25%] box-border overflow-hidden flex-shrink-0 flex-grow-0 px-2 py-4 leading-3'

@@ -197,7 +197,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                 article.displayTitle
               ) : (
                 <Link
-                  to={`/${article.replyRootArticleSiteFrontId}/articles/${article.replyRootArticleId}`}
+                  to={`/z/${article.replyRootArticleSiteFrontId}/articles/${article.replyRootArticleId}`}
                 >
                   {article.displayTitle}
                 </Link>
@@ -259,7 +259,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                 title={t('edit')}
               >
                 <Link
-                  to={`/${article.siteFrontId}/articles/${article.id}/edit`}
+                  to={`/z/${article.siteFrontId}/articles/${article.id}/edit`}
                 >
                   <PencilIcon size={14} className="inline-block mr-1" />
                 </Link>

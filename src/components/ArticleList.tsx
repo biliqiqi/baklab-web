@@ -27,8 +27,8 @@ const ArticleList: React.FC<ArticleListProps> = ({
   const submitPath = useMemo(
     () =>
       categoryFrontId && currCate
-        ? `/${siteFrontId}/submit?category_id=` + currCate.id
-        : `/${siteFrontId}/submit`,
+        ? `/z/${siteFrontId}/submit?category_id=` + currCate.id
+        : `/z/${siteFrontId}/submit`,
     [currCate, siteFrontId, categoryFrontId]
   )
 

@@ -89,7 +89,8 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
 
   const submitPath = useMemo(
     () =>
-      customSubmitPath || (siteFrontId ? `/${siteFrontId}/submit` : `/submit`),
+      customSubmitPath ||
+      (siteFrontId ? `/z/${siteFrontId}/submit` : `/submit`),
     [customSubmitPath, siteFrontId]
   )
 

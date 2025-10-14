@@ -363,7 +363,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                 &nbsp;·
                 {siteFrontId ? (
                   <Link
-                    to={`/${article.siteFrontId}/bankuai/${article.category.frontId}`}
+                    to={`/z/${article.siteFrontId}/bankuai/${article.category.frontId}`}
                   >
                     <BIconColorChar
                       iconId={article.categoryFrontId}
@@ -377,7 +377,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                   </Link>
                 ) : (
                   <Link
-                    to={`/${article.siteFrontId}`}
+                    to={`/z/${article.siteFrontId}`}
                     className="leading-3 mx-1"
                   >
                     <BSiteIcon
@@ -417,7 +417,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             title={t('viewAnswer')}
           >
             <Link
-              to={`/${article.siteFrontId}/articles/${(articleCtx.root || article).acceptAnswerId}`}
+              to={`/z/${article.siteFrontId}/articles/${(articleCtx.root || article).acceptAnswerId}`}
             >
               <CheckIcon size={rem2pxNum(1.25)} />
               &nbsp;

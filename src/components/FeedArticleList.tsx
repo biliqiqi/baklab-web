@@ -25,7 +25,7 @@ const FeedArticleLis: React.FC<FeedArticleLisProps> = ({
   const { siteFrontId } = useParams()
 
   const submitPath = useMemo(
-    () => (siteFrontId ? `/${siteFrontId}/submit` : `/submit`),
+    () => (siteFrontId ? `/z/${siteFrontId}/submit` : `/submit`),
     [siteFrontId]
   )
 

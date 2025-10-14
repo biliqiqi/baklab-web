@@ -46,7 +46,7 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
         <div className="mb-3 text-sm text-gray-500">
           {siteFrontId ? (
             <Link
-              to={`/${article.siteFrontId}/bankuai/${article.category.frontId}`}
+              to={`/z/${article.siteFrontId}/bankuai/${article.category.frontId}`}
             >
               <BIconColorChar
                 iconId={article.categoryFrontId}
@@ -59,7 +59,7 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
               {article.category.name}
             </Link>
           ) : (
-            <Link to={`/${article.siteFrontId}`} className="leading-3 mx-1">
+            <Link to={`/z/${article.siteFrontId}`} className="leading-3 mx-1">
               <BSiteIcon
                 logoUrl={article.site.logoUrl}
                 name={article.site.name}

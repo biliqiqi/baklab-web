@@ -63,7 +63,7 @@ export const saveIDBChatList = async (
   nextCursor: string
 ) => {
   try {
-    const roomPath = `/${siteFrontId}/bankuai/${categoryFrontId}`
+    const roomPath = `/z/${siteFrontId}/bankuai/${categoryFrontId}`
     const chatDB = await getChatDB()
     const tx = chatDB.transaction(['chatRooms', 'chatMessages'], 'readwrite')
     const chatRooms = tx.objectStore('chatRooms')
@@ -104,7 +104,7 @@ export const getIDBChatList = async (
   let list: ChatMessage[] = []
 
   try {
-    const roomPath = `/${siteFrontId}/bankuai/${categoryFrontId}`
+    const roomPath = `/z/${siteFrontId}/bankuai/${categoryFrontId}`
     const chatDB = await getChatDB()
     const tx = chatDB.transaction(['chatRooms', 'chatMessages'], 'readonly')
     const chatRooms = tx.objectStore('chatRooms')
@@ -143,7 +143,7 @@ export const saveIDBMessage = async (
   article: Article
 ) => {
   try {
-    const roomPath = `/${siteFrontId}/bankuai/${categoryFrontId}`
+    const roomPath = `/z/${siteFrontId}/bankuai/${categoryFrontId}`
     const message: ChatMessage = {
       ...article,
       roomPath,

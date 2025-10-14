@@ -28,9 +28,10 @@ export function useRouteMatch(path: string, options: RouteMatchOptions = {}) {
   // Platform-wide path
   patterns.push(normalizedPath)
 
-  // Site-specific path
+  // Site-specific path (support both /zhandian and /z prefixes)
   if (siteFrontId) {
-    patterns.push(`/${siteFrontId}${normalizedPath}`)
+    patterns.push(`/zhandian/${siteFrontId}${normalizedPath}`)
+    patterns.push(`/z/${siteFrontId}${normalizedPath}`)
   }
 
   // Check for matches
@@ -50,7 +51,7 @@ export function useRouteMatch(path: string, options: RouteMatchOptions = {}) {
  */
 export function buildRoutePath(path: string, siteFrontId?: string) {
   if (siteFrontId) {
-    return `/${siteFrontId}${path}`
+    return `/z/${siteFrontId}${path}`
   }
 
   // Special case for platform-wide feed: use homepage

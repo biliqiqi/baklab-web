@@ -30,7 +30,7 @@ export default function BankuaiPage() {
   const { t } = useTranslation()
 
   const isAllPage = useMemo(
-    () => pathname === '/all' || pathname === `/${siteFrontId}/all`,
+    () => pathname === '/all' || pathname === `/z/${siteFrontId}/all`,
     [pathname, siteFrontId]
   )
 

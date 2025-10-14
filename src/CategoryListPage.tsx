@@ -176,7 +176,7 @@ export default function CategoryListPage() {
           <div className="flex p-1" key={cate.frontId}>
             <Card className="flex items-start justify-between p-2 w-full">
               <Link
-                to={`/${siteFrontId}/bankuai/${cate.frontId}`}
+                to={`/z/${siteFrontId}/bankuai/${cate.frontId}`}
                 state={cate}
                 className="flex-grow-0 mr-2"
               >
@@ -198,7 +198,7 @@ export default function CategoryListPage() {
               <div className="flex-grow">
                 <div className="font-bold pt-2">
                   <Link
-                    to={`/${siteFrontId}/bankuai/${cate.frontId}`}
+                    to={`/z/${siteFrontId}/bankuai/${cate.frontId}`}
                     state={cate}
                   >
                     {cate.name}

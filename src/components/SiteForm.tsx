@@ -457,7 +457,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
           />
           <div className="pl-4 flex-grow max-w-[calc(100%-82px)] overflow-hidden">
             <div className="text-sm text-gray-500 h-5">
-              {'/' +
+              {'/z/' +
                 (isEdit
                   ? site.frontId
                   : (formVals.frontID || '').toLowerCase())}
@@ -882,7 +882,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
                           <FormLabel className="font-normal">
                             {t('feed')} (&nbsp;
                             <span className="text-sm text-gray-500">
-                              {`/${site.frontId}/feed`}
+                              {`/z/${site.frontId}/feed`}
                             </span>
                             &nbsp;)
                           </FormLabel>
@@ -897,7 +897,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
                           <FormLabel className="font-normal">
                             {t('category')} (&nbsp;
                             <span className="text-sm text-gray-500">
-                              {`/${site.frontId}/bankuai`}
+                              {`/z/${site.frontId}/bankuai`}
                             </span>
                             &nbsp;)
                           </FormLabel>

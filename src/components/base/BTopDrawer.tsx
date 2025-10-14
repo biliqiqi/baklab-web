@@ -66,7 +66,7 @@ const BTopDrawer = () => {
           {siteList &&
             siteList.map((site) => (
               <Link
-                to={`/${site.frontId}`}
+                to={`/z/${site.frontId}`}
                 key={site.frontId}
                 className={cn(
                   'flex justify-center overflow-hidden flex-shrink-0 flex-grow-0 mr-[8px] leading-3'

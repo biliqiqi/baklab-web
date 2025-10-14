@@ -109,21 +109,21 @@ const ActivityTargetLink = ({ activity: item }: ActivityActionTextProps) => {
   switch (item.targetModel) {
     case 'article':
       return (
-        <Link to={`/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}>
+        <Link to={`/z/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}>
           {item.extraInfo.title ||
-            `/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}
+            `/z/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}
         </Link>
       )
     case 'user':
       return <Link to={`/users/${item.targetId}`}>{item.targetId}</Link>
     case 'category':
       return (
-        <Link to={`/${item.extraInfo.siteFrontId}/bankuai/${item.targetId}`}>
+        <Link to={`/z/${item.extraInfo.siteFrontId}/bankuai/${item.targetId}`}>
           {item.extraInfo.categoryName}
         </Link>
       )
     case 'site':
-      return <Link to={`/${item.targetId}`}>{`/${item.targetId}`}</Link>
+      return <Link to={`/z/${item.targetId}`}>{`/z/${item.targetId}`}</Link>
     default:
       return null
   }
@@ -427,10 +427,10 @@ const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
               ),
               postLink: (
                 <Link
-                  to={`/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}
+                  to={`/z/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}
                 >
                   {item.extraInfo.displayTitle ||
-                    `/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}
+                    `/z/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}
                 </Link>
               ),
               timeTag: (

@@ -124,7 +124,7 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
                 ),
                 titleLink: (
                   <Link
-                    to={`/${siteFrontId}/articles/${item.currArticle.id}`}
+                    to={`/z/${siteFrontId}/articles/${item.currArticle.id}`}
                     className="text-primary"
                   />
                 ),

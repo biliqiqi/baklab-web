@@ -766,7 +766,7 @@ export const useSiteStore = create(
           set((state) => ({
             ...state,
             site: clone(data),
-            homePage: `/${data.frontId}${data.homePage}`,
+            homePage: `/z/${data.frontId}${data.homePage}`,
           }))
         } else {
           set((state) => ({ ...state, site: null, homePage: `/` }))

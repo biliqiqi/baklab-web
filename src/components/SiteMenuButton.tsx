@@ -274,7 +274,7 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
         )}
         <DropdownMenuItem asChild>
           <Link
-            to={`/${siteFrontId}/about`}
+            to={`/z/${siteFrontId}/about`}
             className="py-2 px-2 cursor-pointer"
           >
             {t('about')}

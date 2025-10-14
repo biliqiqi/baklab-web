@@ -97,7 +97,7 @@ const needPermission =
 
         // If site data not loaded, skip permission check, let page handle
         if (site && !checkPermitUnderSite(site, module, action)) {
-          return redirect(`/${siteFrontId}`)
+          return redirect(`/z/${siteFrontId}`)
         }
       } else {
         if (!checkPermit(module, action)) {
@@ -126,7 +126,7 @@ const checkSiteFeedAuth = ({
 }) => {
   const authState = useAuthedUserStore.getState()
   if (!authState.isLogined()) {
-    return redirect(`/${params.siteFrontId}/all`)
+    return redirect(`/z/${params.siteFrontId}/all`)
   }
   return null
 }
@@ -147,7 +147,7 @@ const somePermissions =
     )
     if (!permitted) {
       if (siteFrontId) {
-        return redirect(`/${siteFrontId}`)
+        return redirect(`/z/${siteFrontId}`)
       } else {
         return redirect('/')
       }
@@ -155,6 +155,108 @@ const somePermissions =
 
     return null
   }
+
+const createSiteRoutes = (prefix: '/z' | '/zhandian'): RouteObject[] => [
+  {
+    path: `${prefix}/:siteFrontId`,
+    loader: async ({ params }) => {
+      if (!params.siteFrontId) {
+        return redirect('/')
+      }
+
+      try {
+        const { code, data: site } = await getSiteWithFrontId(
+          params.siteFrontId
+        )
+
+        if (code || !site) {
+          return null
+        }
+
+        if (site.homePage == '/') {
+          return redirect(`${prefix}/${params.siteFrontId}/feed`)
+        }
+        return redirect(`${prefix}/${params.siteFrontId}${site.homePage}`)
+      } catch (err) {
+        console.error(`error in ${prefix}/:siteFrontId route: `, err)
+        return null
+      }
+    },
+    Component: BankuaiPage,
+  },
+  {
+    path: `${prefix}/:siteFrontId/feed`,
+    Component: FeedPage,
+    loader: checkSiteFeedAuth,
+  },
+  {
+    path: `${prefix}/:siteFrontId/all`,
+    Component: BankuaiPage,
+  },
+  {
+    path: `${prefix}/:siteFrontId/bankuai`,
+    Component: CategoryListPage,
+  },
+  {
+    path: `${prefix}/:siteFrontId/submit`,
+    Component: SubmitPage,
+    loader: needPermission('article', 'create'),
+  },
+  {
+    path: `${prefix}/:siteFrontId/bankuai/:categoryFrontId`,
+    Component: BankuaiPage,
+  },
+  {
+    path: `${prefix}/:siteFrontId/about`,
+    Component: AboutPage,
+  },
+  {
+    path: `${prefix}/:siteFrontId/b/:categoryFrontId`,
+    Component: BankuaiPage,
+  },
+  {
+    path: `${prefix}/:siteFrontId/articles/:articleId`,
+    Component: ArticlePage,
+  },
+  {
+    path: `${prefix}/:siteFrontId/articles/:articleId/edit`,
+    Component: EditPage,
+    loader: somePermissions(
+      ['article', 'edit_mine'],
+      ['article', 'edit_others']
+    ),
+  },
+  {
+    path: `${prefix}/:siteFrontId/manage/users`,
+    Component: UserListPage,
+    loader: needPermission('user', 'manage'),
+  },
+  {
+    path: `${prefix}/:siteFrontId/manage/blocklist`,
+    Component: BlockedUserListPage,
+    loader: needPermission('user', 'manage'),
+  },
+  {
+    path: `${prefix}/:siteFrontId/manage/roles`,
+    Component: RoleManagePage,
+    loader: needPermission('role', 'manage'),
+  },
+  {
+    path: `${prefix}/:siteFrontId/manage/activities`,
+    Component: ActivityPage,
+    loader: needPermission('activity', 'access'),
+  },
+  {
+    path: `${prefix}/:siteFrontId/manage/article_review`,
+    Component: ArticleReviewPage,
+    loader: needPermission('article', 'review'),
+  },
+  {
+    path: `${prefix}/:siteFrontId/manage/blocked_words`,
+    Component: BlockedWordListPage,
+    loader: needPermission('site', 'manage'),
+  },
+]
 
 export const routes: RouteObject[] = [
   {
@@ -261,105 +363,8 @@ export const routes: RouteObject[] = [
       },
     ],
   },
-  {
-    path: '/:siteFrontId',
-    loader: async ({ params }) => {
-      if (!params.siteFrontId) {
-        return redirect('/')
-      }
-
-      try {
-        const { code, data: site } = await getSiteWithFrontId(
-          params.siteFrontId
-        )
-
-        if (code || !site) {
-          return null
-        }
-
-        if (site.homePage == '/') {
-          return redirect(`/${params.siteFrontId}/feed`)
-        }
-        return redirect(`/${params.siteFrontId}${site.homePage}`)
-      } catch (err) {
-        console.error('error in /:siteFrontId route: ', err)
-        return null
-      }
-    },
-    Component: BankuaiPage,
-  },
-  {
-    path: '/:siteFrontId/feed',
-    Component: FeedPage,
-    loader: checkSiteFeedAuth,
-  },
-  {
-    path: '/:siteFrontId/all',
-    Component: BankuaiPage,
-  },
-  {
-    path: '/:siteFrontId/bankuai',
-    Component: CategoryListPage,
-  },
-  {
-    path: '/:siteFrontId/submit',
-    Component: SubmitPage,
-    loader: needPermission('article', 'create'),
-  },
-  {
-    path: '/:siteFrontId/bankuai/:categoryFrontId',
-    Component: BankuaiPage,
-  },
-  {
-    path: '/:siteFrontId/about',
-    Component: AboutPage,
-  },
-  {
-    path: '/:siteFrontId/b/:categoryFrontId',
-    Component: BankuaiPage,
-  },
-  {
-    path: '/:siteFrontId/articles/:articleId',
-    Component: ArticlePage,
-  },
-  {
-    path: '/:siteFrontId/articles/:articleId/edit',
-    Component: EditPage,
-    loader: somePermissions(
-      ['article', 'edit_mine'],
-      ['article', 'edit_others']
-    ),
-  },
-  {
-    path: '/:siteFrontId/manage/users',
-    Component: UserListPage,
-    loader: needPermission('user', 'manage'),
-  },
-  {
-    path: '/:siteFrontId/manage/blocklist',
-    Component: BlockedUserListPage,
-    loader: needPermission('user', 'manage'),
-  },
-  {
-    path: '/:siteFrontId/manage/roles',
-    Component: RoleManagePage,
-    loader: needPermission('role', 'manage'),
-  },
-  {
-    path: '/:siteFrontId/manage/activities',
-    Component: ActivityPage,
-    loader: needPermission('activity', 'access'),
-  },
-  {
-    path: '/:siteFrontId/manage/article_review',
-    Component: ArticleReviewPage,
-    loader: needPermission('article', 'review'),
-  },
-  {
-    path: '/:siteFrontId/manage/blocked_words',
-    Component: BlockedWordListPage,
-    loader: needPermission('site', 'manage'),
-  },
+  ...createSiteRoutes('/z'),
+  ...createSiteRoutes('/zhandian'),
   {
     path: '*',
     Component: NotFoundPage,

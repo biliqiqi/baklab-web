@@ -246,7 +246,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
       permitModule: 'user',
       permitAction: 'manage',
       name: t('members'),
-      link: `/${siteFrontId}/manage/users`,
+      link: `/z/${siteFrontId}/manage/users`,
       icon: <UserRoundIcon size={18} />,
     },
     {
@@ -254,7 +254,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
       permitModule: 'user',
       permitAction: 'manage',
       name: t('blockList'),
-      link: `/${siteFrontId}/manage/blocklist`,
+      link: `/z/${siteFrontId}/manage/blocklist`,
       icon: <UserRoundIcon size={18} />,
     },
     {
@@ -262,7 +262,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
       permitModule: 'role',
       permitAction: 'edit',
       name: t('role'),
-      link: `/${siteFrontId}/manage/roles`,
+      link: `/z/${siteFrontId}/manage/roles`,
       icon: <UserIcon size={18} />,
     },
     {
@@ -270,7 +270,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
       permitModule: 'article',
       permitAction: 'review',
       name: t('reviewByHuman'),
-      link: `/${siteFrontId}/manage/article_review`,
+      link: `/z/${siteFrontId}/manage/article_review`,
       icon: <ShieldCheckIcon size={18} />,
     },
     {
@@ -278,7 +278,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
       permitModule: 'site',
       permitAction: 'manage',
       name: t('blockedWord'),
-      link: `/${siteFrontId}/manage/blocked_words`,
+      link: `/z/${siteFrontId}/manage/blocked_words`,
       icon: <MessageSquareXIcon size={18} />,
     },
     {
@@ -286,7 +286,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
       permitModule: 'activity',
       permitAction: 'access',
       name: t('modLog'),
-      link: `/${siteFrontId}/manage/activities`,
+      link: `/z/${siteFrontId}/manage/activities`,
       icon: <ActivityIcon size={18} />,
     },
   ]
@@ -349,7 +349,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
               <div className="flex items-center flex-shrink-0">
                 <Link
                   className="font-bold text-2xl leading-3"
-                  to={siteFrontId && currSite ? `/${siteFrontId}` : `/`}
+                  to={siteFrontId && currSite ? `/z/${siteFrontId}` : `/`}
                 >
                   {siteFrontId && currSite ? (
                     currSite.logoHtmlStr ? (
@@ -559,15 +559,15 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
                             asChild
                             isActive={
                               location.pathname ==
-                                `/${siteFrontId}/bankuai/${item.frontId}` ||
+                                `/z/${siteFrontId}/bankuai/${item.frontId}` ||
                               (currentCategoryFrontId === item.frontId &&
                                 location.pathname.includes(
-                                  `/${siteFrontId}/articles/`
+                                  `/z/${siteFrontId}/articles/`
                                 ))
                             }
                           >
                             <Link
-                              to={`/${siteFrontId}/bankuai/${item.frontId}`}
+                              to={`/z/${siteFrontId}/bankuai/${item.frontId}`}
                               state={item}
                             >
                               <span

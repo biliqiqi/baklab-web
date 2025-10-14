@@ -122,9 +122,9 @@ export const genArticlePath = ({
   contentForm,
 }: Article) => {
   if (contentForm && contentForm.frontId == 'chat') {
-    return `/${siteFrontId}/bankuai/${categoryFrontId}#message${id}`
+    return `/z/${siteFrontId}/bankuai/${categoryFrontId}#message${id}`
   }
-  return `/${siteFrontId}/articles/${id}`
+  return `/z/${siteFrontId}/articles/${id}`
 }
 
 export const getSiteStatusName = (status: SiteStatus) => {

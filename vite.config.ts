@@ -1,3 +1,4 @@
+import legacy from '@vitejs/plugin-legacy'
 import react from '@vitejs/plugin-react'
 import fs from 'fs'
 import path from 'path'
@@ -48,6 +49,10 @@ export default defineConfig(({ mode }) => {
     base: env.VITE_BASE_URL || '/',
     plugins: [
       devSwMiddleware(),
+      legacy({
+        targets: ['Chrome >= 87', 'Edge >= 88', 'Safari >= 13'],
+        modernPolyfills: true,
+      }),
       VitePWA({
         registerType: 'autoUpdate',
         injectRegister: null,
@@ -90,8 +95,7 @@ export default defineConfig(({ mode }) => {
       // }),
     ],
     build: {
-      target: 'esnext',
-      assetsInlineLimit: 0, // Disable base64 inlining for all assets
+      assetsInlineLimit: 0,
     },
     resolve: {
       alias: {

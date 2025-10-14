@@ -35,7 +35,7 @@ i18n.on('languageChanged', () => {
   updateDayjsLocale()
 })
 
-await i18n
+i18n
   .use(initReactI18next)
   .use(LanguageDetector)
   .init({

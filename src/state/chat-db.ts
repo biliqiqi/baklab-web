@@ -30,23 +30,30 @@ interface ChatDB extends DBSchema {
 const CHAT_DB_NAME = 'chatDB'
 const CHAT_DB_VERSION = 2
 
-export const chatDB = await openDB<ChatDB>(CHAT_DB_NAME, CHAT_DB_VERSION, {
-  upgrade(db, oldVersion, newVersion) {
-    console.log(
-      `Upgrading database from version ${oldVersion} to ${newVersion}`
-    )
-    if (!db.objectStoreNames.contains('chatRooms')) {
-      db.createObjectStore('chatRooms', { keyPath: 'path' })
-    }
+let chatDBInstance: ReturnType<typeof openDB<ChatDB>> | null = null
 
-    if (!db.objectStoreNames.contains('chatMessages')) {
-      const chatMessages = db.createObjectStore('chatMessages', {
-        keyPath: 'id',
-      })
-      chatMessages.createIndex('by-room', 'roomPath')
-    }
-  },
-})
+const getChatDB = () => {
+  if (!chatDBInstance) {
+    chatDBInstance = openDB<ChatDB>(CHAT_DB_NAME, CHAT_DB_VERSION, {
+      upgrade(db, oldVersion, newVersion) {
+        console.log(
+          `Upgrading database from version ${oldVersion} to ${newVersion}`
+        )
+        if (!db.objectStoreNames.contains('chatRooms')) {
+          db.createObjectStore('chatRooms', { keyPath: 'path' })
+        }
+
+        if (!db.objectStoreNames.contains('chatMessages')) {
+          const chatMessages = db.createObjectStore('chatMessages', {
+            keyPath: 'id',
+          })
+          chatMessages.createIndex('by-room', 'roomPath')
+        }
+      },
+    })
+  }
+  return chatDBInstance
+}
 
 export const saveIDBChatList = async (
   siteFrontId: string,
@@ -57,6 +64,7 @@ export const saveIDBChatList = async (
 ) => {
   try {
     const roomPath = `/${siteFrontId}/bankuai/${categoryFrontId}`
+    const chatDB = await getChatDB()
     const tx = chatDB.transaction(['chatRooms', 'chatMessages'], 'readwrite')
     const chatRooms = tx.objectStore('chatRooms')
     const chatMessages = tx.objectStore('chatMessages')
@@ -97,6 +105,7 @@ export const getIDBChatList = async (
 
   try {
     const roomPath = `/${siteFrontId}/bankuai/${categoryFrontId}`
+    const chatDB = await getChatDB()
     const tx = chatDB.transaction(['chatRooms', 'chatMessages'], 'readonly')
     const chatRooms = tx.objectStore('chatRooms')
     const chatMessages = tx.objectStore('chatMessages')
@@ -142,6 +151,7 @@ export const saveIDBMessage = async (
       createdAtTimestamp: new Date(article.createdAt).getTime(),
     }
 
+    const chatDB = await getChatDB()
     const tx = chatDB.transaction(['chatRooms', 'chatMessages'], 'readwrite')
     const chatMessages = tx.objectStore('chatMessages')
     const chatRooms = tx.objectStore('chatRooms')
@@ -168,6 +178,7 @@ export const saveIDBMessage = async (
 
 export const deleteIDBMessage = async (messageId: string) => {
   try {
+    const chatDB = await getChatDB()
     const tx = chatDB.transaction(['chatMessages'], 'readwrite')
     const chatMessages = tx.objectStore('chatMessages')
 

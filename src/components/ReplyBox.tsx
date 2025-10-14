@@ -31,7 +31,11 @@ import {
 } from '@/constants/constants'
 import { I18n } from '@/constants/types'
 import i18n from '@/i18n'
-import { useUserUIStore } from '@/state/global'
+import {
+  useAuthedUserStore,
+  useSiteStore,
+  useUserUIStore,
+} from '@/state/global'
 import {
   Article,
   ArticleSubmitResponse,
@@ -101,7 +105,8 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
 
   const { siteFrontId } = useParams()
 
-  /* const authStore = useAuthedUserStore() */
+  const site = useSiteStore((state) => state.site)
+  const checkPermit = useAuthedUserStore((state) => state.permit)
   const { innerContentWidth: _innerContentWidth } = useUserUIStore(
     useShallow(({ innerContentWidth }) => ({
       innerContentWidth: innerContentWidth || DEFAULT_INNER_CONTENT_WIDTH,
@@ -225,6 +230,10 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
 
         /* const data = await submitReply(replyToArticle.id, content) */
         if (!resp.code) {
+          if (site?.reviewBeforePublish && !checkPermit('article', 'review')) {
+            toast.info(t('postReviewTip'))
+          }
+
           setJustSubmitted(true)
           reset()
           form.reset({ content: '' })
@@ -253,6 +262,9 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
       category,
       replyBoxHeight,
       readRateLimitData,
+      site,
+      checkPermit,
+      t,
     ]
   )
 

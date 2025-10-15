@@ -51,9 +51,9 @@ export default defineConfig(({ mode }) => {
       devSwMiddleware(),
       legacy({
         targets: ['Chrome >= 87', 'Edge >= 88', 'Safari >= 13'],
+        modernTargets: ['Chrome >= 87', 'Edge >= 88', 'Safari >= 13'],
         modernPolyfills: true,
-        renderLegacyChunks: true,
-        additionalLegacyPolyfills: ['regenerator-runtime/runtime'],
+        renderLegacyChunks: false,
       }),
       VitePWA({
         registerType: 'autoUpdate',
@@ -116,6 +116,7 @@ export default defineConfig(({ mode }) => {
     ],
     build: {
       assetsInlineLimit: 0,
+      target: 'es2015',
     },
     resolve: {
       alias: {

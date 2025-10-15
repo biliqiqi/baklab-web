@@ -119,7 +119,24 @@ const themeSchema = z.union([
   z.literal('dark'),
   z.literal('system'),
 ])
-const languageSchema = z.union([z.literal('zh-CN'), z.literal('en-US')])
+const languageSchema = z.union([
+  z.literal('zh'),
+  z.literal('zh-CN'),
+  z.literal('zh-Hans'),
+  z.literal('en'),
+  z.literal('en-US'),
+])
+
+const normalizeLanguageForForm = (lang: string): LanguageSchema => {
+  if (lang.startsWith('zh')) {
+    return 'zh-CN'
+  }
+  if (lang.startsWith('en')) {
+    return 'en-US'
+  }
+  return 'en-US'
+}
+
 const userUISchema = z.object({
   mode: z.union([
     z.literal(SITE_LIST_MODE.TopDrawer),
@@ -147,7 +164,7 @@ const defaultUserUIData: UserUISchema = {
   customFontSize: '',
   contentWidth: DEFAULT_CONTENT_WIDTH,
   customContentWidth: '',
-  lang: i18n.language as LanguageSchema,
+  lang: normalizeLanguageForForm(i18n.language),
 }
 
 export interface UserUIFormProps {
@@ -226,7 +243,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
         contentWidth: contentWidthGlobalVal,
         customContentWidth:
           contentWidthGlobalVal == 'custom' ? userUIContentWidth : '',
-        lang: i18n.language as LanguageSchema,
+        lang: normalizeLanguageForForm(i18n.language),
       },
     })
 
@@ -404,7 +421,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                 contentWidth: newContentWidthVal,
                 customContentWidth:
                   newContentWidthVal === 'custom' ? newContentWidthStr : '',
-                lang: (settings.lang || i18n.language) as LanguageSchema,
+                lang: normalizeLanguageForForm(settings.lang || i18n.language),
               })
             },
           },

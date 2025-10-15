@@ -17,9 +17,14 @@ const zhHansOpts = {
 }
 
 const resources = {
-  'zh-Hans': zhHansOpts,
+  zh: zhHansOpts,
   'zh-CN': zhHansOpts,
+  'zh-Hans': zhHansOpts,
   en: {
+    translation: enRes,
+    zod: zodEn,
+  },
+  'en-US': {
     translation: enRes,
     zod: zodEn,
   },
@@ -40,14 +45,20 @@ i18n
   .use(LanguageDetector)
   .init({
     resources,
+    fallbackLng: 'en-US',
     detection: {
+      order: [
+        'querystring',
+        'localStorage',
+        'navigator',
+        'htmlTag',
+        'path',
+        'subdomain',
+      ],
       lookupQuerystring: 'lang',
       lookupLocalStorage: 'lang',
       caches: ['localStorage'],
       htmlTag: document.documentElement,
-      convertDetectedLanguage: (lng) => {
-        return lng.replace('_', '-')
-      },
     } as DetectorOptions,
   })
 

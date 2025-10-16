@@ -12,6 +12,7 @@ import {
   REPLY_BOX_PLACEHOLDER_HEIGHT,
 } from './constants/constants'
 import { defaultPageState } from './constants/defaults'
+import { usePermit } from './hooks/use-auth'
 import { toSync } from './lib/fire-and-forget'
 import {
   bus,
@@ -113,9 +114,8 @@ const ChatPage: React.FC<ChatPageProps> = ({
 
   const location = useLocation()
 
-  const { permit, currUserId } = useAuthedUserStore(
-    useShallow(({ permit, userID }) => ({ permit, currUserId: userID }))
-  )
+  const currUserId = useAuthedUserStore((state) => state.userID)
+  const hasReplyPermit = usePermit('article', 'reply')
 
   const fetchChatList = useCallback(
     async (isNext: boolean, force = false, withCursor = true, init = false) => {
@@ -353,7 +353,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
       edittingArticle: null,
       replyToArticle: null,
       category: currCate,
-      disabled: !permit('article', 'reply'),
+      disabled: !hasReplyPermit,
       onSuccess: (_, actionType) => {
         setReplyBoxState({
           editType: 'create',
@@ -373,7 +373,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
         })
       },
     })
-  }, [currCate, fetchChatList, permit, setReplyBoxState, setReplySuccess])
+  }, [currCate, hasReplyPermit, setReplyBoxState, setReplySuccess])
 
   const topObserverHandler = useDebouncedCallback(
     (entries: IntersectionObserverEntry[]) => {

@@ -23,6 +23,7 @@ import {
 
 import { getArticle } from './api/article'
 import { ArticleContext } from './contexts/ArticleContext'
+import { usePermit } from './hooks/use-auth'
 import useDocumentTitle from './hooks/use-page-title'
 import { updateArticleState } from './lib/article-utils'
 import { toSync } from './lib/fire-and-forget'
@@ -74,10 +75,13 @@ export default function ArticlePage() {
     }))
   )
 
-  const authStore = useAuthedUserStore()
+  const { isLogined, permit } = useAuthedUserStore(
+    useShallow(({ isLogined, permit }) => ({ isLogined, permit }))
+  )
   const { forceState } = useForceUpdate()
-  const siteStore = useSiteStore()
+  const site = useSiteStore((state) => state.site)
   const { setCategoryFrontId } = useCurrentArticleStore()
+  const hasReplyPermit = usePermit('article', 'reply')
 
   const sort = (params.get('sort') as ArticleListSort | null) || 'oldest'
 
@@ -258,9 +262,8 @@ export default function ArticlePage() {
       !article.deleted &&
       !article.locked &&
       article.status == 'published' &&
-      authStore.isLogined() &&
-      (siteStore.site?.currUserState.isMember ||
-        authStore.permit('site', 'manage'))
+      isLogined() &&
+      (site?.currUserState.isMember || permit('site', 'manage'))
     ) {
       setShowReplyBox(true)
     } else {
@@ -270,13 +273,13 @@ export default function ArticlePage() {
     return () => {
       setShowReplyBox(false)
     }
-  }, [article, authStore, siteStore, setShowReplyBox])
+  }, [article, isLogined, site, permit, setShowReplyBox])
 
   useEffect(() => {
     setReplyBoxState({
-      disabled: !authStore.permit('article', 'reply'),
+      disabled: !hasReplyPermit,
     })
-  }, [authStore, setReplyBoxState])
+  }, [hasReplyPermit, setReplyBoxState])
 
   useEffect(() => {
     setReplyBoxState({

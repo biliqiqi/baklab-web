@@ -44,10 +44,10 @@ import {
 } from '@/types/types'
 
 import TipTap, { TipTapRef } from './TipTap'
-import BLoader from './base/BLoader'
 import { Button } from './ui/button'
 import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form'
 import { Input } from './ui/input'
+import { Spinner } from './ui/spinner'
 import { Textarea } from './ui/textarea'
 
 const contentSchema = (i: I18n) =>
@@ -791,10 +791,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
                           className="w-8 h-[24px] text-gray-500"
                         >
                           {imageUploading ? (
-                            <BLoader
-                              className="inline-block"
-                              style={{ fontSize: '2px' }}
-                            />
+                            <Spinner />
                           ) : (
                             <ImageIcon size={20} />
                           )}
@@ -820,7 +817,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({
                       className="mt-2 ml-2"
                       size="sm"
                     >
-                      {loading ? <BLoader /> : t('submit')}
+                      {loading && <Spinner />} {t('submit')}
                     </Button>
                   </div>
                 </div>

@@ -14,10 +14,10 @@ import useDocumentTitle from '@/hooks/use-page-title'
 import { useAuthedUserStore, useDialogStore } from '@/state/global'
 
 import CodeForm, { CodeSchema } from './CodeForm'
-import BLoader from './base/BLoader'
 import { Button } from './ui/button'
 import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form'
 import { Input } from './ui/input'
+import { Spinner } from './ui/spinner'
 import { Tabs, TabsContent } from './ui/tabs'
 
 const emailSchema = z.object({
@@ -282,7 +282,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
                 className="w-full text-center mb-4"
                 disabled={loading}
               >
-                {loading ? <BLoader /> : t('submit')}
+                {loading && <Spinner />} {t('submit')}
               </Button>
               <Button
                 type="button"
@@ -345,7 +345,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
                     className="w-full text-center"
                     disabled={loading}
                   >
-                    {loading ? <BLoader /> : t('nextStep')}
+                    {loading && <Spinner />} {t('nextStep')}
                   </Button>
                 </form>
               </Form>

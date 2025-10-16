@@ -43,7 +43,6 @@ import ArticleCard from './ArticleCard'
 import ContentFormSelector from './ContentFormSelector'
 import TipTap, { TipTapRef } from './TipTap'
 import BAvatar from './base/BAvatar'
-import BLoader from './base/BLoader'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
 import {
@@ -64,6 +63,7 @@ import {
 } from './ui/form'
 import { Input } from './ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
+import { Spinner } from './ui/spinner'
 import { Textarea } from './ui/textarea'
 
 const contentRule = z.string().max(ARTICLE_MAX_CONTENT_LEN)
@@ -783,14 +783,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                     title={imageUploading ? t('uploading') : t('addImage')}
                     className="w-8 h-[24px] text-gray-500"
                   >
-                    {imageUploading ? (
-                      <BLoader
-                        className="inline-block"
-                        style={{ fontSize: '2px' }}
-                      />
-                    ) : (
-                      <ImageIcon size={20} />
-                    )}
+                    {imageUploading ? <Spinner /> : <ImageIcon size={20} />}
                   </Button>
                 </>
               )}
@@ -811,7 +804,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                 size="sm"
                 className="ml-2"
               >
-                {loading ? <BLoader /> : t('submit')}
+                {loading && <Spinner />} {t('submit')}
               </Button>
             </div>
           </div>

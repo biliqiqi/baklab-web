@@ -21,10 +21,10 @@ import { OAUTH_PROVIDER, OAuthProvider } from '@/types/types'
 
 import OAuthButton from './OAuthButton'
 import OAuthUsernameSetup from './OAuthUsernameSetup'
-import BLoader from './base/BLoader'
 import { Button } from './ui/button'
 import { Form, FormControl, FormItem } from './ui/form'
 import { Input } from './ui/input'
+import { Spinner } from './ui/spinner'
 
 const accountRule = z.string().min(1)
 const signinSchema = z.object({
@@ -243,7 +243,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
               className="w-full text-center"
               disabled={loading}
             >
-              {loading ? <BLoader /> : t('signin')}
+              {loading && <Spinner />} {t('signin')}
             </Button>
           </form>
         </Form>

@@ -648,5 +648,9 @@
   "failedToUploadImage": "图片上传失败",
   "failedToReadFile": "文件读取失败",
   "uploading": "上传中...",
-  "addImage": "添加图片"
+  "addImage": "添加图片",
+  "sharePost": "分享文章",
+  "copyLink": "复制链接",
+  "share": "分享",
+  "copyFailed": "复制出错"
 }

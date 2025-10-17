@@ -648,5 +648,9 @@
   "failedToUploadImage": "Failed to upload image",
   "failedToReadFile": "Failed to read file",
   "uploading": "Uploading...",
-  "addImage": "Add image"
+  "addImage": "Add image",
+  "sharePost": "Share post",
+  "copyLink": "Copy link",
+  "share": "Share",
+  "copyFailed": "Copy failed"
 }

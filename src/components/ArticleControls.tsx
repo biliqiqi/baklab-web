@@ -1,10 +1,13 @@
+import ClipboardJS from 'clipboard'
 import {
   BellIcon,
   BookmarkIcon,
   CheckIcon,
   HistoryIcon,
+  LinkIcon,
   MessageSquare,
   QrCode,
+  Share2Icon,
 } from 'lucide-react'
 import {
   HTMLAttributes,
@@ -12,10 +15,13 @@ import {
   MouseEventHandler,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
 } from 'react'
-import { Trans, useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
 import { cn, genArticlePath, noop } from '@/lib/utils'
@@ -41,9 +47,16 @@ import {
 
 import BIconColorChar from './base/BIconColorChar'
 import BSiteIcon from './base/BSiteIcon'
+import { BIconForward } from './icon/Forward'
 import { BIconTriangleDown } from './icon/TriangleDown'
 import { BIconTriangleUp } from './icon/TriangleUp'
 import { Button } from './ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu'
 
 interface ArticleControlsProps extends HTMLAttributes<HTMLDivElement> {
   disabled?: boolean
@@ -107,6 +120,39 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   /* console.log('curr article history: ', articleHistory) */
 
   const articleCtx = useContext(ArticleContext)
+
+  const clipboardRef = useRef<ClipboardJS | null>(null)
+  const articleUrl = useMemo(
+    () => window.location.origin + genArticlePath(article),
+    [article]
+  )
+  const copyBtnClass = useMemo(
+    () => `copy-link-btn-${article.id}`,
+    [article.id]
+  )
+
+  useEffect(() => {
+    if (!clipboardRef.current) {
+      clipboardRef.current = new ClipboardJS(`.${copyBtnClass}`, {
+        text: () => articleUrl,
+      })
+
+      clipboardRef.current.on('success', () => {
+        toast.success(t('copySuccess'))
+      })
+
+      clipboardRef.current.on('error', () => {
+        toast.error(t('copyFailed'))
+      })
+    }
+
+    return () => {
+      if (clipboardRef.current) {
+        clipboardRef.current.destroy()
+        clipboardRef.current = null
+      }
+    }
+  }, [copyBtnClass, articleUrl, t])
 
   const onSaveClick = useCallback(
     async (e: MouseEvent<HTMLButtonElement>) => {
@@ -227,6 +273,26 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
     [isLogined, loginWithDialog, onCommentClick]
   )
 
+  const handleNativeShare = useCallback(
+    async (e: MouseEvent<HTMLDivElement>) => {
+      const shareData = {
+        title: article.title,
+        text: '',
+        url: window.location.origin + genArticlePath(article),
+      }
+
+      if (navigator.canShare && navigator.canShare(shareData)) {
+        e.preventDefault()
+        try {
+          await navigator.share(shareData)
+        } catch (err) {
+          console.error('native share failed: ', err)
+        }
+      }
+    },
+    [article]
+  )
+
   return (
     <div
       className={cn(
@@ -311,6 +377,33 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                 />
                 {article.totalSavedCount > 0 && article.totalSavedCount}
               </Button>
+            )}
+            {isPublished && ctype == 'item' && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={disabled}
+                    className="mr-1 h-[1.5rem]"
+                    title={t('sharePost')}
+                  >
+                    <BIconForward size={rem2pxNum(1.25)} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem asChild>
+                    <button className={copyBtnClass}>
+                      <LinkIcon size={rem2pxNum(1.25)} className="mr-2" />
+                      {t('copyLink')}
+                    </button>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleNativeShare}>
+                    <Share2Icon size={rem2pxNum(1.25)} className="mr-2" />
+                    {t('share')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
             {checkPermit('article', 'subscribe') &&
               isPublished &&

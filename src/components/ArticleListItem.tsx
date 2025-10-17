@@ -126,7 +126,6 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
         ctype="list"
         bookmark={false}
         notify={false}
-        history={false}
         onSuccess={(action) => {
           if (onUpdate) {
             onUpdate(updateArticleState(article, action))

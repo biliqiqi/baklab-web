@@ -3,7 +3,6 @@ import {
   BellIcon,
   BookmarkIcon,
   CheckIcon,
-  HistoryIcon,
   LinkIcon,
   MessageSquare,
   QrCode,
@@ -28,7 +27,6 @@ import { cn, genArticlePath, noop } from '@/lib/utils'
 
 import {
   acceptAnswer,
-  getArticleHistory,
   toggleSaveArticle,
   toggleSubscribeArticle,
   toggleVoteArticle,
@@ -36,7 +34,7 @@ import {
 import { ArticleContext } from '@/contexts/ArticleContext'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useRem2PxNum } from '@/hooks/use-rem-num'
-import { useArticleHistoryStore, useAuthedUserStore } from '@/state/global'
+import { useAuthedUserStore } from '@/state/global'
 import {
   Article,
   ArticleAction,
@@ -70,7 +68,6 @@ interface ArticleControlsProps extends HTMLAttributes<HTMLDivElement> {
   linkQrCode?: boolean
   notify?: boolean
   comment?: boolean
-  history?: boolean
   isTopArticle?: boolean
   onCommentClick?: MouseEventHandler<HTMLButtonElement>
   /* onSaveClick?: MouseEventHandler<HTMLButtonElement> */
@@ -95,7 +92,6 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   cornerLink = false,
   notify = true,
   comment = true,
-  history = true,
   ctype = 'item',
   isTopArticle = false,
   onCommentClick = noop,
@@ -108,7 +104,6 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   const isRootArticle = useMemo(() => article.replyToId == '0', [article])
   const isPublished = useMemo(() => article.status == 'published', [article])
 
-  const articleHistory = useArticleHistoryStore()
   const checkPermit = useAuthedUserStore((state) => state.permit)
   const isMyself = useAuthedUserStore((state) => state.isMySelf)
   const isLogined = useAuthedUserStore((state) => state.isLogined)
@@ -188,35 +183,6 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
       }
     },
     [article, onSuccess]
-  )
-
-  const onShowHistoryClick = useCallback(
-    async (e: MouseEvent<HTMLButtonElement>) => {
-      try {
-        e.preventDefault()
-        articleHistory.updateState({
-          showDialog: true,
-          article: article,
-          history: [],
-        })
-
-        const { code, data } = await getArticleHistory(article.id, {
-          siteFrontId,
-        })
-        if (!code && data.list) {
-          articleHistory.updateState({
-            showDialog: true,
-            article: article,
-            history: data.list,
-          })
-
-          onSuccess('show_history')
-        }
-      } catch (err) {
-        console.error('toggle subscribe article failed: ', err)
-      }
-    },
-    [article, onSuccess, siteFrontId, articleHistory]
   )
 
   const onAcceptAnswerClick = useCallback(
@@ -432,18 +398,6 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           <i className="inline-block mr-2 text-sm text-gray-500">
             &lt;{t('locked')}&gt;
           </i>
-        )}
-        {history && checkPermit('article', 'manage') && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onShowHistoryClick}
-            disabled={disabled}
-            className="mr-1 h-[1.5rem]"
-            title={t('editHistory')}
-          >
-            <HistoryIcon size={rem2pxNum(1.25)} />
-          </Button>
         )}
 
         {ctype == 'list' && (

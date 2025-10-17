@@ -1,4 +1,5 @@
 import {
+  HistoryIcon,
   LockIcon,
   LockOpenIcon,
   PencilIcon,
@@ -27,9 +28,17 @@ import {
   scrollToElement,
 } from '@/lib/utils'
 
-import { deleteArticle, toggleLockArticle } from '@/api/article'
+import {
+  deleteArticle,
+  getArticleHistory,
+  toggleLockArticle,
+} from '@/api/article'
 import { EV_ON_EDIT_CLICK, EV_ON_REPLY_CLICK } from '@/constants/constants'
-import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
+import {
+  useAlertDialogStore,
+  useArticleHistoryStore,
+  useAuthedUserStore,
+} from '@/state/global'
 import {
   ARTICLE_LOCK_ACTION,
   Article,
@@ -48,7 +57,6 @@ import {
 } from './ui/alert-dialog'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
-import { Card } from './ui/card'
 
 interface ArticleCardProps extends HTMLAttributes<HTMLDivElement> {
   article: Article
@@ -75,6 +83,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
   const authStore = useAuthedUserStore()
   const permit = useAuthedUserStore((state) => state.permit)
+  const articleHistory = useArticleHistoryStore()
   const { t } = useTranslation()
 
   const isMyself = useMemo(
@@ -153,6 +162,31 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
       }
     }
   }, [alertDialog, article, onSuccess, t])
+
+  const onShowHistoryClick = useCallback(async () => {
+    try {
+      articleHistory.updateState({
+        showDialog: true,
+        article: article,
+        history: [],
+      })
+
+      const { code, data } = await getArticleHistory(article.id, {
+        siteFrontId: article.siteFrontId,
+      })
+      if (!code && data.list) {
+        articleHistory.updateState({
+          showDialog: true,
+          article: article,
+          history: data.list,
+        })
+
+        onSuccess('show_history')
+      }
+    } catch (err) {
+      console.error('toggle subscribe article failed: ', err)
+    }
+  }, [article, onSuccess, articleHistory])
 
   const onDelConfirmCancel = useCallback(() => {
     setAlertOpen(false)
@@ -292,6 +326,17 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               ) : (
                 <LockOpenIcon size={14} />
               )}
+            </Button>
+          )}
+          {permit('article', 'manage') && !previewMode && (
+            <Button
+              variant={'ghost'}
+              size={'sm'}
+              className="mx-1"
+              title={t('editHistory')}
+              onClick={onShowHistoryClick}
+            >
+              <HistoryIcon size={14} />
             </Button>
           )}
         </div>

@@ -197,7 +197,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   )
 
   const onVoteClick = useCallback(
-    async (e: MouseEvent<HTMLButtonElement>, voteType: VoteType) => {
+    async (e: MouseEvent<HTMLDivElement>, voteType: VoteType) => {
       try {
         e.preventDefault()
 
@@ -271,12 +271,12 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
         {!article.locked && (
           <>
             {isPublished && upVote && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="mr-1 p-0 h-[1.5rem]"
-                onClick={(e) => onVoteClick(e, 'up')}
-                disabled={disabled}
+              <div
+                className={cn(
+                  'mr-1 h-[1.5rem] inline-flex items-center gap-1',
+                  !disabled && 'cursor-pointer hover:opacity-70'
+                )}
+                onClick={(e) => !disabled && onVoteClick(e, 'up')}
                 title={t('upVotePost')}
               >
                 <BIconTriangleUp
@@ -284,15 +284,15 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                   variant={userState?.voteType == 'up' ? 'full' : 'default'}
                 />
                 {article.voteUp > 0 && article.voteUp}
-              </Button>
+              </div>
             )}
             {checkPermit('article', 'vote_down') && isPublished && downVote && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="mr-1 p-0 h-[1.5rem]"
-                onClick={(e) => onVoteClick(e, 'down')}
-                disabled={disabled}
+              <div
+                className={cn(
+                  'mr-1 h-[1.5rem] inline-flex items-center gap-1',
+                  !disabled && 'cursor-pointer hover:opacity-70'
+                )}
+                onClick={(e) => !disabled && onVoteClick(e, 'down')}
                 title={t('downVotePost')}
               >
                 <BIconTriangleDown
@@ -300,7 +300,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                   variant={userState?.voteType == 'down' ? 'full' : 'default'}
                 />
                 {article.voteDown > 0 && article.voteDown}
-              </Button>
+              </div>
             )}
             {comment && (
               <Button

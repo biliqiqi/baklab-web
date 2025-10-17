@@ -278,6 +278,14 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           <span title={timeFmt(article.createdAt, 'YYYY-M-D H:m:s')}>
             {timeAgo(article.createdAt)}
           </span>
+          {article.status === 'pending' && (
+            <>
+              &nbsp;·&nbsp;
+              <Badge variant="outline" className="text-yellow-600 font-normal">
+                审核中
+              </Badge>
+            </>
+          )}
           {((isMyself && permit('article', 'edit_mine')) ||
             permit('article', 'edit_others')) &&
             !previewMode &&
@@ -385,7 +393,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             ></div>
           )}
         </div>
-        {!article.deleted && !previewMode && (
+        {!article.deleted && !previewMode && article.status !== 'pending' && (
           <ArticleControls
             isTopArticle={isTop}
             article={article}

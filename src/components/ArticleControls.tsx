@@ -327,71 +327,6 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                 )}
               </Button>
             )}
-            {checkPermit('article', 'save') && isPublished && bookmark && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onSaveClick}
-                disabled={disabled}
-                className="mr-1 h-[1.5rem]"
-                title={t('savePost')}
-              >
-                <BookmarkIcon
-                  size={rem2pxNum(1.25)}
-                  fill={userState?.saved ? 'currentColor' : 'transparent'}
-                  className={cn(userState?.saved && 'text-primary')}
-                />
-                {article.totalSavedCount > 0 && article.totalSavedCount}
-              </Button>
-            )}
-            {isPublished && ctype == 'item' && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={disabled}
-                    className="mr-1 h-[1.5rem]"
-                    title={t('sharePost')}
-                  >
-                    <BIconForward size={rem2pxNum(1.25)} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem asChild>
-                    <button className={copyBtnClass}>
-                      <LinkIcon size={rem2pxNum(1.25)} className="mr-2" />
-                      {t('copyLink')}
-                    </button>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleNativeShare}>
-                    <Share2Icon size={rem2pxNum(1.25)} className="mr-2" />
-                    {t('share')}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-            {checkPermit('article', 'subscribe') &&
-              isPublished &&
-              notify &&
-              isRootArticle && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onSubscribeClick}
-                  disabled={disabled}
-                  className="mr-1 h-[1.5rem]"
-                  title={t('subscribePost')}
-                >
-                  <BellIcon
-                    size={rem2pxNum(1.25)}
-                    fill={
-                      userState?.subscribed ? 'currentColor' : 'transparent'
-                    }
-                    className={cn(userState?.subscribed && 'text-primary')}
-                  />
-                </Button>
-              )}
           </>
         )}
         {article.locked && (
@@ -445,9 +380,17 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           </>
         )}
         {isTopArticle && (
-          <span className="text-gray-500">
+          <span className="inline-block mr-2 text-gray-500">
             {t('replyCount', { num: article.totalReplyCount })}
           </span>
+        )}
+        {ctype !== 'list' && !isTopArticle && article.childrenCount > 0 && (
+          <Link
+            to={`/z/${article.siteFrontId}/articles/${article.id}`}
+            className="inline-block mr-2 text-gray-500 hover:underline"
+          >
+            {t('replyCount', { num: article.childrenCount })}
+          </Link>
         )}
 
         {((isRootArticle &&
@@ -459,7 +402,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           <Button
             variant="ghost"
             size="sm"
-            className="mr-1 h-[1.5rem] text-green-500"
+            className="mr-1 h-[1.5rem] text-green-500 gap-0 tracking-normal"
             asChild
             title={t('viewAnswer')}
           >
@@ -467,7 +410,6 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
               to={`/z/${article.siteFrontId}/articles/${(articleCtx.root || article).acceptAnswerId}`}
             >
               <CheckIcon size={rem2pxNum(1.25)} />
-              &nbsp;
               <span className="text-sm font-normal">{t('solved')}</span>
             </Link>
           </Button>
@@ -483,7 +425,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
               size="sm"
               onClick={onAcceptAnswerClick}
               disabled={disabled}
-              className="mr-1 h-[1.5rem]"
+              className="mr-1 h-[1.5rem] gap-0 tracking-normal"
             >
               <CheckIcon size={rem2pxNum(1.25)} />
               &nbsp;
@@ -498,13 +440,82 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           checkContentForm(articleCtx.root, 'qna') &&
           articleCtx.root.acceptAnswerId == article.id && (
             <span className="inline-flex items-center mr-2 text-green-500 text-sm whitespace-nowrap">
-              <CheckIcon size={rem2pxNum(1.25)} className="mr-1 inline" />
+              <CheckIcon size={rem2pxNum(1.25)} className="inline" />
               &nbsp;<span>{t('markedAsSolution')}</span>
             </span>
           )}
       </div>
 
       <div className="flex items-center">
+        {!article.locked && (
+          <>
+            {checkPermit('article', 'subscribe') &&
+              isPublished &&
+              notify &&
+              isRootArticle && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onSubscribeClick}
+                  disabled={disabled}
+                  className="mr-1 h-[1.5rem]"
+                  title={t('subscribePost')}
+                >
+                  <BellIcon
+                    size={rem2pxNum(1.25)}
+                    fill={
+                      userState?.subscribed ? 'currentColor' : 'transparent'
+                    }
+                    className={cn(userState?.subscribed && 'text-primary')}
+                  />
+                </Button>
+              )}
+            {checkPermit('article', 'save') && isPublished && bookmark && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onSaveClick}
+                disabled={disabled}
+                className="mr-1 h-[1.5rem]"
+                title={t('savePost')}
+              >
+                <BookmarkIcon
+                  size={rem2pxNum(1.25)}
+                  fill={userState?.saved ? 'currentColor' : 'transparent'}
+                  className={cn(userState?.saved && 'text-primary')}
+                />
+                {article.totalSavedCount > 0 && article.totalSavedCount}
+              </Button>
+            )}
+            {isPublished && ctype == 'item' && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={disabled}
+                    className="mr-1 h-[1.5rem]"
+                    title={t('sharePost')}
+                  >
+                    <BIconForward size={rem2pxNum(1.25)} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <button className={copyBtnClass}>
+                      <LinkIcon size={rem2pxNum(1.25)} className="mr-2" />
+                      {t('copyLink')}
+                    </button>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleNativeShare}>
+                    <Share2Icon size={rem2pxNum(1.25)} className="mr-2" />
+                    {t('share')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </>
+        )}
         {article.replyToId == '0' && (
           <>
             {linkQrCode && (

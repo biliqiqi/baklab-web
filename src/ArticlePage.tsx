@@ -10,14 +10,13 @@ import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 import BContainer from './components/base/BContainer'
 import BLoader from './components/base/BLoader'
 
-import ArticleCard from './components/ArticleCard'
+import ArticleCard, { ArticleCardSkeleton } from './components/ArticleCard'
 import { ListPagination } from './components/ListPagination'
 
 import {
   DEFAULT_PAGE_SIZE,
   EV_ON_EDIT_CLICK,
   EV_ON_REPLY_CLICK,
-  NAV_HEIGHT,
   REPLY_BOX_PLACEHOLDER_HEIGHT,
 } from '@/constants/constants'
 
@@ -330,28 +329,21 @@ export default function ArticlePage() {
         style={{ paddingBottom: `${REPLY_BOX_PLACEHOLDER_HEIGHT}px` }}
         loading={loading}
       >
-        {!initialized && (
-          <div
-            className="absolute top-0 left-0 w-full z-10 bg-background"
-            style={{ height: `calc(100vh - ${NAV_HEIGHT}px)` }}
-          >
-            <div className="mx-auto container p-4">
-              <div className="mb-3">
-                <Skeleton className="w-full h-[168px] p-3 my-2"></Skeleton>
-              </div>
-              <div className="py-1 mb-3">
-                <Skeleton className="w-[210px] h-[44px]"></Skeleton>
-              </div>
-              <div className="mb-1">
-                <Skeleton className="w-full h-[168px] p-3"></Skeleton>
-              </div>
-              <div className="mb-1">
-                <Skeleton className="w-full h-[168px] p-3"></Skeleton>
-              </div>
+        {!initialized ? (
+          <>
+            <Card className="mb-3">
+              <ArticleCardSkeleton />
+            </Card>
+            <div className="py-1 mb-3">
+              <Skeleton className="w-[210px] h-[44px]"></Skeleton>
             </div>
-          </div>
-        )}
-        {article && (
+            <Card>
+              <ArticleCardSkeleton />
+              <ArticleCardSkeleton />
+              <ArticleCardSkeleton />
+            </Card>
+          </>
+        ) : article ? (
           <ArticleContext.Provider
             value={{
               root: article.replyToId == '0' ? article : rootArticle,
@@ -375,63 +367,69 @@ export default function ArticlePage() {
               />
             </Card>
             {article.totalReplyCount > 0 && (
-              <div id="comments" className="py-1 mb-3">
-                <Tabs
-                  defaultValue="oldest"
-                  value={sort}
-                  onValueChange={onSwitchTab}
-                >
-                  <TabsList>
-                    <TabsTrigger value="oldest">{t('timeOrder')}</TabsTrigger>
-                    <TabsTrigger value="latest">{t('latest')}</TabsTrigger>
-                    <TabsTrigger value="best">{t('best')}</TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </div>
-            )}
-
-            <Card>
-              {loading ? (
-                <div className="flex justify-center py-2">
-                  <BLoader />
+              <>
+                <div id="comments" className="py-1 mb-3">
+                  <Tabs
+                    defaultValue="oldest"
+                    value={sort}
+                    onValueChange={onSwitchTab}
+                  >
+                    <TabsList>
+                      <TabsTrigger value="oldest">{t('timeOrder')}</TabsTrigger>
+                      <TabsTrigger value="latest">{t('latest')}</TabsTrigger>
+                      <TabsTrigger value="best">{t('best')}</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
                 </div>
-              ) : (
-                article.replies?.list &&
-                article.replies.list
-                  .filter((item) => !(item.deleted && item.childrenCount == 0))
-                  .map((item) => (
-                    <ArticleCard
-                      key={item.id}
-                      article={item}
-                      className="border-b-[1px]"
-                      onSuccess={(action) => {
-                        if (
-                          ['up', 'down', 'save', 'subscribe'].includes(action)
-                        ) {
-                          setArticle((prev) => {
-                            if (!prev?.replies) return prev
-                            return {
-                              ...prev,
-                              replies: {
-                                ...prev.replies,
-                                list: prev.replies.list.map((reply) =>
-                                  reply.id === item.id
-                                    ? updateArticleState(reply, action)
-                                    : reply
-                                ),
-                              },
+
+                <Card>
+                  {loading ? (
+                    <div className="flex justify-center py-2">
+                      <BLoader />
+                    </div>
+                  ) : (
+                    article.replies?.list &&
+                    article.replies.list
+                      .filter(
+                        (item) => !(item.deleted && item.childrenCount == 0)
+                      )
+                      .map((item) => (
+                        <ArticleCard
+                          key={item.id}
+                          article={item}
+                          className="border-b-[1px]"
+                          onSuccess={(action) => {
+                            if (
+                              ['up', 'down', 'save', 'subscribe'].includes(
+                                action
+                              )
+                            ) {
+                              setArticle((prev) => {
+                                if (!prev?.replies) return prev
+                                return {
+                                  ...prev,
+                                  replies: {
+                                    ...prev.replies,
+                                    list: prev.replies.list.map((reply) =>
+                                      reply.id === item.id
+                                        ? updateArticleState(reply, action)
+                                        : reply
+                                    ),
+                                  },
+                                }
+                              })
+                            } else {
+                              fetchArticleSync(false)
                             }
-                          })
-                        } else {
-                          fetchArticleSync(false)
-                        }
-                      }}
-                    />
-                  ))
-              )}
-            </Card>
+                          }}
+                        />
+                      ))
+                  )}
+                </Card>
+              </>
+            )}
           </ArticleContext.Provider>
-        )}
+        ) : null}
         {pageState.totalPage > 1 && <ListPagination pageState={pageState} />}
       </BContainer>
     </>

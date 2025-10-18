@@ -599,7 +599,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     })
 
     return (
-      <div className="b-bg-main">
+      <div className="b-bg-main min-h-screen">
         {siteListMode == 'top_drawer' && <BTopDrawer />}
         {siteMode == 'top_nav' && (
           <div

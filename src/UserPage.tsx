@@ -105,46 +105,50 @@ const ArticleList: React.FC<ArticleListProps> = ({
     <Empty />
   ) : (
     <>
-      {list.map((item) => (
-        <Card
-          key={item.id}
-          className="p-3 my-2 hover:bg-slate-50 dark:hover:bg-slate-900"
-        >
-          <div className="mb-3">
-            <div className="mb-1">
-              <Link className="mr-2" to={genArticlePath(item)}>
-                {item.displayTitle}
-              </Link>
-            </div>
+      <Card>
+        {list.map((item, index) => (
+          <div
+            key={item.id}
+            className={`p-3 hover:bg-hover-bg ${index < list.length - 1 ? 'border-b-[1px]' : ''}`}
+          >
+            <div className="mb-3">
+              <div className="mb-1">
+                <Link className="mr-2" to={genArticlePath(item)}>
+                  {item.displayTitle}
+                </Link>
+              </div>
 
-            {(isMySelf(item.authorId) || checkPermit('article', 'manage')) &&
-              item.status != 'published' && (
-                <div className="py-1">
-                  <Badge
-                    variant={'secondary'}
-                    className={cn(ARTICLE_STATUS_COLOR_MAP[item.status] || '')}
-                  >
-                    {getArticleStatusName(item.status) || '-'}
-                  </Badge>
-                </div>
+              {(isMySelf(item.authorId) || checkPermit('article', 'manage')) &&
+                item.status != 'published' && (
+                  <div className="py-1">
+                    <Badge
+                      variant={'secondary'}
+                      className={cn(
+                        ARTICLE_STATUS_COLOR_MAP[item.status] || ''
+                      )}
+                    >
+                      {getArticleStatusName(item.status) || '-'}
+                    </Badge>
+                  </div>
+                )}
+
+              {item.replyToId != '0' && (
+                <div
+                  className="max-h-5 mb-1 overflow-hidden text-sm text-text-secondary text-nowrap text-ellipsis"
+                  dangerouslySetInnerHTML={{ __html: renderMD(item.content) }}
+                ></div>
               )}
-
-            {item.replyToId != '0' && (
-              <div
-                className="max-h-5 mb-1 overflow-hidden text-sm text-gray-600 text-nowrap text-ellipsis"
-                dangerouslySetInnerHTML={{ __html: renderMD(item.content) }}
-              ></div>
-            )}
+            </div>
+            <ArticleControls
+              article={item}
+              ctype="list"
+              bookmark={tab == 'saved'}
+              notify={tab == 'subscribed'}
+              onSuccess={(action) => onSuccess(item.id, action)}
+            />
           </div>
-          <ArticleControls
-            article={item}
-            ctype="list"
-            bookmark={tab == 'saved'}
-            notify={tab == 'subscribed'}
-            onSuccess={(action) => onSuccess(item.id, action)}
-          />
-        </Card>
-      ))}
+        ))}
+      </Card>
       <ListPagination pageState={pageState} />
     </>
   )

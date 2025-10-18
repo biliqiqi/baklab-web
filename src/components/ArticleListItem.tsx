@@ -39,9 +39,9 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
   const isMobile = useIsMobile()
 
   return (
-    <div className="p-3 hover:bg-slate-50 dark:hover:bg-slate-900 border-b-[1px]">
+    <div className="p-3 hover:bg-hover-bg border-b-[1px]">
       {isMobile && (
-        <div className="mb-3 text-sm text-gray-500">
+        <div className="mb-3 text-sm text-text-secondary">
           {siteFrontId ? (
             <Link
               to={`/z/${article.siteFrontId}/bankuai/${article.category.frontId}`}
@@ -76,7 +76,7 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
             {article.title}
           </Link>
           {article.link && (
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-text-secondary">
               (
               <a
                 href={article.link}

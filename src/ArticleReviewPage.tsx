@@ -47,6 +47,7 @@ interface ArticleUpdateItemProps {
   data: ArticleLog
   siteFrontId: string
   onConfirm: (action: ReviewAction, content: string) => void
+  isLast?: boolean
 }
 
 type ReviewAction = 'approved' | 'rejected'
@@ -55,6 +56,7 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
   data: item,
   siteFrontId,
   onConfirm = noop,
+  isLast = false,
 }) => {
   const [reviewAciton, setReviewAction] = useState<ReviewAction | null>(null)
   const isApproved = useMemo(() => reviewAciton == 'approved', [reviewAciton])
@@ -101,7 +103,7 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
   )
 
   return (
-    <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
+    <div className={`p-3 hover:bg-hover-bg ${!isLast ? 'border-b-[1px]' : ''}`}>
       <Collapsible>
         <CollapsibleTrigger asChild>
           <div className="cursor-pointer">
@@ -148,7 +150,7 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
                     {t('title')}：
                   </div>
                   <div
-                    className="flex-shrink-0 flex-grow bg-gray-100 p-2"
+                    className="flex-shrink-0 flex-grow bg-gray-100 p-2 b-history-content"
                     style={{
                       maxWidth: `calc(100% - 50px)`,
                     }}
@@ -164,7 +166,7 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
                     {t('category')}：
                   </div>
                   <div
-                    className="flex-shrink-0 flex-grow bg-gray-100 p-2"
+                    className="flex-shrink-0 flex-grow bg-gray-100 p-2 b-history-content"
                     style={{
                       maxWidth: `calc(100% - 50px)`,
                     }}
@@ -180,7 +182,7 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
                     {t('link')}：
                   </div>
                   <div
-                    className="flex-shrink-0 flex-grow bg-gray-100 p-2"
+                    className="flex-shrink-0 flex-grow bg-gray-100 p-2 b-history-content"
                     style={{
                       maxWidth: `calc(100% - 50px)`,
                     }}
@@ -195,7 +197,7 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
                   {t('content')}：
                 </div>
                 <div
-                  className="flex-shrink-0 flex-grow bg-gray-100 p-2 whitespace-break-spaces"
+                  className="flex-shrink-0 flex-grow bg-gray-100 p-2 whitespace-break-spaces b-history-content"
                   style={{
                     maxWidth: `calc(100% - 50px)`,
                   }}
@@ -279,7 +281,7 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
           )}
         </CollapsibleContent>
       </Collapsible>
-    </Card>
+    </div>
   )
 }
 
@@ -463,16 +465,19 @@ export function ArticleReviewPage() {
             </div>
             <div></div>
           </div>
-          {updates.map((item) => (
-            <ArticleUpdateItem
-              key={item.id}
-              data={item}
-              siteFrontId={siteFrontId || ''}
-              onConfirm={(action, content) =>
-                onReviewConfirmClick(item, action, content)
-              }
-            />
-          ))}
+          <Card>
+            {updates.map((item, index) => (
+              <ArticleUpdateItem
+                key={item.id}
+                data={item}
+                siteFrontId={siteFrontId || ''}
+                onConfirm={(action, content) =>
+                  onReviewConfirmClick(item, action, content)
+                }
+                isLast={index === updates.length - 1}
+              />
+            ))}
+          </Card>
         </>
       )}
     </BContainer>

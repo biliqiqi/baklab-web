@@ -76,6 +76,8 @@ export default {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
+        'text-secondary': 'hsl(var(--text-secondary))',
+        'hover-bg': 'hsl(var(--hover-bg))',
       },
     },
   },

@@ -527,81 +527,83 @@ export const ActivityList: React.FC<ActivityListProps> = ({
         </div>
         <div></div>
       </div>
-      {list.map((item) => (
-        <Card
-          key={item.id}
-          className="p-3 my-2 hover:bg-slate-50 dark:hover:bg-slate-950"
-        >
-          <Collapsible>
-            <div className="flex justify-between items-center text-base activity-title whitespace-pre-wrap">
-              {['delete_article', 'review_article'].includes(item.action) ? (
-                <>
+      <Card>
+        {list.map((item, index) => (
+          <div
+            key={item.id}
+            className={`p-3 hover:bg-hover-bg ${index < list.length - 1 ? 'border-b-[1px]' : ''}`}
+          >
+            <Collapsible>
+              <div className="flex justify-between items-center text-base activity-title whitespace-pre-wrap">
+                {['delete_article', 'review_article'].includes(item.action) ? (
+                  <>
+                    <div>
+                      <ActivityActionText activity={item} />
+                    </div>
+                    <CollapsibleTrigger asChild>
+                      <Button variant={'secondary'} size="sm">
+                        {t('detail')}
+                      </Button>
+                    </CollapsibleTrigger>
+                  </>
+                ) : (
                   <div>
                     <ActivityActionText activity={item} />
                   </div>
-                  <CollapsibleTrigger asChild>
-                    <Button variant={'secondary'} size="sm">
-                      {t('detail')}
-                    </Button>
-                  </CollapsibleTrigger>
-                </>
-              ) : (
-                <div>
-                  <ActivityActionText activity={item} />
-                </div>
-              )}
-            </div>
-            {isPlatfromManager ? (
-              <div className="text-sm bg-gray-100 p-2 mt-2">
-                <div className="flex">
-                  <div className="flex-shrink-0 w-[80px]">
-                    <b>{t('acType')}：</b>
-                  </div>
-                  <div>{acTypeMap(item.type)}</div>
-                </div>
-                <div className="flex">
-                  <div className="flex-shrink-0 w-[80px]">
-                    <b>{t('ipAddress')}：</b>
-                  </div>
-                  <div>{item.ipAddr}</div>
-                </div>
-                <div className="flex">
-                  <div className="flex-shrink-0 w-[80px]">
-                    <b>{t('countryCode')}：</b>
-                  </div>
-                  <div>{item.countryCode || '-'}</div>
-                </div>
-                <div className="flex">
-                  <div className="flex-shrink-0 w-[80px]">
-                    <b>{t('deviceInfo')}：</b>
-                  </div>
-                  <div>{item.deviceInfo}</div>
-                </div>
-                <div className="flex">
-                  <div className="flex-shrink-0 w-[80px]">
-                    <b>{t('otherInfo')}：</b>
-                  </div>
-                  <details>
-                    <summary>{t('view')}</summary>
-                    <span className="font-bold">posts: </span>
-                    <pre className="flex-grow align-top py-1 whitespace-break-spaces">
-                      {JSON.stringify(item.details, null, '  ')}
-                    </pre>
-                    <span className="font-bold">extra: </span>
-                    <pre className="flex-grow align-top py-1 whitespace-break-spaces">
-                      {JSON.stringify(item.extraInfo, null, '  ')}
-                    </pre>
-                  </details>
-                </div>
+                )}
               </div>
-            ) : (
-              <CollapsibleContent>
-                <ActivityExtraDetail activity={item} />
-              </CollapsibleContent>
-            )}
-          </Collapsible>
-        </Card>
-      ))}
+              {isPlatfromManager ? (
+                <div className="text-sm bg-gray-100 p-2 mt-2">
+                  <div className="flex">
+                    <div className="flex-shrink-0 w-[80px]">
+                      <b>{t('acType')}：</b>
+                    </div>
+                    <div>{acTypeMap(item.type)}</div>
+                  </div>
+                  <div className="flex">
+                    <div className="flex-shrink-0 w-[80px]">
+                      <b>{t('ipAddress')}：</b>
+                    </div>
+                    <div>{item.ipAddr}</div>
+                  </div>
+                  <div className="flex">
+                    <div className="flex-shrink-0 w-[80px]">
+                      <b>{t('countryCode')}：</b>
+                    </div>
+                    <div>{item.countryCode || '-'}</div>
+                  </div>
+                  <div className="flex">
+                    <div className="flex-shrink-0 w-[80px]">
+                      <b>{t('deviceInfo')}：</b>
+                    </div>
+                    <div>{item.deviceInfo}</div>
+                  </div>
+                  <div className="flex">
+                    <div className="flex-shrink-0 w-[80px]">
+                      <b>{t('otherInfo')}：</b>
+                    </div>
+                    <details>
+                      <summary>{t('view')}</summary>
+                      <span className="font-bold">posts: </span>
+                      <pre className="flex-grow align-top py-1 whitespace-break-spaces">
+                        {JSON.stringify(item.details, null, '  ')}
+                      </pre>
+                      <span className="font-bold">extra: </span>
+                      <pre className="flex-grow align-top py-1 whitespace-break-spaces">
+                        {JSON.stringify(item.extraInfo, null, '  ')}
+                      </pre>
+                    </details>
+                  </div>
+                </div>
+              ) : (
+                <CollapsibleContent>
+                  <ActivityExtraDetail activity={item} />
+                </CollapsibleContent>
+              )}
+            </Collapsible>
+          </div>
+        ))}
+      </Card>
       <ListPagination pageState={pageState} />
     </>
   )

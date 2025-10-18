@@ -545,7 +545,10 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                                 }
                                 role="combobox"
                                 aria-expanded={openCategoryList}
-                                className="w-[200px] justify-between text-gray-700"
+                                className={cn(
+                                  'w-[200px] justify-between',
+                                  !categoryVal() && 'text-text-secondary'
+                                )}
                                 disabled={
                                   loading ||
                                   (isEdit &&
@@ -593,7 +596,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                                               )}
                                             />
                                           </div>
-                                          <div className="text-gray-500 text-xs">
+                                          <div className="text-text-secondary text-xs">
                                             {cate.describe}
                                           </div>
                                         </div>

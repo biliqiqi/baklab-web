@@ -257,7 +257,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             </h1>
           </>
         )}
-        <div className="flex flex-wrap items-center mb-4 text-sm text-gray-500">
+        <div className="flex flex-wrap items-center mb-4 text-sm text-text-secondary">
           {article.deleted && !authStore.permit('article', 'delete_others') ? (
             <span>{t('unknowUser')}</span>
           ) : (
@@ -432,7 +432,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 export const ArticleCardSkeleton = () => {
   return (
     <div className="p-3">
-      <div className="flex flex-wrap items-center mb-4 text-sm text-gray-500">
+      <div className="flex flex-wrap items-center mb-4 text-sm text-text-secondary">
         <Skeleton className="w-[40px] h-[24px] rounded-full mr-2" />
         <Skeleton className="w-[100px] h-[18px]" />
       </div>

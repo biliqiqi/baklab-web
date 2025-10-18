@@ -164,8 +164,8 @@ const ContentFormSelector = forwardRef<
             variant={!valid ? 'invalid' : 'outline'}
             role="combobox"
             className={cn(
-              'w-[200px] justify-between text-gray-700',
-              !value && 'text-gray-500'
+              'w-[200px] justify-between',
+              !value && 'text-text-secondary'
             )}
             size="sm"
             disabled={disabled}
@@ -202,7 +202,7 @@ const ContentFormSelector = forwardRef<
                           )}
                         />
                       </div>
-                      <div className="text-gray-500 text-xs">
+                      <div className="text-text-secondary text-xs">
                         {item.description}
                       </div>
                     </div>

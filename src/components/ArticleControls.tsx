@@ -262,7 +262,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   return (
     <div
       className={cn(
-        'flex flex-wrap justify-between text-sm text-gray-500',
+        'flex flex-wrap justify-between text-sm text-text-secondary',
         className
       )}
       {...props}
@@ -330,14 +330,12 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           </>
         )}
         {article.locked && (
-          <i className="inline-block mr-2 text-sm text-gray-500">
-            &lt;{t('locked')}&gt;
-          </i>
+          <i className="inline-block mr-2 text-sm">&lt;{t('locked')}&gt;</i>
         )}
 
         {ctype == 'list' && (
           <>
-            <Link to={'/users/' + article.authorName} className="text-gray-700">
+            <Link to={'/users/' + article.authorName}>
               {article.authorName}
             </Link>
             {!isMobile && (
@@ -380,14 +378,14 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           </>
         )}
         {isTopArticle && (
-          <span className="inline-block mr-2 text-gray-500">
+          <span className="inline-block mr-2">
             {t('replyCount', { num: article.totalReplyCount })}
           </span>
         )}
         {ctype !== 'list' && !isTopArticle && article.childrenCount > 0 && (
           <Link
             to={`/z/${article.siteFrontId}/articles/${article.id}`}
-            className="inline-block mr-2 text-gray-500 hover:underline"
+            className="inline-block mr-2 hover:underline"
           >
             {t('replyCount', { num: article.childrenCount })}
           </Link>
@@ -429,9 +427,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             >
               <CheckIcon size={rem2pxNum(1.25)} />
               &nbsp;
-              <span className="text-sm text-gray-500 font-normal">
-                {t('markAsSolution')}
-              </span>
+              <span className="text-sm font-normal">{t('markAsSolution')}</span>
             </Button>
           )}
 

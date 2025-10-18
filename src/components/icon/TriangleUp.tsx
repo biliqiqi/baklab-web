@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 const bIconTriangleUpVariants = cva('inline-block align-middle', {
   variants: {
     variant: {
-      default: 'text-gray-500',
+      default: 'text-text-secondary',
       full: 'text-primary',
     },
   },

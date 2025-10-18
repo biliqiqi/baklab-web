@@ -131,10 +131,7 @@ const RoleSelector = ({
         <Button
           variant={!valid ? 'invalid' : 'outline'}
           role="combobox"
-          className={cn(
-            'justify-between text-gray-700',
-            !value && 'text-gray-500'
-          )}
+          className={cn('justify-between', !value && 'text-text-secondary')}
           size="sm"
         >
           {value

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 
 import { useUserUIStore } from '@/state/global'
 import { Theme } from '@/types/types'
@@ -39,18 +39,29 @@ export function ThemeProvider({
   const theme = useUserUIStore((state) => state.theme) || defaultTheme
   const setUserUITheme = useUserUIStore((state) => state.setState)
 
+  const setTheme = useCallback(
+    (theme: Theme) => {
+      setUserUITheme({ theme })
+    },
+    [setUserUITheme]
+  )
+
   useEffect(() => {
     updateTheme(theme)
-    window
-      .matchMedia('(prefers-color-scheme: dark)')
-      .addEventListener('change', () => updateTheme(theme))
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const handleChange = () => updateTheme(theme)
+
+    mediaQuery.addEventListener('change', handleChange)
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange)
+    }
   }, [theme])
 
   const value = {
     theme,
-    setTheme: (theme: Theme) => {
-      setUserUITheme({ theme })
-    },
+    setTheme,
   }
 
   return (

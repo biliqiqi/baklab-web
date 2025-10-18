@@ -128,16 +128,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const bodyHeight = useMemo(() => {
       const currNavHeight = siteMode == 'top_nav' ? NAV_HEIGHT : 0
 
-      return showTopDrawer
-        ? `calc(100vh - ${currNavHeight + DOCK_HEIGHT}px)`
-        : `calc(100vh - ${currNavHeight}px)`
-    }, [showTopDrawer, siteMode])
-
-    const outerContainerHeight = useMemo(() => {
-      return showTopDrawer
-        ? `calc(100vh - ${NAV_HEIGHT + DOCK_HEIGHT}px)`
-        : `calc(100vh - ${NAV_HEIGHT}px)`
-    }, [showTopDrawer])
+      return `calc(100vh - ${currNavHeight}px)`
+    }, [siteMode])
 
     const {
       sidebarOpen,

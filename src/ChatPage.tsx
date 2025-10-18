@@ -3,12 +3,13 @@ import { useLocation, useParams } from 'react-router-dom'
 import { useDebouncedCallback } from 'use-debounce'
 import { useShallow } from 'zustand/react/shallow'
 
-import ChatCard from './components/ChatCard'
+import ChatCard, { ChatCardSkeleton } from './components/ChatCard'
 
 import { getChatList, readManyArticle } from './api/article'
 import {
   EV_ON_EDIT_CLICK,
   EV_ON_REPLY_CLICK,
+  NAV_HEIGHT,
   REPLY_BOX_PLACEHOLDER_HEIGHT,
 } from './constants/constants'
 import { defaultPageState } from './constants/defaults'
@@ -63,6 +64,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
   const [currCursor, setCurrCursor] = useState('')
   const [replySuccess, setReplySuccess] = useState(false)
   const [atBottom, setAtBottom] = useState(false)
+  const [isScrollReady, setIsScrollReady] = useState(false)
 
   const listItemRef = useRef<Map<string, HTMLDivElement>>(new Map())
   const listItemReverseRef = useRef<Map<HTMLDivElement, Article>>(new Map())
@@ -471,11 +473,13 @@ const ChatPage: React.FC<ChatPageProps> = ({
   )
 
   useEffect(() => {
-    setShowReplyBox(true)
+    if (isScrollReady) {
+      setShowReplyBox(true)
+    }
     return () => {
       setShowReplyBox(false)
     }
-  }, [setShowReplyBox])
+  }, [setShowReplyBox, isScrollReady])
 
   useEffect(() => {
     let topObserver: IntersectionObserver | null = null
@@ -574,6 +578,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
   // Clear state immediately when route params change
   useEffect(() => {
     setCurrCursor('')
+    setIsScrollReady(false)
     setChatList({
       list: [],
       prevCursor: '',
@@ -611,6 +616,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
             ...chatListState,
           }
         })
+        setIsScrollReady(true)
         onLoad()
       }
 
@@ -700,28 +706,59 @@ const ChatPage: React.FC<ChatPageProps> = ({
   }, [siteFrontId, categoryFrontId, currCate])
 
   return (
-    <div style={{ paddingBottom: `${REPLY_BOX_PLACEHOLDER_HEIGHT}px` }}>
-      <div ref={chatTopRef}></div>
-      <div>
-        {chatList.list.map((item) => {
-          return (
-            <ChatCard
-              article={item}
-              key={item.id}
-              onSuccess={async () => {
-                await fetchChatList(false)
-              }}
-              ref={(el) => {
-                if (el) {
-                  listItemRef.current.set(item.id, el)
-                  listItemReverseRef.current.set(el, item)
-                }
-              }}
-            />
-          )
-        })}
+    <div
+      style={{
+        position: 'relative',
+        minHeight: `calc(100vh - ${NAV_HEIGHT}px)`,
+      }}
+    >
+      {!isScrollReady && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 10,
+            backgroundColor: 'var(--background)',
+            minHeight: `calc(100vh - ${NAV_HEIGHT}px)`,
+          }}
+        >
+          {Array(10)
+            .fill('')
+            .map((_, idx) => (
+              <ChatCardSkeleton key={idx} />
+            ))}
+        </div>
+      )}
+      <div
+        style={{
+          paddingBottom: `${REPLY_BOX_PLACEHOLDER_HEIGHT}px`,
+          opacity: isScrollReady ? 1 : 0,
+        }}
+      >
+        <div ref={chatTopRef}></div>
+        <div>
+          {chatList.list.map((item) => {
+            return (
+              <ChatCard
+                article={item}
+                key={item.id}
+                onSuccess={async () => {
+                  await fetchChatList(false)
+                }}
+                ref={(el) => {
+                  if (el) {
+                    listItemRef.current.set(item.id, el)
+                    listItemReverseRef.current.set(el, item)
+                  }
+                }}
+              />
+            )
+          })}
+        </div>
+        <div ref={chatBottomRef}></div>
       </div>
-      <div ref={chatBottomRef}></div>
     </div>
   )
 }

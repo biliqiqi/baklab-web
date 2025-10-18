@@ -93,7 +93,17 @@ const ArticleList: React.FC<ArticleListProps> = ({
 }
 
 export const ArticleListItemSkeleton = () => (
-  <Skeleton className="p-3 mb-1 h-[107px]"></Skeleton>
+  <div className="p-3 border-b-[1px]">
+    <div className="mb-3">
+      <Skeleton className="w-3/4 h-[24px] mb-2" />
+      <Skeleton className="w-1/2 h-[16px]" />
+    </div>
+    <div className="flex gap-2">
+      <Skeleton className="w-[60px] h-[24px]" />
+      <Skeleton className="w-[60px] h-[24px]" />
+      <Skeleton className="w-[80px] h-[24px]" />
+    </div>
+  </div>
 )
 
 export default ArticleList

@@ -10,8 +10,6 @@ import {
   renderMD,
 } from '@/lib/utils'
 
-import { Card } from '@/components/ui/card'
-
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useRem2PxNum } from '@/hooks/use-rem-num'
 import { useAuthedUserStore } from '@/state/global'

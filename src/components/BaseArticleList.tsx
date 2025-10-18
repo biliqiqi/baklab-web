@@ -20,6 +20,7 @@ import {
   FrontCategory,
 } from '@/types/types'
 
+import { ArticleListItemSkeleton } from './ArticleList'
 import ArticleListItem from './ArticleListItem'
 import { Empty } from './Empty'
 import { ListPagination } from './ListPagination'
@@ -69,6 +70,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
 }) => {
   const [showSummary] = useState(false)
   const [list, updateList] = useState<Article[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [pageState, setPageState] = useState<ArticleListState>({
     currPage: 1,
     pageSize: DEFAULT_PAGE_SIZE,
@@ -156,6 +158,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
         const sort = (params.get('sort') as ArticleListSort | null) || 'best'
 
         setLoading(true)
+        setIsLoading(true)
 
         const resp = await fetchArticlesRef.current({ page, pageSize, sort })
 
@@ -189,6 +192,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
       } finally {
         if (!cancelled) {
           setLoading(false)
+          setIsLoading(false)
         }
       }
     }
@@ -227,7 +231,15 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
         </div>
       </div>
       <div className="mt-4">
-        {list.length == 0 ? (
+        {isLoading ? (
+          <Card>
+            {Array(3)
+              .fill('')
+              .map((_, idx) => (
+                <ArticleListItemSkeleton key={idx} />
+              ))}
+          </Card>
+        ) : list.length == 0 ? (
           <Empty />
         ) : (
           <Card>

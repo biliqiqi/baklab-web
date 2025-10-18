@@ -57,6 +57,7 @@ import {
 } from './ui/alert-dialog'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
+import { Skeleton } from './ui/skeleton'
 
 interface ArticleCardProps extends HTMLAttributes<HTMLDivElement> {
   article: Article
@@ -424,6 +425,25 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           />
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  )
+}
+
+export const ArticleCardSkeleton = () => {
+  return (
+    <div className="p-3">
+      <div className="flex flex-wrap items-center mb-4 text-sm text-gray-500">
+        <Skeleton className="w-[40px] h-[24px] rounded-full mr-2" />
+        <Skeleton className="w-[100px] h-[18px]" />
+      </div>
+      <div>
+        <Skeleton className="w-full h-[200px] mb-4" />
+      </div>
+      <div className="flex gap-2">
+        <Skeleton className="w-[60px] h-[32px]" />
+        <Skeleton className="w-[60px] h-[32px]" />
+        <Skeleton className="w-[60px] h-[32px]" />
+      </div>
     </div>
   )
 }

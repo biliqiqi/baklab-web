@@ -1,4 +1,4 @@
-import { PenIcon, SquareArrowOutUpRightIcon } from 'lucide-react'
+import { PenIcon } from 'lucide-react'
 import {
   HTMLAttributes,
   MouseEvent,
@@ -13,7 +13,6 @@ import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
 import {
   bus,
   cn,
-  extractDomain,
   highlightElement,
   md2text,
   noop,
@@ -339,22 +338,24 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
 )
 
 export const ChatCardSkeleton = () => {
+  const placeholderText = 'placeholder '.repeat(20)
+
   return (
-    <div className={cn('b-chat-card relative flex items-start px-2')}>
-      <div className="sticky top-0 flex pt-3 pr-2">
+    <div className="b-chat-card relative flex items-start px-2 mb-4">
+      <div className="sticky flex pr-2" style={{ top: `${NAV_HEIGHT}px` }}>
         <Skeleton className="w-[40px] h-[40px] rounded-full" />
       </div>
       <div className="max-w-[80%] flex flex-col items-start">
-        <div className="flex h-[40px] flex-wrap items-center text-sm text-gray-500">
-          <Skeleton className="w-[120px] h-[22px]" />
-        </div>
-        <Skeleton className="max-w-full flex-grow-0 p-3 pb-2 mb-3 break-all">
-          <div className="b-article-content mb-2">
-            <p className="h-20 overflow-hidden">
-              &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
-            </p>
+        <Card className="b-chat-card__card max-w-full flex-grow-0 relative px-3 py-2">
+          <div className="flex flex-wrap items-center text-sm text-gray-500 mb-2">
+            <Skeleton className="w-[120px] h-[18px]" />
           </div>
-        </Skeleton>
+          <div className="b-article-content mb-2">
+            <Skeleton>
+              <p className="opacity-0">{placeholderText}</p>
+            </Skeleton>
+          </div>
+        </Card>
       </div>
     </div>
   )

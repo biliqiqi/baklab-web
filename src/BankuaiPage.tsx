@@ -2,21 +2,16 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useParams } from 'react-router-dom'
 
-import { Skeleton } from './components/ui/skeleton'
-
 import BContainer from './components/base/BContainer'
 
-import ArticleList, { ArticleListItemSkeleton } from './components/ArticleList'
-import { ChatCardSkeleton } from './components/ChatCard'
+import ArticleList from './components/ArticleList'
 
 import ChatPage from './ChatPage'
 import { getCategoryWithFrontId } from './api/category'
-import { NAV_HEIGHT } from './constants/constants'
 import { toSync } from './lib/fire-and-forget'
 import { Category } from './types/types'
 
 export default function BankuaiPage() {
-  const [showSkeleton, setShowSkeleton] = useState(false)
   const [serverCate, setServerCate] = useState<Category | null>(null)
   const [initialized, setInitialized] = useState(false)
 
@@ -72,43 +67,11 @@ export default function BankuaiPage() {
           : currCate?.describe || '',
       }}
     >
-      {showSkeleton && (
-        <div
-          className="absolute top-0 left-0 w-full z-10"
-          style={{ height: `calc(100vh - ${NAV_HEIGHT}px)` }}
-        >
-          <div className="mx-auto container p-4">
-            {!(currCate && isChat) && (
-              <div className="flex justify-between items-center my-4">
-                <Skeleton className="w-[180px] h-[44px]" />
-                <Skeleton className="w-[75px] h-[44px]" />
-              </div>
-            )}
-            {Array(3)
-              .fill('')
-              .map((_, idx) =>
-                currCate && isChat ? (
-                  <ChatCardSkeleton key={idx} />
-                ) : (
-                  <ArticleListItemSkeleton key={idx} />
-                )
-              )}
-          </div>
-        </div>
-      )}
-
       {initialized &&
         (currCate && isChat ? (
-          <ChatPage
-            currCate={currCate}
-            onLoad={() => setShowSkeleton(false)}
-            onReady={() => setShowSkeleton(true)}
-          />
+          <ChatPage currCate={currCate} />
         ) : (
-          <ArticleList
-            onLoad={() => setShowSkeleton(false)}
-            onReady={() => setShowSkeleton(true)}
-          />
+          <ArticleList />
         ))}
     </BContainer>
   )

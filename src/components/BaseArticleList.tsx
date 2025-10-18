@@ -220,7 +220,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
         </div>
         <div>
           {siteFrontId && checkPermit('article', 'create') && (
-            <Button size="sm" asChild onClick={onSubmitClick}>
+            <Button variant="outline" size="sm" asChild onClick={onSubmitClick}>
               <Link to={submitPath}>+ {t('submit')}</Link>
             </Button>
           )}

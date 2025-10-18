@@ -74,7 +74,7 @@ export default function BankuaiPage() {
     >
       {showSkeleton && (
         <div
-          className="absolute top-0 left-0 w-full z-10 bg-background"
+          className="absolute top-0 left-0 w-full z-10"
           style={{ height: `calc(100vh - ${NAV_HEIGHT}px)` }}
         >
           <div className="mx-auto container p-4">

@@ -23,7 +23,11 @@ import {
 } from '@/lib/utils'
 
 import { deleteArticle, toggleLockArticle } from '@/api/article'
-import { EV_ON_EDIT_CLICK, EV_ON_REPLY_CLICK } from '@/constants/constants'
+import {
+  EV_ON_EDIT_CLICK,
+  EV_ON_REPLY_CLICK,
+  NAV_HEIGHT,
+} from '@/constants/constants'
 import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
 import { ARTICLE_LOCK_ACTION, Article, ArticleAction } from '@/types/types'
 
@@ -178,11 +182,14 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
     return (
       <div
         id={'message' + article.id}
-        className={cn('b-chat-card relative flex items-start px-2', className)}
+        className={cn(
+          'b-chat-card relative flex items-start px-2 mb-4',
+          className
+        )}
         {...props}
         ref={ref}
       >
-        <div className="sticky top-0 flex pt-3 pr-2">
+        <div className="sticky flex pr-2" style={{ top: `${NAV_HEIGHT}px` }}>
           {article.deleted && !authStore.permit('article', 'delete_others') ? (
             <span>{t('unknowUser')}</span>
           ) : (
@@ -196,84 +203,48 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
           )}
         </div>
         <div className="max-w-[80%] flex flex-col items-start">
-          <div className="flex h-[40px] flex-wrap items-center text-sm text-gray-500">
-            {article.deleted &&
-            !authStore.permit('article', 'delete_others') ? (
-              <span>{t('unknowUser')}</span>
-            ) : (
-              <>
-                <Link to={`/users/${article.authorName}`} className="font-bold">
-                  {article.authorName}
-                </Link>
-                {article.showAuthorRoleName && (
-                  <Badge
-                    variant={'secondary'}
-                    className="ml-2 font-normal text-gray-500 whitespace-nowrap"
-                  >
-                    {article.authorRoleName}
-                  </Badge>
-                )}
-              </>
-            )}
-            &nbsp;·&nbsp;
-            <span title={timeFmt(article.createdAt, 'YYYY-M-D H:m:s')}>
-              {timeAgo(article.createdAt, 'YYYY-M-D H:m')}
-            </span>
-            {article.updatedAt != article.createdAt && (
-              <span
-                title={t('editAt', {
-                  time: timeFmt(article.updatedAt, 'YYYY-M-D H:m:s'),
-                })}
-              >
-                &nbsp;&nbsp;
-                <PenIcon className="inline-block" size={14} />
-              </span>
-            )}
-          </div>
           <Card
-            className="b-chat-card__card max-w-full flex-grow-0 relative p-3 pb-2 mb-3"
+            className="b-chat-card__card max-w-full flex-grow-0 relative px-3 py-2"
             tabIndex={0}
           >
-            {article.asMainArticle && (
-              <>
-                <h1
-                  className={cn(
-                    'mb-2 font-bold',
-                    article.replyToId != '0' &&
-                      'bg-gray-100 py-1 px-2 text-gray-500'
-                  )}
-                >
-                  {article.replyToId == '0' ? (
-                    article.displayTitle
-                  ) : (
-                    <Link
-                      to={`/${article.replyRootArticleSiteFrontId}/articles/${article.replyRootArticleId}`}
+            <div className="flex flex-wrap items-center text-sm text-gray-500 mb-2">
+              {article.deleted &&
+              !authStore.permit('article', 'delete_others') ? (
+                <span>{t('unknowUser')}</span>
+              ) : (
+                <>
+                  <Link
+                    to={`/users/${article.authorName}`}
+                    className="font-bold"
+                  >
+                    {article.authorName}
+                  </Link>
+                  {article.showAuthorRoleName && (
+                    <Badge
+                      variant={'secondary'}
+                      className="ml-2 font-normal text-gray-500 whitespace-nowrap"
                     >
-                      {article.displayTitle}
-                    </Link>
+                      {article.authorRoleName}
+                    </Badge>
                   )}
+                </>
+              )}
+              &nbsp;·&nbsp;
+              <span title={timeFmt(article.createdAt, 'YYYY-M-D H:m:s')}>
+                {timeAgo(article.createdAt, 'YYYY-M-D H:m')}
+              </span>
+              {article.updatedAt != article.createdAt && (
+                <span
+                  title={t('editAt', {
+                    time: timeFmt(article.updatedAt, 'YYYY-M-D H:m:s'),
+                  })}
+                >
+                  &nbsp;&nbsp;
+                  <PenIcon className="inline-block" size={14} />
+                </span>
+              )}
+            </div>
 
-                  {article.link && (
-                    <span className="text-gray-500 text-base font-normal">
-                      <a
-                        href={article.link}
-                        target="_blank"
-                        title={article.link}
-                        className="break-all"
-                      >
-                        <SquareArrowOutUpRightIcon
-                          size={14}
-                          className="inline"
-                        />
-                        &nbsp;
-                        {extractDomain(article.link)}...
-                      </a>
-                      )
-                    </span>
-                  )}
-                </h1>
-              </>
-            )}
             <div>
               {parent && (
                 <div
@@ -338,7 +309,7 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
                 onDeleteClick={onDelClick}
                 onToggleLockClick={onToggleLockClick}
                 onSuccess={onSuccess}
-                className="absolute left-[calc(100%+theme(space.1))] max-md:left-auto max-md:right-[theme(space.1)] bottom-2 max-md:-bottom-[46px] z-50"
+                className="absolute left-[calc(100%+theme(space.1))] max-md:left-auto max-md:right-[theme(space.1)] bottom-0 max-md:-bottom-[46px] z-50"
                 tabIndex={0}
               />
             )}

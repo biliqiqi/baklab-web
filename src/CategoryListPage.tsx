@@ -165,7 +165,7 @@ export default function CategoryListPage() {
         <div></div>
         <div>
           {authStore.permit('category', 'create') && (
-            <Button size="sm" onClick={onCreateCategoryClick}>
+            <Button variant="outline" size="sm" onClick={onCreateCategoryClick}>
               + {t('createCategory')}
             </Button>
           )}

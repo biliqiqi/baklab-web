@@ -333,7 +333,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
       {...props}
     >
       <div></div>
-      <div className="b-chat-controls__btns rounded-sm flex flex-nowrap items-center whitespace-pre-wrap invisible max-md:bg-card max-md:shadow-md">
+      <div className="b-chat-controls__btns rounded-sm flex flex-nowrap items-center whitespace-pre-wrap invisible bg-card shadow-md">
         {
           <>
             {checkPermit('article', 'vote_up') && isPublished && upVote && (

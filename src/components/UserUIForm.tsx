@@ -25,6 +25,7 @@ import {
   registerUISettingsCallback,
   setLocalUserUISettings,
   unregisterUISettingsCallback,
+  useAuthedUserStore,
   useDefaultFontSizeStore,
   useForceUpdate,
   useSiteStore,
@@ -185,6 +186,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
     const defaultFontSize = useDefaultFontSizeStore(
       (state) => state.defaultFontSize
     )
+    const isLogined = useAuthedUserStore((state) => state.isLogined())
 
     // Get all UI settings from userUIStore for consistency using useShallow
     const {
@@ -730,24 +732,26 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="syncToOtherDevices"
-            key="syncToOtherDevices"
-            render={({ field }) => (
-              <FormItem className="mb-8 flex flex-row items-center space-x-2 space-y-0">
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel className="font-normal">
-                  {t('syncToOtherDevices')}
-                </FormLabel>
-              </FormItem>
-            )}
-          />
+          {isLogined && (
+            <FormField
+              control={form.control}
+              name="syncToOtherDevices"
+              key="syncToOtherDevices"
+              render={({ field }) => (
+                <FormItem className="mb-8 flex flex-row items-center space-x-2 space-y-0">
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel className="font-normal">
+                    {t('syncToOtherDevices')}
+                  </FormLabel>
+                </FormItem>
+              )}
+            />
+          )}
 
           <div className="flex justify-between">
             <span></span>

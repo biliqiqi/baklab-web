@@ -722,7 +722,9 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 )}
               </div>
             </div>
-            {isLogined() && showReplyBox && <ReplyBox {...replyBoxProps} />}
+            {isLogined() && showReplyBox && (
+              <ReplyBox {...replyBoxProps} className="absolute" />
+            )}
           </main>
           <SidebarProvider
             defaultOpen={false}
@@ -758,7 +760,10 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               )}
             >
               <Sidebar side="right" className="relative max-h-full" gap={false}>
-                <SidebarContent className="gap-0 px-2">
+                <SidebarContent
+                  className="gap-0 px-2"
+                  style={{ minHeight: bodyHeight }}
+                >
                   <div
                     className="flex items-center justify-between mb-2"
                     style={{ height: `${NAV_HEIGHT}px` }}

@@ -719,6 +719,7 @@ export interface ReplyBoxProps {
   editType: ReplyBoxType
   edittingArticle?: Article | null
   disabled?: boolean
+  className?: string
   onSuccess?:
     | ((
         data: ResponseData<ArticleSubmitResponse>,

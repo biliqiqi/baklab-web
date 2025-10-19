@@ -709,7 +709,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
     <div
       style={{
         position: 'relative',
-        minHeight: `calc(100vh - ${NAV_HEIGHT}px)`,
+        minHeight: `calc(100vh - ${NAV_HEIGHT}px - 2rem)`,
       }}
     >
       {!isScrollReady && (

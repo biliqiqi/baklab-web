@@ -211,6 +211,10 @@ a:hover {
   color: hsl(var(--primary));
 }
 
+.b-chat-card {
+  container-type: inline-size;
+}
+
 .b-article-content {
   overflow: auto;
 }
@@ -227,6 +231,11 @@ a:hover {
 .b-article-content pre {
   @apply py-2 px-3 bg-gray-100 text-sm font-mono overflow-y-auto;
   margin-bottom: 1em;
+}
+
+.b-article-content img {
+  max-width: 36cqw;
+  max-height: 36cqw;
 }
 
 .b-chat-card:hover .b-chat-controls__btns,

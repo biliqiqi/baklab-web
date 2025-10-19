@@ -11,7 +11,6 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { noop } from '@/lib/utils'
 
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
-import { defaultPageState } from '@/constants/defaults'
 import { isLogined, useAuthedUserStore, useLoading } from '@/state/global'
 import {
   Article,
@@ -201,10 +200,6 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
 
     return () => {
       cancelled = true
-      updateList([])
-      setPageState({
-        ...defaultPageState,
-      })
     }
   }, [params, setLoading, fetchArticles])
 

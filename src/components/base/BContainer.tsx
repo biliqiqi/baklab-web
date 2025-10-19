@@ -45,7 +45,7 @@ import {
   useTopDrawerStore,
   useUserUIStore,
 } from '@/state/global'
-import { FrontCategory, SITE_VISIBLE } from '@/types/types'
+import { Category, FrontCategory, SITE_VISIBLE, Site } from '@/types/types'
 
 import ArticleHistory from '../ArticleHistory'
 import CategorySelectionModal from '../CategorySelectionModal'
@@ -546,18 +546,24 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     useEffect(() => {
       if (siteFrontId) {
-        toSync(async () =>
-          Promise.all([
-            fetchSiteData(siteFrontId),
+        toSync(async () => {
+          const promises: (Promise<Site | null> | Promise<Category[]>)[] = [
             fetchCategoryList(siteFrontId),
-          ])
-        )()
+          ]
+
+          if (!currSite || currSite.frontId !== siteFrontId) {
+            promises.push(fetchSiteData(siteFrontId))
+          }
+
+          await Promise.all(promises)
+        })()
       } else {
         updateCurrSite(null)
         updateCategories([])
       }
     }, [
       siteFrontId,
+      currSite,
       fetchSiteData,
       updateCurrSite,
       fetchCategoryList,
@@ -752,10 +758,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               )}
             >
               <Sidebar side="right" className="relative max-h-full" gap={false}>
-                <SidebarContent
-                  className="gap-0 px-2"
-                  style={{ minHeight: bodyHeight }}
-                >
+                <SidebarContent className="gap-0 px-2">
                   <div
                     className="flex items-center justify-between mb-2"
                     style={{ height: `${NAV_HEIGHT}px` }}

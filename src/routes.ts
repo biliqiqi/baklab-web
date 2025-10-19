@@ -33,7 +33,6 @@ import TrashPage from './TrashPage.tsx'
 import UserListPage from './UserListPage.tsx'
 import UserPage from './UserPage.tsx'
 import UserProfileSettingsPage from './UserProfileSettingsPage.tsx'
-import { getSiteWithFrontId } from './api/site.ts'
 import { PermissionAction, PermissionModule } from './constants/types.ts'
 import { isLogined, useAuthedUserStore, useSiteStore } from './state/global.ts'
 
@@ -165,15 +164,19 @@ const createSiteRoutes = (prefix: '/z' | '/zhandian'): RouteObject[] => [
       }
 
       try {
-        const { code, data: site } = await getSiteWithFrontId(
-          params.siteFrontId
-        )
+        const siteState = useSiteStore.getState()
+        let site = siteState.site
 
-        if (code || !site) {
+        if (!site || site.frontId !== params.siteFrontId) {
+          const result = await siteState.fetchSiteData(params.siteFrontId)
+          site = result
+        }
+
+        if (!site) {
           return null
         }
 
-        if (site.homePage == '/') {
+        if (site.homePage === '/') {
           return redirect(`${prefix}/${params.siteFrontId}/feed`)
         }
         return redirect(`${prefix}/${params.siteFrontId}${site.homePage}`)

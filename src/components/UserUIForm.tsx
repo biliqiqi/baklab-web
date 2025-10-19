@@ -54,6 +54,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select'
+import { Switch } from './ui/switch'
 
 /* const modeList = [SITE_LIST_MODE.TopDrawer, SITE_LIST_MODE.DropdownMenu] */
 
@@ -148,6 +149,7 @@ const userUISchema = z.object({
   contentWidth: contentWidthSchema,
   customContentWidth: z.string(),
   lang: languageSchema,
+  syncToOtherDevices: z.boolean(),
 })
 
 type FontSizeSchema = z.infer<typeof fontSizeSchema>
@@ -165,6 +167,7 @@ const defaultUserUIData: UserUISchema = {
   contentWidth: DEFAULT_CONTENT_WIDTH,
   customContentWidth: '',
   lang: normalizeLanguageForForm(i18n.language),
+  syncToOtherDevices: false,
 }
 
 export interface UserUIFormProps {
@@ -244,6 +247,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
         customContentWidth:
           contentWidthGlobalVal == 'custom' ? userUIContentWidth : '',
         lang: normalizeLanguageForForm(i18n.language),
+        syncToOtherDevices: false,
       },
     })
 
@@ -260,6 +264,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
         contentWidth,
         customContentWidth,
         lang,
+        syncToOtherDevices,
       }: UserUISchema) => {
         /* console.log('font size: ', fontSize) */
 
@@ -299,18 +304,19 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
           console.error('switch language error: ', err)
         }
 
-        // Save all UI settings to backend for cross-device sync
-        try {
-          await saveUserUISettings({
-            mode,
-            theme,
-            fontSize: Number(fs) || Number(defaultFontSize),
-            contentWidth: Number(cw) || Number(DEFAULT_CONTENT_WIDTH),
-            lang,
-            updatedAt: timestamp,
-          })
-        } catch (err) {
-          console.error('save UI settings error: ', err)
+        if (syncToOtherDevices) {
+          try {
+            await saveUserUISettings({
+              mode,
+              theme,
+              fontSize: Number(fs) || Number(defaultFontSize),
+              contentWidth: Number(cw) || Number(DEFAULT_CONTENT_WIDTH),
+              lang,
+              updatedAt: timestamp,
+            })
+          } catch (err) {
+            console.error('save UI settings error: ', err)
+          }
         }
 
         // Reset form with current form values (userUIStore has been updated)
@@ -322,6 +328,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
           contentWidth,
           customContentWidth,
           lang,
+          syncToOtherDevices,
         })
 
         forceUpdate()
@@ -422,6 +429,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                 customContentWidth:
                   newContentWidthVal === 'custom' ? newContentWidthStr : '',
                 lang: normalizeLanguageForForm(settings.lang || i18n.language),
+                syncToOtherDevices: false,
               })
             },
           },
@@ -718,6 +726,25 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                   </RadioGroup>
                 </FormControl>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="syncToOtherDevices"
+            key="syncToOtherDevices"
+            render={({ field }) => (
+              <FormItem className="mb-8 flex flex-row items-center space-x-2 space-y-0">
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <FormLabel className="font-normal">
+                  {t('syncToOtherDevices')}
+                </FormLabel>
               </FormItem>
             )}
           />

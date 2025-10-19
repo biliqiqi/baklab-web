@@ -276,6 +276,7 @@
   "dropdown": "下拉框",
   "syncWithDevices": "同步到其他设备",
   "save": "保存",
+  "syncToOtherDevices": "同步到其他设备",
   "userManagement": "用户管理",
   "userRoleUpdateTip": "用户角色已更新",
   "unbanUserConfirm": "确定解封 {{username}}",

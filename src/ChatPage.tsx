@@ -709,7 +709,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
     <div
       style={{
         position: 'relative',
-        minHeight: `calc(100vh - ${NAV_HEIGHT}px - 2rem)`,
+        minHeight: `calc(100vh - ${NAV_HEIGHT}px - 2rem - 76px)`,
       }}
     >
       {!isScrollReady && (
@@ -721,7 +721,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
             right: 0,
             zIndex: 10,
             backgroundColor: 'var(--background)',
-            minHeight: `calc(100vh - ${NAV_HEIGHT}px)`,
+            minHeight: `calc(100vh - ${NAV_HEIGHT}px  - 2rem - 76px)`,
           }}
         >
           {Array(10)

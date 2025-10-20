@@ -62,7 +62,7 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
   return (
     <>
       {pageState.totalPage > 1 && (
-        <Card>
+        <Card className="mt-4">
           <Pagination className="py-1">
             <PaginationContent>
               {pageState.currPage > 1 && (

@@ -722,9 +722,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 )}
               </div>
             </div>
-            {isLogined() && showReplyBox && (
-              <ReplyBox {...replyBoxProps} className="absolute" />
-            )}
+            {isLogined() && showReplyBox && <ReplyBox {...replyBoxProps} />}
           </main>
           <SidebarProvider
             defaultOpen={false}

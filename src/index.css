@@ -248,6 +248,15 @@ a:hover {
   line-height: 1em;
 }
 
+.tiptap{
+  container-type: inline-size;
+}
+
+.tiptap img {
+  max-width: 36cqw;
+  max-height: 36cqw;
+}
+
 .CollapsibleContent {
   overflow: hidden;
 }

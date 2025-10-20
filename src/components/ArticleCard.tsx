@@ -6,11 +6,15 @@ import {
   SquareArrowOutUpRightIcon,
   Trash2Icon,
 } from 'lucide-react'
+import PhotoSwipeLightbox from 'photoswipe/lightbox'
+import 'photoswipe/style.css'
 import {
   HTMLAttributes,
   MouseEvent,
   useCallback,
+  useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -77,6 +81,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   ...props
 }) => {
   const [alertOpen, setAlertOpen] = useState(false)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const lightboxRef = useRef<PhotoSwipeLightbox | null>(null)
 
   const parent = article.replyToArticle
 
@@ -215,6 +221,58 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     },
     [article, onSuccess, authStore.username]
   )
+
+  useEffect(() => {
+    if (!contentRef.current) return
+
+    const galleryId = `gallery-${article.id}`
+
+    const images = contentRef.current.querySelectorAll('img')
+    images.forEach((img) => {
+      const parent = img.parentElement
+      if (parent && !parent.classList.contains('pswp-gallery-item')) {
+        const wrapper = document.createElement('a')
+        wrapper.href = img.src
+        wrapper.classList.add('pswp-gallery-item')
+        wrapper.style.cursor = 'zoom-in'
+        wrapper.dataset.pswpWidth = String(img.naturalWidth || 1200)
+        wrapper.dataset.pswpHeight = String(img.naturalHeight || 800)
+
+        const updateSize = () => {
+          if (img.naturalWidth && img.naturalHeight) {
+            wrapper.dataset.pswpWidth = String(img.naturalWidth)
+            wrapper.dataset.pswpHeight = String(img.naturalHeight)
+          }
+        }
+
+        if (img.complete && img.naturalWidth) {
+          updateSize()
+        } else {
+          img.addEventListener('load', updateSize)
+        }
+
+        img.parentNode?.insertBefore(wrapper, img)
+        wrapper.appendChild(img)
+      }
+    })
+
+    lightboxRef.current = new PhotoSwipeLightbox({
+      gallery: `#${galleryId}`,
+      children: '.pswp-gallery-item',
+      pswpModule: () => import('photoswipe'),
+      wheelToZoom: true,
+      initialZoomLevel: 'fit',
+      secondaryZoomLevel: 2,
+      maxZoomLevel: 4,
+    })
+
+    lightboxRef.current.init()
+
+    return () => {
+      lightboxRef.current?.destroy()
+      lightboxRef.current = null
+    }
+  }, [article.id, article.content])
 
   return (
     <div id={'comment' + article.id} {...props}>
@@ -380,6 +438,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               <i className="text-gray-500 text-sm">&lt;{t('deleted')}&gt;</i>
               {authStore.permit('article', 'delete_others') && (
                 <div
+                  ref={contentRef}
+                  id={`gallery-${article.id}`}
                   dangerouslySetInnerHTML={{
                     __html: renderMD(article.content),
                   }}
@@ -389,6 +449,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             </>
           ) : (
             <div
+              ref={contentRef}
+              id={`gallery-${article.id}`}
               dangerouslySetInnerHTML={{ __html: renderMD(article.content) }}
               className="b-article-content mb-4"
             ></div>

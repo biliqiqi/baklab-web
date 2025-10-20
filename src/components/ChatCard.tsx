@@ -1,9 +1,13 @@
 import { PenIcon } from 'lucide-react'
+import PhotoSwipeLightbox from 'photoswipe/lightbox'
+import 'photoswipe/style.css'
 import {
   HTMLAttributes,
   MouseEvent,
   forwardRef,
   useCallback,
+  useEffect,
+  useRef,
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -63,6 +67,8 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
     ref
   ) => {
     const [alertOpen, setAlertOpen] = useState(false)
+    const contentRef = useRef<HTMLDivElement>(null)
+    const lightboxRef = useRef<PhotoSwipeLightbox | null>(null)
 
     const parent = article.replyToArticle
 
@@ -178,6 +184,58 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
       [article, onSuccess, authStore.username]
     )
 
+    useEffect(() => {
+      if (!contentRef.current) return
+
+      const galleryId = `gallery-${article.id}`
+
+      const images = contentRef.current.querySelectorAll('img')
+      images.forEach((img) => {
+        const parent = img.parentElement
+        if (parent && !parent.classList.contains('pswp-gallery-item')) {
+          const wrapper = document.createElement('a')
+          wrapper.href = img.src
+          wrapper.classList.add('pswp-gallery-item')
+          wrapper.style.cursor = 'zoom-in'
+          wrapper.dataset.pswpWidth = String(img.naturalWidth || 1200)
+          wrapper.dataset.pswpHeight = String(img.naturalHeight || 800)
+
+          const updateSize = () => {
+            if (img.naturalWidth && img.naturalHeight) {
+              wrapper.dataset.pswpWidth = String(img.naturalWidth)
+              wrapper.dataset.pswpHeight = String(img.naturalHeight)
+            }
+          }
+
+          if (img.complete && img.naturalWidth) {
+            updateSize()
+          } else {
+            img.addEventListener('load', updateSize)
+          }
+
+          img.parentNode?.insertBefore(wrapper, img)
+          wrapper.appendChild(img)
+        }
+      })
+
+      lightboxRef.current = new PhotoSwipeLightbox({
+        gallery: `#${galleryId}`,
+        children: '.pswp-gallery-item',
+        pswpModule: () => import('photoswipe'),
+        wheelToZoom: true,
+        initialZoomLevel: 'fit',
+        secondaryZoomLevel: 2,
+        maxZoomLevel: 4,
+      })
+
+      lightboxRef.current.init()
+
+      return () => {
+        lightboxRef.current?.destroy()
+        lightboxRef.current = null
+      }
+    }, [article.id, article.content])
+
     return (
       <div
         id={'message' + article.id}
@@ -289,6 +347,8 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
                 </>
               ) : (
                 <div
+                  ref={contentRef}
+                  id={`gallery-${article.id}`}
                   dangerouslySetInnerHTML={{
                     __html: renderMD(article.content),
                   }}

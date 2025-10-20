@@ -38,6 +38,7 @@ import {
   toggleLockArticle,
 } from '@/api/article'
 import { EV_ON_EDIT_CLICK, EV_ON_REPLY_CLICK } from '@/constants/constants'
+import { useIsMobile } from '@/hooks/use-mobile'
 import {
   useAlertDialogStore,
   useArticleHistoryStore,
@@ -83,6 +84,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   const [alertOpen, setAlertOpen] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
   const lightboxRef = useRef<PhotoSwipeLightbox | null>(null)
+  const isMobile = useIsMobile()
 
   const parent = article.replyToArticle
 
@@ -226,6 +228,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     if (!contentRef.current) return
 
     const galleryId = `gallery-${article.id}`
+    const imageHandlers = new Map<HTMLImageElement, () => void>()
 
     const images = contentRef.current.querySelectorAll('img')
     images.forEach((img) => {
@@ -235,8 +238,6 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         wrapper.href = img.src
         wrapper.classList.add('pswp-gallery-item')
         wrapper.style.cursor = 'zoom-in'
-        wrapper.dataset.pswpWidth = String(img.naturalWidth || 1200)
-        wrapper.dataset.pswpHeight = String(img.naturalHeight || 800)
 
         const updateSize = () => {
           if (img.naturalWidth && img.naturalHeight) {
@@ -248,7 +249,12 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         if (img.complete && img.naturalWidth) {
           updateSize()
         } else {
-          img.addEventListener('load', updateSize)
+          const loadHandler = () => {
+            updateSize()
+            img.removeEventListener('load', loadHandler)
+          }
+          img.addEventListener('load', loadHandler)
+          imageHandlers.set(img, loadHandler)
         }
 
         img.parentNode?.insertBefore(wrapper, img)
@@ -264,15 +270,48 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
       initialZoomLevel: 'fit',
       secondaryZoomLevel: 2,
       maxZoomLevel: 4,
+      arrowKeys: false,
+      preload: [1, 2],
+      bgOpacity: 0.8,
+      spacing: 0.1,
+      allowPanToNext: true,
+      loop: false,
+      pinchToClose: true,
+      closeOnVerticalDrag: true,
+      escKey: true,
+      imageClickAction: 'close',
+      tapAction: 'close',
     })
+
+    if (isMobile) {
+      lightboxRef.current.on('uiRegister', function () {
+        if (lightboxRef.current?.pswp) {
+          lightboxRef.current.pswp.ui?.registerElement({
+            name: 'custom-style',
+            appendTo: 'root',
+            onInit: (el) => {
+              const style = document.createElement('style')
+              style.innerHTML = `
+                .pswp__button--arrow { display: none !important; }
+              `
+              el.appendChild(style)
+            },
+          })
+        }
+      })
+    }
 
     lightboxRef.current.init()
 
     return () => {
+      imageHandlers.forEach((handler, img) => {
+        img.removeEventListener('load', handler)
+      })
+      imageHandlers.clear()
       lightboxRef.current?.destroy()
       lightboxRef.current = null
     }
-  }, [article.id, article.content])
+  }, [article.id, article.content, isMobile])
 
   return (
     <div id={'comment' + article.id} {...props}>

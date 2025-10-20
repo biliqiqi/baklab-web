@@ -3,10 +3,9 @@ import react from '@vitejs/plugin-react'
 import fs from 'fs'
 import path from 'path'
 import { Plugin, loadEnv } from 'vite'
+// import { analyzer } from 'vite-bundle-analyzer'
 import { VitePWA } from 'vite-plugin-pwa'
 import { defineConfig } from 'vitest/config'
-
-// import { analyzer } from 'vite-bundle-analyzer'
 
 const devSwMiddleware = (): Plugin => {
   return {
@@ -111,7 +110,7 @@ export default defineConfig(({ mode }) => {
       }),
       react(),
       // analyzer({
-      //   openAnalyzer: false,
+      //   openAnalyzer: true,
       // }),
     ],
     build: {

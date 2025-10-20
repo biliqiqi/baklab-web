@@ -248,7 +248,7 @@ a:hover {
   line-height: 1em;
 }
 
-.tiptap{
+.tiptap {
   container-type: inline-size;
 }
 
@@ -335,6 +335,27 @@ a:hover {
   40% {
     box-shadow: 0 2.5em 0 0;
   }
+}
+
+.pswp-gallery-item {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.pswp {
+  will-change: opacity;
+}
+
+.pswp__img {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.pswp__zoom-wrap {
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 @media (max-width: 1024px) {

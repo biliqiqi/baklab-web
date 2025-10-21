@@ -107,6 +107,54 @@ export const renderMD = (markdown: string) => {
   return htmlStr
 }
 
+export const setupLazyLoadImages = (container: HTMLElement) => {
+  const images = container.querySelectorAll('img')
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const img = entry.target as HTMLImageElement
+          const thumbnailSrc = img.dataset.thumbnailSrc
+          const originalSrc = img.dataset.originalSrc
+
+          if (thumbnailSrc && img.dataset.loaded !== 'true') {
+            const thumbnailImage = new Image()
+            thumbnailImage.onload = () => {
+              img.src = thumbnailSrc
+              img.dataset.loaded = 'thumbnail'
+            }
+            thumbnailImage.onerror = () => {
+              if (originalSrc) {
+                img.src = originalSrc
+                img.dataset.loaded = 'true'
+              }
+            }
+            thumbnailImage.src = thumbnailSrc
+          } else if (originalSrc && img.dataset.loaded !== 'true') {
+            const fullImage = new Image()
+            fullImage.onload = () => {
+              img.src = originalSrc
+              img.dataset.loaded = 'true'
+            }
+            fullImage.src = originalSrc
+          }
+
+          observer.unobserve(img)
+        }
+      })
+    },
+    {
+      rootMargin: '50px',
+    }
+  )
+
+  images.forEach((img) => observer.observe(img))
+
+  return () => {
+    observer.disconnect()
+  }
+}
+
 export const md2text = (markdown: string) => {
   const htmlStr = renderMD(markdown)
   const tmpEl = document.createElement('div')

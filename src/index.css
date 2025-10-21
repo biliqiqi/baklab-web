@@ -233,11 +233,6 @@ a:hover {
   margin-bottom: 1em;
 }
 
-.b-article-content img {
-  max-width: 36cqw;
-  max-height: 36cqw;
-}
-
 .b-chat-card:hover .b-chat-controls__btns,
 .b-chat-card__card:focus-within .b-chat-controls__btns {
   visibility: visible;
@@ -252,9 +247,9 @@ a:hover {
   container-type: inline-size;
 }
 
-.tiptap img {
-  max-width: 36cqw;
-  max-height: 36cqw;
+.tiptap img,
+.b-article-content img{
+  display: inline-block;
 }
 
 .CollapsibleContent {
@@ -337,26 +332,26 @@ a:hover {
   }
 }
 
-.pswp-gallery-item {
-  will-change: transform;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
+/* .pswp-gallery-item { */
+/*   will-change: transform; */
+/*   transform: translateZ(0); */
+/*   backface-visibility: hidden; */
+/* } */
 
-.pswp {
-  will-change: opacity;
-}
+/* .pswp { */
+/*   will-change: opacity; */
+/* } */
 
-.pswp__img {
-  will-change: transform;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
+/* .pswp__img { */
+/*   will-change: transform; */
+/*   transform: translateZ(0); */
+/*   backface-visibility: hidden; */
+/* } */
 
-.pswp__zoom-wrap {
-  will-change: transform;
-  transform: translateZ(0);
-}
+/* .pswp__zoom-wrap { */
+/*   will-change: transform; */
+/*   transform: translateZ(0); */
+/* } */
 
 @media (max-width: 1024px) {
   :root {
@@ -369,5 +364,12 @@ a:hover {
 
   .b-chat-card__card:focus-within .b-chat-controls__btns {
     visibility: visible;
+  }
+
+  .tiptap img,
+  .b-article-content img{
+    display: block;
+    max-width: 100%;
+    max-height: 100vh;
   }
 }

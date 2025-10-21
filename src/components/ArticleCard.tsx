@@ -22,6 +22,13 @@ import { Link } from 'react-router-dom'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
 import {
+  buildThumbnailUrl,
+  calculateThumbnailDimensions,
+  calculateThumbnailWidth,
+  parseImageMetadataFromUrl,
+  thumbHashToPreview,
+} from '@/lib/thumbhash'
+import {
   bus,
   cn,
   extractDomain,
@@ -30,6 +37,7 @@ import {
   noop,
   renderMD,
   scrollToElement,
+  setupLazyLoadImages,
 } from '@/lib/utils'
 
 import {
@@ -234,33 +242,81 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     images.forEach((img) => {
       const parent = img.parentElement
       if (parent && !parent.classList.contains('pswp-gallery-item')) {
-        const wrapper = document.createElement('a')
-        wrapper.href = img.src
-        wrapper.classList.add('pswp-gallery-item')
-        wrapper.style.cursor = 'zoom-in'
+        const originalSrc = img.src
+        const metadata = parseImageMetadataFromUrl(originalSrc)
 
-        const updateSize = () => {
-          if (img.naturalWidth && img.naturalHeight) {
-            wrapper.dataset.pswpWidth = String(img.naturalWidth)
-            wrapper.dataset.pswpHeight = String(img.naturalHeight)
+        if (metadata.thumbhash) {
+          try {
+            const thumbDataUrl = thumbHashToPreview(metadata.thumbhash)
+
+            img.dataset.originalSrc = originalSrc
+            img.src = thumbDataUrl
+            img.dataset.loaded = 'thumbhash'
+
+            if (metadata.width && metadata.height) {
+              const thumbnailDimensions = calculateThumbnailDimensions(
+                metadata.width,
+                metadata.height,
+                isMobile
+              )
+              img.width = thumbnailDimensions.width
+              img.height = thumbnailDimensions.height
+
+              const thumbnailUrl = buildThumbnailUrl(
+                originalSrc,
+                thumbnailDimensions.width,
+                thumbnailDimensions.height
+              )
+              img.dataset.thumbnailSrc = thumbnailUrl
+            }
+          } catch (error) {
+            console.warn('Failed to generate thumbhash preview:', error)
           }
         }
 
-        if (img.complete && img.naturalWidth) {
-          updateSize()
-        } else {
-          const loadHandler = () => {
-            updateSize()
-            img.removeEventListener('load', loadHandler)
+        const wrapper = document.createElement('a')
+        wrapper.href = img.dataset.originalSrc || originalSrc
+        wrapper.classList.add('pswp-gallery-item')
+        wrapper.style.cursor = 'zoom-in'
+
+        if (metadata.thumbhash) {
+          try {
+            const thumbDataUrl = thumbHashToPreview(metadata.thumbhash)
+            wrapper.dataset.pswpMsrc = thumbDataUrl
+          } catch (error) {
+            console.warn('Failed to set PhotoSwipe thumbnail:', error)
           }
-          img.addEventListener('load', loadHandler)
-          imageHandlers.set(img, loadHandler)
+        }
+
+        if (metadata.width && metadata.height) {
+          wrapper.dataset.pswpWidth = String(metadata.width)
+          wrapper.dataset.pswpHeight = String(metadata.height)
+        } else {
+          const updateSize = () => {
+            if (img.naturalWidth && img.naturalHeight) {
+              wrapper.dataset.pswpWidth = String(img.naturalWidth)
+              wrapper.dataset.pswpHeight = String(img.naturalHeight)
+            }
+          }
+
+          if (img.complete && img.naturalWidth) {
+            updateSize()
+          } else {
+            const loadHandler = () => {
+              updateSize()
+              img.removeEventListener('load', loadHandler)
+            }
+            img.addEventListener('load', loadHandler)
+            imageHandlers.set(img, loadHandler)
+          }
         }
 
         img.parentNode?.insertBefore(wrapper, img)
         wrapper.appendChild(img)
       }
     })
+
+    const cleanupLazyLoad = setupLazyLoadImages(contentRef.current)
 
     lightboxRef.current = new PhotoSwipeLightbox({
       gallery: `#${galleryId}`,
@@ -308,6 +364,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         img.removeEventListener('load', handler)
       })
       imageHandlers.clear()
+      cleanupLazyLoad()
       lightboxRef.current?.destroy()
       lightboxRef.current = null
     }

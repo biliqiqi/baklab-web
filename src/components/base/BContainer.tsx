@@ -131,6 +131,11 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       return `calc(100vh - ${currNavHeight}px)`
     }, [siteMode])
 
+    const bodyHeightNumber = useMemo(() => {
+      const currNavHeight = siteMode == 'top_nav' ? NAV_HEIGHT : 0
+      return window.innerHeight - currNavHeight
+    }, [siteMode])
+
     const {
       sidebarOpen,
       setSidebarOpen,
@@ -722,7 +727,9 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 )}
               </div>
             </div>
-            {isLogined() && showReplyBox && <ReplyBox {...replyBoxProps} />}
+            {isLogined() && showReplyBox && (
+              <ReplyBox {...replyBoxProps} bodyHeight={bodyHeightNumber} />
+            )}
           </main>
           <SidebarProvider
             defaultOpen={false}

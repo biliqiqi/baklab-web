@@ -369,6 +369,8 @@
   "noPermission": "No Permission",
   "lackPermission": "Currently lack permission for this feature",
   "collape": "Collapse",
+  "maximize": "Maximize",
+  "restore": "Restore",
   "xMode": "{{name}} Mode",
   "continue": "Continue",
   "empty": "Empty",

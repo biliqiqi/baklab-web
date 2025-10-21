@@ -1,6 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AfterResponseHook } from 'ky'
-import { ArrowDownToLineIcon, ImageIcon, XIcon } from 'lucide-react'
+import {
+  ArrowDownToLineIcon,
+  ExpandIcon,
+  ImageIcon,
+  ShrinkIcon,
+  XIcon,
+} from 'lucide-react'
 import { escapeHtml } from 'markdown-it/lib/common/utils.mjs'
 import {
   MouseEvent,
@@ -94,6 +100,7 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
       onRemoveReply,
       disabled = false,
       className,
+      bodyHeight,
     },
     ref
   ) => {
@@ -110,6 +117,10 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
     const [rateLimitResetSeconds, setRateLimitResetSeconds] = useState(0)
     const [imageUploading, setImageUploading] = useState(false)
     const [isComposing, setIsComposing] = useState(false)
+    const [isMaximized, setIsMaximized] = useState(false)
+    const [heightBeforeMaximize, setHeightBeforeMaximize] = useState(
+      REPLY_BOX_INITIAL_HEIGHT
+    )
 
     const { siteFrontId } = useParams()
 
@@ -431,6 +442,46 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
         }
       },
       [imageUploading]
+    )
+
+    const onMaximizeClick = useCallback(
+      (e: MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault()
+        if (!bodyHeight || !targetInputEl) return
+
+        targetInputEl.classList.add('duration-200', 'transition-all')
+
+        if (isMaximized) {
+          setReplyBoxHeight(heightBeforeMaximize)
+          setIsMaximized(false)
+        } else {
+          setHeightBeforeMaximize(replyBoxHeight)
+
+          const container = targetInputEl.closest('.flex-grow')
+          if (container) {
+            const containerRect = container.getBoundingClientRect()
+            const inputRect = targetInputEl.getBoundingClientRect()
+            const otherElementsHeight = containerRect.height - inputRect.height
+            const maxInputHeight = bodyHeight - otherElementsHeight
+            setReplyBoxHeight(Math.max(maxInputHeight, REPLY_BOX_MIN_HEIGHT))
+          } else {
+            setReplyBoxHeight(bodyHeight)
+          }
+          setIsMaximized(true)
+        }
+
+        setTimeout(() => {
+          if (targetInputEl)
+            targetInputEl.classList.remove('duration-200', 'transition-all')
+        }, 200)
+      },
+      [
+        isMaximized,
+        replyBoxHeight,
+        heightBeforeMaximize,
+        bodyHeight,
+        targetInputEl,
+      ]
     )
 
     const createSetupForm = (isMarkdownMode: boolean) => {
@@ -781,6 +832,19 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
                             className="mr-2 w-8 h-[24px] text-gray-500 px-0 align-middle"
                           >
                             <ArrowDownToLineIcon size={20} />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={onMaximizeClick}
+                            title={isMaximized ? t('restore') : t('maximize')}
+                            className="mr-2 w-8 h-[24px] text-gray-500 px-0 align-middle"
+                          >
+                            {isMaximized ? (
+                              <ShrinkIcon size={20} />
+                            ) : (
+                              <ExpandIcon size={20} />
+                            )}
                           </Button>
                           <Button
                             variant={markdownMode ? 'default' : 'outline'}

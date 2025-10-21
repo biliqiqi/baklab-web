@@ -720,6 +720,7 @@ export interface ReplyBoxProps {
   edittingArticle?: Article | null
   disabled?: boolean
   className?: string
+  bodyHeight?: number
   onSuccess?:
     | ((
         data: ResponseData<ArticleSubmitResponse>,

@@ -369,6 +369,8 @@
   "noPermission": "没有权限",
   "lackPermission": "目前缺少此功能权限",
   "collape": "收起",
+  "maximize": "最大化",
+  "restore": "恢复",
   "xMode": "{{name}}模式",
   "continue": "继续",
   "empty": "空空如也",

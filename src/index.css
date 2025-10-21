@@ -248,8 +248,9 @@ a:hover {
 }
 
 .tiptap img,
-.b-article-content img {
+.b-article-content img{
   display: inline-block;
+  max-width: 600px;
 }
 
 .CollapsibleContent {
@@ -367,7 +368,7 @@ a:hover {
   }
 
   .tiptap img,
-  .b-article-content img {
+  .b-article-content img{
     display: block;
     max-width: 100%;
     max-height: 100vh;

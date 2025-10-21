@@ -254,7 +254,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           )
 
           img.style.width = `${thumbnailDimensions.width}px`
-          img.style.height = `${thumbnailDimensions.height}px`
+          img.style.aspectRatio = `${metadata.width} / ${metadata.height}`
           img.style.objectFit = 'cover'
 
           const thumbnailUrl = buildThumbnailUrl(

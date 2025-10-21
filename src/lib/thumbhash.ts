@@ -3,6 +3,14 @@ import {
   thumbHashToDataURL,
 } from 'thumbhash'
 
+import {
+  THUMBNAIL_MAX_DPR,
+  THUMBNAIL_MAX_HEIGHT_DESKTOP,
+  THUMBNAIL_MAX_HEIGHT_MOBILE,
+  THUMBNAIL_MAX_WIDTH_DESKTOP,
+  THUMBNAIL_MAX_WIDTH_MOBILE,
+} from '@/constants/constants'
+
 export interface ImageMetadata {
   thumbhash: string | null
   width: number | null
@@ -69,8 +77,8 @@ export function calculateThumbnailWidth(
   originalWidth: number,
   isMobile: boolean
 ): number {
-  const dpr = Math.min(window.devicePixelRatio || 1, 3)
-  const baseWidth = isMobile ? 480 : 800
+  const dpr = Math.min(window.devicePixelRatio || 1, THUMBNAIL_MAX_DPR)
+  const baseWidth = isMobile ? THUMBNAIL_MAX_WIDTH_MOBILE : 800
   const targetWidth = baseWidth * dpr
 
   return Math.min(originalWidth, targetWidth)
@@ -81,9 +89,13 @@ export function calculateThumbnailDimensions(
   originalHeight: number,
   isMobile: boolean
 ): { width: number; height: number } {
-  const dpr = Math.min(window.devicePixelRatio || 1, 3)
-  const maxWidth = isMobile ? 480 : 600
-  const maxHeight = isMobile ? 480 : 600
+  const dpr = Math.min(window.devicePixelRatio || 1, THUMBNAIL_MAX_DPR)
+  const maxWidth = isMobile
+    ? THUMBNAIL_MAX_WIDTH_MOBILE
+    : THUMBNAIL_MAX_WIDTH_DESKTOP
+  const maxHeight = isMobile
+    ? THUMBNAIL_MAX_HEIGHT_MOBILE
+    : THUMBNAIL_MAX_HEIGHT_DESKTOP
   const targetMaxWidth = maxWidth * dpr
   const targetMaxHeight = maxHeight * dpr
 

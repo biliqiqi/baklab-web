@@ -43,6 +43,8 @@
     --dialog-background: 0 0% 98%;
     --text-secondary: 0 0% 38%;
     --hover-bg: 0 0% 96%;
+    --img-max-width-desktop: 600px;
+    --img-max-height-desktop: 600px;
   }
   .dark {
     --background: 231 15% 18%;
@@ -248,9 +250,10 @@ a:hover {
 }
 
 .tiptap img,
-.b-article-content img{
+.b-article-content img {
   display: inline-block;
-  max-width: 600px;
+  max-width: var(--img-max-width-desktop);
+  max-height: var(--img-max-height-desktop);
 }
 
 .CollapsibleContent {
@@ -368,7 +371,7 @@ a:hover {
   }
 
   .tiptap img,
-  .b-article-content img{
+  .b-article-content img {
     display: block;
     max-width: 100%;
     max-height: 100vh;

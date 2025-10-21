@@ -17,7 +17,6 @@ import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
 import {
   buildThumbnailUrl,
   calculateThumbnailDimensions,
-  calculateThumbnailWidth,
   parseImageMetadataFromUrl,
   thumbHashToPreview,
 } from '@/lib/thumbhash'
@@ -207,37 +206,39 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
           const originalSrc = img.src
           const metadata = parseImageMetadataFromUrl(originalSrc)
 
+          img.dataset.originalSrc = originalSrc
+
+          if (metadata.width && metadata.height) {
+            const thumbnailDimensions = calculateThumbnailDimensions(
+              metadata.width,
+              metadata.height,
+              isMobile
+            )
+
+            img.style.width = `${thumbnailDimensions.width}px`
+            img.style.height = `${thumbnailDimensions.height}px`
+            img.style.objectFit = 'cover'
+
+            const thumbnailUrl = buildThumbnailUrl(
+              originalSrc,
+              thumbnailDimensions.width,
+              thumbnailDimensions.height
+            )
+            img.dataset.thumbnailSrc = thumbnailUrl
+          }
+
           if (metadata.thumbhash) {
             try {
               const thumbDataUrl = thumbHashToPreview(metadata.thumbhash)
-
-              img.dataset.originalSrc = originalSrc
               img.src = thumbDataUrl
               img.dataset.loaded = 'thumbhash'
-
-              if (metadata.width && metadata.height) {
-                const thumbnailDimensions = calculateThumbnailDimensions(
-                  metadata.width,
-                  metadata.height,
-                  isMobile
-                )
-                img.width = thumbnailDimensions.width
-                img.height = thumbnailDimensions.height
-
-                const thumbnailUrl = buildThumbnailUrl(
-                  originalSrc,
-                  thumbnailDimensions.width,
-                  thumbnailDimensions.height
-                )
-                img.dataset.thumbnailSrc = thumbnailUrl
-              }
             } catch (error) {
               console.warn('Failed to generate thumbhash preview:', error)
             }
           }
 
           const wrapper = document.createElement('a')
-          wrapper.href = img.dataset.originalSrc || originalSrc
+          wrapper.href = originalSrc
           wrapper.classList.add('pswp-gallery-item')
           wrapper.style.cursor = 'zoom-in'
 

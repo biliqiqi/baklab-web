@@ -117,7 +117,7 @@ export const setupLazyLoadImages = (container: HTMLElement) => {
           const thumbnailSrc = img.dataset.thumbnailSrc
           const originalSrc = img.dataset.originalSrc
 
-          if (thumbnailSrc && img.dataset.loaded !== 'true') {
+          if (img.dataset.loaded === 'thumbhash' && thumbnailSrc) {
             const thumbnailImage = new Image()
             thumbnailImage.onload = () => {
               img.src = thumbnailSrc
@@ -130,7 +130,11 @@ export const setupLazyLoadImages = (container: HTMLElement) => {
               }
             }
             thumbnailImage.src = thumbnailSrc
-          } else if (originalSrc && img.dataset.loaded !== 'true') {
+          } else if (
+            img.dataset.loaded === 'thumbhash' &&
+            !thumbnailSrc &&
+            originalSrc
+          ) {
             const fullImage = new Image()
             fullImage.onload = () => {
               img.src = originalSrc

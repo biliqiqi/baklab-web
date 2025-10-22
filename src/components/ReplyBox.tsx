@@ -642,6 +642,8 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
         timeoutRef.current = setTimeout(() => {
           if (data.content) {
             saveCache(data.content, replyBoxHeight)
+          } else {
+            clearCache()
           }
         }, 500)
       })
@@ -652,7 +654,7 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
           clearTimeout(timeoutRef.current)
         }
       }
-    }, [form, saveCache, editType, replyBoxHeight])
+    }, [form, saveCache, clearCache, editType, replyBoxHeight])
 
     useEffect(() => {
       const currData = replyBoxRef.current

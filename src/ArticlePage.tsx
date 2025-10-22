@@ -314,39 +314,88 @@ export default function ArticlePage() {
     if (!article || !initialized) return
 
     const rawCache = loadRawCache()
-    if (!rawCache) return
-
-    const cacheData = rawCache as {
-      editType?: string
-      content?: string
-      targetArticle?: {
-        id: string
-        authorName: string
-        summary: string
-        deleted: boolean
+    if (rawCache) {
+      const cacheData = rawCache as {
+        editType?: string
+        content?: string
+        targetArticle?: {
+          id: string
+          authorName: string
+          summary: string
+          deleted: boolean
+        }
+        mainArticleId?: string
       }
-      mainArticleId?: string
+
+      if (cacheData.editType === 'reply') {
+        if (
+          cacheData.content &&
+          cacheData.targetArticle &&
+          cacheData.mainArticleId === article.id
+        ) {
+          if (cacheData.targetArticle.id !== article.id) {
+            const cachedTargetArticle: Article = {
+              id: cacheData.targetArticle.id,
+              authorName: cacheData.targetArticle.authorName,
+              summary: cacheData.targetArticle.summary,
+              deleted: cacheData.targetArticle.deleted,
+              content: cacheData.targetArticle.summary,
+            } as Article
+
+            onReplyClick(cachedTargetArticle)
+          }
+        }
+      }
     }
 
-    if (
-      cacheData.editType === 'reply' &&
-      cacheData.content &&
-      cacheData.targetArticle &&
-      cacheData.mainArticleId === article.id
-    ) {
-      if (cacheData.targetArticle.id !== article.id) {
-        const cachedTargetArticle: Article = {
-          id: cacheData.targetArticle.id,
-          authorName: cacheData.targetArticle.authorName,
-          summary: cacheData.targetArticle.summary,
-          deleted: cacheData.targetArticle.deleted,
-          content: cacheData.targetArticle.summary,
-        } as Article
+    if (article.replies?.list) {
+      for (const reply of article.replies.list) {
+        const editCacheKey = `editor-cache-replybox-${siteFrontId}-edit-${reply.id}`
+        try {
+          const cached = localStorage.getItem(editCacheKey)
+          if (cached) {
+            const parsed: unknown = JSON.parse(cached)
+            if (
+              typeof parsed === 'object' &&
+              parsed !== null &&
+              'data' in parsed
+            ) {
+              const cacheData = (parsed as { data: unknown }).data as {
+                editType?: string
+                content?: string
+                targetArticle?: {
+                  id: string
+                  authorName: string
+                  summary: string
+                  deleted: boolean
+                }
+                mainArticleId?: string
+              }
 
-        onReplyClick(cachedTargetArticle)
+              if (
+                cacheData.editType === 'edit' &&
+                cacheData.content &&
+                cacheData.targetArticle?.id === reply.id &&
+                cacheData.mainArticleId === article.id
+              ) {
+                onEditClick(reply)
+                break
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load edit cache:', error)
+        }
       }
     }
-  }, [article, loadRawCache, initialized, onReplyClick])
+  }, [
+    article,
+    loadRawCache,
+    initialized,
+    onReplyClick,
+    onEditClick,
+    siteFrontId,
+  ])
 
   useEffect(() => {
     return () => {

@@ -41,7 +41,6 @@ import { useReplyBoxCache } from '@/hooks/use-editor-cache'
 import i18n from '@/i18n'
 import {
   useAuthedUserStore,
-  useReplyBoxStore,
   useSiteStore,
   useUserUIStore,
 } from '@/state/global'
@@ -129,7 +128,6 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
 
     const site = useSiteStore((state) => state.site)
     const checkPermit = useAuthedUserStore((state) => state.permit)
-    const setShowReplyBox = useReplyBoxStore((state) => state.setShow)
     const { innerContentWidth: _innerContentWidth } = useUserUIStore(
       useShallow(({ innerContentWidth }) => ({
         innerContentWidth: innerContentWidth || DEFAULT_INNER_CONTENT_WIDTH,
@@ -285,7 +283,7 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
             }
 
             if (
-              editType === 'reply' &&
+              (editType === 'reply' || editType === 'edit') &&
               onRemoveReply &&
               typeof onRemoveReply === 'function'
             ) {
@@ -596,11 +594,35 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
 
     useEffect(() => {
       if (isEditting && edittingArticle) {
+        const contentToUse = initialCache?.content || edittingArticle.content
+
         form.reset({
-          content: edittingArticle.content,
+          content: contentToUse,
         })
+
+        setIsActive(true)
+
+        if (initialCache?.replyBoxHeight) {
+          setReplyBoxHeight(initialCache.replyBoxHeight)
+        }
+
+        if (!targetInputEl) {
+          const currentElement = markdownMode
+            ? textareaRef.current
+            : tiptapRef.current?.element
+          if (currentElement) {
+            setTargetInputEl(currentElement)
+          }
+        }
       }
-    }, [isEditting, edittingArticle, form])
+    }, [
+      isEditting,
+      edittingArticle,
+      form,
+      initialCache,
+      targetInputEl,
+      markdownMode,
+    ])
 
     useEffect(() => {
       if (initialCache?.content && !isEditting) {
@@ -630,8 +652,6 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
     }, [initialCache, isEditting, form])
 
     useEffect(() => {
-      if (editType === 'edit') return
-
       const timeoutRef = { current: null as NodeJS.Timeout | null }
 
       const subscription = form.watch((data) => {
@@ -654,7 +674,7 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
           clearTimeout(timeoutRef.current)
         }
       }
-    }, [form, saveCache, clearCache, editType, replyBoxHeight])
+    }, [form, saveCache, clearCache, replyBoxHeight])
 
     useEffect(() => {
       const currData = replyBoxRef.current

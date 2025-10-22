@@ -117,7 +117,13 @@ export function useReplyBoxCache(
   categoryId?: string,
   mainArticleId?: string
 ) {
-  const cacheKey = `replybox-${siteFrontId}`
+  const cacheKey = useMemo(() => {
+    if (editType === 'edit' && targetArticle?.id) {
+      return `replybox-${siteFrontId}-edit-${targetArticle.id}`
+    }
+    return `replybox-${siteFrontId}`
+  }, [siteFrontId, editType, targetArticle?.id])
+
   const [cacheCleared, setCacheCleared] = useState(false)
 
   const loadCache = useCallback((): ReplyBoxCacheData | null => {

@@ -23,6 +23,7 @@ import {
 import { getArticle } from './api/article'
 import { ArticleContext } from './contexts/ArticleContext'
 import { usePermit } from './hooks/use-auth'
+import { useRawReplyBoxCache } from './hooks/use-editor-cache'
 import useDocumentTitle from './hooks/use-page-title'
 import { updateArticleState } from './lib/article-utils'
 import { toSync } from './lib/fire-and-forget'
@@ -85,6 +86,8 @@ export default function ArticlePage() {
   const sort = (params.get('sort') as ArticleListSort | null) || 'oldest'
 
   const { siteFrontId, articleId } = useParams()
+
+  const loadRawCache = useRawReplyBoxCache(siteFrontId || '')
 
   const fetchArticle = useCallback(
     async (showLoading = true) => {
@@ -287,6 +290,7 @@ export default function ArticlePage() {
       editType: 'reply',
       edittingArticle: null,
       replyToArticle: article,
+      mainArticleId: article?.id,
       onSuccess(_resp, actionType) {
         toSync(fetchArticle, () => {
           if (actionType == 'reply') {
@@ -300,10 +304,49 @@ export default function ArticlePage() {
           editType: 'reply',
           edittingArticle: null,
           replyToArticle: article,
+          mainArticleId: article?.id,
         })
       },
     })
   }, [article, setReplyBoxState, fetchArticle])
+
+  useEffect(() => {
+    if (!article || !initialized) return
+
+    const rawCache = loadRawCache()
+    if (!rawCache) return
+
+    const cacheData = rawCache as {
+      editType?: string
+      content?: string
+      targetArticle?: {
+        id: string
+        authorName: string
+        summary: string
+        deleted: boolean
+      }
+      mainArticleId?: string
+    }
+
+    if (
+      cacheData.editType === 'reply' &&
+      cacheData.content &&
+      cacheData.targetArticle &&
+      cacheData.mainArticleId === article.id
+    ) {
+      if (cacheData.targetArticle.id !== article.id) {
+        const cachedTargetArticle: Article = {
+          id: cacheData.targetArticle.id,
+          authorName: cacheData.targetArticle.authorName,
+          summary: cacheData.targetArticle.summary,
+          deleted: cacheData.targetArticle.deleted,
+          content: cacheData.targetArticle.summary,
+        } as Article
+
+        onReplyClick(cachedTargetArticle)
+      }
+    }
+  }, [article, loadRawCache, initialized, onReplyClick])
 
   useEffect(() => {
     return () => {

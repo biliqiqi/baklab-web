@@ -25,6 +25,7 @@ import {
   ARTICLE_MAX_TITILE_LEN,
 } from '@/constants/constants'
 import { defaultArticle } from '@/constants/defaults'
+import { useEditorCache, useInitialCache } from '@/hooks/use-editor-cache'
 import useDocumentTitle from '@/hooks/use-page-title'
 import {
   useAuthedUserStore,
@@ -168,6 +169,22 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
 
   const checkPermit = useAuthedUserStore((state) => state.permit)
 
+  const cacheKey = useMemo(() => {
+    if (isEdit && article?.id) {
+      if (isReply) {
+        return `articleform-editreply-${article.id}`
+      } else {
+        return `articleform-edit-${article.id}`
+      }
+    } else if (paramCateId) {
+      return `articleform-create-${paramCateId}`
+    }
+    return ''
+  }, [isEdit, isReply, article?.id, paramCateId])
+
+  const cacheEnabled = !isEdit && !!cacheKey
+  const initialCache = useInitialCache(cacheKey, cacheEnabled)
+
   const defaultArticleData: ArticleSchema =
     isEdit && article
       ? isReply
@@ -185,11 +202,17 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
             contentFormId: article.contentFormId || '0',
           }
       : {
-          title: '',
-          link: '',
-          category: searchParams.get('category_id') || '',
-          content: '',
-          contentFormId: categoryMap[paramCateId]?.contentFormId || '0',
+          title: (initialCache?.title as string) || '',
+          link: (initialCache?.link as string) || '',
+          category:
+            (initialCache?.category as string) ||
+            searchParams.get('category_id') ||
+            '',
+          content: (initialCache?.content as string) || '',
+          contentFormId:
+            (initialCache?.contentFormId as string) ||
+            categoryMap[paramCateId]?.contentFormId ||
+            '0',
         }
 
   /* console.log('default form data: ', defaultArticleData) */
@@ -223,6 +246,10 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
           })
         ),
     defaultValues: defaultArticleData,
+  })
+
+  const { clearCache } = useEditorCache(cacheKey, form, {
+    enabled: cacheEnabled,
   })
 
   const formVals = form.watch()
@@ -293,6 +320,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
           if (site?.reviewBeforePublish && !checkPermit('article', 'review')) {
             toast.info(t('postReviewTip'))
           }
+          clearCache()
           navigate(`/z/${siteFrontId}/articles/${data.data.id}`, {
             replace: true,
           })
@@ -313,6 +341,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
       site,
       checkPermit,
       t,
+      clearCache,
     ]
   )
 

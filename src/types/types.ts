@@ -721,6 +721,7 @@ export interface ReplyBoxProps {
   disabled?: boolean
   className?: string
   bodyHeight?: number
+  mainArticleId?: string
   onSuccess?:
     | ((
         data: ResponseData<ArticleSubmitResponse>,

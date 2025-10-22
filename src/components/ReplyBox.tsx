@@ -37,9 +37,11 @@ import {
   NAV_HEIGHT,
 } from '@/constants/constants'
 import { I18n } from '@/constants/types'
+import { useReplyBoxCache } from '@/hooks/use-editor-cache'
 import i18n from '@/i18n'
 import {
   useAuthedUserStore,
+  useReplyBoxStore,
   useSiteStore,
   useUserUIStore,
 } from '@/state/global'
@@ -101,6 +103,7 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
       disabled = false,
       className,
       bodyHeight,
+      mainArticleId,
     },
     ref
   ) => {
@@ -126,6 +129,7 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
 
     const site = useSiteStore((state) => state.site)
     const checkPermit = useAuthedUserStore((state) => state.permit)
+    const setShowReplyBox = useReplyBoxStore((state) => state.setShow)
     const { innerContentWidth: _innerContentWidth } = useUserUIStore(
       useShallow(({ innerContentWidth }) => ({
         innerContentWidth: innerContentWidth || DEFAULT_INNER_CONTENT_WIDTH,
@@ -142,6 +146,34 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
       ...defaultBoxRef,
     })
 
+    const targetArticle = useMemo(
+      () =>
+        editType == 'create'
+          ? null
+          : editType == 'edit'
+            ? edittingArticle
+            : replyToArticle,
+      [editType, replyToArticle, edittingArticle]
+    )
+
+    const targetArticleInfo = useMemo(() => {
+      if (!targetArticle) return null
+      return {
+        id: targetArticle.id,
+        authorName: targetArticle.authorName,
+        summary: summryText(md2text(targetArticle.content), 80),
+        deleted: targetArticle.deleted,
+      }
+    }, [targetArticle])
+
+    const { initialCache, saveCache, clearCache } = useReplyBoxCache(
+      siteFrontId || '',
+      editType,
+      targetArticleInfo,
+      category?.id,
+      mainArticleId
+    )
+
     const reset = (immediate = false) => {
       setLoading(false)
       setPreview(false)
@@ -156,20 +188,7 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
       }
     }
 
-    const targetArticle = useMemo(
-      () =>
-        editType == 'create'
-          ? null
-          : editType == 'edit'
-            ? edittingArticle
-            : replyToArticle,
-      [editType, replyToArticle, edittingArticle]
-    )
-
     const isEditting = useMemo(() => editType == 'edit', [editType])
-
-    /* console.log('isEditting: ', isEditting) */
-    /* console.log('edittingArticle: ', edittingArticle) */
 
     const form = useForm<ArticleSchema>({
       resolver: zodResolver(
@@ -178,7 +197,7 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
         })
       ),
       defaultValues: {
-        content: '',
+        content: initialCache?.content || '',
       },
     })
 
@@ -256,12 +275,21 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
               toast.info(t('postReviewTip'))
             }
 
+            clearCache()
             setJustSubmitted(true)
             reset()
             form.reset({ content: '' })
 
             if (onSuccess && typeof onSuccess == 'function') {
               await onSuccess(resp, editType, replyBoxHeight)
+            }
+
+            if (
+              editType === 'reply' &&
+              onRemoveReply &&
+              typeof onRemoveReply === 'function'
+            ) {
+              await onRemoveReply()
             }
 
             setTimeout(() => {
@@ -279,6 +307,7 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
         edittingArticle,
         form,
         onSuccess,
+        onRemoveReply,
         siteFrontId,
         editType,
         category,
@@ -287,6 +316,7 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
         site,
         checkPermit,
         t,
+        clearCache,
       ]
     )
 
@@ -527,9 +557,7 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
     }
 
     useEffect(() => {
-      /* console.log('targetInputEl: ', targetInputEl) */
       if (!targetInputEl || isComposing) return
-      /* console.log('replyBoxHeight: ', replyBoxHeight) */
 
       if (isActive) {
         const targetHeight = 80
@@ -567,11 +595,64 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
     ])
 
     useEffect(() => {
-      /* console.log('editting: ', isEditting) */
-      form.reset({
-        content: isEditting && edittingArticle ? edittingArticle.content : '',
-      })
+      if (isEditting && edittingArticle) {
+        form.reset({
+          content: edittingArticle.content,
+        })
+      }
     }, [isEditting, edittingArticle, form])
+
+    useEffect(() => {
+      if (initialCache?.content && !isEditting) {
+        setIsActive(true)
+
+        if (initialCache.replyBoxHeight) {
+          setReplyBoxHeight(initialCache.replyBoxHeight)
+        }
+
+        if (!targetInputEl) {
+          const currentElement = markdownMode
+            ? textareaRef.current
+            : tiptapRef.current?.element
+          if (currentElement) {
+            setTargetInputEl(currentElement)
+          }
+        }
+      }
+    }, [initialCache, isEditting, targetInputEl, markdownMode])
+
+    useEffect(() => {
+      if (initialCache?.content && !isEditting) {
+        form.reset({
+          content: initialCache.content,
+        })
+      }
+    }, [initialCache, isEditting, form])
+
+    useEffect(() => {
+      if (editType === 'edit') return
+
+      const timeoutRef = { current: null as NodeJS.Timeout | null }
+
+      const subscription = form.watch((data) => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current)
+        }
+
+        timeoutRef.current = setTimeout(() => {
+          if (data.content) {
+            saveCache(data.content, replyBoxHeight)
+          }
+        }, 500)
+      })
+
+      return () => {
+        subscription.unsubscribe()
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current)
+        }
+      }
+    }, [form, saveCache, editType, replyBoxHeight])
 
     useEffect(() => {
       const currData = replyBoxRef.current
@@ -715,40 +796,46 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
                   className="pt-3 cursor-ns-resize"
                   onMouseDown={onReplyBoxBarMouseDown}
                 ></div>
-                {targetArticle && !targetArticle.asMainArticle && (
-                  <div className="flex items-center justify-between bg-gray-100 rounded-sm py-1 px-2 mb-2 text-gray-500 text-sm">
-                    <span>
-                      {targetArticle.deleted ? (
-                        <i className="text-gray-500 text-sm">
-                          &lt;{t('deleted')}&gt;
-                        </i>
-                      ) : (
-                        <span>
-                          {targetArticle.authorName}:{' '}
+                {(targetArticle || initialCache?.targetArticle) &&
+                  !targetArticle?.asMainArticle && (
+                    <div className="flex items-center justify-between bg-gray-100 rounded-sm py-1 px-2 mb-2 text-gray-500 text-sm">
+                      <span>
+                        {targetArticle?.deleted ||
+                        initialCache?.targetArticle?.deleted ? (
+                          <i className="text-gray-500 text-sm">
+                            &lt;{t('deleted')}&gt;
+                          </i>
+                        ) : (
                           <span>
-                            {summryText(md2text(targetArticle.content), 80)}
+                            {targetArticle?.authorName ||
+                              initialCache?.targetArticle?.authorName}
+                            :{' '}
+                            <span>
+                              {targetArticle
+                                ? summryText(md2text(targetArticle.content), 80)
+                                : initialCache?.targetArticle?.summary}
+                            </span>
                           </span>
-                        </span>
+                        )}
+                      </span>
+                      {!isPreview && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={async (e) => {
+                            e.preventDefault()
+                            if (
+                              onRemoveReply &&
+                              typeof onRemoveReply == 'function'
+                            )
+                              await onRemoveReply()
+                          }}
+                        >
+                          <XIcon size={20} />
+                        </Button>
                       )}
-                    </span>
-                    {!isPreview && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={async (e) => {
-                          e.preventDefault()
-                          if (
-                            onRemoveReply &&
-                            typeof onRemoveReply == 'function'
-                          )
-                            await onRemoveReply()
-                        }}
-                      >
-                        <XIcon size={20} />
-                      </Button>
-                    )}
-                  </div>
-                )}
+                    </div>
+                  )}
                 <FormField
                   control={form.control}
                   name="content"

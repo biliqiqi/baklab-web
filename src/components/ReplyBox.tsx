@@ -176,6 +176,7 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
       setLoading(false)
       setPreview(false)
       setJustSubmitted(false)
+      setIsMaximized(false)
 
       if (immediate) {
         setReplyBoxHeight(REPLY_BOX_INITIAL_HEIGHT)

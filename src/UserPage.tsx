@@ -2,7 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 
-import { cn, getArticleStatusName, renderMD } from '@/lib/utils'
+import {
+  cn,
+  getArticleStatusName,
+  md2text,
+  renderMD,
+  summaryText,
+} from '@/lib/utils'
 
 import { Badge } from './components/ui/badge'
 import { Card } from './components/ui/card'
@@ -133,10 +139,9 @@ const ArticleList: React.FC<ArticleListProps> = ({
                 )}
 
               {item.replyToId != '0' && (
-                <div
-                  className="max-h-5 mb-1 overflow-hidden text-sm text-text-secondary text-nowrap text-ellipsis"
-                  dangerouslySetInnerHTML={{ __html: renderMD(item.content) }}
-                ></div>
+                <div className="max-h-5 mb-1 overflow-hidden text-sm text-text-secondary text-nowrap text-ellipsis">
+                  {summaryText(md2text(item.content), 100)}
+                </div>
               )}
             </div>
             <ArticleControls

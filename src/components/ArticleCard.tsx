@@ -37,6 +37,7 @@ import {
   renderMD,
   scrollToElement,
   setupLazyLoadImages,
+  summaryText,
 } from '@/lib/utils'
 
 import {
@@ -438,7 +439,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             <>
               &nbsp;·&nbsp;
               <Badge variant="outline" className="text-yellow-600 font-normal">
-                审核中
+                {t('pending')}
               </Badge>
             </>
           )}
@@ -525,7 +526,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                 <i className="text-gray-500 text-sm">&lt;{t('deleted')}&gt;</i>
               ) : (
                 <span>
-                  {parent.authorName}: {md2text(parent.summary)} ...
+                  {parent.authorName}: {summaryText(md2text(parent.summary))}
                 </span>
               )}
             </div>

@@ -18,7 +18,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useShallow } from 'zustand/react/shallow'
 
-import { cn, summryText } from '@/lib/utils'
+import { cn, summaryText } from '@/lib/utils'
 
 import { logoutToken } from '@/api'
 import SITE_LOGO_IMAGE from '@/assets/logo.png'
@@ -339,7 +339,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                   className="flex-shrink-1 px-4 ml-4 border-l-2 text-sm text-gray-500 cursor-pointer flex-grow overflow-hidden whitespace-nowrap text-ellipsis"
                   onClick={() => setShowCategoryDetail(true)}
                 >
-                  {summryText(category.describe, 20)}{' '}
+                  {summaryText(category.describe, 20)}{' '}
                 </span>
               </>
             )

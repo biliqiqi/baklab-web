@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import stc from 'string-to-color'
 
-import { cn, getFirstChar, noop, summryText } from '@/lib/utils'
+import { cn, getFirstChar, noop, summaryText } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { getArticleList } from '@/api/article'
@@ -351,7 +351,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
             </div>
             <div className="h-6">{formVals.name}</div>
             <div className="text-sm text-gray-500 h-6 overflow-hidden text-ellipsis">
-              {summryText(formVals.description, 20)}
+              {summaryText(formVals.description, 20)}
             </div>
           </div>
         </div>

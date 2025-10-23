@@ -88,7 +88,7 @@ export const formatMinutes = (totalMinutes: number): string => {
   return parts.join(' ')
 }
 
-export const summryText = (text: string, max: number) =>
+export const summaryText = (text: string, max = 100) =>
   text.length > max ? text.slice(0, max) + '...' : text
 
 export const extractText = (html: string) => {

@@ -24,7 +24,7 @@ import { toast } from 'sonner'
 import { useShallow } from 'zustand/react/shallow'
 
 import { toSync } from '@/lib/fire-and-forget'
-import { bus, cn, md2text, renderMD, summryText } from '@/lib/utils'
+import { bus, cn, md2text, renderMD, summaryText } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { submitArticle, submitReply, updateReply } from '@/api/article'
@@ -159,7 +159,7 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
       return {
         id: targetArticle.id,
         authorName: targetArticle.authorName,
-        summary: summryText(md2text(targetArticle.content), 80),
+        summary: summaryText(md2text(targetArticle.content), 80),
         deleted: targetArticle.deleted,
       }
     }, [targetArticle])
@@ -835,7 +835,7 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
                             :{' '}
                             <span>
                               {targetArticle
-                                ? summryText(md2text(targetArticle.content), 80)
+                                ? summaryText(md2text(targetArticle.content))
                                 : initialCache?.targetArticle?.summary}
                             </span>
                           </span>

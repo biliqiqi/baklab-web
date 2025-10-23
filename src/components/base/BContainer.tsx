@@ -12,7 +12,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { toSync } from '@/lib/fire-and-forget'
-import { cn, isInnerURL, summryText } from '@/lib/utils'
+import { cn, isInnerURL, summaryText } from '@/lib/utils'
 
 import { getSiteList, joinSite } from '@/api/site'
 import {
@@ -895,7 +895,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     {t('postEditHistory', {
                       title: articleHistory.article.title
                         ? articleHistory.article.displayTitle
-                        : summryText(articleHistory.article.content, 120),
+                        : summaryText(articleHistory.article.content, 120),
                     })}
                   </DialogTitle>
                   <DialogDescription></DialogDescription>

@@ -8,7 +8,7 @@ import sanitize from 'sanitize-html'
 import { toast } from 'sonner'
 import { useShallow } from 'zustand/react/shallow'
 
-import { cn, noop, summryText } from '@/lib/utils'
+import { cn, noop, summaryText } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { getArticleList } from '@/api/article'
@@ -464,7 +464,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
             </div>
             <div className="h-6">{formVals.name}</div>
             <div className="text-sm text-gray-500 h-6 overflow-hidden text-ellipsis">
-              {summryText(formVals.description, 20)}
+              {summaryText(formVals.description, 20)}
             </div>
           </div>
         </div>

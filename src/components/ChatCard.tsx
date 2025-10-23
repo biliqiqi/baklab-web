@@ -29,7 +29,7 @@ import {
   renderMD,
   scrollToElement,
   setupLazyLoadImages,
-  summryText,
+  summaryText,
 } from '@/lib/utils'
 
 import { deleteArticle, toggleLockArticle } from '@/api/article'
@@ -423,7 +423,7 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
                   ) : (
                     <span>
                       {parent.authorName}:{' '}
-                      {summryText(md2text(parent.content), 100)}
+                      {summaryText(md2text(parent.content), 100)}
                     </span>
                   )}
                 </div>

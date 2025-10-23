@@ -481,41 +481,35 @@ export default function ArticlePage() {
                     </div>
                   ) : (
                     article.replies?.list &&
-                    article.replies.list
-                      .filter(
-                        (item) => !(item.deleted && item.childrenCount == 0)
-                      )
-                      .map((item) => (
-                        <ArticleCard
-                          key={item.id}
-                          article={item}
-                          className="border-b-[1px]"
-                          onSuccess={(action) => {
-                            if (
-                              ['up', 'down', 'save', 'subscribe'].includes(
-                                action
-                              )
-                            ) {
-                              setArticle((prev) => {
-                                if (!prev?.replies) return prev
-                                return {
-                                  ...prev,
-                                  replies: {
-                                    ...prev.replies,
-                                    list: prev.replies.list.map((reply) =>
-                                      reply.id === item.id
-                                        ? updateArticleState(reply, action)
-                                        : reply
-                                    ),
-                                  },
-                                }
-                              })
-                            } else {
-                              fetchArticleSync(false)
-                            }
-                          }}
-                        />
-                      ))
+                    article.replies.list.map((item) => (
+                      <ArticleCard
+                        key={item.id}
+                        article={item}
+                        className="border-b-[1px]"
+                        onSuccess={(action) => {
+                          if (
+                            ['up', 'down', 'save', 'subscribe'].includes(action)
+                          ) {
+                            setArticle((prev) => {
+                              if (!prev?.replies) return prev
+                              return {
+                                ...prev,
+                                replies: {
+                                  ...prev.replies,
+                                  list: prev.replies.list.map((reply) =>
+                                    reply.id === item.id
+                                      ? updateArticleState(reply, action)
+                                      : reply
+                                  ),
+                                },
+                              }
+                            })
+                          } else {
+                            fetchArticleSync(false)
+                          }
+                        }}
+                      />
+                    ))
                   )}
                 </Card>
               </>

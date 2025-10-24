@@ -163,7 +163,7 @@ export const unbanManyUsers = (usernames: string[]) =>
 
 export const saveUserUISettings = (settings: JSONMap) =>
   authRequest.post<ResponseData<null>>(`save_ui_settings`, {
-    json: settings,
+    json: { ...settings, xxx: 'aaa' },
   })
 
 export const showUserRoleName = (username: string, show: boolean) =>

@@ -1,5 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { forwardRef, useCallback, useEffect, useImperativeHandle } from 'react'
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+} from 'react'
 import { UseFormReturn, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
@@ -42,6 +48,7 @@ export interface SiteUIFormProps {
 
 export interface SiteUIFormRef {
   form: UseFormReturn<SiteUISchema>
+  restoreGlobalState: () => void
 }
 
 const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
@@ -56,12 +63,31 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
 
     const { siteFrontId } = useParams()
 
+    const initialStateRef = useRef<{
+      mode: SiteUIMode
+    } | null>(null)
+
     const form = useForm({
       resolver: zodResolver(siteUISchema),
       defaultValues: { ...defaultSiteUIData, mode: currUIMode },
     })
 
-    useImperativeHandle(ref, () => ({ form }))
+    useEffect(() => {
+      if (!form.formState.isDirty && !initialStateRef.current) {
+        initialStateRef.current = {
+          mode: currUIMode,
+        }
+      }
+    }, [form.formState.isDirty, currUIMode])
+
+    const restoreGlobalState = useCallback(() => {
+      if (initialStateRef.current) {
+        setUIMode(initialStateRef.current.mode)
+        initialStateRef.current = null
+      }
+    }, [setUIMode])
+
+    useImperativeHandle(ref, () => ({ form, restoreGlobalState }))
 
     const formVals = form.watch()
 
@@ -77,6 +103,7 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
           await fetchSiteData(siteFrontId)
 
           form.reset({ mode })
+          initialStateRef.current = null
         }
       },
       [siteFrontId, fetchSiteData, form, t]

@@ -1,5 +1,7 @@
 import { SquareArrowOutUpRightIcon } from 'lucide-react'
 import MarkdownIt from 'markdown-it'
+import PhotoSwipeLightbox from 'photoswipe/lightbox'
+import 'photoswipe/style.css'
 import React, { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -40,10 +42,15 @@ const md = new MarkdownIt()
 /**
    @description extract image from markdown strings
    @param mdStr {string} original markdown string
-   @param limit {number} number of image to be extraced
+   @param limit {number} number of image to be extracted, null for all images
+   @param addWrapper {boolean} whether to wrap images in span with flex classes
    @return {string} img in span tags html string
 */
-const extractImgFromMD = (mdStr: string, limit = 3) => {
+const extractImgFromMD = (
+  mdStr: string,
+  limit: number | null = 3,
+  addWrapper = true
+) => {
   const parsedData = md.parseInline(mdStr, {})
 
   if (
@@ -53,35 +60,42 @@ const extractImgFromMD = (mdStr: string, limit = 3) => {
   )
     return ''
 
-  return parsedData[0].children
-    .filter((item) => item.type == 'image')
-    .slice(0, limit)
-    .map((item, index, array) => {
-      const span = document.createElement('span')
-      const img = new Image()
+  let images = parsedData[0].children.filter((item) => item.type == 'image')
 
+  if (limit !== null) {
+    images = images.slice(0, limit)
+  }
+
+  return images
+    .map((item, index, array) => {
+      const img = new Image()
       img.alt = item.content
 
       if (item.attrs) {
         for (const attr of item.attrs) {
           if (attr[0] === 'src') {
-            const urlWithParams =
-              attr[1] +
-              `?w=${THUMB_IMG_WIDTH}&h=${THUMB_IMG_HEIGHT}&q=80&crop=1`
+            const urlWithParams = addWrapper
+              ? attr[1] +
+                `?w=${THUMB_IMG_WIDTH}&h=${THUMB_IMG_HEIGHT}&q=80&crop=1`
+              : attr[1]
             img.src = urlWithParams
-            img.dataset.originalSrc = urlWithParams
-            img.dataset.thumbnailSrc = urlWithParams
+            img.dataset.originalSrc = addWrapper ? urlWithParams : attr[1]
+            img.dataset.thumbnailSrc = addWrapper ? urlWithParams : attr[1]
           } else if (attr[0] === 'title') {
             img.title = attr[1]
           }
         }
       }
 
-      span.className =
-        index === array.length - 1 ? 'flex-1 shrink' : 'flex-1 shrink pr-1'
-      span.appendChild(img)
+      if (addWrapper) {
+        const span = document.createElement('span')
+        span.className =
+          index === array.length - 1 ? 'flex-1 shrink' : 'flex-1 shrink pr-1'
+        span.appendChild(img)
+        return span.outerHTML
+      }
 
-      return span.outerHTML
+      return img.outerHTML
     })
     .join('')
 }
@@ -103,14 +117,65 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
 
     const container = previewImagesRef.current
     const images = container.querySelectorAll('img')
+    const handlers = new Map<HTMLImageElement, (e: Event) => void>()
 
-    images.forEach((img) => {
+    const parsedData = md.parseInline(article.content, {})
+    const allImageUrls: Array<{
+      src: string
+      msrc?: string
+      w?: number
+      h?: number
+    }> = []
+
+    if (
+      parsedData.length > 0 &&
+      parsedData[0].children &&
+      parsedData[0].children.length > 0
+    ) {
+      parsedData[0].children
+        .filter((item) => item.type === 'image')
+        .forEach((item) => {
+          if (item.attrs) {
+            for (const attr of item.attrs) {
+              if (attr[0] === 'src') {
+                const metadata = parseImageMetadataFromUrl(attr[1])
+                const imageData: {
+                  src: string
+                  msrc?: string
+                  w?: number
+                  h?: number
+                } = {
+                  src: attr[1],
+                }
+
+                if (metadata.thumbhash) {
+                  try {
+                    imageData.msrc = thumbHashToPreview(metadata.thumbhash)
+                  } catch (error) {
+                    console.warn('Failed to generate thumbhash:', error)
+                  }
+                }
+
+                if (metadata.width && metadata.height) {
+                  imageData.w = metadata.width
+                  imageData.h = metadata.height
+                }
+
+                allImageUrls.push(imageData)
+              }
+            }
+          }
+        })
+    }
+
+    images.forEach((img, index) => {
       const originalSrc = img.dataset.originalSrc || img.src
       const metadata = parseImageMetadataFromUrl(originalSrc)
 
       img.style.width = `${THUMB_IMG_WIDTH}px`
       img.style.aspectRatio = `${THUMB_IMG_WIDTH} / ${THUMB_IMG_HEIGHT}`
       img.style.objectFit = 'cover'
+      img.style.cursor = 'zoom-in'
 
       if (metadata.thumbhash && img.dataset.loaded !== 'thumbhash') {
         try {
@@ -121,14 +186,47 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
           console.warn('Failed to generate thumbhash preview:', error)
         }
       }
+
+      const handleClick = (e: Event) => {
+        e.preventDefault()
+
+        const lightbox = new PhotoSwipeLightbox({
+          dataSource: allImageUrls,
+          pswpModule: () => import('photoswipe'),
+          wheelToZoom: true,
+          initialZoomLevel: 'fit',
+          secondaryZoomLevel: 2,
+          maxZoomLevel: 4,
+          bgOpacity: 0.8,
+          spacing: 0.1,
+          allowPanToNext: true,
+          loop: false,
+          pinchToClose: true,
+          closeOnVerticalDrag: true,
+          escKey: true,
+          imageClickAction: 'close',
+          tapAction: 'close',
+          showHideAnimationType: 'fade',
+        })
+
+        lightbox.init()
+        lightbox.loadAndOpen(index)
+      }
+
+      img.addEventListener('click', handleClick)
+      handlers.set(img, handleClick)
     })
 
     const cleanupLazyLoad = setupLazyLoadImages(container)
 
     return () => {
+      handlers.forEach((handler, img) => {
+        img.removeEventListener('click', handler)
+      })
+      handlers.clear()
       cleanupLazyLoad()
     }
-  }, [article.content, mode])
+  }, [article.content, mode, isMobile])
 
   return (
     <div className="p-3 hover:bg-hover-bg border-b-[1px] rounded-sm">
@@ -204,7 +302,7 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
               ref={previewImagesRef}
               className="my-2 flex"
               dangerouslySetInnerHTML={{
-                __html: extractImgFromMD(article.content),
+                __html: extractImgFromMD(article.content, 3, true),
               }}
             ></div>
           </div>

@@ -6,6 +6,7 @@ import {
   useEffect,
   useImperativeHandle,
   useMemo,
+  useRef,
 } from 'react'
 import { UseFormReturn, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -32,7 +33,12 @@ import {
   useTopDrawerStore,
   useUserUIStore,
 } from '@/state/global'
-import { ARTICLE_LIST_MODE, SITE_LIST_MODE } from '@/types/types'
+import {
+  ARTICLE_LIST_MODE,
+  ArticleListMode,
+  SITE_LIST_MODE,
+  SiteListMode,
+} from '@/types/types'
 
 import { useTheme } from './theme-provider'
 import { Button } from './ui/button'
@@ -183,16 +189,23 @@ export interface UserUIFormProps {
 
 export interface UserUIFormRef {
   form: UseFormReturn<UserUISchema>
+  restoreGlobalState: () => void
 }
 
 const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
   ({ onChange = noop }, ref) => {
-    /* const [syncDevices, setSyncDevices] = useState<CheckedState>(false) */
-    /* const [customFontSize, setCustomFontSize] = useState('') */
     const defaultFontSize = useDefaultFontSizeStore(
       (state) => state.defaultFontSize
     )
     const isLogined = useAuthedUserStore((state) => state.isLogined())
+
+    const initialStateRef = useRef<{
+      siteListMode: SiteListMode
+      fontSize: number
+      contentWidth: number
+      theme: ThemeSchema
+      articleListMode: ArticleListMode
+    } | null>(null)
 
     // Get all UI settings from userUIStore for consistency using useShallow
     const {
@@ -262,7 +275,39 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
       },
     })
 
-    useImperativeHandle(ref, () => ({ form }))
+    useEffect(() => {
+      if (!form.formState.isDirty && !initialStateRef.current) {
+        initialStateRef.current = {
+          siteListMode: currSiteListMode,
+          fontSize: userUIFontSizeNum,
+          contentWidth: userUIContentWidthNum,
+          theme: userUITheme || DEFAULT_THEME,
+          articleListMode: currArticleListMode,
+        }
+      }
+    }, [
+      form.formState.isDirty,
+      currSiteListMode,
+      userUIFontSizeNum,
+      userUIContentWidthNum,
+      userUITheme,
+      currArticleListMode,
+    ])
+
+    const restoreGlobalState = useCallback(() => {
+      if (initialStateRef.current) {
+        setSiteListMode(initialStateRef.current.siteListMode)
+        setTheme(initialStateRef.current.theme)
+        setRootFontSize(String(initialStateRef.current.fontSize))
+        setUserUIState({
+          contentWidth: initialStateRef.current.contentWidth,
+          articleListMode: initialStateRef.current.articleListMode,
+        })
+        initialStateRef.current = null
+      }
+    }, [setSiteListMode, setTheme, setUserUIState])
+
+    useImperativeHandle(ref, () => ({ form, restoreGlobalState }))
 
     const formVals = form.watch()
 
@@ -333,7 +378,6 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
           }
         }
 
-        // Reset form with current form values (userUIStore has been updated)
         form.reset({
           mode,
           theme,
@@ -345,6 +389,8 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
           articleListMode,
           syncToOtherDevices,
         })
+
+        initialStateRef.current = null
 
         forceUpdate()
       },

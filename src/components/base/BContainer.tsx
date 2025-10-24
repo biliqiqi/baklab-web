@@ -489,6 +489,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       }
 
       if (userUIFormRef.current) {
+        userUIFormRef.current.restoreGlobalState()
         userUIFormRef.current.form.reset()
       }
 

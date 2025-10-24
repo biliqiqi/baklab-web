@@ -1,11 +1,11 @@
 import { SquareArrowOutUpRightIcon } from 'lucide-react'
 import MarkdownIt from 'markdown-it'
-import PhotoSwipeLightbox from 'photoswipe/lightbox'
 import 'photoswipe/style.css'
 import React, { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 
 import { updateArticleState } from '@/lib/article-utils'
+import { createPhotoSwipeLightbox } from '@/lib/photoswipe-utils'
 import { parseImageMetadataFromUrl, thumbHashToPreview } from '@/lib/thumbhash'
 import {
   cn,
@@ -190,25 +190,10 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
       const handleClick = (e: Event) => {
         e.preventDefault()
 
-        const lightbox = new PhotoSwipeLightbox({
+        const lightbox = createPhotoSwipeLightbox({
           dataSource: allImageUrls,
-          pswpModule: () => import('photoswipe'),
-          wheelToZoom: true,
-          initialZoomLevel: 'fit',
-          secondaryZoomLevel: 2,
-          maxZoomLevel: 4,
-          bgOpacity: 0.8,
-          spacing: 0.1,
-          allowPanToNext: true,
-          loop: false,
-          pinchToClose: true,
-          closeOnVerticalDrag: true,
-          escKey: true,
-          imageClickAction: 'close',
-          tapAction: 'close',
           showHideAnimationType: 'fade',
         })
-
         lightbox.init()
         lightbox.loadAndOpen(index)
       }

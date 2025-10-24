@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
+import { createPhotoSwipeLightbox } from '@/lib/photoswipe-utils'
 import {
   buildThumbnailUrl,
   calculateThumbnailDimensions,
@@ -320,45 +321,10 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
     const cleanupLazyLoad = setupLazyLoadImages(contentRef.current)
 
-    lightboxRef.current = new PhotoSwipeLightbox({
-      gallery: `#${galleryId}`,
-      children: '.pswp-gallery-item',
-      pswpModule: () => import('photoswipe'),
-      wheelToZoom: true,
-      initialZoomLevel: 'fit',
-      secondaryZoomLevel: 2,
-      maxZoomLevel: 4,
-      arrowKeys: false,
-      preload: [1, 2],
-      bgOpacity: 0.8,
-      spacing: 0.1,
-      allowPanToNext: true,
-      loop: false,
-      pinchToClose: true,
-      closeOnVerticalDrag: true,
-      escKey: true,
-      imageClickAction: 'close',
-      tapAction: 'close',
+    lightboxRef.current = createPhotoSwipeLightbox({
+      galleryId,
+      isMobile,
     })
-
-    if (isMobile) {
-      lightboxRef.current.on('uiRegister', function () {
-        if (lightboxRef.current?.pswp) {
-          lightboxRef.current.pswp.ui?.registerElement({
-            name: 'custom-style',
-            appendTo: 'root',
-            onInit: (el) => {
-              const style = document.createElement('style')
-              style.innerHTML = `
-                .pswp__button--arrow { display: none !important; }
-              `
-              el.appendChild(style)
-            },
-          })
-        }
-      })
-    }
-
     lightboxRef.current.init()
 
     return () => {

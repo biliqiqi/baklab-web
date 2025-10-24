@@ -32,7 +32,7 @@ import {
   useTopDrawerStore,
   useUserUIStore,
 } from '@/state/global'
-import { SITE_LIST_MODE } from '@/types/types'
+import { ARTICLE_LIST_MODE, SITE_LIST_MODE } from '@/types/types'
 
 import { useTheme } from './theme-provider'
 import { Button } from './ui/button'
@@ -150,6 +150,11 @@ const userUISchema = z.object({
   contentWidth: contentWidthSchema,
   customContentWidth: z.string(),
   lang: languageSchema,
+  articleListMode: z.union([
+    z.literal(ARTICLE_LIST_MODE.Compact),
+    z.literal(ARTICLE_LIST_MODE.Preview),
+    z.literal(ARTICLE_LIST_MODE.Grid),
+  ]),
   syncToOtherDevices: z.boolean(),
 })
 
@@ -168,6 +173,7 @@ const defaultUserUIData: UserUISchema = {
   contentWidth: DEFAULT_CONTENT_WIDTH,
   customContentWidth: '',
   lang: normalizeLanguageForForm(i18n.language),
+  articleListMode: ARTICLE_LIST_MODE.Compact,
   syncToOtherDevices: false,
 }
 
@@ -194,12 +200,14 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
       fontSize: userUIFontSizeNum,
       contentWidth: userUIContentWidthNum,
       theme: userUITheme,
+      articleListMode: currArticleListMode,
     } = useUserUIStore(
       useShallow((state) => ({
         siteListMode: state.siteListMode,
         fontSize: state.fontSize || Number(defaultFontSize),
         contentWidth: state.contentWidth || Number(DEFAULT_CONTENT_WIDTH),
         theme: state.theme,
+        articleListMode: state.articleListMode,
       }))
     )
 
@@ -249,6 +257,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
         customContentWidth:
           contentWidthGlobalVal == 'custom' ? userUIContentWidth : '',
         lang: normalizeLanguageForForm(i18n.language),
+        articleListMode: currArticleListMode,
         syncToOtherDevices: false,
       },
     })
@@ -266,6 +275,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
         contentWidth,
         customContentWidth,
         lang,
+        articleListMode,
         syncToOtherDevices,
       }: UserUISchema) => {
         /* console.log('font size: ', fontSize) */
@@ -290,6 +300,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
           theme,
           fontSize: savedFontSize,
           contentWidth: savedContentWidth,
+          articleListMode,
           updatedAt: timestamp,
         })
 
@@ -314,6 +325,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
               fontSize: Number(fs) || Number(defaultFontSize),
               contentWidth: Number(cw) || Number(DEFAULT_CONTENT_WIDTH),
               lang,
+              articleListMode,
               updatedAt: timestamp,
             })
           } catch (err) {
@@ -330,6 +342,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
           contentWidth,
           customContentWidth,
           lang,
+          articleListMode,
           syncToOtherDevices,
         })
 
@@ -377,10 +390,12 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
           contentWidth:
             Number(formVals.customContentWidth) ||
             Number(DEFAULT_CONTENT_WIDTH),
+          articleListMode: formVals.articleListMode,
         })
       } else {
         setUserUIState({
           contentWidth: Number(formVals.contentWidth),
+          articleListMode: formVals.articleListMode,
         })
       }
     }, [formVals, setUserUIState])
@@ -431,6 +446,8 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                 customContentWidth:
                   newContentWidthVal === 'custom' ? newContentWidthStr : '',
                 lang: normalizeLanguageForForm(settings.lang || i18n.language),
+                articleListMode:
+                  settings.articleListMode || ARTICLE_LIST_MODE.Compact,
                 syncToOtherDevices: false,
               })
             },
@@ -723,6 +740,56 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                       </FormControl>
                       <FormLabel className="font-normal">
                         {t('dropdown')}
+                      </FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="articleListMode"
+            key="articleListMode"
+            render={({ field }) => (
+              <FormItem className="mb-8">
+                <FormLabel>{t('articleListMode')}</FormLabel>
+                <FormDescription></FormDescription>
+                <FormControl>
+                  <RadioGroup
+                    className="flex flex-wrap"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    ref={field.ref}
+                  >
+                    <FormItem
+                      className="flex items-center space-y-0 mr-4 mb-4"
+                      key={ARTICLE_LIST_MODE.Compact}
+                    >
+                      <FormControl>
+                        <RadioGroupItem
+                          value={ARTICLE_LIST_MODE.Compact}
+                          className="mr-1"
+                        />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        {t('compact')}
+                      </FormLabel>
+                    </FormItem>
+                    <FormItem
+                      className="flex items-center space-y-0 mr-4 mb-4"
+                      key={ARTICLE_LIST_MODE.Preview}
+                    >
+                      <FormControl>
+                        <RadioGroupItem
+                          value={ARTICLE_LIST_MODE.Preview}
+                          className="mr-1"
+                        />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        {t('preview')}
                       </FormLabel>
                     </FormItem>
                   </RadioGroup>

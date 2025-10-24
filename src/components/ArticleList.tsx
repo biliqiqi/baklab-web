@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom'
 import { noop } from '@/lib/utils'
 
 import { getArticleList } from '@/api/article'
+import { useUserUIStore } from '@/state/global'
 import { ArticleListState, Category } from '@/types/types'
 
 import BaseArticleList, {
@@ -21,6 +22,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
   onLoad = noop,
   onReady = noop,
 }) => {
+  const articleListMode = useUserUIStore((state) => state.articleListMode)
   const [currCate, setCurrCate] = useState<Category | null>(null)
   const { siteFrontId, categoryFrontId } = useParams()
 
@@ -87,6 +89,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
         onLoad={onLoad}
         onReady={noop}
         onPageStateChange={handlePageStateChange}
+        mode={articleListMode}
       />
     </div>
   )

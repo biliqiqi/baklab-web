@@ -20,7 +20,7 @@ import {
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useRem2PxNum } from '@/hooks/use-rem-num'
 import { useAuthedUserStore } from '@/state/global'
-import { Article, ArticleListMode } from '@/types/types'
+import { ARTICLE_LIST_MODE, Article, ArticleListMode } from '@/types/types'
 
 import ArticleControls from './ArticleControls'
 import BIconColorChar from './base/BIconColorChar'
@@ -104,7 +104,7 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
   article,
   siteFrontId,
   onUpdate,
-  mode = 'compact',
+  mode = ARTICLE_LIST_MODE.Compact,
 }) => {
   const isMySelf = useAuthedUserStore((state) => state.isMySelf)
   const checkPermit = useAuthedUserStore((state) => state.permit)
@@ -113,7 +113,7 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
   const previewImagesRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (mode !== 'preview' || !previewImagesRef.current) return
+    if (mode !== ARTICLE_LIST_MODE.Preview || !previewImagesRef.current) return
 
     const container = previewImagesRef.current
     const images = container.querySelectorAll('img')
@@ -248,7 +248,10 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
       <div className="mb-3">
         <div className="mb-1">
           <Link
-            className={cn('mr-2', mode == 'preview' && 'font-bold')}
+            className={cn(
+              'mr-2',
+              mode == ARTICLE_LIST_MODE.Preview && 'font-bold'
+            )}
             to={genArticlePath(article)}
           >
             {article.title}
@@ -279,7 +282,7 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
               </Badge>
             </div>
           )}
-        {mode == 'preview' && (
+        {mode == ARTICLE_LIST_MODE.Preview && (
           <div className="mb-1 break-words">
             {summaryText(md2text(article.content), 500)}
 

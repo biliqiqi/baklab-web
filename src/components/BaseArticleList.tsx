@@ -13,6 +13,7 @@ import { noop } from '@/lib/utils'
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 import { isLogined, useAuthedUserStore, useLoading } from '@/state/global'
 import {
+  ARTICLE_LIST_MODE,
   Article,
   ArticleListMode,
   ArticleListSort,
@@ -68,7 +69,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
   showTabsCondition = true,
   onLoad = noop,
   onPageStateChange,
-  mode = 'compact',
+  mode = ARTICLE_LIST_MODE.Compact,
 }) => {
   const [list, updateList] = useState<Article[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -238,7 +239,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
           </Card>
         ) : list.length == 0 ? (
           <Empty />
-        ) : mode == 'compact' ? (
+        ) : mode == ARTICLE_LIST_MODE.Compact ? (
           <Card>
             {list.map((item) => (
               <ArticleListItem

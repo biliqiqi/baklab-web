@@ -4,6 +4,7 @@ import { useParams, useSearchParams } from 'react-router-dom'
 import { noop } from '@/lib/utils'
 
 import { getFeedList } from '@/api/article'
+import { useUserUIStore } from '@/state/global'
 
 import BaseArticleList, {
   FetchArticlesParams,
@@ -19,6 +20,7 @@ const FeedArticleLis: React.FC<FeedArticleLisProps> = ({
   onLoad = noop,
   onReady = noop,
 }) => {
+  const articleListMode = useUserUIStore((state) => state.articleListMode)
   const [isFirstLoad, setIsFirstLoad] = useState(true)
   const [listLength, setListLength] = useState(0)
   const [params] = useSearchParams()
@@ -85,7 +87,7 @@ const FeedArticleLis: React.FC<FeedArticleLisProps> = ({
       onPageStateChange={(pageState) => {
         setListLength(pageState.total)
       }}
-      mode="preview"
+      mode={articleListMode}
     />
   )
 }

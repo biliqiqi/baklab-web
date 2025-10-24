@@ -19,7 +19,9 @@ import {
 import { PermitFn, PermitUnderSiteFn } from '@/constants/types'
 import i18n from '@/i18n'
 import {
+  ARTICLE_LIST_MODE,
   Article,
+  ArticleListMode,
   ArticleLog,
   Category,
   InviteCode,
@@ -271,6 +273,7 @@ export interface BackendUISettings {
   fontSize?: number
   contentWidth?: number
   lang?: string
+  articleListMode?: ArticleListMode
 }
 
 const isUserUIFormActive = () => {
@@ -310,6 +313,10 @@ const applyUISettingsCore = (settings: BackendUISettings) => {
 
   if (settings.theme) {
     userUIStore.setState({ theme: settings.theme })
+  }
+
+  if (settings.articleListMode) {
+    userUIStore.setState({ articleListMode: settings.articleListMode })
   }
 
   if (settings.lang) {
@@ -364,6 +371,8 @@ useAuthedUserStore.subscribe(
             backendSettings.contentWidth ||
             currentState.contentWidth ||
             Number(DEFAULT_CONTENT_WIDTH),
+          articleListMode:
+            backendSettings.articleListMode || currentState.articleListMode,
           updatedAt: backendTimestamp,
         })
       }
@@ -909,13 +918,14 @@ export interface UserUIState {
   fontSize?: number
   contentWidth?: number
   innerContentWidth?: number
+  articleListMode: ArticleListMode
   setState: (state: Partial<UserUIStateData>) => void
 }
 
 export interface UserUIStateData
   extends Pick<
     UserUIState,
-    'siteListMode' | 'theme' | 'fontSize' | 'contentWidth'
+    'siteListMode' | 'theme' | 'fontSize' | 'contentWidth' | 'articleListMode'
   > {
   updatedAt: number
 }
@@ -925,6 +935,7 @@ export const useUserUIStore = create(
     siteListMode: SITE_LIST_MODE.TopDrawer,
     fontSize: undefined,
     contentWidth: Number(DEFAULT_CONTENT_WIDTH),
+    articleListMode: ARTICLE_LIST_MODE.Compact,
     setSiteListMode(mode) {
       set((state) => ({ ...state, siteListMode: mode }))
     },

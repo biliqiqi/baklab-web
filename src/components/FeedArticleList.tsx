@@ -85,6 +85,7 @@ const FeedArticleLis: React.FC<FeedArticleLisProps> = ({
       onPageStateChange={(pageState) => {
         setListLength(pageState.total)
       }}
+      mode="preview"
     />
   )
 }

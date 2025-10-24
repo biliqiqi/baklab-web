@@ -14,6 +14,7 @@ import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 import { isLogined, useAuthedUserStore, useLoading } from '@/state/global'
 import {
   Article,
+  ArticleListMode,
   ArticleListSort,
   ArticleListState,
   FrontCategory,
@@ -57,6 +58,7 @@ interface BaseArticleListProps {
   onLoad?: () => void
   onReady?: () => void
   onPageStateChange?: (pageState: ArticleListState) => void
+  mode?: ArticleListMode
 }
 
 const BaseArticleList: React.FC<BaseArticleListProps> = ({
@@ -66,8 +68,8 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
   showTabsCondition = true,
   onLoad = noop,
   onPageStateChange,
+  mode = 'compact',
 }) => {
-  const [showSummary] = useState(false)
   const [list, updateList] = useState<Article[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [pageState, setPageState] = useState<ArticleListState>({
@@ -236,18 +238,31 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
           </Card>
         ) : list.length == 0 ? (
           <Empty />
-        ) : (
+        ) : mode == 'compact' ? (
           <Card>
             {list.map((item) => (
               <ArticleListItem
                 key={item.id}
                 article={item}
-                showSummary={showSummary}
                 siteFrontId={siteFrontId}
                 onUpdate={handleArticleUpdate(item.id)}
+                mode={mode}
               />
             ))}
           </Card>
+        ) : (
+          <>
+            {list.map((item) => (
+              <Card className="mb-3" key={item.id}>
+                <ArticleListItem
+                  article={item}
+                  siteFrontId={siteFrontId}
+                  onUpdate={handleArticleUpdate(item.id)}
+                  mode={mode}
+                />
+              </Card>
+            ))}
+          </>
         )}
       </div>
 

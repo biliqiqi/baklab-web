@@ -775,3 +775,5 @@ export const CHAT_DB_EVENT = Object.freeze({
 } as const)
 
 export type ChatDBEvent = ValuesToUnion<typeof CHAT_DB_EVENT>
+
+export type ArticleListMode = 'compact' | 'preview' | 'grid'

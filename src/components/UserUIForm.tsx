@@ -30,6 +30,7 @@ import {
   useDefaultFontSizeStore,
   useForceUpdate,
   useSiteStore,
+  useSiteUIStore,
   useTopDrawerStore,
   useUserUIStore,
 } from '@/state/global'
@@ -204,7 +205,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
       fontSize: number
       contentWidth: number
       theme: ThemeSchema
-      articleListMode: ArticleListMode
+      articleListMode?: ArticleListMode
     } | null>(null)
 
     // Get all UI settings from userUIStore for consistency using useShallow
@@ -223,6 +224,8 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
         articleListMode: state.articleListMode,
       }))
     )
+
+    const siteArticleListMode = useSiteUIStore((state) => state.articleListMode)
 
     const setSiteListMode = useUserUIStore((state) => state.setSiteListMode)
     const setUserUIState = useUserUIStore((state) => state.setState)
@@ -270,7 +273,10 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
         customContentWidth:
           contentWidthGlobalVal == 'custom' ? userUIContentWidth : '',
         lang: normalizeLanguageForForm(i18n.language),
-        articleListMode: currArticleListMode,
+        articleListMode:
+          currArticleListMode !== undefined
+            ? currArticleListMode
+            : siteArticleListMode,
         syncToOtherDevices: false,
       },
     })

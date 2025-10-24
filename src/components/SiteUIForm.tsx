@@ -16,7 +16,12 @@ import { noop } from '@/lib/utils'
 
 import { saveSiteUISettings } from '@/api/site'
 import { useSiteStore, useSiteUIStore } from '@/state/global'
-import { SITE_UI_MODE, SiteUIMode } from '@/types/types'
+import {
+  ARTICLE_LIST_MODE,
+  ArticleListMode,
+  SITE_UI_MODE,
+  SiteUIMode,
+} from '@/types/types'
 
 import { Button } from './ui/button'
 import {
@@ -34,12 +39,18 @@ const modeList = [SITE_UI_MODE.Sidebar, SITE_UI_MODE.TopNav] as const
 
 const siteUISchema = z.object({
   mode: z.enum(modeList),
+  articleListMode: z.union([
+    z.literal(ARTICLE_LIST_MODE.Compact),
+    z.literal(ARTICLE_LIST_MODE.Preview),
+    z.literal(ARTICLE_LIST_MODE.Grid),
+  ]),
 })
 
 type SiteUISchema = z.infer<typeof siteUISchema>
 
 const defaultSiteUIData: SiteUISchema = {
   mode: SITE_UI_MODE.Sidebar,
+  articleListMode: ARTICLE_LIST_MODE.Compact,
 }
 
 export interface SiteUIFormProps {
@@ -55,6 +66,10 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
   ({ onChange = noop }, ref) => {
     const setUIMode = useSiteUIStore((state) => state.setMode)
     const currUIMode = useSiteUIStore((state) => state.mode)
+    const setArticleListMode = useSiteUIStore(
+      (state) => state.setArticleListMode
+    )
+    const currArticleListMode = useSiteUIStore((state) => state.articleListMode)
 
     const fetchSiteData = useSiteStore((state) => state.fetchSiteData)
     const siteUISettings = useSiteStore((state) => state.site?.uiSettings)
@@ -65,44 +80,52 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
 
     const initialStateRef = useRef<{
       mode: SiteUIMode
+      articleListMode: ArticleListMode
     } | null>(null)
 
     const form = useForm({
       resolver: zodResolver(siteUISchema),
-      defaultValues: { ...defaultSiteUIData, mode: currUIMode },
+      defaultValues: {
+        ...defaultSiteUIData,
+        mode: currUIMode,
+        articleListMode: currArticleListMode,
+      },
     })
 
     useEffect(() => {
       if (!form.formState.isDirty && !initialStateRef.current) {
         initialStateRef.current = {
           mode: currUIMode,
+          articleListMode: currArticleListMode,
         }
       }
-    }, [form.formState.isDirty, currUIMode])
+    }, [form.formState.isDirty, currUIMode, currArticleListMode])
 
     const restoreGlobalState = useCallback(() => {
       if (initialStateRef.current) {
         setUIMode(initialStateRef.current.mode)
+        setArticleListMode(initialStateRef.current.articleListMode)
         initialStateRef.current = null
       }
-    }, [setUIMode])
+    }, [setUIMode, setArticleListMode])
 
     useImperativeHandle(ref, () => ({ form, restoreGlobalState }))
 
     const formVals = form.watch()
 
     const onSubmit = useCallback(
-      async ({ mode }: SiteUISchema) => {
+      async ({ mode, articleListMode }: SiteUISchema) => {
         if (!siteFrontId) return
 
         const { code } = await saveSiteUISettings(siteFrontId, {
           mode,
+          articleListMode,
         })
         if (!code) {
           toast.success(t('siteUISaveTip'))
           await fetchSiteData(siteFrontId)
 
-          form.reset({ mode })
+          form.reset({ mode, articleListMode })
           initialStateRef.current = null
         }
       },
@@ -115,12 +138,18 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
         mode:
           (siteUISettings?.mode as SiteUIMode | null | undefined) ||
           SITE_UI_MODE.TopNav,
+        articleListMode:
+          (siteUISettings?.articleListMode as
+            | ArticleListMode
+            | null
+            | undefined) || ARTICLE_LIST_MODE.Compact,
       })
     }, [siteUISettings, form])
 
     useEffect(() => {
       setUIMode(formVals.mode)
-    }, [formVals.mode, setUIMode])
+      setArticleListMode(formVals.articleListMode)
+    }, [formVals.mode, formVals.articleListMode, setUIMode, setArticleListMode])
 
     useEffect(() => {
       onChange(form.formState.isDirty)
@@ -169,6 +198,56 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
                       </FormControl>
                       <FormLabel className="font-normal">
                         {t('topNav')}
+                      </FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="articleListMode"
+            key="articleListMode"
+            render={({ field }) => (
+              <FormItem className="mb-8">
+                <FormLabel>{t('articleListMode')}</FormLabel>
+                <FormDescription></FormDescription>
+                <FormControl>
+                  <RadioGroup
+                    className="flex flex-wrap"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    ref={field.ref}
+                  >
+                    <FormItem
+                      className="flex items-center space-y-0 mr-4 mb-4"
+                      key={ARTICLE_LIST_MODE.Compact}
+                    >
+                      <FormControl>
+                        <RadioGroupItem
+                          value={ARTICLE_LIST_MODE.Compact}
+                          className="mr-1"
+                        />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        {t('compact')}
+                      </FormLabel>
+                    </FormItem>
+                    <FormItem
+                      className="flex items-center space-y-0 mr-4 mb-4"
+                      key={ARTICLE_LIST_MODE.Preview}
+                    >
+                      <FormControl>
+                        <RadioGroupItem
+                          value={ARTICLE_LIST_MODE.Preview}
+                          className="mr-1"
+                        />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        {t('preview')}
                       </FormLabel>
                     </FormItem>
                   </RadioGroup>

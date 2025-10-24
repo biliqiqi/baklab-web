@@ -814,6 +814,10 @@ useSiteStore.subscribe(
     siteUIStore.setMode(
       (site?.uiSettings?.mode as SiteUIMode | undefined) || SITE_UI_MODE.TopNav
     )
+    siteUIStore.setArticleListMode(
+      (site?.uiSettings?.articleListMode as ArticleListMode | undefined) ||
+        ARTICLE_LIST_MODE.Compact
+    )
   }
 )
 
@@ -902,12 +906,18 @@ export const useCurrentArticleStore = create<CurrentArticleState>((set) => ({
 export interface SiteUIState {
   mode: SiteUIMode
   setMode: (mode: SiteUIMode) => void
+  articleListMode: ArticleListMode
+  setArticleListMode: (mode: ArticleListMode) => void
 }
 
 export const useSiteUIStore = create<SiteUIState>((set) => ({
   mode: SITE_UI_MODE.TopNav,
+  articleListMode: ARTICLE_LIST_MODE.Compact,
   setMode(mode) {
     set((state) => ({ ...state, mode }))
+  },
+  setArticleListMode(mode) {
+    set((state) => ({ ...state, articleListMode: mode }))
   },
 }))
 
@@ -918,7 +928,7 @@ export interface UserUIState {
   fontSize?: number
   contentWidth?: number
   innerContentWidth?: number
-  articleListMode: ArticleListMode
+  articleListMode?: ArticleListMode
   setState: (state: Partial<UserUIStateData>) => void
 }
 
@@ -935,7 +945,7 @@ export const useUserUIStore = create(
     siteListMode: SITE_LIST_MODE.TopDrawer,
     fontSize: undefined,
     contentWidth: Number(DEFAULT_CONTENT_WIDTH),
-    articleListMode: ARTICLE_LIST_MODE.Compact,
+    articleListMode: undefined,
     setSiteListMode(mode) {
       set((state) => ({ ...state, siteListMode: mode }))
     },

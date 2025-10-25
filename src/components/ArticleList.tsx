@@ -24,10 +24,14 @@ const ArticleList: React.FC<ArticleListProps> = ({
 }) => {
   const userArticleListMode = useUserUIStore((state) => state.articleListMode)
   const siteArticleListMode = useSiteUIStore((state) => state.articleListMode)
-  const articleListMode =
-    userArticleListMode !== undefined
+  const isSiteUIPreview = useSiteUIStore((state) => state.isSiteUIPreview)
+
+  const articleListMode = isSiteUIPreview
+    ? siteArticleListMode
+    : userArticleListMode !== undefined
       ? userArticleListMode
       : siteArticleListMode
+
   const [currCate, setCurrCate] = useState<Category | null>(null)
   const { siteFrontId, categoryFrontId } = useParams()
 

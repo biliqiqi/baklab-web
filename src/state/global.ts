@@ -908,16 +908,22 @@ export interface SiteUIState {
   setMode: (mode: SiteUIMode) => void
   articleListMode: ArticleListMode
   setArticleListMode: (mode: ArticleListMode) => void
+  isSiteUIPreview: boolean
+  setIsSiteUIPreview: (value: boolean) => void
 }
 
 export const useSiteUIStore = create<SiteUIState>((set) => ({
   mode: SITE_UI_MODE.TopNav,
   articleListMode: ARTICLE_LIST_MODE.Compact,
+  isSiteUIPreview: false,
   setMode(mode) {
     set((state) => ({ ...state, mode }))
   },
   setArticleListMode(mode) {
     set((state) => ({ ...state, articleListMode: mode }))
+  },
+  setIsSiteUIPreview(value) {
+    set((state) => ({ ...state, isSiteUIPreview: value }))
   },
 }))
 

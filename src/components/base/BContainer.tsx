@@ -200,6 +200,10 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     /* const [openRightSidebar, setOpenRightSidebar] = useState(false) */
     /* const [sidebarOpenMobile, setSidebarOpenMobile] = useState(false) */
 
+    const setIsSiteUIPreview = useSiteUIStore(
+      (state) => state.setIsSiteUIPreview
+    )
+
     const { siteFrontId } = useParams()
 
     const alertDialog = useAlertDialogStore()
@@ -619,6 +623,18 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         document.removeEventListener('click', handleLinkClick)
       }
     })
+
+    useEffect(() => {
+      const isSiteUIOpen =
+        (openRightSidebar || openRightSidebarMobile) &&
+        settingsType === 'site_ui'
+      setIsSiteUIPreview(isSiteUIOpen)
+    }, [
+      openRightSidebar,
+      openRightSidebarMobile,
+      settingsType,
+      setIsSiteUIPreview,
+    ])
 
     return (
       <div className="b-bg-main min-h-screen">

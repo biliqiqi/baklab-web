@@ -15,7 +15,13 @@ import z from 'zod'
 import { noop } from '@/lib/utils'
 
 import { saveSiteUISettings } from '@/api/site'
-import { useSiteStore, useSiteUIStore } from '@/state/global'
+import { saveUserUISettings } from '@/api/user'
+import {
+  useAuthedUserStore,
+  useSiteStore,
+  useSiteUIStore,
+  useUserUIStore,
+} from '@/state/global'
 import {
   ARTICLE_LIST_MODE,
   ArticleListMode,
@@ -71,6 +77,10 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
     )
     const currArticleListMode = useSiteUIStore((state) => state.articleListMode)
 
+    const isLogined = useAuthedUserStore((state) => state.isLogined())
+    const userArticleListMode = useUserUIStore((state) => state.articleListMode)
+    const setUserUIState = useUserUIStore((state) => state.setState)
+
     const fetchSiteData = useSiteStore((state) => state.fetchSiteData)
     const siteUISettings = useSiteStore((state) => state.site?.uiSettings)
 
@@ -113,6 +123,11 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
 
     const formVals = form.watch()
 
+    const hasUserCustomSettings =
+      isLogined &&
+      userArticleListMode !== undefined &&
+      userArticleListMode !== formVals.articleListMode
+
     const onSubmit = useCallback(
       async ({ mode, articleListMode }: SiteUISchema) => {
         if (!siteFrontId) return
@@ -127,9 +142,48 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
 
           form.reset({ mode, articleListMode })
           initialStateRef.current = null
+
+          if (
+            isLogined &&
+            userArticleListMode !== undefined &&
+            userArticleListMode !== articleListMode
+          ) {
+            toast.info(t('syncSiteUIToPersonal'), {
+              duration: Infinity,
+              action: {
+                label: t('sync'),
+                onClick: () => {
+                  void (async () => {
+                    try {
+                      await saveUserUISettings({
+                        articleListMode,
+                        updatedAt: Date.now(),
+                      })
+                      setUserUIState({ articleListMode })
+                      toast.success(t('syncSuccess'))
+                    } catch (err) {
+                      console.error('sync user UI settings error: ', err)
+                    }
+                  })()
+                },
+              },
+              cancel: {
+                label: t('doNotSync'),
+                onClick: () => {},
+              },
+            })
+          }
         }
       },
-      [siteFrontId, fetchSiteData, form, t]
+      [
+        siteFrontId,
+        fetchSiteData,
+        form,
+        t,
+        isLogined,
+        userArticleListMode,
+        setUserUIState,
+      ]
     )
 
     useEffect(() => {
@@ -154,6 +208,15 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
     useEffect(() => {
       onChange(form.formState.isDirty)
     }, [form, formVals, onChange])
+
+    useEffect(() => {
+      const siteArticleListModeSetting =
+        (siteUISettings?.articleListMode as
+          | ArticleListMode
+          | null
+          | undefined) || ARTICLE_LIST_MODE.Compact
+      setArticleListMode(siteArticleListModeSetting)
+    }, [setArticleListMode, siteUISettings])
 
     return (
       <Form {...form}>
@@ -259,7 +322,11 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
 
           <div className="flex justify-between">
             <span></span>
-            <Button type="submit" size="sm" disabled={!form.formState.isDirty}>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={!form.formState.isDirty && !hasUserCustomSettings}
+            >
               {t('save')}
             </Button>
           </div>

@@ -89,8 +89,7 @@ const extractImgFromMD = (
 
       if (addWrapper) {
         const span = document.createElement('span')
-        span.className =
-          index === array.length - 1 ? 'flex-1 shrink' : 'flex-1 shrink pr-1'
+        span.className = index === array.length - 1 ? 'shrink' : 'shrink pr-1'
         span.appendChild(img)
         return span.outerHTML
       }
@@ -288,7 +287,7 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
 
             <div
               ref={previewImagesRef}
-              className="my-2 flex"
+              className="my-2 flex justify-start"
               dangerouslySetInnerHTML={{
                 __html: extractImgFromMD(article.content, 3, true),
               }}

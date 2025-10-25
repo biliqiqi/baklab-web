@@ -24,6 +24,7 @@ export const EV_ON_EDIT_CLICK = 'on_edit_click'
 export const DEFAULT_PAGE_SIZE = 20
 
 export const SINGUP_RETURN_COOKIE_NAME = 'signup_return'
+export const SIGNUP_TEMP_TOKEN_KEY = 'signup_temp_token'
 
 export const LEFT_SIDEBAR_STATE_KEY = 'left_sidebar_state'
 export const LEFT_SIDEBAR_DEFAULT_OPEN = true

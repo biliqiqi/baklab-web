@@ -9,7 +9,10 @@ import { noop } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { completeEmailSign, postEmailSinup, postEmailVerify } from '@/api'
-import { SERVER_ERR_ACCOUNT_EXIST } from '@/constants/constants'
+import {
+  SERVER_ERR_ACCOUNT_EXIST,
+  SIGNUP_TEMP_TOKEN_KEY,
+} from '@/constants/constants'
 import useDocumentTitle from '@/hooks/use-page-title'
 import { useAuthedUserStore, useDialogStore } from '@/state/global'
 
@@ -76,6 +79,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
     setCodeVerified(false)
     setCurrTab(SignupType.email)
     setLoading(false)
+    localStorage.removeItem(SIGNUP_TEMP_TOKEN_KEY)
   }
 
   const emailForm = useForm<EmailSchema>({
@@ -187,7 +191,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
       if (!data.code) {
         setCodeVerified(true)
-        autheState.update(data.data.token, '', '', null)
+        localStorage.setItem(SIGNUP_TEMP_TOKEN_KEY, data.data.token)
       } else {
         if (data.code == SERVER_ERR_ACCOUNT_EXIST) {
           toast.info(t('emailExistsTip'))
@@ -207,12 +211,21 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
       if (loading) return
 
+      const tempToken = localStorage.getItem(SIGNUP_TEMP_TOKEN_KEY) || ''
+
+      if (!tempToken) {
+        toast.error(t('verificationExpired'))
+        setCodeVerified(false)
+        return
+      }
+
       setLoading(true)
 
       const data = await completeEmailSign(
         email.current,
         values.username,
-        values.password
+        values.password,
+        tempToken
       )
       /* console.log('signup complete data:', data) */
 
@@ -220,6 +233,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
         setCodeVerified(true)
         const { token, username, userID, user } = data.data
         autheState.update(token, username, userID, user)
+        localStorage.removeItem(SIGNUP_TEMP_TOKEN_KEY)
 
         if (onSuccess && typeof onSuccess == 'function') {
           onSuccess()

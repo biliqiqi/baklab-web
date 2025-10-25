@@ -350,6 +350,7 @@
   "emailExistsTip": "邮箱已注册，请直接登录",
   "signupTitle": "注册新账户",
   "verifySuccessTip": "验证成功，请填写以下信息以完成注册",
+  "verificationExpired": "验证已过期，请重新验证",
   "reSignup": "重新注册",
   "emailSignup": "邮箱注册",
   "phoneSignup": "手机号注册",

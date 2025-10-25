@@ -830,7 +830,10 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           </DialogContent>
         </Dialog>
         <Dialog open={signup} onOpenChange={updateSignup}>
-          <DialogContent className="w-[500px]">
+          <DialogContent
+            className="w-[500px]"
+            onInteractOutside={(e) => e.preventDefault()}
+          >
             <DialogHeader>
               <DialogTitle>{t('signup')}</DialogTitle>
               <DialogDescription></DialogDescription>

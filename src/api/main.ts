@@ -26,9 +26,16 @@ export const postEmailVerify = async (
 export const completeEmailSign = async (
   email: string,
   username: string,
-  password: string
+  password: string,
+  tempToken: string
 ): Promise<ResponseData<AuthedDataResponse>> =>
-  authRequest.post(`signup_complete`, { json: { email, username, password } })
+  request.post(`signup_complete`, {
+    credentials: 'include',
+    json: { email, username, password },
+    headers: {
+      Authorization: `Bearer ${tempToken}`,
+    },
+  })
 
 export const logoutToken = async (): Promise<ResponseData<null>> =>
   authRequest.get(`logout`)

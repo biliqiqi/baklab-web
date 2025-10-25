@@ -350,6 +350,7 @@
   "emailExistsTip": "Email already registered. Please sign in directly.",
   "signupTitle": "Sign up for a new account",
   "verifySuccessTip": "Verification successful. Please fill in the following information to complete registration.",
+  "verificationExpired": "Verification has expired. Please verify again.",
   "reSignup": "Sign up again",
   "emailSignup": "Sign up with Email",
   "phoneSignup": "Sign up with Phone",

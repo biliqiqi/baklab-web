@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ChangeEvent, useRef, useState } from 'react'
+import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { noop } from '@/lib/utils'
@@ -68,10 +68,20 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
   const autheState = useAuthedUserStore()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const { t } = useTranslation()
 
   const email = useRef('')
+
+  useEffect(() => {
+    const tempToken = localStorage.getItem(SIGNUP_TEMP_TOKEN_KEY)
+    const signupStep = searchParams.get('signup_step')
+
+    if (tempToken && signupStep === 'complete') {
+      setCodeVerified(true)
+    }
+  }, [searchParams])
 
   const reset = () => {
     setIsPhone(false)
@@ -80,6 +90,9 @@ const SignupForm: React.FC<SignupFormProps> = ({
     setCurrTab(SignupType.email)
     setLoading(false)
     localStorage.removeItem(SIGNUP_TEMP_TOKEN_KEY)
+
+    searchParams.delete('signup_step')
+    setSearchParams(searchParams)
   }
 
   const emailForm = useForm<EmailSchema>({
@@ -192,10 +205,19 @@ const SignupForm: React.FC<SignupFormProps> = ({
       if (!data.code) {
         setCodeVerified(true)
         localStorage.setItem(SIGNUP_TEMP_TOKEN_KEY, data.data.token)
+
+        searchParams.set('signup_step', 'complete')
+        setSearchParams(searchParams)
       } else {
         if (data.code == SERVER_ERR_ACCOUNT_EXIST) {
           toast.info(t('emailExistsTip'))
-          navigate(`/signin?account=${email.current}`)
+          if (dialog) {
+            updateSignup(false)
+            updateSignin(true)
+            setEmail(email.current)
+          } else {
+            navigate(`/signin?account=${email.current}`)
+          }
         }
       }
     } catch (e) {
@@ -234,6 +256,9 @@ const SignupForm: React.FC<SignupFormProps> = ({
         const { token, username, userID, user } = data.data
         autheState.update(token, username, userID, user)
         localStorage.removeItem(SIGNUP_TEMP_TOKEN_KEY)
+
+        searchParams.delete('signup_step')
+        setSearchParams(searchParams)
 
         if (onSuccess && typeof onSuccess == 'function') {
           onSuccess()

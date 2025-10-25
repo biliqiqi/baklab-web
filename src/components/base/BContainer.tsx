@@ -8,7 +8,13 @@ import React, {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { toSync } from '@/lib/fire-and-forget'
@@ -23,6 +29,7 @@ import {
   LEFT_SIDEBAR_STATE_KEY,
   NAV_HEIGHT,
   RIGHT_SIDEBAR_STATE_KEY,
+  SIGNUP_TEMP_TOKEN_KEY,
   TOP_DRAWER_STATE_KEY,
 } from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -117,6 +124,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const { signin, signup, updateSignin, updateSignup } = useDialogStore()
     const { showNotFound, updateNotFound } = useNotFoundStore()
     const { t } = useTranslation()
+    const [searchParams] = useSearchParams()
 
     const userUIFormRef = useRef<UserUIFormRef | null>(null)
     const siteUIFormRef = useRef<SiteUIFormRef | null>(null)
@@ -595,6 +603,15 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       // setShowSiteAbout,
       setSidebarOpenMobile,
     ])
+
+    useEffect(() => {
+      const tempToken = localStorage.getItem(SIGNUP_TEMP_TOKEN_KEY)
+      const signupStep = searchParams.get('signup_step')
+
+      if (tempToken && signupStep === 'complete' && !signup) {
+        updateSignup(true)
+      }
+    }, [searchParams, signup, updateSignup])
 
     useEffect(() => {
       document.addEventListener('click', handleLinkClick)

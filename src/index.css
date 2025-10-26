@@ -254,6 +254,7 @@ a:hover {
   display: inline-block;
   max-width: var(--img-max-width-desktop);
   max-height: var(--img-max-height-desktop);
+  vertical-align: baseline;
 }
 
 .CollapsibleContent {

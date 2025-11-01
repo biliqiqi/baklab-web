@@ -681,7 +681,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               !isMobile && sidebarOpen && 'w-[var(--sidebar-width)]'
             )}
             style={{
-              top: siteMode == 'top_nav' ? `${NAV_HEIGHT}px` : '',
+              top: siteMode == 'top_nav' ? `${NAV_HEIGHT}px` : '0',
             }}
           >
             {sidebarType === 'settings' ? (
@@ -788,7 +788,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             statePersistKey={RIGHT_SIDEBAR_STATE_KEY}
             style={{
               position: 'sticky',
-              top: siteMode == 'top_nav' ? `${NAV_HEIGHT}px` : '',
+              top: siteMode == 'top_nav' ? `${NAV_HEIGHT}px` : '0',
               minHeight: 'auto',
             }}
           >

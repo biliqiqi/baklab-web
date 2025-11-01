@@ -170,24 +170,29 @@ const ChatPage: React.FC<ChatPageProps> = ({
             categoryFrontId
           )
 
+          const finalPrevCursor =
+            init && existingData && existingData.prevCursor
+              ? existingData.prevCursor
+              : data.prevCursor
+
+          const finalNextCursor =
+            init && existingData && existingData.nextCursor
+              ? existingData.nextCursor
+              : data.nextCursor
+
           await saveIDBChatList(
             siteFrontId,
             categoryFrontId,
             [...data.articles],
-            init &&
-              existingData &&
-              data.articles &&
-              existingData.list.length > data.articles.length
-              ? ''
-              : data.prevCursor,
-            data.nextCursor
+            finalPrevCursor,
+            finalNextCursor
           )
 
           if (init) {
             setChatList({
               list: data.articles,
-              prevCursor: data.prevCursor,
-              nextCursor: data.nextCursor,
+              prevCursor: finalPrevCursor,
+              nextCursor: finalNextCursor,
               initialized: false,
               lastReadCursor: '',
               lastScrollTop: 0,
@@ -240,7 +245,6 @@ const ChatPage: React.FC<ChatPageProps> = ({
   )
 
   const getLocalChatList = toSync(getIDBChatList, (data) => {
-    /* console.log('getLocalChatList: ', data) */
     const currentPath = `/z/${siteFrontId}/bankuai/${categoryFrontId}`
 
     if (data && data.path === currentPath) {
@@ -382,7 +386,6 @@ const ChatPage: React.FC<ChatPageProps> = ({
       entries.forEach((ent) => {
         if (ent.target == chatTopRef.current && ent.isIntersecting) {
           if (isLoading) return
-          /* console.log('at top') */
           setChatList((currentChatList) => {
             if (!currentChatList.initialized) return currentChatList
 

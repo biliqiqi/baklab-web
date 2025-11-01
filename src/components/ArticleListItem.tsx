@@ -256,7 +256,7 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
             {article.title}
           </Link>
           {article.link && (
-            <span className="text-sm text-primary">
+            <span className="text-sm text-text-secondary">
               (
               <a
                 href={article.link}

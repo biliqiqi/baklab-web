@@ -725,7 +725,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
             minHeight: `calc(100vh - ${NAV_HEIGHT}px  - 2rem - 76px)`,
           }}
         >
-          {Array(10)
+          {Array(5)
             .fill('')
             .map((_, idx) => (
               <ChatCardSkeleton key={idx} />

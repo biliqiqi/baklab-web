@@ -559,7 +559,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
                             asChild
                             isActive={
                               location.pathname ==
-                                `/z/${siteFrontId}/bankuai/${item.frontId}` ||
+                                `/z/${siteFrontId}/b/${item.frontId}` ||
                               (currentCategoryFrontId === item.frontId &&
                                 location.pathname.includes(
                                   `/z/${siteFrontId}/articles/`
@@ -567,7 +567,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
                             }
                           >
                             <Link
-                              to={`/z/${siteFrontId}/bankuai/${item.frontId}`}
+                              to={`/z/${siteFrontId}/b/${item.frontId}`}
                               state={item}
                             >
                               <span

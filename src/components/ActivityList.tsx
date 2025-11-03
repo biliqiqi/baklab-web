@@ -118,7 +118,7 @@ const ActivityTargetLink = ({ activity: item }: ActivityActionTextProps) => {
       return <Link to={`/users/${item.targetId}`}>{item.targetId}</Link>
     case 'category':
       return (
-        <Link to={`/z/${item.extraInfo.siteFrontId}/bankuai/${item.targetId}`}>
+        <Link to={`/z/${item.extraInfo.siteFrontId}/b/${item.targetId}`}>
           {item.extraInfo.categoryName}
         </Link>
       )

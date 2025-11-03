@@ -196,7 +196,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
               initialized: false,
               lastReadCursor: '',
               lastScrollTop: 0,
-              path: `/z/${siteFrontId}/bankuai/${categoryFrontId}`,
+              path: `/z/${siteFrontId}/b/${categoryFrontId}`,
             })
           }
 
@@ -245,7 +245,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
   )
 
   const getLocalChatList = toSync(getIDBChatList, (data) => {
-    const currentPath = `/z/${siteFrontId}/bankuai/${categoryFrontId}`
+    const currentPath = `/z/${siteFrontId}/b/${categoryFrontId}`
 
     if (data && data.path === currentPath) {
       setChatList((state) => ({ ...state, ...data }))
@@ -258,8 +258,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
     const CreateOnNewMessage =
       (atBottom: boolean, siteFrontId: string, categoryFrontId: string) =>
       (data: ChatMessage) => {
-        if (data.roomPath != `/z/${siteFrontId}/bankuai/${categoryFrontId}`)
-          return
+        if (data.roomPath != `/z/${siteFrontId}/b/${categoryFrontId}`) return
         getLocalChatList(siteFrontId, categoryFrontId)
         if (atBottom) {
           setTimeout(() => {
@@ -271,15 +270,14 @@ const ChatPage: React.FC<ChatPageProps> = ({
     const CreateRefreshChatList =
       (siteFrontId: string, categoryFrontId: string) =>
       (roomData: ChatRoom, _messageList?: ChatMessage[]) => {
-        if (roomData.path != `/z/${siteFrontId}/bankuai/${categoryFrontId}`)
-          return
+        if (roomData.path != `/z/${siteFrontId}/b/${categoryFrontId}`) return
         getLocalChatList(siteFrontId, categoryFrontId)
       }
 
     const CreateDeleteMessageHandler =
       (siteFrontId: string, categoryFrontId: string) =>
       (_messageId: string, roomPath: string) => {
-        if (roomPath != `/z/${siteFrontId}/bankuai/${categoryFrontId}`) return
+        if (roomPath != `/z/${siteFrontId}/b/${categoryFrontId}`) return
         getLocalChatList(siteFrontId, categoryFrontId)
       }
 
@@ -692,7 +690,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
 
   useEffect(() => {
     if (!siteFrontId || !categoryFrontId || !currCate) return
-    const currentPath = `/z/${siteFrontId}/bankuai/${categoryFrontId}`
+    const currentPath = `/z/${siteFrontId}/b/${categoryFrontId}`
 
     // Only load local data if the path matches current route
     setChatList((prevState) => {

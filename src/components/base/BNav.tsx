@@ -329,7 +329,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                   </span>
                 ) : (
                   <Link
-                    to={`/z/${siteFrontId}/bankuai/${category.frontId}`}
+                    to={`/z/${siteFrontId}/b/${category.frontId}`}
                     className="flex-shrink-0 text-ellipsis overflow-hidden whitespace-nowrap"
                   >
                     {category.name}

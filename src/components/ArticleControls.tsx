@@ -343,7 +343,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                 &nbsp;·
                 {siteFrontId ? (
                   <Link
-                    to={`/z/${article.siteFrontId}/bankuai/${article.category.frontId}`}
+                    to={`/z/${article.siteFrontId}/b/${article.category.frontId}`}
                   >
                     <BIconColorChar
                       iconId={article.categoryFrontId}

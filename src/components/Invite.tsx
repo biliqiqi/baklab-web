@@ -31,7 +31,7 @@ const Invite: React.FC<InviteProps> = ({
   const { siteFrontId } = useParams()
   const inviteLink = useMemo(() => {
     if (publicSite) {
-      return `${FRONTEND_HOST}/${siteFrontId}`
+      return `${FRONTEND_HOST}/z/${siteFrontId}`
     } else {
       return `${FRONTEND_HOST}/invite/${data?.code || ''}`
     }

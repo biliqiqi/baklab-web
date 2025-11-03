@@ -174,7 +174,7 @@ export const genArticlePath = ({
   contentForm,
 }: Article) => {
   if (contentForm && contentForm.frontId == 'chat') {
-    return `/z/${siteFrontId}/bankuai/${categoryFrontId}#message${id}`
+    return `/z/${siteFrontId}/b/${categoryFrontId}#message${id}`
   }
   return `/z/${siteFrontId}/articles/${id}`
 }

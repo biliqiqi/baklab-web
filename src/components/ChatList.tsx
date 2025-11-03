@@ -3,31 +3,30 @@ import { useLocation, useParams } from 'react-router-dom'
 import { useDebouncedCallback } from 'use-debounce'
 import { useShallow } from 'zustand/react/shallow'
 
-import ChatCard, { ChatCardSkeleton } from './components/ChatCard'
-
-import { getChatList, readManyArticle } from './api/article'
-import {
-  EV_ON_EDIT_CLICK,
-  EV_ON_REPLY_CLICK,
-  NAV_HEIGHT,
-  REPLY_BOX_PLACEHOLDER_HEIGHT,
-} from './constants/constants'
-import { defaultPageState } from './constants/defaults'
-import { usePermit } from './hooks/use-auth'
-import { toSync } from './lib/fire-and-forget'
+import { toSync } from '@/lib/fire-and-forget'
 import {
   bus,
   highlightElement,
   noop,
   scrollToBottom,
   scrollToElement,
-} from './lib/utils'
-import { getIDBChatList, saveIDBChatList } from './state/chat-db'
+} from '@/lib/utils'
+
+import { getChatList, readManyArticle } from '@/api/article'
+import {
+  EV_ON_EDIT_CLICK,
+  EV_ON_REPLY_CLICK,
+  NAV_HEIGHT,
+  REPLY_BOX_PLACEHOLDER_HEIGHT,
+} from '@/constants/constants'
+import { defaultPageState } from '@/constants/defaults'
+import { usePermit } from '@/hooks/use-auth'
+import { getIDBChatList, saveIDBChatList } from '@/state/chat-db'
 import {
   useAuthedUserStore,
   useLoading,
   useReplyBoxStore,
-} from './state/global'
+} from '@/state/global'
 import {
   Article,
   CHAT_DB_EVENT,
@@ -35,9 +34,11 @@ import {
   ChatListState,
   ChatMessage,
   ChatRoom,
-} from './types/types'
+} from '@/types/types'
 
-interface ChatPageProps {
+import ChatCard, { ChatCardSkeleton } from './ChatCard'
+
+interface ChatListProps {
   currCate: Category
   onLoad?: () => void
   onReady?: () => void
@@ -53,7 +54,7 @@ const defaultChatListData: ChatListState = {
   path: '',
 }
 
-const ChatPage: React.FC<ChatPageProps> = ({
+const ChatList: React.FC<ChatListProps> = ({
   currCate,
   onLoad = noop,
   onReady = noop,
@@ -764,4 +765,4 @@ const ChatPage: React.FC<ChatPageProps> = ({
   )
 }
 
-export default ChatPage
+export default ChatList

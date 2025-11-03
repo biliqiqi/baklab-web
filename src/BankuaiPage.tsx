@@ -5,8 +5,8 @@ import { useLocation, useParams } from 'react-router-dom'
 import BContainer from './components/base/BContainer'
 
 import ArticleList from './components/ArticleList'
+import ChatList from './components/ChatList'
 
-import ChatPage from './ChatPage'
 import { getCategoryWithFrontId } from './api/category'
 import { toSync } from './lib/fire-and-forget'
 import { Category } from './types/types'
@@ -69,7 +69,7 @@ export default function BankuaiPage() {
     >
       {initialized &&
         (currCate && isChat ? (
-          <ChatPage currCate={currCate} />
+          <ChatList currCate={currCate} />
         ) : (
           <ArticleList />
         ))}

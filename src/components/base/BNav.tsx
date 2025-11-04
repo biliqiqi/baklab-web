@@ -402,7 +402,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                   `px-2 pt-2 pb-4 bg-gray-200 text-sm overflow-y-auto`
                 )}
                 style={{
-                  maxHeight: `calc(100vh - ${NAV_HEIGHT}px)`,
+                  maxHeight: `calc(100vh - ${NAV_HEIGHT + 200}px)!important`,
                   width: `${400}px`,
                 }}
               >
@@ -546,7 +546,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                       `w-[360px] px-2 pt-2 pb-4 bg-gray-200 text-sm overflow-y-auto`
                     )}
                     style={{
-                      maxHeight: `calc(100vh - ${NAV_HEIGHT}px)`,
+                      maxHeight: `calc(100vh - ${NAV_HEIGHT + 200}px)`,
                     }}
                   >
                     <MessageList ref={msgListRef} pageSize={10} />

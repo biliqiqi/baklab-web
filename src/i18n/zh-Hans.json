@@ -62,6 +62,7 @@
   "role": "角色",
   "permission": "权限",
   "permissionLevel": "权限级别",
+  "authSource": "授权来源",
   "joinedAt": "加入时间",
   "detail": "详细",
   "removeName": "除名",

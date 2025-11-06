@@ -285,6 +285,7 @@ export interface UserData {
   permissions: Permission[] | null
   super: boolean
   authFrom: AuthType
+  authFromName: string
   reputation: number
   bannedStartAt: string // ISO date string
   bannedEndAt: string // ISO date string

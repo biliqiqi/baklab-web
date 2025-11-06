@@ -184,6 +184,12 @@ export default function UserListPage() {
       cell: ({ row }) => <span>{row.original?.role?.level || '-'}</span>,
     },
     {
+      id: 'authFromName',
+      accessorKey: 'authFromName',
+      header: t('authSource'),
+      cell: ({ row }) => <span>{row.original?.authFromName || '-'}</span>,
+    },
+    {
       id: 'registeredAt',
       accessorKey: 'registeredAt',
       header: t('joinedAt'),
@@ -240,7 +246,9 @@ export default function UserListPage() {
   const table = useReactTable({
     data: list,
     columns: siteFrontId
-      ? columns.filter((col) => !['roleLevel'].includes(col.id || ''))
+      ? columns.filter(
+          (col) => !['roleLevel', 'authFromName'].includes(col.id || '')
+        )
       : columns,
     getCoreRowModel: getCoreRowModel(),
     onRowSelectionChange: setRowSelection,

@@ -63,6 +63,7 @@
   "role": "Role",
   "permission": "Permission",
   "permissionLevel": "Permission Level",
+  "authSource": "Auth Source",
   "joinedAt": "Joined At",
   "detail": "Details",
   "removeName": "Remove",

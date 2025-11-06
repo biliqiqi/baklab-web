@@ -249,7 +249,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
 
       if (!isEdit || !role?.frontId) return
 
-      const { code, data } = await getUserList(1, 1, '', role.id, '', {
+      const { code, data } = await getUserList(1, 1, '', role.id, '', '', {
         siteFrontId,
       })
 

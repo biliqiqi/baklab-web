@@ -2,13 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 
-import {
-  cn,
-  getArticleStatusName,
-  md2text,
-  renderMD,
-  summaryText,
-} from '@/lib/utils'
+import { cn, getArticleStatusName, md2text, summaryText } from '@/lib/utils'
 
 import { Badge } from './components/ui/badge'
 import { Card } from './components/ui/card'

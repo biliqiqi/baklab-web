@@ -41,6 +41,7 @@ import {
 import BAvatar from './components/base/BAvatar'
 import BContainer from './components/base/BContainer'
 
+import AuthSourceSelector from './components/AuthSourceSelector'
 import BanDialog, { BanDialogRef, BanSchema } from './components/BanDialog'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
@@ -63,11 +64,13 @@ import { ListPageState, Role, UserData } from './types/types'
 interface SearchFields {
   keywords?: string
   roleId?: string
+  authFrom?: string
 }
 
 const defaultSearchData: SearchFields = {
   keywords: '',
   roleId: '',
+  authFrom: '',
 }
 
 export default function UserListPage() {
@@ -81,6 +84,19 @@ export default function UserListPage() {
   const { setLoading } = useLoading()
 
   const { t } = useTranslation()
+
+  const getAuthSourceLabel = useCallback(
+    (authFromName: string) => {
+      const authSourceMap: { [key: string]: string } = {
+        Self: t('authSourceSelf'),
+        Google: t('authSourceGoogle'),
+        GitHub: t('authSourceGithub'),
+        Microsoft: t('authSourceMicrosoft'),
+      }
+      return authSourceMap[authFromName] || authFromName
+    },
+    [t]
+  )
 
   const [params, setParams] = useSearchParams()
   const location = useLocation()
@@ -109,6 +125,7 @@ export default function UserListPage() {
     ...defaultSearchData,
     keywords: params.get('keywords') || '',
     roleId: params.get('role_id') || '',
+    authFrom: params.get('auth_from') || '',
   })
 
   const fetchUserData = toSync(
@@ -187,7 +204,13 @@ export default function UserListPage() {
       id: 'authFromName',
       accessorKey: 'authFromName',
       header: t('authSource'),
-      cell: ({ row }) => <span>{row.original?.authFromName || '-'}</span>,
+      cell: ({ row }) => (
+        <span>
+          {row.original?.authFromName
+            ? getAuthSourceLabel(row.original.authFromName)
+            : '-'}
+        </span>
+      ),
     },
     {
       id: 'registeredAt',
@@ -280,6 +303,7 @@ export default function UserListPage() {
       params.delete('page_size')
       params.delete('keywords')
       params.delete('role_id')
+      params.delete('auth_from')
       return params
     })
   }, [setParams])
@@ -295,12 +319,21 @@ export default function UserListPage() {
           const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
           const keywords = params.get('keywords') || ''
           const roleId = params.get('role_id') || ''
+          const authFrom = params.get('auth_from') || ''
 
-          setSearchData((state) => ({ ...state, keywords, roleId }))
+          setSearchData((state) => ({ ...state, keywords, roleId, authFrom }))
 
-          const resp = await getUserList(page, pageSize, keywords, roleId, '', {
-            siteFrontId,
-          })
+          const resp = await getUserList(
+            page,
+            pageSize,
+            keywords,
+            roleId,
+            '',
+            authFrom,
+            {
+              siteFrontId,
+            }
+          )
 
           if (!resp.code) {
             const { data } = resp
@@ -341,7 +374,7 @@ export default function UserListPage() {
   const onSearchClick = useCallback(() => {
     resetParams()
     setParams((params) => {
-      const { keywords, roleId } = searchData
+      const { keywords, roleId, authFrom } = searchData
 
       /* console.log('on search role id: ', roleId) */
 
@@ -351,6 +384,10 @@ export default function UserListPage() {
 
       if (roleId) {
         params.set('role_id', roleId)
+      }
+
+      if (authFrom) {
+        params.set('auth_from', authFrom)
       }
 
       return params
@@ -508,6 +545,16 @@ export default function UserListPage() {
     }
   }, [])
 
+  const onAuthSourceChange = useCallback(
+    (authSource: { value: string; label: string } | undefined) => {
+      setSearchData((state) => ({
+        ...state,
+        authFrom: authSource?.value || '',
+      }))
+    },
+    []
+  )
+
   useEffect(() => {
     fetchUserList(true)
   }, [location])
@@ -548,11 +595,20 @@ export default function UserListPage() {
               }
             }}
           />
-          <RoleSelector
-            value={searchData.roleId || ''}
-            placeholder={t('selectRole')}
-            onChange={onRoleSelectChange}
-          />
+          <div className="mr-3">
+            <RoleSelector
+              value={searchData.roleId || ''}
+              placeholder={t('selectRole')}
+              onChange={onRoleSelectChange}
+            />
+          </div>
+          {!siteFrontId && checkPermit('user', 'manage_platform') && (
+            <AuthSourceSelector
+              value={searchData.authFrom || ''}
+              placeholder={t('selectAuthSource')}
+              onChange={onAuthSourceChange}
+            />
+          )}
         </div>
         <div>
           <Button

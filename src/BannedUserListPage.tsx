@@ -224,6 +224,7 @@ export default function BannedUserListPage() {
             keywords,
             '',
             'banned_user',
+            '',
             { siteFrontId }
           )
 

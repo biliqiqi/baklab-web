@@ -26,6 +26,7 @@ export const getUserList = (
   keywords?: string,
   roleId?: string,
   roleFrontId?: string,
+  authFrom?: string,
   custom?: CustomRequestOptions
 ) => {
   const params = new URLSearchParams()
@@ -40,6 +41,10 @@ export const getUserList = (
 
   if (roleFrontId) {
     params.set('roleFrontId', roleFrontId)
+  }
+
+  if (authFrom) {
+    params.set('auth_from', authFrom)
   }
 
   if (page) {

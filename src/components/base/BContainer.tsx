@@ -25,7 +25,6 @@ import {
   DEFAULT_CONTENT_WIDTH,
   DEFAULT_INNER_CONTENT_WIDTH,
   DEFAULT_PAGE_SIZE,
-  DOCK_HEIGHT,
   LEFT_SIDEBAR_STATE_KEY,
   NAV_HEIGHT,
   RIGHT_SIDEBAR_STATE_KEY,
@@ -340,12 +339,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     /* const [sidebarOpen, setSidebarOpen] = useState(!isMobile) */
 
     const location = useLocation()
-    const isFeedPage = useMemo(
-      () =>
-        location.pathname === '/' ||
-        (siteFrontId && location.pathname === `/z/${siteFrontId}`),
-      [location, siteFrontId]
-    )
 
     const onAlertDialogCancel = useCallback(() => {
       if (alertType == 'confirm') {

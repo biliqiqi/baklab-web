@@ -43,6 +43,7 @@ import {
   useForceUpdate,
   useInviteCodeStore,
   useNotFoundStore,
+  useReactOptionsStore,
   useReplyBoxStore,
   useRightSidebarStore,
   useSidebarStore,
@@ -277,6 +278,10 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         fetchCategoryList,
         updateCategories,
       }))
+    )
+
+    const fetchReactOptions = useReactOptionsStore(
+      (state) => state.fetchReactOptions
     )
 
     const { isLogined, authToken, currUserId } = useAuthedUserStore(
@@ -561,9 +566,11 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     useEffect(() => {
       if (siteFrontId) {
         toSync(async () => {
-          const promises: (Promise<Site | null> | Promise<Category[]>)[] = [
-            fetchCategoryList(siteFrontId),
-          ]
+          const promises: (
+            | Promise<Site | null>
+            | Promise<Category[]>
+            | Promise<void>
+          )[] = [fetchCategoryList(siteFrontId), fetchReactOptions()]
 
           if (!currSite || currSite.frontId !== siteFrontId) {
             promises.push(fetchSiteData(siteFrontId))
@@ -582,6 +589,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       updateCurrSite,
       fetchCategoryList,
       updateCategories,
+      fetchReactOptions,
       authToken,
     ])
 

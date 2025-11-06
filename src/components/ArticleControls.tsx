@@ -7,6 +7,7 @@ import {
   MessageSquare,
   QrCode,
   Share2Icon,
+  SmileIcon,
 } from 'lucide-react'
 import {
   HTMLAttributes,
@@ -27,6 +28,7 @@ import { cn, genArticlePath, noop } from '@/lib/utils'
 
 import {
   acceptAnswer,
+  toggleReactArticle,
   toggleSaveArticle,
   toggleSubscribeArticle,
   toggleVoteArticle,
@@ -34,7 +36,7 @@ import {
 import { ArticleContext } from '@/contexts/ArticleContext'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useRem2PxNum } from '@/hooks/use-rem-num'
-import { useAuthedUserStore } from '@/state/global'
+import { useAuthedUserStore, useReactOptionsStore } from '@/state/global'
 import {
   Article,
   ArticleAction,
@@ -125,6 +127,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
     () => `copy-link-btn-${article.id}`,
     [article.id]
   )
+  const reactOptions = useReactOptionsStore((state) => state.reactOptions)
 
   useEffect(() => {
     if (!clipboardRef.current) {
@@ -257,6 +260,27 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
       }
     },
     [article]
+  )
+
+  const onReactClick = useCallback(
+    async (reactId: string) => {
+      try {
+        if (!isLogined()) {
+          await loginWithDialog()
+          return
+        }
+
+        const resp = await toggleReactArticle(article.id, reactId, {
+          siteFrontId: article.siteFrontId,
+        })
+        if (!resp.code) {
+          onSuccess('react')
+        }
+      } catch (err) {
+        console.error('toggle react article failed: ', err)
+      }
+    },
+    [article, onSuccess, isLogined, loginWithDialog]
   )
 
   return (
@@ -442,9 +466,77 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           )}
       </div>
 
-      <div className="flex items-center">
+      <div className="flex flex-wrap items-center">
         {!article.locked && (
           <>
+            {ctype !== 'list' &&
+              isPublished &&
+              article.reactCounts &&
+              Object.keys(article.reactCounts).length > 0 && (
+                <div className="flex flex-wrap items-center gap-1 mr-1">
+                  {reactOptions
+                    .filter((react) => article.reactCounts[react.frontId] > 0)
+                    .map((react) => {
+                      const isActive = userState?.reactFrontId === react.frontId
+                      return (
+                        <Button
+                          key={react.id}
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onReactClick(react.id)}
+                          disabled={
+                            disabled ||
+                            (isLogined() && !checkPermit('article', 'react'))
+                          }
+                          className={cn(
+                            'h-[1.5rem] px-2 py-1 gap-1 text-sm',
+                            isActive && 'bg-accent'
+                          )}
+                          title={react.describe}
+                        >
+                          <span className="text-base leading-none">
+                            {react.emoji}
+                          </span>
+                          <span>{article.reactCounts[react.frontId]}</span>
+                        </Button>
+                      )
+                    })}
+                </div>
+              )}
+            {ctype !== 'list' &&
+              checkPermit('article', 'react') &&
+              isPublished && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={disabled}
+                      className="mr-1 h-[1.5rem]"
+                      title={t('reactPost')}
+                    >
+                      <SmileIcon size={rem2pxNum(1.25)} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="flex flex-row p-1 gap-1"
+                  >
+                    {reactOptions.map((react) => (
+                      <Button
+                        key={react.id}
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onReactClick(react.id)}
+                        className="h-auto px-2 py-1 text-lg hover:bg-accent"
+                        title={react.describe}
+                      >
+                        {react.emoji}
+                      </Button>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             {checkPermit('article', 'subscribe') &&
               isPublished &&
               notify &&

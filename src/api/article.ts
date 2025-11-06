@@ -10,6 +10,7 @@ import {
   ArticleListSort,
   ArticleListType,
   ArticleLockAction,
+  ArticleReact,
   ArticleResponse,
   ArticleStatus,
   ArticleSubmitResponse,
@@ -396,6 +397,28 @@ export const readManyArticle = (idList: string[]) =>
         .filter((num) => !Number.isNaN(num)),
     },
   })
+
+export const toggleReactArticle = (
+  id: string,
+  reactId: string,
+  custom?: CustomRequestOptions
+) =>
+  authRequest.post<ResponseData<ArticleResponse>>(
+    `articles/${id}/toggle_react`,
+    {
+      json: {
+        reactId: Number(reactId),
+      },
+    },
+    custom
+  )
+
+export const getReactOptions = (custom?: CustomRequestOptions) =>
+  authRequest.get<ResponseData<{ reactOptions: ArticleReact[] }>>(
+    `articles/react_options`,
+    {},
+    custom
+  )
 
 export const getFeedList = (
   page: number,

@@ -5,6 +5,7 @@ import { subscribeWithSelector } from 'zustand/middleware'
 import { refreshAuthState } from '@/lib/request'
 import { noop, setRootFontSize } from '@/lib/utils'
 
+import { getReactOptions } from '@/api/article'
 import { getCategoryList } from '@/api/category'
 import { getNotificationUnreadCount } from '@/api/message'
 import { getJoinedSiteList, getSiteWithFrontId } from '@/api/site'
@@ -23,6 +24,7 @@ import {
   Article,
   ArticleListMode,
   ArticleLog,
+  ArticleReact,
   Category,
   InviteCode,
   ReplyBoxProps,
@@ -1070,5 +1072,28 @@ export const useDefaultFontSizeStore = create<DefaultFontSizeState>((set) => ({
   defaultFontSize: '16',
   setDefaultFontSize(size) {
     set(() => ({ defaultFontSize: size }))
+  },
+}))
+
+export interface ReactOptionsState {
+  reactOptions: ArticleReact[]
+  setReactOptions: (options: ArticleReact[]) => void
+  fetchReactOptions: () => Promise<void>
+}
+
+export const useReactOptionsStore = create<ReactOptionsState>((set) => ({
+  reactOptions: [],
+  setReactOptions(options) {
+    set(() => ({ reactOptions: options }))
+  },
+  async fetchReactOptions() {
+    try {
+      const { code, data } = await getReactOptions()
+      if (!code && data.reactOptions) {
+        set(() => ({ reactOptions: data.reactOptions }))
+      }
+    } catch (err) {
+      console.error('fetch react options failed: ', err)
+    }
   },
 }))

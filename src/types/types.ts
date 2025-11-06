@@ -153,6 +153,7 @@ export interface Article {
   listWeight: number
   participateCount: number
   currUserState: CurrUserState | null
+  reactCounts: { [key: string]: number }
   showScore: boolean
   categoryId: string
   categoryFrontId: string
@@ -339,6 +340,7 @@ export type ArticleAction =
   | 'show_history'
   | 'lock'
   | 'accept_answer'
+  | 'react'
   | VoteType
 
 export type ActivityActionType =

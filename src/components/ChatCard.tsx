@@ -7,6 +7,7 @@ import {
   forwardRef,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react'
@@ -33,14 +34,22 @@ import {
   summaryText,
 } from '@/lib/utils'
 
-import { deleteArticle, toggleLockArticle } from '@/api/article'
+import {
+  deleteArticle,
+  toggleLockArticle,
+  toggleReactArticle,
+} from '@/api/article'
 import {
   EV_ON_EDIT_CLICK,
   EV_ON_REPLY_CLICK,
   NAV_HEIGHT,
 } from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
+import {
+  useAlertDialogStore,
+  useAuthedUserStore,
+  useReactOptionsStore,
+} from '@/state/global'
 import { ARTICLE_LOCK_ACTION, Article, ArticleAction } from '@/types/types'
 
 import ChatControls from './ChatControls'
@@ -53,6 +62,7 @@ import {
   AlertDialogTitle,
 } from './ui/alert-dialog'
 import { Badge } from './ui/badge'
+import { Button } from './ui/button'
 import { Card } from './ui/card'
 import { Skeleton } from './ui/skeleton'
 
@@ -78,6 +88,9 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
     const [alertOpen, setAlertOpen] = useState(false)
     const contentRef = useRef<HTMLDivElement>(null)
     const lightboxRef = useRef<PhotoSwipeLightbox | null>(null)
+
+    const userState = useMemo(() => article.currUserState, [article])
+
     const isMobile = useIsMobile()
 
     const parent = article.replyToArticle
@@ -94,6 +107,11 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
      * ) */
 
     const alertDialog = useAlertDialogStore()
+    const isLogined = useAuthedUserStore((state) => state.isLogined)
+    const loginWithDialog = useAuthedUserStore((state) => state.loginWithDialog)
+    const checkPermit = useAuthedUserStore((state) => state.permit)
+
+    const reactOptions = useReactOptionsStore((state) => state.reactOptions)
 
     const onEditClick = useCallback(
       (e: MouseEvent) => {
@@ -192,6 +210,27 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
         }
       },
       [article, onSuccess, authStore.username]
+    )
+
+    const onReactClick = useCallback(
+      async (reactId: string) => {
+        try {
+          if (!isLogined()) {
+            await loginWithDialog()
+            return
+          }
+
+          const resp = await toggleReactArticle(article.id, reactId, {
+            siteFrontId: article.siteFrontId,
+          })
+          if (!resp.code) {
+            onSuccess('react')
+          }
+        } catch (err) {
+          console.error('toggle react article failed: ', err)
+        }
+      },
+      [article, onSuccess, isLogined, loginWithDialog]
     )
 
     useEffect(() => {
@@ -409,14 +448,53 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
                   )}
                 </>
               ) : (
-                <div
-                  ref={contentRef}
-                  id={`gallery-${article.id}`}
-                  dangerouslySetInnerHTML={{
-                    __html: renderMD(article.content),
-                  }}
-                  className="b-article-content mb-2"
-                ></div>
+                <>
+                  <div
+                    ref={contentRef}
+                    id={`gallery-${article.id}`}
+                    dangerouslySetInnerHTML={{
+                      __html: renderMD(article.content),
+                    }}
+                    className="b-article-content mb-2"
+                  ></div>
+                  {article.reactCounts &&
+                    Object.keys(article.reactCounts).length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1 mr-1">
+                        {reactOptions
+                          .filter(
+                            (react) => article.reactCounts[react.frontId] > 0
+                          )
+                          .map((react) => {
+                            const isActive =
+                              userState?.reactFrontId === react.frontId
+                            return (
+                              <Button
+                                key={react.id}
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onReactClick(react.id)}
+                                disabled={
+                                  isLogined() &&
+                                  !checkPermit('article', 'react')
+                                }
+                                className={cn(
+                                  'h-[1.5rem] px-2 py-1 gap-1 text-sm',
+                                  isActive && 'bg-accent'
+                                )}
+                                title={react.describe}
+                              >
+                                <span className="text-base leading-none">
+                                  {react.emoji}
+                                </span>
+                                <span>
+                                  {article.reactCounts[react.frontId]}
+                                </span>
+                              </Button>
+                            )
+                          })}
+                      </div>
+                    )}
+                </>
               )}
             </div>
             {!article.deleted && !previewMode && (

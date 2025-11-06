@@ -1,6 +1,4 @@
 import {
-  BellIcon,
-  BookmarkIcon,
   CheckIcon,
   EllipsisIcon,
   HistoryIcon,
@@ -8,6 +6,7 @@ import {
   LockOpenIcon,
   MessageSquare,
   PencilIcon,
+  SmileIcon,
   Trash2Icon,
 } from 'lucide-react'
 import {
@@ -27,22 +26,18 @@ import { cn, noop } from '@/lib/utils'
 import {
   acceptAnswer,
   getArticleHistory,
-  toggleSaveArticle,
-  toggleSubscribeArticle,
-  toggleVoteArticle,
+  toggleReactArticle,
 } from '@/api/article'
 import { ArticleContext } from '@/contexts/ArticleContext'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { useArticleHistoryStore, useAuthedUserStore } from '@/state/global'
+import { useRem2PxNum } from '@/hooks/use-rem-num'
 import {
-  Article,
-  ArticleAction,
-  SUBSCRIBE_ACTION,
-  VoteType,
-} from '@/types/types'
+  useArticleHistoryStore,
+  useAuthedUserStore,
+  useReactOptionsStore,
+} from '@/state/global'
+import { Article, ArticleAction } from '@/types/types'
 
-import { BIconTriangleDown } from './icon/TriangleDown'
-import { BIconTriangleUp } from './icon/TriangleUp'
 import { Button } from './ui/button'
 import {
   DropdownMenu,
@@ -82,10 +77,6 @@ const ChatControls: React.FC<ChatControlsProps> = ({
   disabled = false,
   article,
   className,
-  upVote = false,
-  downVote = false,
-  bookmark = false,
-  notify = false,
   comment = true,
   history = false,
   isTopArticle = false,
@@ -98,7 +89,6 @@ const ChatControls: React.FC<ChatControlsProps> = ({
 }) => {
   const [showChatMenu, setShowChatMenu] = useState(false)
   const { siteFrontId } = useParams()
-  const userState = useMemo(() => article.currUserState, [article])
 
   const isRootArticle = useMemo(() => article.replyToId == '0', [article])
   const isPublished = useMemo(() => article.status == 'published', [article])
@@ -114,42 +104,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
   /* console.log('curr article history: ', articleHistory) */
 
   const articleCtx = useContext(ArticleContext)
-
-  const onSaveClick = useCallback(
-    async (e: MouseEvent<HTMLElement>) => {
-      try {
-        e.preventDefault()
-        const resp = await toggleSaveArticle(article.id, {
-          siteFrontId: article.siteFrontId,
-        })
-        if (!resp.code) {
-          onSuccess('save')
-        }
-      } catch (err) {
-        console.error('toggle save article failed: ', err)
-      }
-    },
-    [article, onSuccess]
-  )
-
-  const onSubscribeClick = useCallback(
-    async (e: MouseEvent<HTMLButtonElement>) => {
-      try {
-        e.preventDefault()
-        const resp = await toggleSubscribeArticle(
-          article.id,
-          SUBSCRIBE_ACTION.Toggle,
-          { siteFrontId: article.siteFrontId }
-        )
-        if (!resp.code) {
-          onSuccess('subscribe')
-        }
-      } catch (err) {
-        console.error('toggle subscribe article failed: ', err)
-      }
-    },
-    [article, onSuccess]
-  )
+  const rem2pxNum = useRem2PxNum()
 
   const onShowHistoryClick = useCallback(
     async (e: MouseEvent<HTMLElement>) => {
@@ -186,23 +141,6 @@ const ChatControls: React.FC<ChatControlsProps> = ({
       const { code } = await acceptAnswer(article.replyToId, article.id)
       if (!code) {
         onSuccess('accept_answer')
-      }
-    },
-    [article, onSuccess]
-  )
-
-  const onVoteClick = useCallback(
-    async (e: MouseEvent<HTMLButtonElement>, voteType: VoteType) => {
-      try {
-        e.preventDefault()
-        const resp = await toggleVoteArticle(article.id, voteType, {
-          siteFrontId: article.siteFrontId,
-        })
-        if (!resp.code) {
-          onSuccess(voteType)
-        }
-      } catch (err) {
-        console.error('toggle vote article failed: ', err)
       }
     },
     [article, onSuccess]
@@ -324,6 +262,29 @@ const ChatControls: React.FC<ChatControlsProps> = ({
     return renderMenuItems().length > 0
   }, [renderMenuItems])
 
+  const reactOptions = useReactOptionsStore((state) => state.reactOptions)
+
+  const onReactClick = useCallback(
+    async (reactId: string) => {
+      try {
+        if (!isLogined()) {
+          await loginWithDialog()
+          return
+        }
+
+        const resp = await toggleReactArticle(article.id, reactId, {
+          siteFrontId: article.siteFrontId,
+        })
+        if (!resp.code) {
+          onSuccess('react')
+        }
+      } catch (err) {
+        console.error('toggle react article failed: ', err)
+      }
+    },
+    [article, onSuccess, isLogined, loginWithDialog]
+  )
+
   return (
     <div
       className={cn(
@@ -336,37 +297,6 @@ const ChatControls: React.FC<ChatControlsProps> = ({
       <div className="b-chat-controls__btns rounded-sm flex flex-nowrap items-center whitespace-pre-wrap invisible bg-card shadow-md">
         {
           <>
-            {checkPermit('article', 'vote_up') && isPublished && upVote && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="mr-1 p-0 w-[36px] h-[36px]"
-                onClick={(e) => onVoteClick(e, 'up')}
-                disabled={disabled}
-              >
-                {/* <ThumbsUp size={20} className="inline-block mr-1" /> */}
-                <BIconTriangleUp
-                  size={28}
-                  variant={userState?.voteType == 'up' ? 'full' : 'default'}
-                />
-                {article.voteUp > 0 && article.voteUp}
-              </Button>
-            )}
-            {checkPermit('article', 'vote_down') && isPublished && downVote && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="mr-1 p-0 w-[36px] h-[36px]"
-                onClick={(e) => onVoteClick(e, 'down')}
-                disabled={disabled}
-              >
-                <BIconTriangleDown
-                  size={28}
-                  variant={userState?.voteType == 'down' ? 'full' : 'default'}
-                />
-                {article.voteDown > 0 && article.voteDown}
-              </Button>
-            )}
             {comment && !article.locked && (
               <Button
                 variant="ghost"
@@ -378,6 +308,40 @@ const ChatControls: React.FC<ChatControlsProps> = ({
                 <MessageSquare size={20} className="inline-block" />
               </Button>
             )}
+            {checkPermit('article', 'react') &&
+              isPublished &&
+              !article.locked && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={disabled}
+                      className="mr-1"
+                      title={t('reactPost')}
+                    >
+                      <SmileIcon size={rem2pxNum(1.25)} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="flex flex-row p-1 gap-1"
+                  >
+                    {reactOptions.map((react) => (
+                      <Button
+                        key={react.id}
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onReactClick(react.id)}
+                        className="h-auto px-2 py-1 text-lg hover:bg-accent"
+                        title={react.describe}
+                      >
+                        {react.emoji}
+                      </Button>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             {comment && article.locked && (
               <Button
                 variant="ghost"
@@ -389,44 +353,6 @@ const ChatControls: React.FC<ChatControlsProps> = ({
                 <LockIcon size={16} className="inline-block" />
               </Button>
             )}
-            {checkPermit('article', 'save') && isPublished && bookmark && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onSaveClick}
-                disabled={disabled}
-              >
-                <BookmarkIcon
-                  size={20}
-                  fill={userState?.saved ? 'currentColor' : 'transparent'}
-                  className={cn('mr-1', userState?.saved && 'text-primary')}
-                />
-                {article.totalSavedCount > 0 && article.totalSavedCount}
-              </Button>
-            )}
-            {checkPermit('article', 'subscribe') &&
-              isPublished &&
-              notify &&
-              isRootArticle && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onSubscribeClick}
-                  disabled={disabled}
-                  className="mr-1"
-                >
-                  <BellIcon
-                    size={20}
-                    fill={
-                      userState?.subscribed ? 'currentColor' : 'transparent'
-                    }
-                    className={cn(
-                      'mr-1',
-                      userState?.subscribed && 'text-primary'
-                    )}
-                  />
-                </Button>
-              )}
             {isLogined() && hasMenuOptions && (
               <DropdownMenu open={showChatMenu} onOpenChange={setShowChatMenu}>
                 <DropdownMenuTrigger

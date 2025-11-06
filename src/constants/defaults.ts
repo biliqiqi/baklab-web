@@ -115,6 +115,7 @@ export const defaultArticle: Article = {
   listWeight: 0,
   participateCount: 0,
   currUserState: { ...defaultCurrState },
+  reactCounts: {},
   showScore: false,
   categoryId: '0',
   categoryFrontId: '',

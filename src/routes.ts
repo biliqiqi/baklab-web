@@ -118,18 +118,6 @@ const checkHomepageAuth = () => {
   return null
 }
 
-const checkSiteFeedAuth = ({
-  params,
-}: {
-  params: { siteFrontId?: string }
-}) => {
-  const authState = useAuthedUserStore.getState()
-  if (!authState.isLogined()) {
-    return redirect(`/z/${params.siteFrontId}/all`)
-  }
-  return null
-}
-
 const somePermissions =
   <T extends PermissionModule>(
     ...pairs: [T, PermissionAction<T>][]
@@ -176,21 +164,22 @@ const createSiteRoutes = (prefix: '/z' | '/zhandian'): RouteObject[] => [
           return null
         }
 
-        if (site.homePage === '/') {
-          return redirect(`${prefix}/${params.siteFrontId}/feed`)
+        if (site.homePage !== '/') {
+          return redirect(`${prefix}/${params.siteFrontId}${site.homePage}`)
         }
-        return redirect(`${prefix}/${params.siteFrontId}${site.homePage}`)
+
+        const authState = useAuthedUserStore.getState()
+        if (!authState.isLogined()) {
+          return redirect(`${prefix}/${params.siteFrontId}/all`)
+        }
       } catch (err) {
         console.error(`error in ${prefix}/:siteFrontId route: `, err)
         return null
       }
+
+      return null
     },
-    Component: BankuaiPage,
-  },
-  {
-    path: `${prefix}/:siteFrontId/feed`,
     Component: FeedPage,
-    loader: checkSiteFeedAuth,
   },
   {
     path: `${prefix}/:siteFrontId/all`,

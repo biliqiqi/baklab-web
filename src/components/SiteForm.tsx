@@ -868,21 +868,21 @@ const SiteForm: React.FC<SiteFormProps> = ({
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
-                        defaultValue="/feed"
+                        defaultValue="/"
                         className="flex flex-wrap"
-                        value={field.value == '/' ? '/feed' : field.value}
+                        value={field.value}
                       >
                         <FormItem
                           className="flex items-center space-y-0 mr-4 mb-4"
-                          key="feed"
+                          key="homepage"
                         >
                           <FormControl>
-                            <RadioGroupItem value="/feed" className="mr-1" />
+                            <RadioGroupItem value="/" className="mr-1" />
                           </FormControl>
                           <FormLabel className="font-normal">
                             {t('feed')} (&nbsp;
                             <span className="text-sm text-gray-500">
-                              {`/z/${site.frontId}/feed`}
+                              {`/z/${site.frontId}`}
                             </span>
                             &nbsp;)
                           </FormLabel>

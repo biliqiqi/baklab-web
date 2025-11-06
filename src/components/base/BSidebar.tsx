@@ -231,8 +231,6 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
   const isCategoryListActive = useRouteMatch('/bankuai')
   const isAllPageActive = useRouteMatch('/all')
   const isHomePageActive = useRouteMatch('/')
-  const isFeedPageActive = useRouteMatch('/feed')
-  const isFeedPage = isHomePageActive || isFeedPageActive
 
   const siteSidebarMenus: () => (
     | SidebarMenuItem<'user'>
@@ -416,8 +414,8 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
               <SidebarMenu>
                 {isLogined() && (
                   <SidebarMenuItem key="feed">
-                    <SidebarMenuButton asChild isActive={isFeedPage}>
-                      <Link to={buildRoutePath('/feed', siteFrontId)}>
+                    <SidebarMenuButton asChild isActive={isHomePageActive}>
+                      <Link to={buildRoutePath('/', siteFrontId)}>
                         <BIconCircle id="feed" size={32}>
                           <PackageIcon size={18} />
                         </BIconCircle>

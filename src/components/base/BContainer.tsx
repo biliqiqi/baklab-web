@@ -341,7 +341,9 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     const location = useLocation()
     const isFeedPage = useMemo(
-      () => ['/', `/z/${siteFrontId}/feed`].includes(location.pathname),
+      () =>
+        location.pathname === '/' ||
+        (siteFrontId && location.pathname === `/z/${siteFrontId}`),
       [location, siteFrontId]
     )
 

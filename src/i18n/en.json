@@ -438,6 +438,7 @@
   "iconContent": "Icon Content",
   "iconBgColor": "Icon Background Color",
   "iconBgColorDescribe": "Supports hexadecimal and RGB formats, e.g., #fafafa or rgb(255 20 30). Default color is generated based on the bankuai identifier string.",
+  "generateBasedOnIdentifier": "Generate Based on Identifier",
   "categoryDescription": "Description",
   "blockedWord": "Blocked Word",
   "blockedWordsMaxChar": "The following words exceed {{num}} characters. Please adjust and resubmit:\n\n{{wordList}}",

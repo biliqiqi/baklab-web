@@ -477,3 +477,24 @@ export const recordLinkClick = (
     },
     { ...custom, authRequired: false }
   )
+
+export interface ContentLinkClick {
+  url: string
+  count: number
+}
+
+export interface ArticleStats {
+  viewCount: number
+  articleLinkClick: number
+  contentLinks: ContentLinkClick[]
+}
+
+export const getArticleStats = (
+  articleId: string,
+  custom?: CustomRequestOptions
+) =>
+  authRequest.get<ResponseData<{ stats: ArticleStats }>>(
+    `articles/${articleId}/stats`,
+    {},
+    custom
+  )

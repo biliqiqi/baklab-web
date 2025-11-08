@@ -179,6 +179,7 @@ export interface Article {
   contentStatus: ContentStatus | null
   acceptAnswerId: string
   viewCount: number
+  articleLinkClick: number
 }
 
 export interface ArticleListResponse {

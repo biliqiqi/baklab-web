@@ -45,6 +45,7 @@ import {
 import {
   deleteArticle,
   getArticleHistory,
+  recordLinkClick,
   toggleLockArticle,
 } from '@/api/article'
 import { EV_ON_EDIT_CLICK, EV_ON_REPLY_CLICK } from '@/constants/constants'
@@ -362,20 +363,51 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               )}
 
               {article.link && (
-                <span className="text-primary text-base font-normal">
-                  &nbsp; (
-                  <a
-                    href={article.link}
-                    target="_blank"
-                    title={article.link}
-                    className="break-all"
-                  >
-                    <SquareArrowOutUpRightIcon size={14} className="inline" />
-                    &nbsp;
-                    {extractDomain(article.link)}...
-                  </a>
-                  )
-                </span>
+                <>
+                  <span className="text-primary text-base font-normal">
+                    &nbsp; (
+                    <a
+                      href={article.link}
+                      target="_blank"
+                      title={article.link}
+                      className="break-all"
+                      onMouseDown={(e) => {
+                        // Record click for left button (0) and middle button (1)
+                        // Right button (2) is ignored as user might not actually open the link
+                        if (e.button === 0 || e.button === 1) {
+                          recordLinkClick(
+                            article.id,
+                            article.link,
+                            'article_link',
+                            {
+                              authRequired: false,
+                            }
+                          ).catch(() => {
+                            // Silently ignore errors
+                          })
+                        }
+                      }}
+                    >
+                      <SquareArrowOutUpRightIcon size={14} className="inline" />
+                      &nbsp;
+                      {extractDomain(article.link)}...
+                    </a>
+                    )
+                  </span>
+                  {article.articleLinkClick !== undefined &&
+                    article.articleLinkClick > 0 && (
+                      <>
+                        &nbsp;
+                        <Badge
+                          variant="secondary"
+                          title={t('linkClicks')}
+                          className="font-normal"
+                        >
+                          {article.articleLinkClick}
+                        </Badge>
+                      </>
+                    )}
+                </>
               )}
             </h1>
           </>
@@ -407,7 +439,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               &nbsp;·&nbsp;
               <span
                 title={t('viewCount')}
-                className="inline-flex items-center gap-1"
+                className="inline-flex items-center gap-1 mr-1"
               >
                 <EyeIcon className="w-3.5 h-3.5" />
                 {article.viewCount}

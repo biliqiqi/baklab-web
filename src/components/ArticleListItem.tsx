@@ -17,6 +17,7 @@ import {
   summaryText,
 } from '@/lib/utils'
 
+import { recordLinkClick } from '@/api/article'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useRem2PxNum } from '@/hooks/use-rem-num'
 import { useAuthedUserStore } from '@/state/global'
@@ -263,6 +264,17 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
                 target="_blank"
                 title={article.link}
                 className="break-all"
+                onMouseDown={(e) => {
+                  // Record click for left button (0) and middle button (1)
+                  // Right button (2) is ignored as user might not actually open the link
+                  if (e.button === 0 || e.button === 1) {
+                    recordLinkClick(article.id, article.link, 'article_link', {
+                      authRequired: false,
+                    }).catch(() => {
+                      // Silently ignore errors
+                    })
+                  }
+                }}
               >
                 <SquareArrowOutUpRightIcon size={14} className="inline" />
                 &nbsp;

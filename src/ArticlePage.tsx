@@ -20,7 +20,7 @@ import {
   REPLY_BOX_PLACEHOLDER_HEIGHT,
 } from '@/constants/constants'
 
-import { getArticle } from './api/article'
+import { getArticle, readManyArticle } from './api/article'
 import { ArticleContext } from './contexts/ArticleContext'
 import { usePermit } from './hooks/use-auth'
 import { useRawReplyBoxCache } from './hooks/use-editor-cache'
@@ -163,6 +163,15 @@ export default function ArticlePage() {
               setRootArticle(data.article)
             }
           }
+
+          // Record view statistics for the article and its replies
+          const viewedIds: string[] = [article.id]
+          if (article.replies?.list) {
+            viewedIds.push(...article.replies.list.map((reply) => reply.id))
+          }
+          readManyArticle(viewedIds).catch((err) => {
+            console.error('Failed to record article view:', err)
+          })
         }
       } catch (err) {
         console.error('fetch article error: ', err)

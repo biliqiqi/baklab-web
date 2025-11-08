@@ -224,7 +224,7 @@ export default function BlockedUserListPage() {
   const onResetClick = useCallback(() => {
     setSearchData({ ...defaultSearchData })
     resetParams()
-  }, [params, resetParams])
+  }, [resetParams])
 
   const onSearchClick = useCallback(() => {
     resetParams()

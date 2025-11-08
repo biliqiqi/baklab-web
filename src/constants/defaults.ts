@@ -139,6 +139,7 @@ export const defaultArticle: Article = {
   contentStatusId: '',
   contentStatus: null,
   acceptAnswerId: '0',
+  viewCount: 0,
 }
 
 export const defaultPageState: ListPageState = {

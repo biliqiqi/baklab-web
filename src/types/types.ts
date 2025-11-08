@@ -178,6 +178,7 @@ export interface Article {
   contentStatusId: string
   contentStatus: ContentStatus | null
   acceptAnswerId: string
+  viewCount: number
 }
 
 export interface ArticleListResponse {
@@ -301,6 +302,7 @@ export interface CustomRequestOptions {
   showAuthToast?: boolean
   siteFrontId?: string
   afterResponseHooks?: AfterResponseHook[]
+  authRequired?: boolean
 }
 
 export type FrontCategory = Pick<Category, 'frontId' | 'name' | 'describe'> & {

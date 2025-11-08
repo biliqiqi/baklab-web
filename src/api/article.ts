@@ -389,14 +389,21 @@ export const acceptAnswer = (id: string, answerId: string) =>
     json: { answerId },
   })
 
-export const readManyArticle = (idList: string[]) =>
-  authRequest.post<ResponseData<null>>(`articles/read`, {
-    json: {
-      idList: idList
-        .map((str) => Number(str))
-        .filter((num) => !Number.isNaN(num)),
+export const readManyArticle = (
+  idList: string[],
+  custom?: CustomRequestOptions
+) =>
+  authRequest.post<ResponseData<null>>(
+    `articles/read`,
+    {
+      json: {
+        idList: idList
+          .map((str) => Number(str))
+          .filter((num) => !Number.isNaN(num)),
+      },
     },
-  })
+    { ...custom, authRequired: false }
+  )
 
 export const toggleReactArticle = (
   id: string,
@@ -453,3 +460,20 @@ export const getFeedList = (
     custom
   )
 }
+
+export const recordLinkClick = (
+  articleId: string,
+  linkUrl: string,
+  linkType: 'article_link' | 'content_link',
+  custom?: CustomRequestOptions
+) =>
+  authRequest.post<ResponseData<null>>(
+    `articles/${articleId}/click`,
+    {
+      json: {
+        linkUrl,
+        linkType,
+      },
+    },
+    { ...custom, authRequired: false }
+  )

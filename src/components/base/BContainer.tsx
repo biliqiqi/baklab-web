@@ -479,8 +479,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         navigate,
         setEditting,
         setEdittingData,
-        editting,
-        showCategorySelectionModal,
       ]
     )
 

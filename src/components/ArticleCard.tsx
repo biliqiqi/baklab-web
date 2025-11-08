@@ -1,4 +1,5 @@
 import {
+  EyeIcon,
   HistoryIcon,
   LockIcon,
   LockOpenIcon,
@@ -401,6 +402,18 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           <span title={timeFmt(article.createdAt, 'YYYY-M-D H:m:s')}>
             {timeAgo(article.createdAt)}
           </span>
+          {article.viewCount !== undefined && article.viewCount > 0 && (
+            <>
+              &nbsp;·&nbsp;
+              <span
+                title={t('viewCount')}
+                className="inline-flex items-center gap-1"
+              >
+                <EyeIcon className="w-3.5 h-3.5" />
+                {article.viewCount}
+              </span>
+            </>
+          )}
           {article.status === 'pending' && (
             <>
               &nbsp;·&nbsp;

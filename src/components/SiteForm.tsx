@@ -349,7 +349,21 @@ const SiteForm: React.FC<SiteFormProps> = ({
       )
       if (!resp.code) {
         if (resp.data.articleTotal > 0) {
-          alertDialog.alert(t('undeletable'), t('siteContentExist'))
+          const inputName = await alertDialog.prompt(
+            t('confirm'),
+            t('siteContentExistDeleteConfirm', { siteName: site.name }),
+            '',
+            (value) => value === site.name,
+            t('siteNameNotMatch'),
+            'danger'
+          )
+
+          if (!inputName) return
+
+          const respD = await deleteSite(site.frontId)
+          if (!respD.code) {
+            onSuccess('')
+          }
           return
         }
       }

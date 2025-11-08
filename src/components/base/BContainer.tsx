@@ -84,6 +84,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../ui/dialog'
+import { Input } from '../ui/input'
 import { Sidebar, SidebarContent, SidebarProvider } from '../ui/sidebar'
 import BNav from './BNav'
 import BSidebar from './BSidebar'
@@ -337,7 +338,16 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       setOpen: setAlertOpen,
       confirmBtnText: alertConfirmBtnText,
       cancelBtnText: alertCancelBtnText,
+      promptValue,
+      promptValidator,
+      setPromptValue,
     } = alertDialog
+
+    const isPromptValid = useMemo(() => {
+      if (alertType !== 'prompt') return true
+      if (!promptValidator) return true
+      return promptValidator(promptValue)
+    }, [alertType, promptValidator, promptValue])
 
     const isMobile = useIsMobile()
 
@@ -346,17 +356,20 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const location = useLocation()
 
     const onAlertDialogCancel = useCallback(() => {
-      if (alertType == 'confirm') {
+      if (alertType == 'confirm' || alertType == 'prompt') {
         alertDialog.setState((state) => ({
           ...state,
           open: false,
           confirmed: false,
         }))
+        if (alertType == 'prompt') {
+          alertDialog.setPromptValue('')
+        }
       }
     }, [alertDialog, alertType])
 
     const onAlertDialogConfirm = useCallback(() => {
-      if (alertType == 'confirm') {
+      if (alertType == 'confirm' || alertType == 'prompt') {
         alertDialog.setState((state) => ({
           ...state,
           open: false,
@@ -364,6 +377,16 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         }))
       }
     }, [alertDialog, alertType])
+
+    const onAlertOpenChange = useCallback(
+      (open: boolean) => {
+        setAlertOpen(open)
+        if (!open && alertType == 'prompt') {
+          alertDialog.setPromptValue('')
+        }
+      },
+      [setAlertOpen, alertType, alertDialog]
+    )
 
     const onToggleTopDrawer = useCallback(() => {
       if (!showTopDrawer) {
@@ -887,7 +910,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         <AlertDialog
           defaultOpen={false}
           open={alertOpen}
-          onOpenChange={setAlertOpen}
+          onOpenChange={onAlertOpenChange}
         >
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -896,6 +919,22 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 {alertDescription}
               </AlertDialogDescription>
             </AlertDialogHeader>
+            {alertType == 'prompt' && (
+              <div className="py-4">
+                <Input
+                  value={promptValue}
+                  onChange={(e) => {
+                    setPromptValue(e.target.value)
+                  }}
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && isPromptValid) {
+                      onAlertDialogConfirm()
+                    }
+                  }}
+                />
+              </div>
+            )}
             <AlertDialogFooter>
               {alertType != 'alert' && (
                 <AlertDialogCancel onClick={onAlertDialogCancel}>
@@ -906,6 +945,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               )}
               <AlertDialogAction
                 onClick={onAlertDialogConfirm}
+                disabled={alertType == 'prompt' && !isPromptValid}
                 className={
                   alertDialog.confirmType == 'danger'
                     ? 'bg-red-600 hover:bg-red-500'

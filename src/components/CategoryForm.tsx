@@ -287,7 +287,30 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
       )
       if (!resp.code) {
         if (resp.data.articleTotal > 0) {
-          alertDialog.alert(t('undeletable'), t('categoryContentExists'))
+          const inputName = await alertDialog.prompt(
+            t('confirm'),
+            t('categoryContentExistsDeleteConfirm', {
+              categoryName: category.name,
+            }),
+            '',
+            (value) => value === category.name,
+            t('categoryNameNotMatch'),
+            'danger'
+          )
+
+          if (!inputName) return
+
+          const respD = await deleteCategory(
+            category.frontId,
+            category.name,
+            authStore.username,
+            {
+              siteFrontId: category.siteFrontId,
+            }
+          )
+          if (!respD.code) {
+            onSuccess()
+          }
           return
         }
       }

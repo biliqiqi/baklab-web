@@ -437,7 +437,7 @@ export const useDialogStore = create<DialogState>((set) => ({
 type AlertConfirmType = 'normal' | 'danger'
 
 export interface AlertDialogState {
-  type: 'alert' | 'confirm'
+  type: 'alert' | 'confirm' | 'prompt'
   open: boolean
   title?: string
   description?: string
@@ -445,8 +445,13 @@ export interface AlertDialogState {
   cancelBtnText?: string | StringFn
   confirmed: boolean
   confirmType: AlertConfirmType
+  promptValue: string
+  promptPlaceholder?: string
+  promptValidator?: (value: string) => boolean
+  promptErrorMessage?: string
   setOpen: (open: boolean) => void
   setConfirm: (confirm: boolean) => void
+  setPromptValue: (value: string) => void
   alert: (title: string, description?: string) => void
   confirm: (
     title: string,
@@ -454,6 +459,14 @@ export interface AlertDialogState {
     confirmType?: AlertConfirmType,
     state?: AlertDialogData
   ) => Promise<boolean>
+  prompt: (
+    title: string,
+    description?: string,
+    placeholder?: string,
+    validator?: (value: string) => boolean,
+    errorMessage?: string,
+    confirmType?: AlertConfirmType
+  ) => Promise<string | null>
   setState: (fn: (x: AlertDialogData) => AlertDialogData) => void
 }
 
@@ -491,6 +504,10 @@ export const useAlertDialogStore = create<AlertDialogState>((set, _get) => ({
   open: false,
   ...defaultAlertState,
   ...defaultConfirmState,
+  promptValue: '',
+  promptPlaceholder: '',
+  promptValidator: undefined,
+  promptErrorMessage: '',
   setState: set,
   setOpen(open) {
     set((state) => ({
@@ -504,6 +521,12 @@ export const useAlertDialogStore = create<AlertDialogState>((set, _get) => ({
       confirmed,
     }))
   },
+  setPromptValue(value) {
+    set((state) => ({
+      ...state,
+      promptValue: value,
+    }))
+  },
   alert: (title, description) => {
     set(() => ({
       type: 'alert',
@@ -512,6 +535,7 @@ export const useAlertDialogStore = create<AlertDialogState>((set, _get) => ({
       description,
       confirmBtnText: defaultAlertState.confirmBtnText,
       confirmType: 'normal',
+      promptValue: '',
     }))
   },
   confirm: (title, description, confirmType = 'normal', state) =>
@@ -523,6 +547,7 @@ export const useAlertDialogStore = create<AlertDialogState>((set, _get) => ({
         title,
         description,
         confirmType,
+        promptValue: '',
         ...state,
       }))
 
@@ -541,6 +566,49 @@ export const useAlertDialogStore = create<AlertDialogState>((set, _get) => ({
         type: 'alert',
         ...defaultAlertState,
         ...defaultConfirmState,
+        promptValue: '',
+      }))
+    }),
+  prompt: (
+    title,
+    description,
+    placeholder = '',
+    validator,
+    errorMessage = '',
+    confirmType = 'danger'
+  ) =>
+    new Promise<string | null>((resolve) => {
+      set(() => ({
+        type: 'prompt',
+        open: true,
+        confirmed: false,
+        title,
+        description,
+        confirmType,
+        promptValue: '',
+        promptPlaceholder: placeholder,
+        promptValidator: validator,
+        promptErrorMessage: errorMessage,
+        confirmBtnText: defaultAlertState.confirmBtnText,
+        cancelBtnText: defaultConfirmState.cancelBtnText,
+      }))
+
+      const unsubscribe = useAlertDialogStore.subscribe((state) => {
+        if (state.type == 'prompt' && !state.open) {
+          resolve(state.confirmed ? state.promptValue : null)
+          unsubscribe()
+        }
+      })
+    }).finally(() => {
+      set((state) => ({
+        ...state,
+        type: 'alert',
+        ...defaultAlertState,
+        ...defaultConfirmState,
+        promptValue: '',
+        promptPlaceholder: '',
+        promptValidator: undefined,
+        promptErrorMessage: '',
       }))
     }),
 }))

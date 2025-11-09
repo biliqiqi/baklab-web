@@ -123,6 +123,7 @@ export const defaultArticle: Article = {
   locked: false,
   pinned: false,
   pinnedExpireAt: '',
+  pinnedScope: '',
   blocked: false,
   fadeOut: false,
   replyRootArticleId: '',

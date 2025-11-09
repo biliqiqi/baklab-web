@@ -1,4 +1,4 @@
-import { SquareArrowOutUpRightIcon } from 'lucide-react'
+import { PinIcon, SquareArrowOutUpRightIcon } from 'lucide-react'
 import MarkdownIt from 'markdown-it'
 import 'photoswipe/style.css'
 import React, { useEffect, useRef } from 'react'
@@ -31,6 +31,8 @@ import { Badge } from './ui/badge'
 interface ArticleListItemProps {
   article: Article
   siteFrontId?: string
+  categoryFrontId?: string
+  isFeedList?: boolean
   onUpdate?: (updatedArticle: Article) => void
   mode?: ArticleListMode
 }
@@ -39,6 +41,39 @@ const THUMB_IMG_WIDTH = 400
 const THUMB_IMG_HEIGHT = 400
 
 const md = new MarkdownIt()
+
+const shouldShowPinIcon = (
+  article: Article,
+  siteFrontId?: string,
+  categoryFrontId?: string,
+  isFeedList?: boolean
+): boolean => {
+  if (!article.pinned || !article.pinnedScope) {
+    return false
+  }
+
+  // Platform level: always show
+  if (article.pinnedScope === 'platform') {
+    return true
+  }
+
+  // Feed list: show site-level pins only in site-specific feed
+  if (isFeedList) {
+    return article.pinnedScope === 'site' && !!siteFrontId
+  }
+
+  // Site level: show in site homepage and all category lists within the site
+  if (article.pinnedScope === 'site') {
+    return !!siteFrontId
+  }
+
+  // Category level: show only in category-level lists (has both siteFrontId and categoryFrontId)
+  if (article.pinnedScope === 'category') {
+    return !!categoryFrontId && categoryFrontId === article.categoryFrontId
+  }
+
+  return false
+}
 
 /**
    @description extract image from markdown strings
@@ -103,6 +138,8 @@ const extractImgFromMD = (
 const ArticleListItem: React.FC<ArticleListItemProps> = ({
   article,
   siteFrontId,
+  categoryFrontId,
+  isFeedList = false,
   onUpdate,
   mode = ARTICLE_LIST_MODE.Compact,
 }) => {
@@ -254,6 +291,18 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
             )}
             to={genArticlePath(article)}
           >
+            {shouldShowPinIcon(
+              article,
+              siteFrontId,
+              categoryFrontId,
+              isFeedList
+            ) && (
+              <PinIcon
+                size={18}
+                className="inline mr-2 text-primary"
+                style={{ transform: 'rotate(45deg)' }}
+              />
+            )}
             {article.title}
           </Link>
           {article.link && (

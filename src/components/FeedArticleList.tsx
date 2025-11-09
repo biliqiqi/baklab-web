@@ -89,6 +89,7 @@ const FeedArticleLis: React.FC<FeedArticleLisProps> = ({
     <BaseArticleList
       fetchArticles={fetchArticles}
       siteFrontId={siteFrontId}
+      isFeedList={true}
       submitPath={submitPath}
       showTabsCondition={listLength > 0}
       onLoad={handleLoad}

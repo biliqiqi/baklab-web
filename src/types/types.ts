@@ -163,6 +163,7 @@ export interface Article {
   locked: boolean
   pinned: boolean
   pinnedExpireAt: string
+  pinnedScope: string
   blocked: boolean
   fadeOut: boolean
   replyRootAuthorId: string

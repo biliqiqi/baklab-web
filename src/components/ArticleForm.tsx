@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
-import { timeAgo } from '@/lib/dayjs-custom'
+import { dayjs, timeAgo } from '@/lib/dayjs-custom'
 import { cn } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
@@ -46,6 +46,7 @@ import TipTap, { TipTapRef } from './TipTap'
 import BAvatar from './base/BAvatar'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
+import { Checkbox } from './ui/checkbox'
 import {
   Command,
   CommandEmpty,
@@ -67,6 +68,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { Spinner } from './ui/spinner'
 import { Textarea } from './ui/textarea'
 
+
 const contentRule = z.string().max(ARTICLE_MAX_CONTENT_LEN)
 
 const contentSchema = z.object({
@@ -79,6 +81,8 @@ const articleSchema = z.object({
   category: z.string(),
   contentFormId: z.string().optional(),
   content: contentRule,
+  pinnedScope: z.enum(['', 'category', 'site', 'platform']).optional(),
+  pinnedExpireAt: z.string().optional(),
 })
 
 type ArticleSchema = z.infer<typeof articleSchema>
@@ -113,6 +117,8 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
   const [imageUploading, setImageUploading] = useState(false)
   const [showLinkField, setShowLinkField] = useState(false)
   const [isComposing, setIsComposing] = useState(false)
+  const [isPinned, setIsPinned] = useState(false)
+  const [showPinScopeOptions, setShowPinScopeOptions] = useState(false)
   /* const [isDragging, setDragging] = useState(false) */
 
   /* const [selectedCategory, setSelectedCategory] = useState<Category | null>(
@@ -200,6 +206,10 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
             category: article.categoryId,
             content: article.content,
             contentFormId: article.contentFormId || '0',
+            pinnedScope: (article.pinnedScope as '') || '',
+            pinnedExpireAt: article.pinnedExpireAt
+              ? dayjs(article.pinnedExpireAt).format('YYYY-MM-DDTHH:mm')
+              : '',
           }
       : {
           title: (initialCache?.title as string) || '',
@@ -213,6 +223,8 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
             (initialCache?.contentFormId as string) ||
             categoryMap[paramCateId]?.contentFormId ||
             '0',
+          pinnedScope: '',
+          pinnedExpireAt: '',
         }
 
   /* console.log('default form data: ', defaultArticleData) */
@@ -262,6 +274,8 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
       category,
       content,
       contentFormId,
+      pinnedScope,
+      pinnedExpireAt,
     }: ArticleSchema) => {
       /* console.log('values: ', content)
        * console.log('isEdit:', isEdit)
@@ -271,6 +285,12 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
 
       try {
         setLoading(true)
+
+        let formattedExpireAt: string | undefined = undefined
+        if (pinnedExpireAt && pinnedScope) {
+          const localDate = new Date(pinnedExpireAt)
+          formattedExpireAt = localDate.toISOString()
+        }
 
         let data: ResponseData<ArticleSubmitResponse>
         if (isEdit) {
@@ -299,6 +319,8 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
               content,
               false,
               contentFormId,
+              pinnedScope,
+              formattedExpireAt,
               { siteFrontId: article.siteFrontId }
             )
           }
@@ -310,6 +332,8 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
             content,
             false,
             contentFormId,
+            pinnedScope,
+            formattedExpireAt,
             {
               siteFrontId,
             }
@@ -506,6 +530,12 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
     }
   }, [categoryMap, isEdit])
 
+  useEffect(() => {
+    if (isEdit && article && article.pinnedScope) {
+      setIsPinned(true)
+    }
+  }, [isEdit, article])
+
   return (
     <Card className="p-3">
       {article && !isPreview && (
@@ -548,7 +578,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                   </FormItem>
                 )}
               />
-              <div className="flex flex-wrap items-start">
+              <div className="flex flex-wrap items-center">
                 <FormField
                   control={form.control}
                   name="category"
@@ -715,6 +745,178 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
               )}
             </>
           )}
+          {/* 置顶功能 - 只有非回复且用户有置顶权限时才显示 */}
+          {!isReply &&
+            (checkPermit('article', 'pin') ||
+              checkPermit('article', 'manage_platform')) && (
+              <div
+                className="flex flex-wrap items-center"
+                style={{ display: isPreview ? 'none' : '' }}
+              >
+                <FormField
+                  control={form.control}
+                  name="pinnedScope"
+                  render={({ field }) => (
+                    <FormItem className="mr-4 my-1">
+                      <div className="flex items-center space-x-2">
+                        <FormControl>
+                          <Checkbox
+                            checked={isPinned}
+                            onCheckedChange={(checked) => {
+                              setIsPinned(checked as boolean)
+                              if (!checked) {
+                                field.onChange('')
+                                form.setValue('pinnedExpireAt', '')
+                              } else {
+                                field.onChange('category')
+                                const defaultExpireTime = new Date()
+                                defaultExpireTime.setDate(
+                                  defaultExpireTime.getDate() + 7
+                                )
+                                form.setValue(
+                                  'pinnedExpireAt',
+                                  defaultExpireTime.toISOString().slice(0, 16)
+                                )
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-gray-500 cursor-pointer">
+                          {t('pinArticle')}
+                        </FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                {isPinned && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="pinnedScope"
+                      render={({ field }) => (
+                        <FormItem className="mr-4 my-1">
+                          <FormControl>
+                            <Popover
+                              open={showPinScopeOptions}
+                              onOpenChange={setShowPinScopeOptions}
+                            >
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  size="sm"
+                                  className="w-[180px] justify-between"
+                                >
+                                  {field.value === 'category' &&
+                                    t('pinScopeCategory')}
+                                  {field.value === 'site' && t('pinScopeSite')}
+                                  {field.value === 'platform' &&
+                                    t('pinScopePlatform')}
+                                  {!field.value && t('pleaseSelect')}
+                                  <ChevronsUpDown className="opacity-50 w-4 h-4" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-[180px] p-0">
+                                <Command>
+                                  <CommandList>
+                                    <CommandGroup>
+                                      <CommandItem
+                                        value="category"
+                                        onSelect={() => {
+                                          field.onChange('category')
+                                          setShowPinScopeOptions(false)
+                                        }}
+                                      >
+                                        {t('pinScopeCategory')}
+                                        <Check
+                                          className={cn(
+                                            'ml-auto h-4 w-4',
+                                            field.value === 'category'
+                                              ? 'opacity-100'
+                                              : 'opacity-0'
+                                          )}
+                                        />
+                                      </CommandItem>
+                                      {checkPermit('article', 'pin') && (
+                                        <CommandItem
+                                          value="site"
+                                          onSelect={() => {
+                                            field.onChange('site')
+                                            setShowPinScopeOptions(false)
+                                          }}
+                                        >
+                                          {t('pinScopeSite')}
+                                          <Check
+                                            className={cn(
+                                              'ml-auto h-4 w-4',
+                                              field.value === 'site'
+                                                ? 'opacity-100'
+                                                : 'opacity-0'
+                                            )}
+                                          />
+                                        </CommandItem>
+                                      )}
+                                      {checkPermit(
+                                        'article',
+                                        'manage_platform'
+                                      ) && (
+                                        <CommandItem
+                                          value="platform"
+                                          onSelect={() => {
+                                            field.onChange('platform')
+                                            setShowPinScopeOptions(false)
+                                          }}
+                                        >
+                                          {t('pinScopePlatform')}
+                                          <Check
+                                            className={cn(
+                                              'ml-auto h-4 w-4',
+                                              field.value === 'platform'
+                                                ? 'opacity-100'
+                                                : 'opacity-0'
+                                            )}
+                                          />
+                                        </CommandItem>
+                                      )}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="pinnedExpireAt"
+                      render={({ field }) => (
+                        <FormItem className="mr-4 my-1">
+                          <div className="flex items-center space-x-2">
+                            <FormLabel className="text-gray-500 whitespace-nowrap">
+                              {t('pinExpireTime')}
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="datetime-local"
+                                className="w-auto"
+                                {...field}
+                                value={field.value || ''}
+                                onChange={(e) => {
+                                  field.onChange(e.target.value)
+                                }}
+                              />
+                            </FormControl>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+              </div>
+            )}
           <FormField
             control={form.control}
             name="content"

@@ -54,6 +54,8 @@ export interface FetchArticlesResponse {
 interface BaseArticleListProps {
   fetchArticles: (params: FetchArticlesParams) => Promise<FetchArticlesResponse>
   siteFrontId?: string
+  categoryFrontId?: string
+  isFeedList?: boolean
   submitPath?: string
   showTabsCondition?: boolean
   onLoad?: () => void
@@ -65,6 +67,8 @@ interface BaseArticleListProps {
 const BaseArticleList: React.FC<BaseArticleListProps> = ({
   fetchArticles,
   siteFrontId,
+  categoryFrontId,
+  isFeedList = false,
   submitPath: customSubmitPath,
   showTabsCondition = true,
   onLoad = noop,
@@ -246,6 +250,8 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
                 key={item.id}
                 article={item}
                 siteFrontId={siteFrontId}
+                categoryFrontId={categoryFrontId}
+                isFeedList={isFeedList}
                 onUpdate={handleArticleUpdate(item.id)}
                 mode={mode}
               />
@@ -258,6 +264,8 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
                 <ArticleListItem
                   article={item}
                   siteFrontId={siteFrontId}
+                  categoryFrontId={categoryFrontId}
+                  isFeedList={isFeedList}
                   onUpdate={handleArticleUpdate(item.id)}
                   mode={mode}
                 />

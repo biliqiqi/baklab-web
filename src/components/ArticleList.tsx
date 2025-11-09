@@ -94,6 +94,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
       <BaseArticleList
         fetchArticles={fetchArticles}
         siteFrontId={siteFrontId}
+        categoryFrontId={categoryFrontId}
         submitPath={submitPath}
         onLoad={onLoad}
         onReady={noop}

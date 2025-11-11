@@ -12,6 +12,7 @@ import {
   SiteInviteResponse,
   SiteListResponse,
   SiteStatus,
+  SiteTagConfig,
   SiteVisible,
 } from '@/types/types'
 
@@ -27,7 +28,8 @@ export const submitSite = (
   reviewBeforePublish: boolean,
   rateLimitTokens: number,
   rateLimitInterval: number,
-  rateLimitEnabled: boolean
+  rateLimitEnabled: boolean,
+  tagConfig?: SiteTagConfig | null
 ) =>
   authRequest.post<ResponseData<ResponseID>>(`sites`, {
     json: {
@@ -43,6 +45,7 @@ export const submitSite = (
       rateLimitTokens,
       rateLimitInterval,
       rateLimitEnabled,
+      tagConfig: tagConfig || undefined,
     },
   })
 
@@ -59,7 +62,8 @@ export const updateSite = (
   reviewBeforePublish: boolean,
   rateLimitTokens: number,
   rateLimitInterval: number,
-  rateLimitEnabled: boolean
+  rateLimitEnabled: boolean,
+  tagConfig?: SiteTagConfig | null
 ) =>
   authRequest.patch<ResponseData<ResponseID>>(`sites/${frontId}`, {
     json: {
@@ -75,6 +79,7 @@ export const updateSite = (
       rateLimitTokens,
       rateLimitInterval,
       rateLimitEnabled,
+      tagConfig: tagConfig || undefined,
     },
   })
 

@@ -37,7 +37,6 @@ import {
 } from './ui/form'
 import { Input } from './ui/input'
 import { RadioGroup, RadioGroupItem } from './ui/radio-group'
-import { Switch } from './ui/switch'
 import { Textarea } from './ui/textarea'
 
 const MAX_SITE_FRONT_ID_LENGTH = 20
@@ -78,6 +77,11 @@ const createSiteSchema = (i: I18n) =>
       rateLimitTokens: z.string().optional(),
       rateLimitInterval: z.string().optional(),
       rateLimitEnabled: z.boolean(),
+      tagsEnabled: z.boolean(),
+      allowUserCreateTags: z.boolean(),
+      requireTagReview: z.boolean(),
+      maxTagsPerPost: z.string().optional(),
+      predefinedTags: z.string(),
     })
     .refine(
       (data) => {
@@ -124,6 +128,11 @@ const createSiteEditSchema = (i: I18n) =>
       rateLimitTokens: z.string().optional(),
       rateLimitInterval: z.string().optional(),
       rateLimitEnabled: z.boolean(),
+      tagsEnabled: z.boolean(),
+      allowUserCreateTags: z.boolean(),
+      requireTagReview: z.boolean(),
+      maxTagsPerPost: z.string().optional(),
+      predefinedTags: z.string(),
     })
     .refine(
       (data) => {
@@ -188,6 +197,11 @@ const defaultSiteData: SiteSchema = {
   rateLimitTokens: '15',
   rateLimitInterval: '60',
   rateLimitEnabled: false,
+  tagsEnabled: false,
+  allowUserCreateTags: false,
+  requireTagReview: false,
+  maxTagsPerPost: '3',
+  predefinedTags: '',
 }
 
 const SiteForm: React.FC<SiteFormProps> = ({
@@ -238,6 +252,13 @@ const SiteForm: React.FC<SiteFormProps> = ({
                 ? String(site.rateLimitInterval)
                 : '60',
             rateLimitEnabled: site.rateLimitEnabled || false,
+            tagsEnabled: site.tagConfig?.enabled || false,
+            allowUserCreateTags: site.tagConfig?.allowUserCreate ?? false,
+            requireTagReview: site.tagConfig?.requireReview || false,
+            maxTagsPerPost: site.tagConfig?.maxTagsPerPost
+              ? String(site.tagConfig.maxTagsPerPost)
+              : '3',
+            predefinedTags: site.tagConfig?.predefinedTags?.join(', ') || '',
           }
         : defaultSiteData),
     },
@@ -245,6 +266,12 @@ const SiteForm: React.FC<SiteFormProps> = ({
   })
 
   const formVals = form.watch()
+
+  useEffect(() => {
+    if (!formVals.tagsEnabled && formVals.allowUserCreateTags) {
+      form.setValue('allowUserCreateTags', false, { shouldDirty: true })
+    }
+  }, [form, formVals.allowUserCreateTags, formVals.tagsEnabled])
 
   const onSubmit = useCallback(
     async ({
@@ -261,6 +288,11 @@ const SiteForm: React.FC<SiteFormProps> = ({
       rateLimitTokens,
       rateLimitInterval,
       rateLimitEnabled,
+      tagsEnabled,
+      allowUserCreateTags,
+      requireTagReview,
+      maxTagsPerPost,
+      predefinedTags,
     }: SiteSchema) => {
       /* console.log('site vals: ', frontID) */
       try {
@@ -273,6 +305,21 @@ const SiteForm: React.FC<SiteFormProps> = ({
         const rateLimitTokensNum = parseInt(rateLimitTokens || '10', 10) || 10
         const rateLimitIntervalNum =
           parseInt(rateLimitInterval || '60', 10) || 60
+
+        const tagConfig = tagsEnabled
+          ? {
+              enabled: tagsEnabled,
+              allowUserCreate: allowUserCreateTags,
+              requireReview: requireTagReview,
+              maxTagsPerPost: parseInt(maxTagsPerPost || '3', 10) || 3,
+              predefinedTags: predefinedTags
+                ? predefinedTags
+                    .split(/[,\s]+/)
+                    .map((tag) => tag.trim())
+                    .filter((tag) => tag.length > 0)
+                : [],
+            }
+          : null
 
         if (isEdit) {
           resp = await updateSite(
@@ -288,7 +335,8 @@ const SiteForm: React.FC<SiteFormProps> = ({
             reviewBeforePublish,
             rateLimitTokensNum,
             rateLimitIntervalNum,
-            rateLimitEnabled
+            rateLimitEnabled,
+            tagConfig
           )
         } else {
           const exists = await checkSiteExists(frontID)
@@ -316,7 +364,8 @@ const SiteForm: React.FC<SiteFormProps> = ({
             reviewBeforePublish,
             rateLimitTokensNum,
             rateLimitIntervalNum,
-            rateLimitEnabled
+            rateLimitEnabled,
+            tagConfig
           )
         }
         if (!resp?.code) {
@@ -789,14 +838,15 @@ const SiteForm: React.FC<SiteFormProps> = ({
                   </FormDescription>
                   <FormControl>
                     <div className="flex items-center">
-                      <Switch
+                      <Checkbox
                         id="rate-limit-enabled"
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
+                        checked={!!field.value}
+                        onCheckedChange={(checked) => field.onChange(!!checked)}
+                        className="mr-1"
                       />
                       <label
                         htmlFor="rate-limit-enabled"
-                        className="inline-block pl-2 leading-[24px] text-sm"
+                        className="inline-block leading-[24px] text-sm"
                       >
                         {t('siteRateLimitEnabledLabel')}
                       </label>
@@ -860,6 +910,160 @@ const SiteForm: React.FC<SiteFormProps> = ({
                           })}
                           autoComplete="off"
                           pattern="^\d+$"
+                          state={fieldState.invalid ? 'invalid' : 'default'}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
+            <FormField
+              control={form.control}
+              name="tagsEnabled"
+              key="tagsEnabled"
+              render={({ field }) => (
+                <FormItem className="mb-8">
+                  <FormLabel>{t('tagManagement')}</FormLabel>
+                  <FormDescription>{t('enableTagsDescribe')}</FormDescription>
+                  <FormControl>
+                    <div className="flex items-center">
+                      <Checkbox
+                        checked={!!field.value}
+                        onCheckedChange={(checked) => {
+                          const nextValue = !!checked
+                          field.onChange(nextValue)
+                          if (
+                            !nextValue &&
+                            form.getValues('allowUserCreateTags')
+                          ) {
+                            form.setValue('allowUserCreateTags', false, {
+                              shouldDirty: true,
+                            })
+                          }
+                        }}
+                        aria-label={t('enableTagsLabel')}
+                        className="mr-1"
+                        id="tagsEnabled"
+                      />{' '}
+                      <label htmlFor="tagsEnabled" className="text-sm">
+                        {t('enableTagsLabel')}
+                      </label>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {formVals.tagsEnabled && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="allowUserCreateTags"
+                  key="allowUserCreateTags"
+                  render={({ field }) => (
+                    <FormItem className="mb-8">
+                      <FormLabel>{t('allowUserCreateTags')}</FormLabel>
+                      <FormDescription>
+                        {t('allowUserCreateTagsDescribe')}
+                      </FormDescription>
+                      <FormControl>
+                        <div className="flex items-center">
+                          <Checkbox
+                            checked={!!field.value}
+                            onCheckedChange={(checked) =>
+                              field.onChange(!!checked)
+                            }
+                            aria-label={t('allowUserCreateTags')}
+                            className="mr-1"
+                            id="allowUserCreateTags"
+                          />{' '}
+                          <label
+                            htmlFor="allowUserCreateTags"
+                            className="text-sm"
+                          >
+                            {t('allow')}
+                          </label>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {formVals.allowUserCreateTags && (
+                  <FormField
+                    control={form.control}
+                    name="requireTagReview"
+                    key="requireTagReview"
+                    render={({ field }) => (
+                      <FormItem className="mb-8">
+                        <FormLabel>{t('requireTagReview')}</FormLabel>
+                        <FormDescription>
+                          {t('requireTagReviewDescribe')}
+                        </FormDescription>
+                        <FormControl>
+                          <div className="flex items-center">
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              aria-label={t('requireTagReview')}
+                              className="mr-1"
+                              id="requireTagReview"
+                            />{' '}
+                            <label
+                              htmlFor="requireTagReview"
+                              className="text-sm"
+                            >
+                              {t('required')}
+                            </label>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+                <FormField
+                  control={form.control}
+                  name="maxTagsPerPost"
+                  key="maxTagsPerPost"
+                  render={({ field, fieldState }) => (
+                    <FormItem className="mb-8">
+                      <FormLabel>{t('maxTagsPerPost')}</FormLabel>
+                      <FormDescription>
+                        {t('maxTagsPerPostDescribe')}
+                      </FormDescription>
+                      <FormControl>
+                        <Input
+                          placeholder="3"
+                          autoComplete="off"
+                          type="number"
+                          min="1"
+                          max="10"
+                          state={fieldState.invalid ? 'invalid' : 'default'}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="predefinedTags"
+                  key="predefinedTags"
+                  render={({ field, fieldState }) => (
+                    <FormItem className="mb-8">
+                      <FormLabel>{t('predefinedTags')}</FormLabel>
+                      <FormDescription>
+                        {t('predefinedTagsDescribe')}
+                      </FormDescription>
+                      <FormControl>
+                        <Input
+                          placeholder={t('predefinedTagsPlaceholder')}
+                          autoComplete="off"
                           state={fieldState.invalid ? 'invalid' : 'default'}
                           {...field}
                         />

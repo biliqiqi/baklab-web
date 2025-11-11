@@ -683,5 +683,21 @@
   "sharePost": "分享文章",
   "copyLink": "复制链接",
   "share": "分享",
-  "copyFailed": "复制出错"
+  "copyFailed": "复制出错",
+  "tagManagement": "标签管理",
+  "enableTags": "启用标签",
+  "enableTagsLabel": "为该站点启用标签功能",
+  "enableTagsDescribe": "启用后，用户可以为文章添加标签以便分类和检索",
+  "allowUserCreateTags": "允许用户创建标签",
+  "allowUserCreateTagsDescribe": "允许普通用户创建新标签，而不仅限于预定义标签",
+  "requireTagReview": "需要审核用户创建的标签",
+  "requireTagReviewDescribe": "用户创建的新标签需要管理员审核后才能使用",
+  "maxTagsPerPost": "每篇文章最多标签数",
+  "maxTagsPerPostDescribe": "限制每篇文章可以添加的标签数量（1-10）",
+  "predefinedTags": "预定义标签",
+  "predefinedTagsDescribe": "输入预定义标签，用逗号或空格分隔",
+  "predefinedTagsPlaceholder": "例如：技术 讨论 问答",
+  "tags": "标签",
+  "tag": "标签",
+  "required": "必需"
 }

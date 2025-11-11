@@ -485,8 +485,10 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         await Promise.all([
           fetchSiteList(),
           (async () => {
-            if (!newSiteFrontId) return
-            await fetchSiteData(newSiteFrontId)
+            const siteFrontId = newSiteFrontId || edittingData?.frontId
+            if (siteFrontId) {
+              await fetchSiteData(siteFrontId)
+            }
           })(),
         ])
 
@@ -502,6 +504,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         navigate,
         setEditting,
         setEdittingData,
+        edittingData?.frontId,
       ]
     )
 

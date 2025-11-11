@@ -572,6 +572,14 @@ export interface SiteUserState {
   isMember: boolean
 }
 
+export interface SiteTagConfig {
+  enabled: boolean
+  allowUserCreate: boolean
+  requireReview: boolean
+  maxTagsPerPost: number
+  predefinedTags: string[]
+}
+
 export interface Site {
   id: number
   name: string
@@ -601,6 +609,7 @@ export interface Site {
   rateLimitTokens?: number
   rateLimitInterval?: number
   rateLimitEnabled: boolean
+  tagConfig?: SiteTagConfig | null
 }
 
 export interface SiteListResponse extends ListPageState {

@@ -68,7 +68,6 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { Spinner } from './ui/spinner'
 import { Textarea } from './ui/textarea'
 
-
 const contentRule = z.string().max(ARTICLE_MAX_CONTENT_LEN)
 
 const contentSchema = z.object({

@@ -683,5 +683,21 @@
   "sharePost": "Share post",
   "copyLink": "Copy link",
   "share": "Share",
-  "copyFailed": "Copy failed"
+  "copyFailed": "Copy failed",
+  "tagManagement": "Tag Management",
+  "enableTags": "Enable Tags",
+  "enableTagsLabel": "Enable tagging for this site",
+  "enableTagsDescribe": "Allow users to add tags to posts for categorization and discovery",
+  "allowUserCreateTags": "Allow Users to Create Tags",
+  "allowUserCreateTagsDescribe": "Allow regular users to create new tags beyond predefined ones",
+  "requireTagReview": "Require Review for User-Created Tags",
+  "requireTagReviewDescribe": "User-created tags need administrator approval before use",
+  "maxTagsPerPost": "Maximum Tags Per Post",
+  "maxTagsPerPostDescribe": "Limit the number of tags that can be added to each post (1-10)",
+  "predefinedTags": "Predefined Tags",
+  "predefinedTagsDescribe": "Enter predefined tags, separated by commas or spaces",
+  "predefinedTagsPlaceholder": "e.g.: tech discussion qa",
+  "tags": "Tags",
+  "tag": "Tag",
+  "required": "Required"
 }

@@ -14,6 +14,9 @@ import {
   SiteStatus,
   SiteTagConfig,
   SiteVisible,
+  Tag,
+  TagListResponse,
+  TagStatus,
 } from '@/types/types'
 
 export const submitSite = (
@@ -302,3 +305,43 @@ export const saveSiteUISettings = (frontId: string, settings: JSONMap) =>
   authRequest.post<ResponseData<null>>(`sites/${frontId}/save_ui_settings`, {
     json: settings,
   })
+
+export const getSiteTagConfig = (frontId: string) =>
+  authRequest.get<ResponseData<SiteTagConfig>>(`sites/${frontId}/tag_config`)
+
+export const saveSiteTagConfig = (frontId: string, config: SiteTagConfig) =>
+  authRequest.post<ResponseData<null>>(`sites/${frontId}/tag_config`, {
+    json: config,
+  })
+
+export const getSiteTags = (
+  frontId: string,
+  page?: number,
+  pageSize?: number,
+  keywords?: string,
+  status?: TagStatus[]
+) => {
+  const params = new URLSearchParams()
+  if (page) {
+    params.set('page', String(page))
+  }
+
+  if (pageSize) {
+    params.set('pageSize', String(pageSize))
+  }
+
+  if (keywords) {
+    params.set('keywords', keywords)
+  }
+
+  if (status && status.length > 0) {
+    status.forEach((s) => params.append('status', s))
+  }
+
+  return authRequest.get<ResponseData<TagListResponse>>(
+    `sites/${frontId}/tags`,
+    {
+      searchParams: params,
+    }
+  )
+}

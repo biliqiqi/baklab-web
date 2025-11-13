@@ -699,5 +699,11 @@
   "predefinedTagsPlaceholder": "e.g.: tech discussion qa",
   "tags": "Tags",
   "tag": "Tag",
+  "tagsDescribe": "All tags",
+  "noTags": "No tags found",
+  "active": "Active",
+  "pending": "Pending",
+  "rejected": "Rejected",
+  "archived": "Archived",
   "required": "Required"
 }

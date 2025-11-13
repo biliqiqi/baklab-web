@@ -699,5 +699,11 @@
   "predefinedTagsPlaceholder": "例如：技术 讨论 问答",
   "tags": "标签",
   "tag": "标签",
+  "tagsDescribe": "所有标签",
+  "noTags": "未找到标签",
+  "active": "活跃",
+  "pending": "待审核",
+  "rejected": "已拒绝",
+  "archived": "已归档",
   "required": "必需"
 }

@@ -580,6 +580,24 @@ export interface SiteTagConfig {
   predefinedTags: string[]
 }
 
+export type TagStatus = 'pending' | 'active' | 'rejected' | 'archived'
+
+export interface Tag {
+  id: number
+  name: string
+  siteId: number
+  creatorId: number
+  creatorName: string
+  status: TagStatus
+  useCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface TagListResponse extends ListPageState {
+  list: Tag[]
+}
+
 export interface Site {
   id: number
   name: string

@@ -10,6 +10,7 @@ import {
   MessageSquareXIcon,
   PackageIcon,
   ShieldCheckIcon,
+  TagIcon,
   TrashIcon,
   UserIcon,
   UserRoundIcon,
@@ -231,6 +232,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
   const isCategoryListActive = useRouteMatch('/bankuai')
   const isAllPageActive = useRouteMatch('/all')
   const isHomePageActive = useRouteMatch('/')
+  const isTagListActive = useRouteMatch('/tags')
 
   const siteSidebarMenus: () => (
     | SidebarMenuItem<'user'>
@@ -442,16 +444,33 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 {siteFrontId && currSite && (
-                  <SidebarMenuItem key="categories">
-                    <SidebarMenuButton asChild isActive={isCategoryListActive}>
-                      <Link to={buildRoutePath('/bankuai', siteFrontId)}>
-                        <BIconCircle id="categories" size={32}>
-                          <ChartBarStackedIcon size={18} />
-                        </BIconCircle>
-                        {t('allCategories')}
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <>
+                    <SidebarMenuItem key="categories">
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isCategoryListActive}
+                      >
+                        <Link to={buildRoutePath('/bankuai', siteFrontId)}>
+                          <BIconCircle id="categories" size={32}>
+                            <ChartBarStackedIcon size={18} />
+                          </BIconCircle>
+                          {t('allCategories')}
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    {currSite.tagConfig?.enabled && (
+                      <SidebarMenuItem key="tags">
+                        <SidebarMenuButton asChild isActive={isTagListActive}>
+                          <Link to={buildRoutePath('/tags', siteFrontId)}>
+                            <BIconCircle id="tags" size={32}>
+                              <TagIcon size={18} />
+                            </BIconCircle>
+                            {t('tags')}
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )}
+                  </>
                 )}
                 {siteMode == 'top_nav' && (
                   <SidebarMenuItem key="siteMenu">

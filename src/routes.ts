@@ -29,6 +29,7 @@ import SigninPage from './SigninPage.tsx'
 import SignupPage from './SignupPage.tsx'
 import SiteListPage from './SiteListPage.tsx'
 import SubmitPage from './SubmitPage.tsx'
+import TagListPage from './TagListPage.tsx'
 import TrashPage from './TrashPage.tsx'
 import UserListPage from './UserListPage.tsx'
 import UserPage from './UserPage.tsx'
@@ -188,6 +189,10 @@ const createSiteRoutes = (prefix: '/z' | '/zhandian'): RouteObject[] => [
   {
     path: `${prefix}/:siteFrontId/bankuai`,
     Component: CategoryListPage,
+  },
+  {
+    path: `${prefix}/:siteFrontId/tags`,
+    Component: TagListPage,
   },
   {
     path: `${prefix}/:siteFrontId/submit`,

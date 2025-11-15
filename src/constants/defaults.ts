@@ -142,6 +142,7 @@ export const defaultArticle: Article = {
   acceptAnswerId: '0',
   viewCount: 0,
   articleLinkClick: 0,
+  tags: [],
 }
 
 export const defaultPageState: ListPageState = {

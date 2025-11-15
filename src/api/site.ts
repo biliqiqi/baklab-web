@@ -14,7 +14,6 @@ import {
   SiteStatus,
   SiteTagConfig,
   SiteVisible,
-  Tag,
   TagListResponse,
   TagStatus,
 } from '@/types/types'

@@ -181,6 +181,7 @@ export interface Article {
   acceptAnswerId: string
   viewCount: number
   articleLinkClick: number
+  tags: Tag[]
 }
 
 export interface ArticleListResponse {

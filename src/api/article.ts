@@ -30,6 +30,7 @@ export const submitArticle = (
   contentFormId?: string,
   pinnedScope?: string,
   pinnedExpireAt?: string,
+  tags?: string[],
   custom?: CustomRequestOptions
 ): Promise<ResponseData<ArticleSubmitResponse>> =>
   authRequest.post(
@@ -44,6 +45,7 @@ export const submitArticle = (
         contentFormId,
         pinnedScope,
         pinnedExpireAt,
+        tags,
         extra: {
           title,
         },
@@ -62,6 +64,7 @@ export const updateArticle = (
   contentFormId?: string,
   pinnedScope?: string,
   pinnedExpireAt?: string,
+  tags?: string[],
   custom?: CustomRequestOptions
 ): Promise<ResponseData<ArticleSubmitResponse>> =>
   authRequest.patch(
@@ -76,6 +79,7 @@ export const updateArticle = (
         contentFormId,
         pinnedScope,
         pinnedExpireAt,
+        tags,
         extra: {
           title,
         },

@@ -260,6 +260,7 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
               category.contentForm.id,
               '',
               undefined,
+              undefined,
               {
                 siteFrontId,
                 afterResponseHooks: [readRateLimitData],

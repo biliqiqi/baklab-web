@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Check, ChevronsUpDown, ImageIcon } from 'lucide-react'
+import { Check, ChevronsUpDown, ImageIcon, X } from 'lucide-react'
 import { escapeHtml } from 'markdown-it/lib/common/utils.mjs'
 import {
   MouseEvent,
@@ -20,6 +20,7 @@ import { z } from '@/lib/zod-custom'
 
 import { submitArticle, updateArticle, updateReply } from '@/api/article'
 import { uploadFileBase64 } from '@/api/file'
+import { getSiteTags } from '@/api/site'
 import {
   ARTICLE_MAX_CONTENT_LEN,
   ARTICLE_MAX_TITILE_LEN,
@@ -38,12 +39,14 @@ import {
   ArticleSubmitResponse,
   Category,
   ResponseData,
+  Tag,
 } from '@/types/types'
 
 import ArticleCard from './ArticleCard'
 import ContentFormSelector from './ContentFormSelector'
 import TipTap, { TipTapRef } from './TipTap'
 import BAvatar from './base/BAvatar'
+import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
 import { Checkbox } from './ui/checkbox'
@@ -82,6 +85,7 @@ const articleSchema = z.object({
   content: contentRule,
   pinnedScope: z.enum(['', 'category', 'site', 'platform']).optional(),
   pinnedExpireAt: z.string().optional(),
+  tags: z.array(z.string()).optional(),
 })
 
 type ArticleSchema = z.infer<typeof articleSchema>
@@ -108,6 +112,16 @@ interface DraggingInfo {
   dragging: boolean
 }
 
+const sanitizeTagNames = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return []
+  return value
+    .map((tag) => (typeof tag === 'string' ? tag.trim() : ''))
+    .filter((tag): tag is string => Boolean(tag))
+}
+
+const extractArticleTagNames = (tags?: Tag[] | null): string[] =>
+  sanitizeTagNames(tags?.map((tag) => tag.name) ?? [])
+
 const ArticleForm = ({ article }: ArticleFormProps) => {
   const [openCategoryList, setOpenCategoryList] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -124,6 +138,10 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
    *   null
    * ) */
 
+  const [tagOptions, setTagOptions] = useState<Tag[]>([])
+  const [tagSelectorOpen, setTagSelectorOpen] = useState(false)
+  const [tagLoading, setTagLoading] = useState(false)
+
   const [contentBoxHeight, setContentBoxHeight] = useState(
     INIT_CONTENT_BOX_HEIGHT
   )
@@ -132,6 +150,11 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
   /* const [cateList, setCateList] = useState<CategoryOption[]>([]) */
   const { categories: cateList } = useCategoryStore()
   const site = useSiteStore((state) => state.site)
+  const tagsEnabled = Boolean(site?.tagConfig?.enabled)
+  const maxTagsPerPost = useMemo(
+    () => site?.tagConfig?.maxTagsPerPost ?? 3,
+    [site?.tagConfig?.maxTagsPerPost]
+  )
 
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -157,6 +180,10 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
       return obj
     }, {})
   }, [cateList])
+  const activeTagOptions = useMemo(
+    () => tagOptions.filter((tag) => tag.status === 'active'),
+    [tagOptions]
+  )
 
   const isEdit = useMemo(() => Boolean(article && article.id), [article])
   const isReply = useMemo(
@@ -189,6 +216,10 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
 
   const cacheEnabled = !isEdit && !!cacheKey
   const initialCache = useInitialCache(cacheKey, cacheEnabled)
+  const cachedTags = useMemo(() => {
+    if (!initialCache) return []
+    return sanitizeTagNames(initialCache['tags'])
+  }, [initialCache])
 
   const defaultArticleData: ArticleSchema =
     isEdit && article
@@ -198,6 +229,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
             link: '',
             category: '',
             content: article.content,
+            tags: extractArticleTagNames(article.tags),
           }
         : {
             title: article.title,
@@ -209,6 +241,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
             pinnedExpireAt: article.pinnedExpireAt
               ? dayjs(article.pinnedExpireAt).format('YYYY-MM-DDTHH:mm')
               : '',
+            tags: extractArticleTagNames(article.tags),
           }
       : {
           title: (initialCache?.title as string) || '',
@@ -224,6 +257,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
             '0',
           pinnedScope: '',
           pinnedExpireAt: '',
+          tags: cachedTags,
         }
 
   /* console.log('default form data: ', defaultArticleData) */
@@ -266,6 +300,48 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
   const formVals = form.watch()
 
   const categoryVal = useCallback(() => form.getValues('category'), [form])
+  const getSelectedTags = useCallback(() => {
+    const current = form.getValues('tags')
+    if (!Array.isArray(current)) return []
+    return current.filter(
+      (tag): tag is string => typeof tag === 'string' && Boolean(tag)
+    )
+  }, [form])
+
+  const handleTagToggle = useCallback(
+    (tagName: string) => {
+      const sanitized = tagName.trim()
+      if (!sanitized) return
+
+      const currentTags = getSelectedTags()
+      if (currentTags.includes(sanitized)) {
+        const nextTags = currentTags.filter((tag) => tag !== sanitized)
+        form.setValue('tags', nextTags, { shouldDirty: true })
+        return
+      }
+
+      if (currentTags.length >= maxTagsPerPost) {
+        setTagSelectorOpen(false)
+        return
+      }
+
+      const nextTags = [...currentTags, sanitized]
+      form.setValue('tags', nextTags, { shouldDirty: true })
+      if (nextTags.length >= maxTagsPerPost) {
+        setTagSelectorOpen(false)
+      }
+    },
+    [form, getSelectedTags, maxTagsPerPost]
+  )
+
+  const handleTagRemove = useCallback(
+    (tagName: string) => {
+      const currentTags = getSelectedTags()
+      const nextTags = currentTags.filter((tag) => tag !== tagName)
+      form.setValue('tags', nextTags, { shouldDirty: true })
+    },
+    [form, getSelectedTags]
+  )
   const onSubmit = useCallback(
     async ({
       title,
@@ -275,6 +351,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
       contentFormId,
       pinnedScope,
       pinnedExpireAt,
+      tags,
     }: ArticleSchema) => {
       /* console.log('values: ', content)
        * console.log('isEdit:', isEdit)
@@ -290,6 +367,23 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
           const localDate = new Date(pinnedExpireAt)
           formattedExpireAt = localDate.toISOString()
         }
+
+        const sanitizedTags = sanitizeTagNames(tags)
+        if (
+          !isReply &&
+          tagsEnabled &&
+          maxTagsPerPost > 0 &&
+          sanitizedTags.length > maxTagsPerPost
+        ) {
+          toast.error(
+            t('tagLimitExceeded', {
+              max: maxTagsPerPost,
+            })
+          )
+          return
+        }
+
+        const payloadTags = !isReply && tagsEnabled ? sanitizedTags : undefined
 
         let data: ResponseData<ArticleSubmitResponse>
         if (isEdit) {
@@ -320,6 +414,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
               contentFormId,
               pinnedScope,
               formattedExpireAt,
+              payloadTags,
               { siteFrontId: article.siteFrontId }
             )
           }
@@ -333,6 +428,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
             contentFormId,
             pinnedScope,
             formattedExpireAt,
+            payloadTags,
             {
               siteFrontId,
             }
@@ -365,6 +461,8 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
       checkPermit,
       t,
       clearCache,
+      tagsEnabled,
+      maxTagsPerPost,
     ]
   )
 
@@ -528,6 +626,51 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
       }
     }
   }, [categoryMap, isEdit])
+
+  useEffect(() => {
+    if (!tagsEnabled || !siteFrontId) {
+      setTagOptions([])
+      setTagLoading(false)
+      return
+    }
+
+    let ignore = false
+
+    const fetchTags = async () => {
+      try {
+        setTagLoading(true)
+        const { code, data } = await getSiteTags(
+          siteFrontId,
+          1,
+          200,
+          undefined,
+          ['active']
+        )
+        if (!ignore) {
+          if (!code && data?.list) {
+            setTagOptions(data.list)
+          } else {
+            setTagOptions([])
+          }
+        }
+      } catch (error) {
+        if (!ignore) {
+          console.error('fetch site tags error: ', error)
+          setTagOptions([])
+        }
+      } finally {
+        if (!ignore) {
+          setTagLoading(false)
+        }
+      }
+    }
+
+    void fetchTags()
+
+    return () => {
+      ignore = true
+    }
+  }, [siteFrontId, tagsEnabled])
 
   useEffect(() => {
     if (isEdit && article && article.pinnedScope) {
@@ -743,6 +886,118 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                 />
               )}
             </>
+          )}
+          {!isReply && tagsEnabled && (
+            <FormField
+              control={form.control}
+              name="tags"
+              render={({ field }) => {
+                const selectedTags = Array.isArray(field.value)
+                  ? field.value
+                  : []
+                const reachMax =
+                  maxTagsPerPost > 0 && selectedTags.length >= maxTagsPerPost
+                const selectorDisabled =
+                  tagLoading || activeTagOptions.length === 0 || reachMax
+
+                return (
+                  <FormItem
+                    className="w-full my-1"
+                    style={{ display: isPreview ? 'none' : '' }}
+                  >
+                    <div className="flex flex-wrap items-center">
+                      <FormLabel className="text-gray-500 mr-2">
+                        {t('tags')}：
+                      </FormLabel>
+                      <FormControl>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {selectedTags.length === 0 && (
+                            <span className="text-sm text-text-secondary">
+                              {t('selectTip', { field: t('tags') })}
+                            </span>
+                          )}
+                          {selectedTags.map((tag) => (
+                            <Badge
+                              key={tag}
+                              variant="secondary"
+                              className="flex items-center gap-1 pl-2 pr-1.5"
+                            >
+                              <span>{tag}</span>
+                              <button
+                                type="button"
+                                className="rounded-full p-0.5 text-text-secondary hover:bg-muted transition-colors"
+                                onClick={() => handleTagRemove(tag)}
+                                aria-label={t('remove')}
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                          <Popover
+                            open={tagSelectorOpen}
+                            onOpenChange={setTagSelectorOpen}
+                          >
+                            <PopoverTrigger asChild>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                disabled={selectorDisabled}
+                              >
+                                {t('selectTags')}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[240px] p-0">
+                              {tagLoading ? (
+                                <div className="flex items-center justify-center py-4">
+                                  <Spinner className="size-4" />
+                                </div>
+                              ) : (
+                                <Command>
+                                  <CommandInput placeholder={t('searchTags')} />
+                                  <CommandList>
+                                    <CommandEmpty>{t('noTags')}</CommandEmpty>
+                                    <CommandGroup>
+                                      {activeTagOptions.map((tag) => (
+                                        <CommandItem
+                                          key={tag.id}
+                                          value={tag.name}
+                                          onSelect={() =>
+                                            handleTagToggle(tag.name)
+                                          }
+                                        >
+                                          {tag.name}
+                                          <Check
+                                            className={cn(
+                                              'ml-auto',
+                                              selectedTags.includes(tag.name)
+                                                ? 'opacity-100'
+                                                : 'opacity-0'
+                                            )}
+                                          />
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              )}
+                            </PopoverContent>
+                          </Popover>
+                          {tagLoading && <Spinner className="size-4" />}
+                          {!tagLoading && activeTagOptions.length === 0 && (
+                            <span className="text-sm text-text-secondary">
+                              {t('noTags')}
+                            </span>
+                          )}
+                        </div>
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )
+              }}
+            />
           )}
           {/* 置顶功能 - 只有非回复且用户有置顶权限时才显示 */}
           {!isReply &&

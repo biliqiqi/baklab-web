@@ -37,7 +37,6 @@ export default function TagListPage() {
     void fetchTags()
   }, [siteFrontId])
 
-
   if (loading) {
     return (
       <BContainer
@@ -79,7 +78,7 @@ export default function TagListPage() {
               >
                 <span className="font-medium">{tag.name}</span>
                 {tag.useCount > 0 && (
-                  <span className="ml-1.5 bg-white/20 px-1.5 py-0.5 rounded text-xs">
+                  <span className="ml-1.5 text-xs font-normal text-text-secondary">
                     {tag.useCount}
                   </span>
                 )}

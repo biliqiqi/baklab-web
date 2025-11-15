@@ -19,20 +19,29 @@ export interface BIconTriangleUpProps
   extends React.SVGAttributes<SVGSVGElement>,
     VariantProps<typeof bIconTriangleUpVariants> {
   size?: number
+  width?: number
+  height?: number
   upsideDown?: boolean
 }
 
 const BIconTriangleUp = React.forwardRef<SVGSVGElement, BIconTriangleUpProps>(
-  ({ variant, size = 24, className, upsideDown = false, ...props }, ref) => {
+  (
+    { variant, size, width, height, className, upsideDown = false, ...props },
+    ref
+  ) => {
+    const finalWidth = width !== undefined ? width : size
+    const finalHeight = height !== undefined ? height : size
+
     return (
       <svg
         className={cn(bIconTriangleUpVariants({ variant, className }))}
         xmlns="http://www.w3.org/2000/svg"
-        viewBox={`0 0 24 24`}
+        viewBox={`4 0 16 24`}
+        preserveAspectRatio="xMidYMid meet"
         ref={ref}
         style={{
-          width: `${size}px`,
-          height: `${size}px`,
+          width: finalWidth !== undefined ? `${finalWidth}px` : undefined,
+          height: finalHeight !== undefined ? `${finalHeight}px` : undefined,
         }}
         {...props}
       >

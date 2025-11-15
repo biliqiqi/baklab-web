@@ -3,6 +3,7 @@ import {
   BellIcon,
   BookmarkIcon,
   CheckIcon,
+  EllipsisIcon,
   LinkIcon,
   MessageSquare,
   QrCode,
@@ -18,6 +19,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
@@ -47,7 +49,6 @@ import {
 
 import BIconColorChar from './base/BIconColorChar'
 import BSiteIcon from './base/BSiteIcon'
-import { BIconForward } from './icon/Forward'
 import { BIconTriangleDown } from './icon/TriangleDown'
 import { BIconTriangleUp } from './icon/TriangleUp'
 import { Button } from './ui/button'
@@ -100,6 +101,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   onSuccess = noop,
   ...props
 }) => {
+  const [showActionsMenu, setShowActionsMenu] = useState(false)
   const { siteFrontId } = useParams()
   const userState = useMemo(() => article.currUserState, [article])
 
@@ -297,33 +299,33 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             {isPublished && upVote && (
               <div
                 className={cn(
-                  'mr-1 h-[1.5rem] inline-flex items-center gap-1',
+                  'mr-1 px-0 h-[1.5rem] inline-flex items-center gap-1',
                   !disabled && 'cursor-pointer hover:opacity-70'
                 )}
                 onClick={(e) => !disabled && onVoteClick(e, 'up')}
                 title={t('upVotePost')}
               >
                 <BIconTriangleUp
-                  size={rem2pxNum(1.8)}
+                  height={rem2pxNum(1.8)}
                   variant={userState?.voteType == 'up' ? 'full' : 'default'}
                 />
-                {article.voteUp > 0 && article.voteUp}
+                {article.voteUp > 0 && <span>{article.voteUp}</span>}
               </div>
             )}
             {checkPermit('article', 'vote_down') && isPublished && downVote && (
               <div
                 className={cn(
-                  'mr-1 h-[1.5rem] inline-flex items-center gap-1',
+                  'mr-1 px-0 h-[1.5rem] inline-flex items-center gap-1',
                   !disabled && 'cursor-pointer hover:opacity-70'
                 )}
                 onClick={(e) => !disabled && onVoteClick(e, 'down')}
                 title={t('downVotePost')}
               >
                 <BIconTriangleDown
-                  size={rem2pxNum(1.8)}
+                  height={rem2pxNum(1.8)}
                   variant={userState?.voteType == 'down' ? 'full' : 'default'}
                 />
-                {article.voteDown > 0 && article.voteDown}
+                {article.voteDown > 0 && <span>{article.voteDown}</span>}
               </div>
             )}
             {comment && (
@@ -467,6 +469,23 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
       </div>
 
       <div className="flex flex-wrap items-center">
+        {ctype === 'list' && article.tags && article.tags.length > 0 && (
+          <div className="flex flex-wrap items-center mr-2">
+            {article.tags.slice(0, 3).map((tag, index) => (
+              <span key={tag.id} className="text-sm text-text-secondary">
+                <Link
+                  to={`/z/${article.siteFrontId}/tags/${encodeURIComponent(tag.name)}`}
+                  className="hover:text-primary transition-colors"
+                >
+                  {tag.name}
+                </Link>
+                {index < Math.min(article.tags.length, 3) - 1 && (
+                  <span className="mr-1.5">,</span>
+                )}
+              </span>
+            ))}
+          </div>
+        )}
         {!article.locked && (
           <>
             {ctype !== 'list' &&
@@ -537,58 +556,65 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
-            {checkPermit('article', 'subscribe') &&
-              isPublished &&
-              notify &&
-              isRootArticle && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onSubscribeClick}
-                  disabled={disabled}
-                  className="mr-1 h-[1.5rem]"
-                  title={t('subscribePost')}
-                >
-                  <BellIcon
-                    size={rem2pxNum(1.25)}
-                    fill={
-                      userState?.subscribed ? 'currentColor' : 'transparent'
-                    }
-                    className={cn(userState?.subscribed && 'text-primary')}
-                  />
-                </Button>
-              )}
-            {checkPermit('article', 'save') && isPublished && bookmark && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onSaveClick}
-                disabled={disabled}
-                className="mr-1 h-[1.5rem]"
-                title={t('savePost')}
-              >
-                <BookmarkIcon
-                  size={rem2pxNum(1.25)}
-                  fill={userState?.saved ? 'currentColor' : 'transparent'}
-                  className={cn(userState?.saved && 'text-primary')}
-                />
-                {article.totalSavedCount > 0 && article.totalSavedCount}
-              </Button>
-            )}
             {isPublished && ctype == 'item' && (
-              <DropdownMenu>
+              <DropdownMenu
+                open={showActionsMenu}
+                onOpenChange={setShowActionsMenu}
+              >
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     size="sm"
                     disabled={disabled}
                     className="mr-1 h-[1.5rem]"
-                    title={t('sharePost')}
+                    title={t('moreActions')}
                   >
-                    <BIconForward size={rem2pxNum(1.25)} />
+                    <EllipsisIcon size={rem2pxNum(1.25)} />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  {checkPermit('article', 'subscribe') &&
+                    notify &&
+                    isRootArticle && (
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          setShowActionsMenu(false)
+                          void onSubscribeClick(
+                            e as unknown as MouseEvent<HTMLButtonElement>
+                          )
+                        }}
+                      >
+                        <BellIcon
+                          size={rem2pxNum(1.25)}
+                          className="mr-2"
+                          fill={
+                            userState?.subscribed
+                              ? 'currentColor'
+                              : 'transparent'
+                          }
+                        />
+                        {userState?.subscribed
+                          ? t('unsubscribe')
+                          : t('subscribePost')}
+                      </DropdownMenuItem>
+                    )}
+                  {checkPermit('article', 'save') && bookmark && (
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        setShowActionsMenu(false)
+                        void onSaveClick(
+                          e as unknown as MouseEvent<HTMLButtonElement>
+                        )
+                      }}
+                    >
+                      <BookmarkIcon
+                        size={rem2pxNum(1.25)}
+                        className="mr-2"
+                        fill={userState?.saved ? 'currentColor' : 'transparent'}
+                      />
+                      {userState?.saved ? t('unsave') : t('savePost')}
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem asChild>
                     <button className={copyBtnClass}>
                       <LinkIcon size={rem2pxNum(1.25)} className="mr-2" />

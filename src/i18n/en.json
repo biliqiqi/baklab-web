@@ -212,6 +212,8 @@
   "deleteMyPost": "Delete own posts",
   "deleteOthersPost": "Delete others' posts",
   "savePost": "Save post",
+  "unsave": "Unsave",
+  "moreActions": "More actions",
   "reactPost": "React to it",
   "upVotePost": "Upvote post",
   "downVotePost": "Downvote post",
@@ -708,5 +710,6 @@
   "pending": "Pending",
   "rejected": "Rejected",
   "archived": "Archived",
-  "required": "Required"
+  "required": "Required",
+  "tagPageDescribe": "All content related to \"{{tagName}}\""
 }

@@ -211,6 +211,8 @@
   "deleteMyPost": "删除自己的文章",
   "deleteOthersPost": "删除他人的文章",
   "savePost": "保存文章",
+  "unsave": "取消保存",
+  "moreActions": "更多操作",
   "upVotePost": "文章点赞",
   "downVotePost": "文章点踩",
   "reactPost": "做出反应",
@@ -708,5 +710,6 @@
   "pending": "待审核",
   "rejected": "已拒绝",
   "archived": "已归档",
-  "required": "必需"
+  "required": "必需",
+  "tagPageDescribe": "\"{{tagName}}\" 关联的所有内容"
 }

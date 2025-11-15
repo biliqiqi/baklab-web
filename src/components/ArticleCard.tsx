@@ -5,6 +5,7 @@ import {
   LockOpenIcon,
   PencilIcon,
   SquareArrowOutUpRightIcon,
+  TagIcon,
   Trash2Icon,
 } from 'lucide-react'
 import PhotoSwipeLightbox from 'photoswipe/lightbox'
@@ -565,6 +566,27 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             ></div>
           )}
         </div>
+        {!article.deleted &&
+          !previewMode &&
+          article.tags &&
+          article.tags.length > 0 && (
+            <div className="flex flex-wrap items-center mb-3 text-sm text-text-secondary">
+              <TagIcon size={16} className="mr-1.5 flex-shrink-0" />
+              {article.tags.map((tag, index) => (
+                <span key={tag.id}>
+                  <Link
+                    to={`/z/${article.siteFrontId}/tags/${encodeURIComponent(tag.name)}`}
+                    className="hover:text-primary transition-colors"
+                  >
+                    {tag.name}
+                  </Link>
+                  {index < article.tags.length - 1 && (
+                    <span className="mr-1.5">,</span>
+                  )}
+                </span>
+              ))}
+            </div>
+          )}
         {!article.deleted && !previewMode && article.status !== 'pending' && (
           <ArticleControls
             isTopArticle={isTop}

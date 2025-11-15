@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 
 import BContainer from './components/base/BContainer'
@@ -6,6 +7,7 @@ import BContainer from './components/base/BContainer'
 import ArticleList from './components/ArticleList'
 
 export default function TagPage() {
+  const { t } = useTranslation()
   const { siteFrontId, tagName } = useParams()
 
   const decodedTagName = useMemo(() => {
@@ -20,7 +22,7 @@ export default function TagPage() {
         siteFrontId,
         frontId: 'tag',
         name: decodedTagName,
-        describe: `#${decodedTagName}`,
+        describe: t('tagPageDescribe', { tagName: decodedTagName }),
       }}
     >
       <ArticleList key={decodedTagName} tagName={decodedTagName} />

@@ -339,7 +339,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                   className="flex-shrink-1 px-4 ml-4 border-l-2 text-sm text-gray-500 cursor-pointer flex-grow overflow-hidden whitespace-nowrap text-ellipsis"
                   onClick={() => setShowCategoryDetail(true)}
                 >
-                  {summaryText(category.describe, 20)}{' '}
+                  {summaryText(category.describe, isMobile ? 20 : 100)}{' '}
                 </span>
               </>
             )

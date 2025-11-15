@@ -132,7 +132,6 @@ const createSiteEditSchema = (i: I18n) =>
       allowUserCreateTags: z.boolean(),
       requireTagReview: z.boolean(),
       maxTagsPerPost: z.string().optional(),
-      predefinedTags: z.string(),
     })
     .refine(
       (data) => {
@@ -258,7 +257,6 @@ const SiteForm: React.FC<SiteFormProps> = ({
             maxTagsPerPost: site.tagConfig?.maxTagsPerPost
               ? String(site.tagConfig.maxTagsPerPost)
               : '3',
-            predefinedTags: site.tagConfig?.predefinedTags?.join(', ') || '',
           }
         : defaultSiteData),
     },
@@ -274,71 +272,60 @@ const SiteForm: React.FC<SiteFormProps> = ({
   }, [form, formVals.allowUserCreateTags, formVals.tagsEnabled])
 
   const onSubmit = useCallback(
-    async ({
-      frontID,
-      name,
-      description,
-      keywords,
-      logoUrl,
-      logoBrandHTML,
-      visible,
-      nonMemberInteract,
-      homePage,
-      reviewBeforePublish,
-      rateLimitTokens,
-      rateLimitInterval,
-      rateLimitEnabled,
-      tagsEnabled,
-      allowUserCreateTags,
-      requireTagReview,
-      maxTagsPerPost,
-      predefinedTags,
-    }: SiteSchema) => {
+    async (data: SiteSchema) => {
       /* console.log('site vals: ', frontID) */
       try {
         let resp: ResponseData<ResponseID> | undefined
 
+        let logoBrandHTML = data.logoBrandHTML
         if (logoBrandHTML) {
           logoBrandHTML = sanitize(logoBrandHTML, htmlSanitizeOpts)
         }
 
-        const rateLimitTokensNum = parseInt(rateLimitTokens || '10', 10) || 10
+        const rateLimitTokensNum =
+          parseInt(data.rateLimitTokens || '10', 10) || 10
         const rateLimitIntervalNum =
-          parseInt(rateLimitInterval || '60', 10) || 60
+          parseInt(data.rateLimitInterval || '60', 10) || 60
 
-        const tagConfig = tagsEnabled
+        const tagConfig = data.tagsEnabled
           ? {
-              enabled: tagsEnabled,
-              allowUserCreate: allowUserCreateTags,
-              requireReview: requireTagReview,
-              maxTagsPerPost: parseInt(maxTagsPerPost || '3', 10) || 3,
-              predefinedTags: predefinedTags
-                ? predefinedTags
-                    .split(/[,\s]+/)
-                    .map((tag) => tag.trim())
-                    .filter((tag) => tag.length > 0)
-                : [],
+              enabled: data.tagsEnabled,
+              allowUserCreate: data.allowUserCreateTags,
+              requireReview: data.requireTagReview,
+              maxTagsPerPost: parseInt(data.maxTagsPerPost || '3', 10) || 3,
+              predefinedTags:
+                !isEdit && 'predefinedTags' in data && data.predefinedTags
+                  ? data.predefinedTags
+                      .split(/[,\s]+/)
+                      .map((tag) => tag.trim())
+                      .filter((tag) => tag.length > 0)
+                  : [],
             }
           : null
 
         if (isEdit) {
           resp = await updateSite(
             site.frontId,
-            name,
-            description,
-            keywords,
-            visible,
-            nonMemberInteract,
-            logoUrl,
+            data.name,
+            data.description,
+            data.keywords,
+            data.visible,
+            data.nonMemberInteract,
+            data.logoUrl,
             logoBrandHTML,
-            homePage,
-            reviewBeforePublish,
+            data.homePage,
+            data.reviewBeforePublish,
             rateLimitTokensNum,
             rateLimitIntervalNum,
-            rateLimitEnabled,
+            data.rateLimitEnabled,
             tagConfig
           )
         } else {
+          if (!('frontID' in data) || !data.frontID) {
+            return
+          }
+
+          const frontID = data.frontID
           const exists = await checkSiteExists(frontID)
           /* console.log('frontID exists: ', exists) */
           if (exists) {
@@ -353,23 +340,24 @@ const SiteForm: React.FC<SiteFormProps> = ({
           }
 
           resp = await submitSite(
-            name,
+            data.name,
             frontID,
-            description,
-            keywords,
-            visible,
-            nonMemberInteract,
-            logoUrl,
+            data.description,
+            data.keywords,
+            data.visible,
+            data.nonMemberInteract,
+            data.logoUrl,
             logoBrandHTML,
-            reviewBeforePublish,
+            data.reviewBeforePublish,
             rateLimitTokensNum,
             rateLimitIntervalNum,
-            rateLimitEnabled,
+            data.rateLimitEnabled,
             tagConfig
           )
         }
         if (!resp?.code) {
-          onSuccess(frontID)
+          const frontID = 'frontID' in data ? data.frontID : ''
+          onSuccess(frontID || '')
         }
       } catch (err) {
         console.error('validate front id error: ', err)
@@ -1050,28 +1038,30 @@ const SiteForm: React.FC<SiteFormProps> = ({
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="predefinedTags"
-                  key="predefinedTags"
-                  render={({ field, fieldState }) => (
-                    <FormItem className="mb-8">
-                      <FormLabel>{t('predefinedTags')}</FormLabel>
-                      <FormDescription>
-                        {t('predefinedTagsDescribe')}
-                      </FormDescription>
-                      <FormControl>
-                        <Input
-                          placeholder={t('predefinedTagsPlaceholder')}
-                          autoComplete="off"
-                          state={fieldState.invalid ? 'invalid' : 'default'}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {!isEdit && (
+                  <FormField
+                    control={form.control}
+                    name="predefinedTags"
+                    key="predefinedTags"
+                    render={({ field, fieldState }) => (
+                      <FormItem className="mb-8">
+                        <FormLabel>{t('predefinedTags')}</FormLabel>
+                        <FormDescription>
+                          {t('predefinedTagsDescribe')}
+                        </FormDescription>
+                        <FormControl>
+                          <Input
+                            placeholder={t('predefinedTagsPlaceholder')}
+                            autoComplete="off"
+                            state={fieldState.invalid ? 'invalid' : 'default'}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </>
             )}
             {isEdit && (

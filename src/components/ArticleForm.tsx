@@ -732,7 +732,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
                     >
                       <div>
                         <FormLabel className="text-gray-500 mr-2">
-                          {t('publishTo')}
+                          {t('category')}
                         </FormLabel>
                         <FormControl>
                           <Popover
@@ -887,118 +887,113 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
               )}
             </>
           )}
-          {!isReply && tagsEnabled && (
-            <FormField
-              control={form.control}
-              name="tags"
-              render={({ field }) => {
-                const selectedTags = Array.isArray(field.value)
-                  ? field.value
-                  : []
-                const reachMax =
-                  maxTagsPerPost > 0 && selectedTags.length >= maxTagsPerPost
-                const selectorDisabled =
-                  tagLoading || activeTagOptions.length === 0 || reachMax
+          {!isReply &&
+            tagsEnabled &&
+            (tagLoading || activeTagOptions.length > 0) && (
+              <FormField
+                control={form.control}
+                name="tags"
+                render={({ field }) => {
+                  const selectedTags = Array.isArray(field.value)
+                    ? field.value
+                    : []
+                  const reachMax =
+                    maxTagsPerPost > 0 && selectedTags.length >= maxTagsPerPost
+                  const selectorDisabled =
+                    tagLoading || activeTagOptions.length === 0 || reachMax
 
-                return (
-                  <FormItem
-                    className="w-full my-1"
-                    style={{ display: isPreview ? 'none' : '' }}
-                  >
-                    <div className="flex flex-wrap items-center">
-                      <FormLabel className="text-gray-500 mr-2">
-                        {t('tags')}：
-                      </FormLabel>
-                      <FormControl>
-                        <div className="flex flex-wrap items-center gap-2">
-                          {selectedTags.length === 0 && (
-                            <span className="text-sm text-text-secondary">
-                              {t('selectTip', { field: t('tags') })}
-                            </span>
-                          )}
-                          {selectedTags.map((tag) => (
-                            <Badge
-                              key={tag}
-                              variant="secondary"
-                              className="flex items-center gap-1 pl-2 pr-1.5"
+                  return (
+                    <FormItem
+                      className="w-full my-1"
+                      style={{ display: isPreview ? 'none' : '' }}
+                    >
+                      <div className="flex flex-wrap items-center">
+                        <FormLabel className="text-gray-500 mr-2">
+                          {t('tags')}
+                        </FormLabel>
+                        <FormControl>
+                          <div className="flex flex-wrap items-center gap-2">
+                            {selectedTags.map((tag) => (
+                              <Badge
+                                key={tag}
+                                variant="secondary"
+                                className="flex items-center gap-1 pl-2 pr-1.5"
+                              >
+                                <span>{tag}</span>
+                                <button
+                                  type="button"
+                                  className="rounded-full p-0.5 text-text-secondary hover:bg-muted transition-colors"
+                                  onClick={() => handleTagRemove(tag)}
+                                  aria-label={t('remove')}
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </Badge>
+                            ))}
+                            <Popover
+                              open={tagSelectorOpen}
+                              onOpenChange={setTagSelectorOpen}
                             >
-                              <span>{tag}</span>
-                              <button
-                                type="button"
-                                className="rounded-full p-0.5 text-text-secondary hover:bg-muted transition-colors"
-                                onClick={() => handleTagRemove(tag)}
-                                aria-label={t('remove')}
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </Badge>
-                          ))}
-                          <Popover
-                            open={tagSelectorOpen}
-                            onOpenChange={setTagSelectorOpen}
-                          >
-                            <PopoverTrigger asChild>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="outline"
-                                disabled={selectorDisabled}
-                              >
-                                {t('selectTags')}
-                                <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-[240px] p-0">
-                              {tagLoading ? (
-                                <div className="flex items-center justify-center py-4">
-                                  <Spinner className="size-4" />
-                                </div>
-                              ) : (
-                                <Command>
-                                  <CommandInput placeholder={t('searchTags')} />
-                                  <CommandList>
-                                    <CommandEmpty>{t('noTags')}</CommandEmpty>
-                                    <CommandGroup>
-                                      {activeTagOptions.map((tag) => (
-                                        <CommandItem
-                                          key={tag.id}
-                                          value={tag.name}
-                                          onSelect={() =>
-                                            handleTagToggle(tag.name)
-                                          }
-                                        >
-                                          {tag.name}
-                                          <Check
-                                            className={cn(
-                                              'ml-auto',
-                                              selectedTags.includes(tag.name)
-                                                ? 'opacity-100'
-                                                : 'opacity-0'
-                                            )}
-                                          />
-                                        </CommandItem>
-                                      ))}
-                                    </CommandGroup>
-                                  </CommandList>
-                                </Command>
-                              )}
-                            </PopoverContent>
-                          </Popover>
-                          {tagLoading && <Spinner className="size-4" />}
-                          {!tagLoading && activeTagOptions.length === 0 && (
-                            <span className="text-sm text-text-secondary">
-                              {t('noTags')}
-                            </span>
-                          )}
-                        </div>
-                      </FormControl>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )
-              }}
-            />
-          )}
+                              <PopoverTrigger asChild>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={selectorDisabled}
+                                  className="text-text-secondary"
+                                >
+                                  {t('pleaseSelect')}
+                                  <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-[240px] p-0">
+                                {tagLoading ? (
+                                  <div className="flex items-center justify-center py-4">
+                                    <Spinner className="size-4" />
+                                  </div>
+                                ) : (
+                                  <Command>
+                                    <CommandInput
+                                      placeholder={t('searchTags')}
+                                    />
+                                    <CommandList>
+                                      <CommandEmpty>{t('noTags')}</CommandEmpty>
+                                      <CommandGroup>
+                                        {activeTagOptions.map((tag) => (
+                                          <CommandItem
+                                            key={tag.id}
+                                            value={tag.name}
+                                            onSelect={() =>
+                                              handleTagToggle(tag.name)
+                                            }
+                                          >
+                                            {tag.name}
+                                            <Check
+                                              className={cn(
+                                                'ml-auto',
+                                                selectedTags.includes(tag.name)
+                                                  ? 'opacity-100'
+                                                  : 'opacity-0'
+                                              )}
+                                            />
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                    </CommandList>
+                                  </Command>
+                                )}
+                              </PopoverContent>
+                            </Popover>
+                            {tagLoading && <Spinner className="size-4" />}
+                          </div>
+                        </FormControl>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+            )}
           {/* 置顶功能 - 只有非回复且用户有置顶权限时才显示 */}
           {!isReply &&
             (checkPermit('article', 'pin') ||

@@ -703,12 +703,13 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         >
           <div
             className={cn(
-              'w-0 sticky top-0 left-0 max-h-screen overflow-hidden',
+              'w-0 sticky top-0 left-0 overflow-y-auto',
               !isMobile && 'duration-200 transition-[width] ease-linear',
               !isMobile && sidebarOpen && 'w-[var(--sidebar-width)]'
             )}
             style={{
               top: siteMode == 'top_nav' ? `${NAV_HEIGHT}px` : '0',
+              maxHeight: bodyHeight,
             }}
           >
             {sidebarType === 'settings' ? (
@@ -821,14 +822,15 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           >
             <div
               className={cn(
-                'w-0 max-h-screen overflow-hidden',
+                'w-0 overflow-y-auto',
                 !isMobile && 'duration-200 transition-[width] ease-linear',
                 !isMobile && openRightSidebar && 'w-[var(--sidebar-width)]'
               )}
+              style={{ maxHeight: bodyHeight }}
             >
               <Sidebar side="right" className="relative max-h-full" gap={false}>
                 <SidebarContent
-                  className="gap-0 px-2"
+                  className="gap-0 px-2 pb-4"
                   style={{ minHeight: bodyHeight }}
                 >
                   <div

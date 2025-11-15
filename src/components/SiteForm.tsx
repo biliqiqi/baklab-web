@@ -379,6 +379,7 @@ const SiteForm: React.FC<SiteFormProps> = ({
         '',
         'article',
         '',
+        '',
         ['published'],
         {
           siteFrontId: site.frontId,

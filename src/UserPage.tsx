@@ -244,6 +244,7 @@ export default function UserPage() {
             username,
             tab || 'all',
             '',
+            '',
             ['pending', 'rejected', 'published'],
             { siteFrontId }
           )

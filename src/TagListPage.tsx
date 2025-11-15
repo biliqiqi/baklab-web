@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 
 import { Badge } from './components/ui/badge'
 import { Card } from './components/ui/card'
@@ -71,18 +71,22 @@ export default function TagListPage() {
             </div>
           ) : (
             tags.map((tag) => (
-              <Badge
+              <Link
                 key={tag.id}
-                variant="secondary"
-                className="px-3 py-1.5 text-sm cursor-pointer hover:bg-secondary/90 transition-colors"
+                to={`/z/${siteFrontId}/tags/${encodeURIComponent(tag.name)}`}
               >
-                <span className="font-medium">{tag.name}</span>
-                {tag.useCount > 0 && (
-                  <span className="ml-1.5 text-xs font-normal text-text-secondary">
-                    {tag.useCount}
-                  </span>
-                )}
-              </Badge>
+                <Badge
+                  variant="secondary"
+                  className="px-3 py-1.5 text-sm cursor-pointer hover:bg-secondary/90 transition-colors"
+                >
+                  <span className="font-medium">{tag.name}</span>
+                  {tag.useCount > 0 && (
+                    <span className="ml-1.5 text-xs font-normal text-text-secondary">
+                      {tag.useCount}
+                    </span>
+                  )}
+                </Badge>
+              </Link>
             ))
           )}
         </div>

@@ -134,6 +134,7 @@ export const getArticleList = (
   username?: string,
   listType?: ArticleListType,
   keywords?: string,
+  tagName?: string,
   status?: ArticleStatus[],
   custom?: CustomRequestOptions,
   cursor?: string,
@@ -167,6 +168,10 @@ export const getArticleList = (
 
   if (keywords) {
     params.set('keywords', keywords)
+  }
+
+  if (tagName) {
+    params.set('tag', tagName)
   }
 
   if (status && status.length > 0) {

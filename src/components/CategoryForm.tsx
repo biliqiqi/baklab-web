@@ -282,6 +282,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
         '',
         'article',
         '',
+        '',
         ['published'],
         { siteFrontId }
       )

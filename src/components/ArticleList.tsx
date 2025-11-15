@@ -16,11 +16,13 @@ import { Skeleton } from './ui/skeleton'
 interface ArticleListProps {
   onLoad?: () => void
   onReady?: () => void
+  tagName?: string
 }
 
 const ArticleList: React.FC<ArticleListProps> = ({
   onLoad = noop,
   onReady = noop,
+  tagName,
 }) => {
   const userArticleListMode = useUserUIStore((state) => state.articleListMode)
   const siteArticleListMode = useSiteUIStore((state) => state.articleListMode)
@@ -53,6 +55,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
         '',
         undefined,
         '',
+        tagName || '',
         undefined,
         { siteFrontId }
       )
@@ -74,7 +77,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
         },
       }
     },
-    [siteFrontId, categoryFrontId]
+    [siteFrontId, categoryFrontId, tagName]
   )
 
   const handlePageStateChange = useCallback((pageState: ArticleListState) => {

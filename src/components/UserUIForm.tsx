@@ -177,7 +177,7 @@ const defaultUserUIData: UserUISchema = {
   fontSize: useDefaultFontSizeStore.getState()
     .defaultFontSize as FontSizeSchema,
   customFontSize: '',
-  contentWidth: DEFAULT_CONTENT_WIDTH,
+  contentWidth: '-1',
   customContentWidth: '',
   lang: normalizeLanguageForForm(i18n.language),
   articleListMode: ARTICLE_LIST_MODE.Compact,

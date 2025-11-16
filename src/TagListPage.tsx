@@ -7,6 +7,8 @@ import { Card } from './components/ui/card'
 
 import BContainer from './components/base/BContainer'
 
+import { Empty } from './components/Empty'
+
 import { getSiteTags } from './api/site'
 import { Tag } from './types/types'
 
@@ -63,14 +65,12 @@ export default function TagListPage() {
         describe: t('tagsDescribe'),
       }}
     >
-      <Card className="p-6">
-        <div className="flex flex-wrap gap-3">
-          {tags.length === 0 ? (
-            <div className="text-gray-500 text-center w-full py-8">
-              {t('noTags')}
-            </div>
-          ) : (
-            tags.map((tag) => (
+      {tags.length === 0 ? (
+        <Empty text={t('noTags')} />
+      ) : (
+        <Card className="p-6">
+          <div className="flex flex-wrap gap-3">
+            {tags.map((tag) => (
               <Link
                 key={tag.id}
                 to={`/z/${siteFrontId}/tags/${encodeURIComponent(tag.name)}`}
@@ -87,10 +87,10 @@ export default function TagListPage() {
                   )}
                 </Badge>
               </Link>
-            ))
-          )}
-        </div>
-      </Card>
+            ))}
+          </div>
+        </Card>
+      )}
     </BContainer>
   )
 }

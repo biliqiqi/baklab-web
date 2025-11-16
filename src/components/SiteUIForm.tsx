@@ -56,7 +56,7 @@ type SiteUISchema = z.infer<typeof siteUISchema>
 
 const defaultSiteUIData: SiteUISchema = {
   mode: SITE_UI_MODE.Sidebar,
-  articleListMode: ARTICLE_LIST_MODE.Compact,
+  articleListMode: ARTICLE_LIST_MODE.Preview,
 }
 
 export interface SiteUIFormProps {

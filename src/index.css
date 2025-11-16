@@ -223,7 +223,8 @@ a:hover {
 
 .b-article-content p {
   margin-bottom: 1em;
-  word-break: break-all;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .b-article-content p:last-child {

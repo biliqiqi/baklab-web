@@ -35,7 +35,7 @@ export const USER_UI_SETTINGS_KEY = 'user_ui_settings'
 export const CHAT_DATA_CACHE_KEY = 'chat_data_cache'
 
 export const DEFAULT_THEME = 'system'
-export const DEFAULT_CONTENT_WIDTH = '1200'
+export const DEFAULT_CONTENT_WIDTH = '-1'
 export const DEFAULT_INNER_CONTENT_WIDTH = '900'
 
 export const URL_PATTERN =

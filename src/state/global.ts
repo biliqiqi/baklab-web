@@ -882,11 +882,11 @@ useSiteStore.subscribe(
 
     // Always set site mode when site changes, regardless of uiSettings existence
     siteUIStore.setMode(
-      (site?.uiSettings?.mode as SiteUIMode | undefined) || SITE_UI_MODE.TopNav
+      (site?.uiSettings?.mode as SiteUIMode | undefined) || SITE_UI_MODE.Sidebar
     )
     siteUIStore.setArticleListMode(
       (site?.uiSettings?.articleListMode as ArticleListMode | undefined) ||
-        ARTICLE_LIST_MODE.Compact
+        ARTICLE_LIST_MODE.Preview
     )
   }
 )
@@ -983,8 +983,8 @@ export interface SiteUIState {
 }
 
 export const useSiteUIStore = create<SiteUIState>((set) => ({
-  mode: SITE_UI_MODE.TopNav,
-  articleListMode: ARTICLE_LIST_MODE.Compact,
+  mode: SITE_UI_MODE.Sidebar,
+  articleListMode: ARTICLE_LIST_MODE.Preview,
   isSiteUIPreview: false,
   setMode(mode) {
     set((state) => ({ ...state, mode }))

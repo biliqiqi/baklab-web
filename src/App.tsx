@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { startTransition, useCallback, useEffect, useState } from 'react'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -238,9 +238,13 @@ const App = () => {
       // Debounce to avoid frequent reconnections
       clearTimeout(debounceTimer)
       debounceTimer = setTimeout(() => {
-        reconnectEventSource()
-        refreshTokenSync(true)
-        fetchNotiCount()
+        // Use startTransition to mark these updates as low priority
+        // This prevents them from interrupting route navigation
+        startTransition(() => {
+          reconnectEventSource()
+          refreshTokenSync(true)
+          fetchNotiCount()
+        })
       }, 1000) // 1 second debounce
     }
 

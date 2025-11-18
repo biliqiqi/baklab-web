@@ -1,6 +1,3 @@
-export default {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-}
+import sharedConfig from '@baklab/shared-web/postcss'
+
+export default sharedConfig

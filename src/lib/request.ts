@@ -1,5 +1,4 @@
-import ky, { AfterResponseHook, BeforeRequestHook } from 'ky'
-import { Options } from 'node_modules/ky/distribution/types/options'
+import ky, { AfterResponseHook, BeforeRequestHook, Options } from 'ky'
 import { mergeAll } from 'remeda'
 import { toast } from 'sonner'
 

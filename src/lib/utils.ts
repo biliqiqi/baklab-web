@@ -216,8 +216,27 @@ export const getArticleStatusName = (status: ArticleStatus) => {
   }
 }
 
-export const isInnerURL = (url: string) =>
-  new URL(url).origin == location.origin
+const getBaseDomain = (hostname: string) => {
+  const parts = hostname.split('.')
+  if (parts.length <= 2) return hostname
+  return parts.slice(-2).join('.')
+}
+
+export const isInnerURL = (url: string) => {
+  try {
+    const target = new URL(url)
+    const current = window.location
+
+    if (target.origin === current.origin) return true
+
+    const targetBase = getBaseDomain(target.hostname)
+    const currentBase = getBaseDomain(current.hostname)
+    return targetBase === currentBase
+  } catch (err) {
+    console.error('isInnerURL parse error: ', err)
+    return false
+  }
+}
 
 export const getFirstChar = (str: string) => {
   const firstCharRes = str.match(/(\p{L}|\p{Emoji_Presentation})/u)

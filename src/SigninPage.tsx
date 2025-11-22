@@ -38,8 +38,10 @@ export default function SigninPage() {
   const onSiginSuccess = useCallback(() => {
     const storedReturn = consumeSessionReturnUrl()
 
-    if (isPopup && window.opener) {
-      window.opener.postMessage(
+    const openerWindow = window.opener as Window | null
+
+    if (isPopup && openerWindow) {
+      openerWindow.postMessage(
         { type: 'baklab_signin_success', source: window.location.origin },
         '*'
       )
@@ -66,8 +68,9 @@ export default function SigninPage() {
     setSessionReturnUrl(returnURL)
 
     if (isLogined) {
-      if (isPopup && window.opener) {
-        window.opener.postMessage(
+      const openerWindow = window.opener as Window | null
+      if (isPopup && openerWindow) {
+        openerWindow.postMessage(
           { type: 'baklab_signin_success', source: window.location.origin },
           '*'
         )

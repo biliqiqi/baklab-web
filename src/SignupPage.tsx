@@ -28,8 +28,10 @@ export default function SignupPage() {
       getCookie(SINGUP_RETURN_COOKIE_NAME) || ''
     )
 
-    if (isPopup && window.opener) {
-      window.opener.postMessage(
+    const openerWindow = window.opener as Window | null
+
+    if (isPopup && openerWindow) {
+      openerWindow.postMessage(
         { type: 'baklab_signin_success', source: window.location.origin },
         '*'
       )

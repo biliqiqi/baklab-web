@@ -1,5 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ChangeEvent, memo, useCallback, useState } from 'react'
+import {
+  ChangeEvent,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { Control, Controller, Path, useForm } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
@@ -8,7 +16,7 @@ import { toSync } from '@/lib/fire-and-forget'
 import { noop } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
-import { postSignin } from '@/api'
+import { completeSignup, postSignin, postSignup, postVerifyCode } from '@/api'
 import { getSiteWithFrontId } from '@/api/site'
 import { OAUTH_PROVIDERS } from '@/constants/constants'
 import useDocumentTitle from '@/hooks/use-page-title'
@@ -17,26 +25,48 @@ import {
   useDialogStore,
   useSiteStore,
 } from '@/state/global'
-import { OAUTH_PROVIDER, OAuthProvider } from '@/types/types'
+import {
+  AuthedDataResponse,
+  OAUTH_PROVIDER,
+  OAuthProvider,
+} from '@/types/types'
 
+import CodeForm, { CodeSchema } from './CodeForm'
 import OAuthButton from './OAuthButton'
 import OAuthUsernameSetup from './OAuthUsernameSetup'
 import { Button } from './ui/button'
-import { Form, FormControl, FormItem } from './ui/form'
+import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form'
 import { Input } from './ui/input'
 import { Spinner } from './ui/spinner'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
 
 const accountRule = z.string().min(1)
 const signinSchema = z.object({
   account: accountRule,
   password: z.string(),
 })
+const phoneSchema = z.object({
+  phone: z.string(),
+})
+
+const usernameSchema = z.object({
+  username: z.string(),
+})
+
+const PHONE_REGEX = /^1\d{10}$/
+
+enum SigninType {
+  password = 'password',
+  phone = 'phone',
+}
 
 const oauthProverConfigList = (OAUTH_PROVIDERS as OAuthProvider[]).filter(
   (provider) => Object.values(OAUTH_PROVIDER).includes(provider)
 )
 
 type SigninSchema = z.infer<typeof signinSchema>
+type PhoneSchema = z.infer<typeof phoneSchema>
+type UsernameSchema = z.infer<typeof usernameSchema>
 
 interface FormInputProps<T extends SigninSchema> {
   control: Control<T>
@@ -86,6 +116,14 @@ const SigninForm: React.FC<SigninFromProps> = ({
   onSuccess,
 }) => {
   const [loading, setLoading] = useState(false)
+  const [currTab, setCurrTab] = useState<SigninType>(SigninType.password)
+  const [codeSent, setCodeSent] = useState(false)
+  const [codeVerified, setCodeVerified] = useState(false)
+  const [verifyResult, setVerifyResult] = useState<AuthedDataResponse | null>(
+    null
+  )
+  const [phoneTempToken, setPhoneTempToken] = useState('')
+  const contact = useRef('')
   const [showUsernameSetup, setShowUsernameSetup] = useState(false)
   const [oauthData, setOauthData] = useState<{
     email: string
@@ -101,6 +139,34 @@ const SigninForm: React.FC<SigninFromProps> = ({
 
   const siteStore = useSiteStore()
   const { t } = useTranslation()
+
+  const usernameRule = useMemo(
+    () =>
+      z
+        .string()
+        .min(4, t('charMinimum', { field: t('username'), num: 4 }))
+        .max(20, t('charMaximum', { field: t('username'), num: 20 }))
+        .transform((str) => str.toLowerCase())
+        .pipe(
+          z.string().refine(
+            (value) => {
+              const validCharsRegex = /^[a-z0-9._-]+$/
+              const startsWithPunctuation = /^[._-]/.test(value)
+              const endsWithPunctuation = /[._-]$/.test(value)
+
+              return (
+                validCharsRegex.test(value) &&
+                !startsWithPunctuation &&
+                !endsWithPunctuation
+              )
+            },
+            {
+              message: t('usernameFormatMsg'),
+            }
+          )
+        ),
+    [t]
+  )
 
   const signinForm = useForm<SigninSchema>({
     resolver: zodResolver(
@@ -127,6 +193,45 @@ const SigninForm: React.FC<SigninFromProps> = ({
       setEmail(e.target.value)
     },
   })
+
+  const phoneForm = useForm<PhoneSchema>({
+    resolver: zodResolver(
+      phoneSchema.extend({
+        phone: z
+          .string()
+          .regex(PHONE_REGEX, t('formatError', { field: t('phoneNumber') })),
+      })
+    ),
+    defaultValues: {
+      phone: '',
+    },
+  })
+
+  const phoneCompleteForm = useForm<UsernameSchema>({
+    resolver: zodResolver(
+      usernameSchema.extend({
+        username: usernameRule,
+      })
+    ),
+    defaultValues: {
+      username: '',
+    },
+  })
+
+  useEffect(() => {
+    if (verifyResult?.suggestedName) {
+      phoneCompleteForm.setValue('username', verifyResult.suggestedName)
+    }
+  }, [phoneCompleteForm, verifyResult])
+
+  const handleTabChange = (value: SigninType) => {
+    setCurrTab(value)
+    setCodeSent(false)
+    setCodeVerified(false)
+    setVerifyResult(null)
+    setPhoneTempToken('')
+    contact.current = ''
+  }
 
   const fetchSiteData = toSync(
     useCallback(async () => {
@@ -171,6 +276,103 @@ const SigninForm: React.FC<SigninFromProps> = ({
   const handleBackToSignin = () => {
     setShowUsernameSetup(false)
     setOauthData(null)
+  }
+
+  const sendPhoneSigninCode = async (phone: string) => {
+    if (loading) return
+
+    setLoading(true)
+    try {
+      const data = await postSignup({ phone })
+      if (!data.code) {
+        contact.current = phone
+        setCodeSent(true)
+        setCodeVerified(false)
+        setVerifyResult(null)
+        setPhoneTempToken('')
+      }
+    } catch (e) {
+      console.error('post phone signin code error: ', e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const onPhoneSubmit = (values: PhoneSchema) => {
+    void sendPhoneSigninCode(values.phone)
+  }
+
+  const onPhoneCodeSubmit = async (values: CodeSchema) => {
+    if (loading) return
+
+    setLoading(true)
+    try {
+      const data = await postVerifyCode({
+        phone: contact.current,
+        code: values.code,
+      })
+
+      if (!data.code) {
+        const result = data.data
+        if (result.needsUsername) {
+          setVerifyResult(result)
+          setCodeVerified(true)
+          setPhoneTempToken(result.token)
+        } else {
+          const { token, userID, username, user } = result
+          updateAuthState(token, username, userID, user)
+          setCodeSent(false)
+          setCodeVerified(false)
+          setVerifyResult(null)
+          setPhoneTempToken('')
+          fetchSiteData()
+          toSync(siteStore.fetchSiteList)()
+          if (onSuccess && typeof onSuccess == 'function') {
+            onSuccess()
+          }
+        }
+      }
+    } catch (e) {
+      console.error('phone signin verify error: ', e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const onPhoneCompleteSubmit = async (values: UsernameSchema) => {
+    if (loading) return
+
+    if (!phoneTempToken) {
+      setCodeVerified(false)
+      return
+    }
+
+    setLoading(true)
+    try {
+      const data = await completeSignup({
+        phone: contact.current,
+        username: values.username,
+        tempToken: phoneTempToken,
+      })
+
+      if (!data.code) {
+        const { token, userID, username, user } = data.data
+        updateAuthState(token, username, userID, user)
+        setVerifyResult(null)
+        setCodeVerified(false)
+        setCodeSent(false)
+        setPhoneTempToken('')
+        fetchSiteData()
+        toSync(siteStore.fetchSiteList)()
+        if (onSuccess && typeof onSuccess == 'function') {
+          onSuccess()
+        }
+      }
+    } catch (e) {
+      console.error('complete phone signin error: ', e)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const onSigninSubmit = async (values: SigninSchema) => {
@@ -225,28 +427,142 @@ const SigninForm: React.FC<SigninFromProps> = ({
   return (
     <>
       <div className="w-[400px] max-sm:w-full space-y-8 mx-auto py-4">
-        <Form {...signinForm}>
-          <form onSubmit={signinForm.handleSubmit(onSigninSubmit)}>
-            <FormInput
-              control={signinForm.control}
-              name="account"
-              placeholder={t('inputTip', { field: t('usernameOrEmail') })}
-            />
-            <FormInput
-              control={signinForm.control}
-              name="password"
-              type="password"
-              placeholder={t('inputTip', { field: t('password') })}
-            />
-            <Button
-              type="submit"
-              className="w-full text-center"
-              disabled={loading}
-            >
-              {loading && <Spinner />} {t('signin')}
-            </Button>
-          </form>
-        </Form>
+        <Tabs
+          value={currTab}
+          onValueChange={(value) => handleTabChange(value as SigninType)}
+        >
+          <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsTrigger value={SigninType.password}>
+              {t('passwordSignin')}
+            </TabsTrigger>
+            <TabsTrigger value={SigninType.phone}>
+              {t('phoneSignin')}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value={SigninType.password}>
+            <Form {...signinForm}>
+              <form onSubmit={signinForm.handleSubmit(onSigninSubmit)}>
+                <FormInput
+                  control={signinForm.control}
+                  name="account"
+                  placeholder={t('inputTip', { field: t('usernameOrEmail') })}
+                />
+                <FormInput
+                  control={signinForm.control}
+                  name="password"
+                  type="password"
+                  placeholder={t('inputTip', { field: t('password') })}
+                />
+                <Button
+                  type="submit"
+                  className="w-full text-center"
+                  disabled={loading}
+                >
+                  {loading && <Spinner />} {t('signin')}
+                </Button>
+              </form>
+            </Form>
+          </TabsContent>
+
+          <TabsContent value={SigninType.phone}>
+            {codeVerified ? (
+              <Form {...phoneCompleteForm}>
+                <form
+                  onSubmit={phoneCompleteForm.handleSubmit(
+                    onPhoneCompleteSubmit
+                  )}
+                >
+                  <div className="mb-8 text-gray-800">
+                    {t('verifySuccessTip')}
+                  </div>
+                  <FormField
+                    control={phoneCompleteForm.control}
+                    name="username"
+                    render={({ field, fieldState }) => (
+                      <FormItem className="mb-8">
+                        <FormControl>
+                          <Input
+                            placeholder={t('inputTip', {
+                              field: t('username'),
+                            })}
+                            autoComplete="off"
+                            state={fieldState.invalid ? 'invalid' : 'default'}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type="submit"
+                    className="w-full text-center mb-4"
+                    disabled={loading}
+                  >
+                    {loading && <Spinner />} {t('submit')}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="w-full text-center"
+                    onClick={() => handleTabChange(SigninType.phone)}
+                  >
+                    {t('goBack')}
+                  </Button>
+                </form>
+              </Form>
+            ) : codeSent ? (
+              <CodeForm
+                isPhone
+                loading={loading}
+                onBackClick={() => {
+                  setCodeSent(false)
+                  setCodeVerified(false)
+                  setVerifyResult(null)
+                  setPhoneTempToken('')
+                }}
+                onSubmit={onPhoneCodeSubmit}
+                onResendClick={() => {
+                  if (contact.current) {
+                    void sendPhoneSigninCode(contact.current)
+                  }
+                }}
+              />
+            ) : (
+              <Form {...phoneForm}>
+                <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)}>
+                  <FormField
+                    control={phoneForm.control}
+                    name="phone"
+                    render={({ field, fieldState }) => (
+                      <FormItem className="mb-8">
+                        <FormControl>
+                          <Input
+                            placeholder={t('inputTip', {
+                              field: t('phoneNumber'),
+                            })}
+                            autoComplete="off"
+                            {...field}
+                            state={fieldState.invalid ? 'invalid' : 'default'}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type="submit"
+                    className="w-full text-center"
+                    disabled={loading}
+                  >
+                    {loading && <Spinner />} {t('nextStep')}
+                  </Button>
+                </form>
+              </Form>
+            )}
+          </TabsContent>
+        </Tabs>
 
         {/* OAuth login section */}
         {oauthProverConfigList.length > 0 && (

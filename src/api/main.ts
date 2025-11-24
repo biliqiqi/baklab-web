@@ -10,30 +10,39 @@ import {
   OAuthProvider,
   PermissionListResponse,
   ResponseData,
-  TokenResponse,
 } from '@/types/types'
 
-export const postEmailSinup = async (
-  email: string
-): Promise<ResponseData<null>> => request.post(`signup`, { json: { email } })
+export interface SignupPayload {
+  email?: string
+  phone?: string
+}
 
-export const postEmailVerify = async (
-  email: string,
-  code: string
-): Promise<ResponseData<TokenResponse>> =>
-  request.post(`email_verify`, { json: { email, code } })
+export const postSignup = async (
+  payload: SignupPayload
+): Promise<ResponseData<null>> => request.post(`signup`, { json: payload })
 
-export const completeEmailSign = async (
-  email: string,
-  username: string,
-  password: string,
-  tempToken: string
+export const postVerifyCode = async (
+  payload: SignupPayload & { code: string }
+): Promise<ResponseData<AuthedDataResponse>> =>
+  request.post(`email_verify`, { json: payload })
+
+export const completeSignup = async (
+  payload: SignupPayload & {
+    username: string
+    password?: string
+    tempToken: string
+  }
 ): Promise<ResponseData<AuthedDataResponse>> =>
   request.post(`signup_complete`, {
     credentials: 'include',
-    json: { email, username, password },
+    json: {
+      email: payload.email,
+      phone: payload.phone,
+      username: payload.username,
+      ...(payload.password !== undefined && { password: payload.password }),
+    },
     headers: {
-      Authorization: `Bearer ${tempToken}`,
+      Authorization: `Bearer ${payload.tempToken}`,
     },
   })
 

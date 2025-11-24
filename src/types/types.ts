@@ -18,6 +18,7 @@ export interface AuthedDataResponse {
   user: UserData | null
   needsUsername: boolean
   email: string
+  phone?: string
   provider: OAuthProvider
   suggestedName: string
 }
@@ -278,6 +279,7 @@ export interface UserData {
   id: string
   name: string
   email: string
+  phone?: string
   registeredAt: string // ISO date string
   registeredAtStr: string
   introduction: string

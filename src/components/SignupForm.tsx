@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ChangeEvent, useEffect, useRef, useState } from 'react'
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
@@ -8,38 +8,44 @@ import { toast } from 'sonner'
 import { noop } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
-import { completeEmailSign, postEmailSinup, postEmailVerify } from '@/api'
+import {
+  SignupPayload,
+  completeSignup,
+  postSignup,
+  postVerifyCode,
+} from '@/api'
 import {
   SERVER_ERR_ACCOUNT_EXIST,
   SIGNUP_TEMP_TOKEN_KEY,
 } from '@/constants/constants'
 import useDocumentTitle from '@/hooks/use-page-title'
 import { useAuthedUserStore, useDialogStore } from '@/state/global'
+import { AuthedDataResponse } from '@/types/types'
 
 import CodeForm, { CodeSchema } from './CodeForm'
 import { Button } from './ui/button'
 import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form'
 import { Input } from './ui/input'
 import { Spinner } from './ui/spinner'
-import { Tabs, TabsContent } from './ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
 
 const emailSchema = z.object({
   email: z.string().email(),
 })
 
+const PHONE_REGEX = /^1\d{10}$/
+
 const phoneSchema = z.object({
   phone: z.string(),
-})
-
-const signupSchema = z.object({
-  username: z.string(),
-  password: z.string(),
 })
 
 type EmailSchema = z.infer<typeof emailSchema>
 type PhoneSchema = z.infer<typeof phoneSchema>
 
-type SignupSchema = z.infer<typeof signupSchema>
+type SignupSchema = {
+  username: string
+  password?: string
+}
 
 enum SignupType {
   email = 'email',
@@ -62,6 +68,10 @@ const SignupForm: React.FC<SignupFormProps> = ({
   const [isPhone, setIsPhone] = useState(false)
   const [codeSent, setCodeSent] = useState(false)
   const [codeVerified, setCodeVerified] = useState(false)
+  const [verifyResult, setVerifyResult] = useState<AuthedDataResponse | null>(
+    null
+  )
+  const [tempToken, setTempToken] = useState('')
   const [currTab, setCurrTab] = useState<SignupType>(SignupType.email)
   const [loading, setLoading] = useState(false)
   const { updateSignin, updateSignup } = useDialogStore()
@@ -72,27 +82,35 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
   const { t } = useTranslation()
 
-  const email = useRef('')
+  const contact = useRef('')
 
   useEffect(() => {
-    const tempToken = localStorage.getItem(SIGNUP_TEMP_TOKEN_KEY)
+    const tokenInStorage = localStorage.getItem(SIGNUP_TEMP_TOKEN_KEY)
     const signupStep = searchParams.get('signup_step')
 
-    if (tempToken && signupStep === 'complete') {
+    if (tokenInStorage && signupStep === 'complete') {
+      setTempToken(tokenInStorage)
       setCodeVerified(true)
     }
   }, [searchParams])
 
-  const reset = () => {
-    setIsPhone(false)
+  const handleTabChange = (value: SignupType) => {
+    setCurrTab(value)
+    setIsPhone(value === SignupType.phone)
     setCodeSent(false)
     setCodeVerified(false)
-    setCurrTab(SignupType.email)
-    setLoading(false)
+    setVerifyResult(null)
+    setTempToken('')
+    contact.current = ''
     localStorage.removeItem(SIGNUP_TEMP_TOKEN_KEY)
 
     searchParams.delete('signup_step')
     setSearchParams(searchParams)
+  }
+
+  const reset = () => {
+    handleTabChange(SignupType.email)
+    setLoading(false)
   }
 
   const emailForm = useForm<EmailSchema>({
@@ -113,7 +131,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
       phoneSchema.extend({
         phone: z
           .string()
-          .regex(/^1\d{10}$/, t('formatError', { field: t('phoneNumber') })),
+          .regex(PHONE_REGEX, t('formatError', { field: t('phoneNumber') })),
       })
     ),
     defaultValues: {
@@ -121,60 +139,99 @@ const SignupForm: React.FC<SignupFormProps> = ({
     },
   })
 
-  const form = useForm<SignupSchema>({
-    resolver: zodResolver(
-      signupSchema.extend({
-        username: z
-          .string()
-          .min(4, t('charMinimum', { field: t('username'), num: 4 }))
-          .max(20, t('charMaximum', { field: t('username'), num: 20 }))
-          .transform((str) => str.toLowerCase())
-          .pipe(
-            z.string().refine(
-              (value) => {
-                const validCharsRegex = /^[a-z0-9._-]+$/
-                const startsWithPunctuation = /^[._-]/.test(value)
-                const endsWithPunctuation = /[._-]$/.test(value)
+  const usernameRule = useMemo(
+    () =>
+      z
+        .string()
+        .min(4, t('charMinimum', { field: t('username'), num: 4 }))
+        .max(20, t('charMaximum', { field: t('username'), num: 20 }))
+        .transform((str) => str.toLowerCase())
+        .pipe(
+          z.string().refine(
+            (value) => {
+              const validCharsRegex = /^[a-z0-9._-]+$/
+              const startsWithPunctuation = /^[._-]/.test(value)
+              const endsWithPunctuation = /[._-]$/.test(value)
 
-                return (
-                  validCharsRegex.test(value) &&
-                  !startsWithPunctuation &&
-                  !endsWithPunctuation
-                )
-              },
-              {
-                message: t('usernameFormatMsg'),
-              }
-            )
-          ),
-        password: z
-          .string()
-          .min(12, t('charMinimum', { field: t('password'), num: 12 }))
-          .max(64, t('charMaximum', { field: t('password'), num: 64 }))
-          .regex(/[a-z]/, t('passRule1'))
-          .regex(/[A-Z]/, t('passRule2'))
-          .regex(/\d/, t('passRule3'))
-          .regex(/[!@#$%^&*]/, t('passRule4')),
-      })
-    ),
+              return (
+                validCharsRegex.test(value) &&
+                !startsWithPunctuation &&
+                !endsWithPunctuation
+              )
+            },
+            {
+              message: t('usernameFormatMsg'),
+            }
+          )
+        ),
+    [t]
+  )
+
+  const passwordRule = useMemo(
+    () =>
+      z
+        .string()
+        .min(12, t('charMinimum', { field: t('password'), num: 12 }))
+        .max(64, t('charMaximum', { field: t('password'), num: 64 }))
+        .regex(/[a-z]/, t('passRule1'))
+        .regex(/[A-Z]/, t('passRule2'))
+        .regex(/\d/, t('passRule3'))
+        .regex(/[!@#$%^&*]/, t('passRule4')),
+    [t]
+  )
+
+  const signupResolver = useMemo(
+    () =>
+      zodResolver(
+        isPhone
+          ? z.object({
+              username: usernameRule,
+            })
+          : z.object({
+              username: usernameRule,
+              password: passwordRule,
+            })
+      ),
+    [isPhone, passwordRule, usernameRule]
+  )
+
+  const form = useForm<SignupSchema>({
+    resolver: signupResolver,
     defaultValues: {
       username: '',
       password: '',
     },
   })
 
-  const signWithEmail = async (email: string) => {
+  useEffect(() => {
+    if (verifyResult?.suggestedName) {
+      form.setValue('username', verifyResult.suggestedName)
+    }
+  }, [form, verifyResult])
+
+  const sendSignupCode = async (
+    payload: SignupPayload,
+    channel: SignupType
+  ) => {
     if (loading) return
 
     setLoading(true)
     try {
-      const data = await postEmailSinup(email)
-      /* console.log('email post resp data:', data) */
+      const data = await postSignup(payload)
       if (!data.code) {
+        setVerifyResult(null)
+        setCodeVerified(false)
+        setTempToken('')
+        localStorage.removeItem(SIGNUP_TEMP_TOKEN_KEY)
+        contact.current =
+          channel === SignupType.phone
+            ? payload.phone || ''
+            : payload.email || ''
+        setIsPhone(channel === SignupType.phone)
         setCodeSent(true)
       }
     } catch (e) {
-      console.error('post email signup error: ', e)
+      console.error('post signup error: ', e)
     } finally {
       setLoading(false)
     }
@@ -182,16 +239,13 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
   const onEmailSubmit = (values: EmailSchema) => {
     /* console.log('values: ', values) */
-    email.current = values.email
-
-    /* eslint-disable-next-line */
-    signWithEmail(values.email)
+    handleTabChange(SignupType.email)
+    void sendSignupCode({ email: values.email }, SignupType.email)
   }
 
-  const onPhoneSubmit = (_values: PhoneSchema) => {
-    /* console.log('values: ', values) */
-    setIsPhone(true)
-    setCodeSent(true)
+  const onPhoneSubmit = (values: PhoneSchema) => {
+    handleTabChange(SignupType.phone)
+    void sendSignupCode({ phone: values.phone }, SignupType.phone)
   }
 
   const onCodeSubmit = async (values: CodeSchema) => {
@@ -199,24 +253,43 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
     setLoading(true)
     try {
-      const data = await postEmailVerify(email.current, values.code)
-      /* console.log('email verify resp data:', data) */
+      const data = await postVerifyCode(
+        isPhone
+          ? { phone: contact.current, code: values.code }
+          : { email: contact.current, code: values.code }
+      )
 
       if (!data.code) {
-        setCodeVerified(true)
-        localStorage.setItem(SIGNUP_TEMP_TOKEN_KEY, data.data.token)
+        const verifyData = data.data
+        if (verifyData.needsUsername) {
+          setVerifyResult(verifyData)
+          setCodeVerified(true)
+          setTempToken(verifyData.token)
+          localStorage.setItem(SIGNUP_TEMP_TOKEN_KEY, verifyData.token)
 
-        searchParams.set('signup_step', 'complete')
-        setSearchParams(searchParams)
+          searchParams.set('signup_step', 'complete')
+          setSearchParams(searchParams)
+        } else {
+          const { token, username, userID, user } = verifyData
+          autheState.update(token, username, userID, user)
+          localStorage.removeItem(SIGNUP_TEMP_TOKEN_KEY)
+          setCodeSent(false)
+          setCodeVerified(false)
+          setVerifyResult(null)
+          setTempToken('')
+          if (onSuccess && typeof onSuccess == 'function') {
+            onSuccess()
+          }
+        }
       } else {
         if (data.code == SERVER_ERR_ACCOUNT_EXIST) {
           toast.info(t('emailExistsTip'))
           if (dialog) {
             updateSignup(false)
             updateSignin(true)
-            setEmail(email.current)
+            setEmail(contact.current)
           } else {
-            navigate(`/signin?account=${email.current}`)
+            navigate(`/signin?account=${contact.current}`)
           }
         }
       }
@@ -233,9 +306,10 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
       if (loading) return
 
-      const tempToken = localStorage.getItem(SIGNUP_TEMP_TOKEN_KEY) || ''
+      const tokenFromStorage =
+        tempToken || localStorage.getItem(SIGNUP_TEMP_TOKEN_KEY) || ''
 
-      if (!tempToken) {
+      if (!tokenFromStorage) {
         toast.error(t('verificationExpired'))
         setCodeVerified(false)
         return
@@ -243,12 +317,13 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
       setLoading(true)
 
-      const data = await completeEmailSign(
-        email.current,
-        values.username,
-        values.password,
-        tempToken
-      )
+      const data = await completeSignup({
+        email: isPhone ? undefined : contact.current,
+        phone: isPhone ? contact.current : undefined,
+        username: values.username,
+        password: isPhone ? undefined : values.password,
+        tempToken: tokenFromStorage,
+      })
       /* console.log('signup complete data:', data) */
 
       if (!data.code) {
@@ -256,6 +331,8 @@ const SignupForm: React.FC<SignupFormProps> = ({
         const { token, username, userID, user } = data.data
         autheState.update(token, username, userID, user)
         localStorage.removeItem(SIGNUP_TEMP_TOKEN_KEY)
+        setVerifyResult(null)
+        setTempToken('')
 
         searchParams.delete('signup_step')
         setSearchParams(searchParams)
@@ -298,24 +375,26 @@ const SignupForm: React.FC<SignupFormProps> = ({
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field, fieldState }) => (
-                  <FormItem className="mb-8">
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder={t('inputTip', { field: t('password') })}
-                        autoComplete="off"
-                        {...field}
-                        state={fieldState.invalid ? 'invalid' : 'default'}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {!isPhone && (
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field, fieldState }) => (
+                    <FormItem className="mb-8">
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder={t('inputTip', { field: t('password') })}
+                          autoComplete="off"
+                          {...field}
+                          state={fieldState.invalid ? 'invalid' : 'default'}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               <Button
                 type="submit"
                 className="w-full text-center mb-4"
@@ -339,106 +418,112 @@ const SignupForm: React.FC<SignupFormProps> = ({
             loading={loading}
             onBackClick={() => setCodeSent(false)}
             onSubmit={onCodeSubmit}
-            onResendClick={() => signWithEmail(email.current)}
+            onResendClick={() =>
+              sendSignupCode(
+                isPhone
+                  ? { phone: contact.current }
+                  : { email: contact.current },
+                isPhone ? SignupType.phone : SignupType.email
+              )
+            }
           />
         ) : (
-          <Tabs defaultValue={currTab}>
-            {/* <TabsList className="grid w-full grid-cols-2 mb-8">
-                <TabsTrigger
-                  value={SignupType.email}
-                  onClick={() => setCurrTab(SignupType.email)}
-                >
+          <>
+            <Tabs
+              value={currTab}
+              onValueChange={(value) => handleTabChange(value as SignupType)}
+            >
+              <TabsList className="grid w-full grid-cols-2 mb-8">
+                <TabsTrigger value={SignupType.email}>
                   {t('emailSignup')}
                 </TabsTrigger>
-                <TabsTrigger
-                  value={SignupType.phone}
-                  onClick={() => setCurrTab(SignupType.phone)}
-                >
+                <TabsTrigger value={SignupType.phone}>
                   {t('phoneSignup')}
                 </TabsTrigger>
-              </TabsList> */}
+              </TabsList>
 
-            <TabsContent value={SignupType.email}>
-              <Form {...emailForm}>
-                <form onSubmit={emailForm.handleSubmit(onEmailSubmit)}>
-                  <FormField
-                    control={emailForm.control}
-                    name="email"
-                    render={({ field, fieldState }) => (
-                      <FormItem className="mb-8">
-                        <FormControl>
-                          <Input
-                            type="email"
-                            placeholder={t('inputTip', { field: t('email') })}
-                            autoComplete="off"
-                            {...field}
-                            state={fieldState.invalid ? 'invalid' : 'default'}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button
-                    type="submit"
-                    className="w-full text-center"
-                    disabled={loading}
-                  >
-                    {loading && <Spinner />} {t('nextStep')}
-                  </Button>
-                </form>
-              </Form>
-              <div className="text-sm mt-8">
-                <Trans
-                  i18nKey={'directlySigninTip'}
-                  components={{
-                    loginLink: (
-                      <Link
-                        to="/signin"
-                        className="b-text-link"
-                        onClick={(e) => {
-                          if (dialog) {
-                            e.preventDefault()
-                            updateSignup(false)
-                            updateSignin(true)
-                            return
-                          }
-                        }}
-                      />
-                    ),
-                  }}
-                />
-              </div>
-            </TabsContent>
-            <TabsContent value={SignupType.phone}>
-              <Form {...phoneForm}>
-                <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)}>
-                  <FormField
-                    control={phoneForm.control}
-                    name="phone"
-                    render={({ field, fieldState }) => (
-                      <FormItem className="mb-8">
-                        <FormControl>
-                          <Input
-                            placeholder={t('inputTip', {
-                              field: t('phoneNumber'),
-                            })}
-                            autoComplete="off"
-                            {...field}
-                            state={fieldState.invalid ? 'invalid' : 'default'}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full text-center">
-                    {t('nextStep')}
-                  </Button>
-                </form>
-              </Form>
-            </TabsContent>
-          </Tabs>
+              <TabsContent value={SignupType.email}>
+                <Form {...emailForm}>
+                  <form onSubmit={emailForm.handleSubmit(onEmailSubmit)}>
+                    <FormField
+                      control={emailForm.control}
+                      name="email"
+                      render={({ field, fieldState }) => (
+                        <FormItem className="mb-8">
+                          <FormControl>
+                            <Input
+                              type="email"
+                              placeholder={t('inputTip', { field: t('email') })}
+                              autoComplete="off"
+                              {...field}
+                              state={fieldState.invalid ? 'invalid' : 'default'}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="submit"
+                      className="w-full text-center"
+                      disabled={loading}
+                    >
+                      {loading && <Spinner />} {t('nextStep')}
+                    </Button>
+                  </form>
+                </Form>
+              </TabsContent>
+              <TabsContent value={SignupType.phone}>
+                <Form {...phoneForm}>
+                  <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)}>
+                    <FormField
+                      control={phoneForm.control}
+                      name="phone"
+                      render={({ field, fieldState }) => (
+                        <FormItem className="mb-8">
+                          <FormControl>
+                            <Input
+                              placeholder={t('inputTip', {
+                                field: t('phoneNumber'),
+                              })}
+                              autoComplete="off"
+                              {...field}
+                              state={fieldState.invalid ? 'invalid' : 'default'}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" className="w-full text-center">
+                      {t('nextStep')}
+                    </Button>
+                  </form>
+                </Form>
+              </TabsContent>
+            </Tabs>
+            <div className="text-sm mt-8">
+              <Trans
+                i18nKey={'directlySigninTip'}
+                components={{
+                  loginLink: (
+                    <Link
+                      to="/signin"
+                      className="b-text-link"
+                      onClick={(e) => {
+                        if (dialog) {
+                          e.preventDefault()
+                          updateSignup(false)
+                          updateSignin(true)
+                          return
+                        }
+                      }}
+                    />
+                  ),
+                }}
+              />
+            </div>
+          </>
         )}
       </div>
     </>

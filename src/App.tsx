@@ -33,6 +33,7 @@ import {
   useDefaultFontSizeStore,
   useEventSourceStore,
   useForceUpdate,
+  useGeoInfoStore,
   useNotificationStore,
   useRightSidebarStore,
   useSidebarStore,
@@ -254,8 +255,12 @@ const App = () => {
     }
   }, [refreshTokenSync, reconnectEventSource])
 
+  const fetchGeoInfo = useGeoInfoStore((state) => state.fetchGeoInfo)
+
   useEffect(() => {
     const initializeApp = async () => {
+      toSync(fetchGeoInfo)()
+
       let isLoggedIn = false
 
       if (!authToken) {
@@ -293,6 +298,7 @@ const App = () => {
     authToken,
     routes,
     fetchSiteList,
+    fetchGeoInfo,
     forceUpdate,
     updateBaseData,
     updateUserData,

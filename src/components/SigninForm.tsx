@@ -19,10 +19,12 @@ import { z } from '@/lib/zod-custom'
 import { completeSignup, postSignin, postSignup, postVerifyCode } from '@/api'
 import { getSiteWithFrontId } from '@/api/site'
 import { OAUTH_PROVIDERS } from '@/constants/constants'
+import { useIsMobile } from '@/hooks/use-mobile'
 import useDocumentTitle from '@/hooks/use-page-title'
 import {
   useAuthedUserStore,
   useDialogStore,
+  useGeoInfoStore,
   useSiteStore,
 } from '@/state/global'
 import {
@@ -139,6 +141,10 @@ const SigninForm: React.FC<SigninFromProps> = ({
 
   const siteStore = useSiteStore()
   const { t } = useTranslation()
+  const countryCode = useGeoInfoStore((state) => state.countryCode)
+  const isChina = countryCode === 'CN'
+  const isMobile = useIsMobile()
+  const isChinaMobile = isChina && isMobile
 
   const usernameRule = useMemo(
     () =>
@@ -428,144 +434,152 @@ const SigninForm: React.FC<SigninFromProps> = ({
     <>
       <div className="w-[400px] max-sm:w-full space-y-8 mx-auto py-4">
         <Tabs
-          value={currTab}
+          value={isChinaMobile ? SigninType.phone : currTab}
           onValueChange={(value) => handleTabChange(value as SigninType)}
         >
-          <TabsList className="grid w-full grid-cols-2 mb-8">
-            <TabsTrigger value={SigninType.password}>
-              {t('passwordSignin')}
-            </TabsTrigger>
-            <TabsTrigger value={SigninType.phone}>
-              {t('phoneSignin')}
-            </TabsTrigger>
-          </TabsList>
+          {isChina && !isChinaMobile ? (
+            <TabsList className="grid w-full grid-cols-2 mb-8">
+              <TabsTrigger value={SigninType.password}>
+                {t('passwordSignin')}
+              </TabsTrigger>
+              <TabsTrigger value={SigninType.phone}>
+                {t('phoneSignin')}
+              </TabsTrigger>
+            </TabsList>
+          ) : (
+            <div className="mb-8" />
+          )}
 
-          <TabsContent value={SigninType.password}>
-            <Form {...signinForm}>
-              <form onSubmit={signinForm.handleSubmit(onSigninSubmit)}>
-                <FormInput
-                  control={signinForm.control}
-                  name="account"
-                  placeholder={t('inputTip', { field: t('usernameOrEmail') })}
-                />
-                <FormInput
-                  control={signinForm.control}
-                  name="password"
-                  type="password"
-                  placeholder={t('inputTip', { field: t('password') })}
-                />
-                <Button
-                  type="submit"
-                  className="w-full text-center"
-                  disabled={loading}
-                >
-                  {loading && <Spinner />} {t('signin')}
-                </Button>
-              </form>
-            </Form>
-          </TabsContent>
-
-          <TabsContent value={SigninType.phone}>
-            {codeVerified ? (
-              <Form {...phoneCompleteForm}>
-                <form
-                  onSubmit={phoneCompleteForm.handleSubmit(
-                    onPhoneCompleteSubmit
-                  )}
-                >
-                  <div className="mb-8 text-gray-800">
-                    {t('verifySuccessTip')}
-                  </div>
-                  <FormField
-                    control={phoneCompleteForm.control}
-                    name="username"
-                    render={({ field, fieldState }) => (
-                      <FormItem className="mb-8">
-                        <FormControl>
-                          <Input
-                            placeholder={t('inputTip', {
-                              field: t('username'),
-                            })}
-                            autoComplete="off"
-                            state={fieldState.invalid ? 'invalid' : 'default'}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+          {!isChinaMobile && (
+            <TabsContent value={SigninType.password}>
+              <Form {...signinForm}>
+                <form onSubmit={signinForm.handleSubmit(onSigninSubmit)}>
+                  <FormInput
+                    control={signinForm.control}
+                    name="account"
+                    placeholder={t('inputTip', { field: t('usernameOrEmail') })}
                   />
-                  <Button
-                    type="submit"
-                    className="w-full text-center mb-4"
-                    disabled={loading}
-                  >
-                    {loading && <Spinner />} {t('submit')}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="w-full text-center"
-                    onClick={() => handleTabChange(SigninType.phone)}
-                  >
-                    {t('goBack')}
-                  </Button>
-                </form>
-              </Form>
-            ) : codeSent ? (
-              <CodeForm
-                isPhone
-                loading={loading}
-                onBackClick={() => {
-                  setCodeSent(false)
-                  setCodeVerified(false)
-                  setVerifyResult(null)
-                  setPhoneTempToken('')
-                }}
-                onSubmit={onPhoneCodeSubmit}
-                onResendClick={() => {
-                  if (contact.current) {
-                    void sendPhoneSigninCode(contact.current)
-                  }
-                }}
-              />
-            ) : (
-              <Form {...phoneForm}>
-                <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)}>
-                  <FormField
-                    control={phoneForm.control}
-                    name="phone"
-                    render={({ field, fieldState }) => (
-                      <FormItem className="mb-8">
-                        <FormControl>
-                          <Input
-                            placeholder={t('inputTip', {
-                              field: t('phoneNumber'),
-                            })}
-                            autoComplete="off"
-                            {...field}
-                            state={fieldState.invalid ? 'invalid' : 'default'}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                  <FormInput
+                    control={signinForm.control}
+                    name="password"
+                    type="password"
+                    placeholder={t('inputTip', { field: t('password') })}
                   />
                   <Button
                     type="submit"
                     className="w-full text-center"
                     disabled={loading}
                   >
-                    {loading && <Spinner />} {t('nextStep')}
+                    {loading && <Spinner />} {t('signin')}
                   </Button>
                 </form>
               </Form>
-            )}
-          </TabsContent>
+            </TabsContent>
+          )}
+
+          {isChina && (
+            <TabsContent value={SigninType.phone}>
+              {codeVerified ? (
+                <Form {...phoneCompleteForm}>
+                  <form
+                    onSubmit={phoneCompleteForm.handleSubmit(
+                      onPhoneCompleteSubmit
+                    )}
+                  >
+                    <div className="mb-8 text-gray-800">
+                      {t('verifySuccessTip')}
+                    </div>
+                    <FormField
+                      control={phoneCompleteForm.control}
+                      name="username"
+                      render={({ field, fieldState }) => (
+                        <FormItem className="mb-8">
+                          <FormControl>
+                            <Input
+                              placeholder={t('inputTip', {
+                                field: t('username'),
+                              })}
+                              autoComplete="off"
+                              state={fieldState.invalid ? 'invalid' : 'default'}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="submit"
+                      className="w-full text-center mb-4"
+                      disabled={loading}
+                    >
+                      {loading && <Spinner />} {t('submit')}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="w-full text-center"
+                      onClick={() => handleTabChange(SigninType.phone)}
+                    >
+                      {t('goBack')}
+                    </Button>
+                  </form>
+                </Form>
+              ) : codeSent ? (
+                <CodeForm
+                  isPhone
+                  loading={loading}
+                  onBackClick={() => {
+                    setCodeSent(false)
+                    setCodeVerified(false)
+                    setVerifyResult(null)
+                    setPhoneTempToken('')
+                  }}
+                  onSubmit={onPhoneCodeSubmit}
+                  onResendClick={() => {
+                    if (contact.current) {
+                      void sendPhoneSigninCode(contact.current)
+                    }
+                  }}
+                />
+              ) : (
+                <Form {...phoneForm}>
+                  <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)}>
+                    <FormField
+                      control={phoneForm.control}
+                      name="phone"
+                      render={({ field, fieldState }) => (
+                        <FormItem className="mb-8">
+                          <FormControl>
+                            <Input
+                              placeholder={t('inputTip', {
+                                field: t('phoneNumber'),
+                              })}
+                              autoComplete="off"
+                              {...field}
+                              state={fieldState.invalid ? 'invalid' : 'default'}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="submit"
+                      className="w-full text-center"
+                      disabled={loading}
+                    >
+                      {loading && <Spinner />} {t('nextStep')}
+                    </Button>
+                  </form>
+                </Form>
+              )}
+            </TabsContent>
+          )}
         </Tabs>
 
         {/* OAuth login section */}
-        {oauthProverConfigList.length > 0 && (
+        {!isChinaMobile && oauthProverConfigList.length > 0 && (
           <div className="space-y-4">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -593,27 +607,29 @@ const SigninForm: React.FC<SigninFromProps> = ({
           </div>
         )}
 
-        <div className="text-sm">
-          <Trans
-            i18nKey={'directlySignupTip'}
-            components={{
-              signupLink: (
-                <Link
-                  to="/signup"
-                  className="b-text-link"
-                  onClick={(e) => {
-                    if (dialog) {
-                      e.preventDefault()
-                      updateSignin(false)
-                      updateSignup(true)
-                      return
-                    }
-                  }}
-                />
-              ),
-            }}
-          />
-        </div>
+        {!isChinaMobile && (
+          <div className="text-sm">
+            <Trans
+              i18nKey={'directlySignupTip'}
+              components={{
+                signupLink: (
+                  <Link
+                    to="/signup"
+                    className="b-text-link"
+                    onClick={(e) => {
+                      if (dialog) {
+                        e.preventDefault()
+                        updateSignin(false)
+                        updateSignup(true)
+                        return
+                      }
+                    }}
+                  />
+                ),
+              }}
+            />
+          </div>
+        )}
       </div>
     </>
   )

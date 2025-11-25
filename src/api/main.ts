@@ -24,7 +24,10 @@ export const postSignup = async (
 export const postVerifyCode = async (
   payload: SignupPayload & { code: string }
 ): Promise<ResponseData<AuthedDataResponse>> =>
-  request.post(`email_verify`, { json: payload })
+  request.post(`email_verify`, {
+    credentials: 'include',
+    json: payload,
+  })
 
 export const completeSignup = async (
   payload: SignupPayload & {
@@ -131,6 +134,13 @@ export const eventsPong = (clientID: string) =>
       clientID,
     },
   })
+
+export interface GeoInfoResponse {
+  countryCode: string
+}
+
+export const getGeoInfo = async (): Promise<ResponseData<GeoInfoResponse>> =>
+  request.get(`geo`)
 
 export const getPermissionList = (custom?: CustomRequestOptions) =>
   authRequest.get<ResponseData<PermissionListResponse>>(

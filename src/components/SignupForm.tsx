@@ -18,8 +18,13 @@ import {
   SERVER_ERR_ACCOUNT_EXIST,
   SIGNUP_TEMP_TOKEN_KEY,
 } from '@/constants/constants'
+import { useIsMobile } from '@/hooks/use-mobile'
 import useDocumentTitle from '@/hooks/use-page-title'
-import { useAuthedUserStore, useDialogStore } from '@/state/global'
+import {
+  useAuthedUserStore,
+  useDialogStore,
+  useGeoInfoStore,
+} from '@/state/global'
 import { AuthedDataResponse } from '@/types/types'
 
 import CodeForm, { CodeSchema } from './CodeForm'
@@ -81,6 +86,10 @@ const SignupForm: React.FC<SignupFormProps> = ({
   const [searchParams, setSearchParams] = useSearchParams()
 
   const { t } = useTranslation()
+  const countryCode = useGeoInfoStore((state) => state.countryCode)
+  const isChina = countryCode === 'CN'
+  const isMobile = useIsMobile()
+  const isChinaMobile = isChina && isMobile
 
   const contact = useRef('')
 
@@ -430,99 +439,115 @@ const SignupForm: React.FC<SignupFormProps> = ({
         ) : (
           <>
             <Tabs
-              value={currTab}
+              value={isChinaMobile ? SignupType.phone : currTab}
               onValueChange={(value) => handleTabChange(value as SignupType)}
             >
-              <TabsList className="grid w-full grid-cols-2 mb-8">
-                <TabsTrigger value={SignupType.email}>
-                  {t('emailSignup')}
-                </TabsTrigger>
-                <TabsTrigger value={SignupType.phone}>
-                  {t('phoneSignup')}
-                </TabsTrigger>
-              </TabsList>
+              {isChina && !isChinaMobile ? (
+                <TabsList className="grid w-full grid-cols-2 mb-8">
+                  <TabsTrigger value={SignupType.email}>
+                    {t('emailSignup')}
+                  </TabsTrigger>
+                  <TabsTrigger value={SignupType.phone}>
+                    {t('phoneSignup')}
+                  </TabsTrigger>
+                </TabsList>
+              ) : (
+                <div className="mb-8" />
+              )}
 
-              <TabsContent value={SignupType.email}>
-                <Form {...emailForm}>
-                  <form onSubmit={emailForm.handleSubmit(onEmailSubmit)}>
-                    <FormField
-                      control={emailForm.control}
-                      name="email"
-                      render={({ field, fieldState }) => (
-                        <FormItem className="mb-8">
-                          <FormControl>
-                            <Input
-                              type="email"
-                              placeholder={t('inputTip', { field: t('email') })}
-                              autoComplete="off"
-                              {...field}
-                              state={fieldState.invalid ? 'invalid' : 'default'}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button
-                      type="submit"
-                      className="w-full text-center"
-                      disabled={loading}
-                    >
-                      {loading && <Spinner />} {t('nextStep')}
-                    </Button>
-                  </form>
-                </Form>
-              </TabsContent>
-              <TabsContent value={SignupType.phone}>
-                <Form {...phoneForm}>
-                  <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)}>
-                    <FormField
-                      control={phoneForm.control}
-                      name="phone"
-                      render={({ field, fieldState }) => (
-                        <FormItem className="mb-8">
-                          <FormControl>
-                            <Input
-                              placeholder={t('inputTip', {
-                                field: t('phoneNumber'),
-                              })}
-                              autoComplete="off"
-                              {...field}
-                              state={fieldState.invalid ? 'invalid' : 'default'}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button type="submit" className="w-full text-center">
-                      {t('nextStep')}
-                    </Button>
-                  </form>
-                </Form>
-              </TabsContent>
+              {!isChinaMobile && (
+                <TabsContent value={SignupType.email}>
+                  <Form {...emailForm}>
+                    <form onSubmit={emailForm.handleSubmit(onEmailSubmit)}>
+                      <FormField
+                        control={emailForm.control}
+                        name="email"
+                        render={({ field, fieldState }) => (
+                          <FormItem className="mb-8">
+                            <FormControl>
+                              <Input
+                                type="email"
+                                placeholder={t('inputTip', {
+                                  field: t('email'),
+                                })}
+                                autoComplete="off"
+                                {...field}
+                                state={
+                                  fieldState.invalid ? 'invalid' : 'default'
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button
+                        type="submit"
+                        className="w-full text-center"
+                        disabled={loading}
+                      >
+                        {loading && <Spinner />} {t('nextStep')}
+                      </Button>
+                    </form>
+                  </Form>
+                </TabsContent>
+              )}
+              {isChina && (
+                <TabsContent value={SignupType.phone}>
+                  <Form {...phoneForm}>
+                    <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)}>
+                      <FormField
+                        control={phoneForm.control}
+                        name="phone"
+                        render={({ field, fieldState }) => (
+                          <FormItem className="mb-8">
+                            <FormControl>
+                              <Input
+                                placeholder={t('inputTip', {
+                                  field: t('phoneNumber'),
+                                })}
+                                autoComplete="off"
+                                {...field}
+                                state={
+                                  fieldState.invalid ? 'invalid' : 'default'
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="submit" className="w-full text-center">
+                        {t('nextStep')}
+                      </Button>
+                    </form>
+                  </Form>
+                </TabsContent>
+              )}
             </Tabs>
-            <div className="text-sm mt-8">
-              <Trans
-                i18nKey={'directlySigninTip'}
-                components={{
-                  loginLink: (
-                    <Link
-                      to="/signin"
-                      className="b-text-link"
-                      onClick={(e) => {
-                        if (dialog) {
-                          e.preventDefault()
-                          updateSignup(false)
-                          updateSignin(true)
-                          return
-                        }
-                      }}
-                    />
-                  ),
-                }}
-              />
-            </div>
+            {!isChinaMobile && (
+              <div className="text-sm mt-8">
+                <Trans
+                  i18nKey={'directlySigninTip'}
+                  components={{
+                    loginLink: (
+                      <Link
+                        to="/signin"
+                        className="b-text-link"
+                        onClick={(e) => {
+                          if (dialog) {
+                            e.preventDefault()
+                            updateSignup(false)
+                            updateSignin(true)
+                            return
+                          }
+                        }}
+                      />
+                    ),
+                  }}
+                />
+              </div>
+            )}
           </>
         )}
       </div>

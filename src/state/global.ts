@@ -7,6 +7,7 @@ import { noop, setRootFontSize } from '@/lib/utils'
 
 import { getReactOptions } from '@/api/article'
 import { getCategoryList } from '@/api/category'
+import { getGeoInfo } from '@/api/main'
 import { getNotificationUnreadCount } from '@/api/message'
 import { getJoinedSiteList, getSiteWithFrontId } from '@/api/site'
 import { DEFAULT_CONTENT_WIDTH } from '@/constants/constants'
@@ -1162,6 +1163,29 @@ export const useReactOptionsStore = create<ReactOptionsState>((set) => ({
       }
     } catch (err) {
       console.error('fetch react options failed: ', err)
+    }
+  },
+}))
+
+export interface GeoInfoState {
+  countryCode: string
+  setCountryCode: (code: string) => void
+  fetchGeoInfo: () => Promise<void>
+}
+
+export const useGeoInfoStore = create<GeoInfoState>((set) => ({
+  countryCode: '',
+  setCountryCode(code) {
+    set(() => ({ countryCode: code }))
+  },
+  async fetchGeoInfo() {
+    try {
+      const { code, data } = await getGeoInfo()
+      if (!code && data.countryCode) {
+        set(() => ({ countryCode: data.countryCode }))
+      }
+    } catch (err) {
+      console.error('fetch geo info failed: ', err)
     }
   },
 }))

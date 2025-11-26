@@ -56,10 +56,28 @@ export const deleteCookie = (
 export const extractDomain = (url: string) => new URL(url).hostname
 
 export const getPermissionModuleName = (moduleId: PermissionModule): string => {
-  return (
-    // @ts-expect-error permission module name keys
-    i18n.t(PERMISSION_MODULE_DATA[moduleId]) || i18n.t('unknowPermissionModule')
-  )
+  const translationKey =
+    PERMISSION_MODULE_DATA[moduleId as keyof typeof PERMISSION_MODULE_DATA]
+
+  if (translationKey) {
+    return i18n.t(translationKey as never)
+  }
+
+  if (moduleId && typeof moduleId === 'string') {
+    const formattedName = moduleId
+      .split('_')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+
+    const currentLanguage = i18n.language || 'en'
+    if (currentLanguage.startsWith('zh')) {
+      return `${i18n.t('newPermissionModule')}（${formattedName}）`
+    }
+
+    return formattedName
+  }
+
+  return i18n.t('unknowPermissionModule')
 }
 
 export const formatMinutes = (totalMinutes: number): string => {

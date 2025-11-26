@@ -9,4 +9,5 @@ export const PERMISSION_MODULE_DATA = {
   category: 'category',
   site: 'site',
   oauth: 'oauthApplications',
-}
+  ranking: 'ranking',
+} as const

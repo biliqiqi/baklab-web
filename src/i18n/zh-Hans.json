@@ -198,6 +198,7 @@
   "unAuthorizedError": "请认证或登录后再试",
   "phoneNumber": "手机号",
   "formatError": "{{field}}格式错误",
+  "phoneRegionNotSupported": "暂不支持该地区的号码",
   "charMinimum": "{{field}}不得少于 {{num}} 个字符",
   "charMaximum": "{{field}}不得超过 {{num}} 个字符",
   "usernameFormatMsg": "用户名只能包含字母、数字、下划线(_)、中横线(-)和英文句号(.)，且首尾不能是标点符号",

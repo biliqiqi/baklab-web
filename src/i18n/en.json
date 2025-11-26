@@ -199,6 +199,7 @@
   "unAuthorizedError": "Please authenticate or sign in",
   "phoneNumber": "Phone Number",
   "formatError": "{{field}} format is incorrect",
+  "phoneRegionNotSupported": "This region's phone number is not supported yet",
   "charMinimum": "{{field}} must be at least {{num}} characters long",
   "charMaximum": "{{field}} cannot exceed {{num}} characters",
   "usernameFormatMsg": "Username can only contain letters, numbers, underscores (_), hyphens (-), and periods (.), and cannot start or end with punctuation.",

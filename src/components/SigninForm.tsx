@@ -203,9 +203,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
   const phoneForm = useForm<PhoneSchema>({
     resolver: zodResolver(
       phoneSchema.extend({
-        phone: z
-          .string()
-          .regex(PHONE_REGEX, t('formatError', { field: t('phoneNumber') })),
+        phone: z.string().regex(PHONE_REGEX, t('phoneRegionNotSupported')),
       })
     ),
     defaultValues: {
@@ -437,7 +435,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
           value={isChinaMobile ? SigninType.phone : currTab}
           onValueChange={(value) => handleTabChange(value as SigninType)}
         >
-          {isChina && !isChinaMobile ? (
+          {!isMobile ? (
             <TabsList className="grid w-full grid-cols-2 mb-8">
               <TabsTrigger value={SigninType.password}>
                 {t('passwordSignin')}
@@ -477,7 +475,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
             </TabsContent>
           )}
 
-          {isChina && (
+          {(isChina || !isMobile) && (
             <TabsContent value={SigninType.phone}>
               {codeVerified ? (
                 <Form {...phoneCompleteForm}>

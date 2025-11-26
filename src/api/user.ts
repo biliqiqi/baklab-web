@@ -27,6 +27,8 @@ export const getUserList = (
   roleId?: string,
   roleFrontId?: string,
   authFrom?: string,
+  joinedFrom?: string,
+  joinedTo?: string,
   custom?: CustomRequestOptions
 ) => {
   const params = new URLSearchParams()
@@ -45,6 +47,14 @@ export const getUserList = (
 
   if (authFrom) {
     params.set('auth_from', authFrom)
+  }
+
+  if (joinedFrom) {
+    params.set('joined_from', joinedFrom)
+  }
+
+  if (joinedTo) {
+    params.set('joined_to', joinedTo)
   }
 
   if (page) {

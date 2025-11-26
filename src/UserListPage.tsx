@@ -65,12 +65,16 @@ interface SearchFields {
   keywords?: string
   roleId?: string
   authFrom?: string
+  joinedFrom?: string
+  joinedTo?: string
 }
 
 const defaultSearchData: SearchFields = {
   keywords: '',
   roleId: '',
   authFrom: '',
+  joinedFrom: '',
+  joinedTo: '',
 }
 
 export default function UserListPage() {
@@ -126,6 +130,8 @@ export default function UserListPage() {
     keywords: params.get('keywords') || '',
     roleId: params.get('role_id') || '',
     authFrom: params.get('auth_from') || '',
+    joinedFrom: params.get('joined_from') || '',
+    joinedTo: params.get('joined_to') || '',
   })
 
   const fetchUserData = toSync(
@@ -304,6 +310,8 @@ export default function UserListPage() {
       params.delete('keywords')
       params.delete('role_id')
       params.delete('auth_from')
+      params.delete('joined_from')
+      params.delete('joined_to')
       return params
     })
   }, [setParams])
@@ -320,8 +328,10 @@ export default function UserListPage() {
           const keywords = params.get('keywords') || ''
           const roleId = params.get('role_id') || ''
           const authFrom = params.get('auth_from') || ''
+          const joinedFrom = params.get('joined_from') || ''
+          const joinedTo = params.get('joined_to') || ''
 
-          setSearchData((state) => ({ ...state, keywords, roleId, authFrom }))
+          setSearchData((state) => ({ ...state, keywords, roleId, authFrom, joinedFrom, joinedTo }))
 
           const resp = await getUserList(
             page,
@@ -330,6 +340,8 @@ export default function UserListPage() {
             roleId,
             '',
             authFrom,
+            joinedFrom,
+            joinedTo,
             {
               siteFrontId,
             }
@@ -374,7 +386,7 @@ export default function UserListPage() {
   const onSearchClick = useCallback(() => {
     resetParams()
     setParams((params) => {
-      const { keywords, roleId, authFrom } = searchData
+      const { keywords, roleId, authFrom, joinedFrom, joinedTo } = searchData
 
       /* console.log('on search role id: ', roleId) */
 
@@ -388,6 +400,14 @@ export default function UserListPage() {
 
       if (authFrom) {
         params.set('auth_from', authFrom)
+      }
+
+      if (joinedFrom) {
+        params.set('joined_from', joinedFrom)
+      }
+
+      if (joinedTo) {
+        params.set('joined_to', joinedTo)
       }
 
       return params
@@ -609,6 +629,33 @@ export default function UserListPage() {
               onChange={onAuthSourceChange}
             />
           )}
+          <div className="flex items-center ml-3">
+            <Input
+              type="date"
+              className="w-[160px] h-[36px]"
+              value={searchData.joinedFrom}
+              onChange={(e) =>
+                setSearchData((state) => ({
+                  ...state,
+                  joinedFrom: e.target.value,
+                }))
+              }
+              placeholder={t('joinedFrom')}
+            />
+            <span className="mx-2">-</span>
+            <Input
+              type="date"
+              className="w-[160px] h-[36px]"
+              value={searchData.joinedTo}
+              onChange={(e) =>
+                setSearchData((state) => ({
+                  ...state,
+                  joinedTo: e.target.value,
+                }))
+              }
+              placeholder={t('joinedTo')}
+            />
+          </div>
         </div>
         <div>
           <Button

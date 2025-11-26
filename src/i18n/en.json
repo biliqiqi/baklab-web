@@ -71,6 +71,8 @@
   "authSourceGithub": "GitHub",
   "authSourceMicrosoft": "Microsoft",
   "joinedAt": "Joined At",
+  "joinedFrom": "Joined From",
+  "joinedTo": "Joined To",
   "detail": "Details",
   "removeName": "Remove",
   "block": "Block",

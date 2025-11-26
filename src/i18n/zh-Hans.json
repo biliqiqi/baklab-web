@@ -70,6 +70,8 @@
   "authSourceGithub": "GitHub",
   "authSourceMicrosoft": "Microsoft",
   "joinedAt": "加入时间",
+  "joinedFrom": "加入起始时间",
+  "joinedTo": "加入截止时间",
   "detail": "详细",
   "removeName": "除名",
   "block": "屏蔽",

@@ -36,7 +36,12 @@ import UserListPage from './UserListPage.tsx'
 import UserPage from './UserPage.tsx'
 import UserProfileSettingsPage from './UserProfileSettingsPage.tsx'
 import { PermissionAction, PermissionModule } from './constants/types.ts'
-import { isLogined, useAuthedUserStore, useSiteStore } from './state/global.ts'
+import {
+  isLogined,
+  useAuthedUserStore,
+  useContextStore,
+  useSiteStore,
+} from './state/global.ts'
 
 const notAtAuthed = () => {
   const data = useAuthedUserStore.getState()
@@ -154,13 +159,18 @@ const createSiteRoutes = (prefix: '/z' | '/zhandian'): RouteObject[] => [
       }
 
       try {
-        const siteState = useSiteStore.getState()
-        let site = siteState.site
+        const contextState = useContextStore.getState()
+        await contextState.fetchContext(params.siteFrontId)
 
-        if (!site || site.frontId !== params.siteFrontId) {
-          const result = await siteState.fetchSiteData(params.siteFrontId)
-          site = result
+        const siteState = useSiteStore.getState()
+        const contextSite = contextState.site
+
+        if (contextSite && contextSite.frontId === params.siteFrontId) {
+          siteState.update(contextSite)
+          siteState.updateHomePage(`${prefix}/${contextSite.frontId}${contextSite.homePage}`)
         }
+
+        const site = siteState.site
 
         if (!site) {
           return null

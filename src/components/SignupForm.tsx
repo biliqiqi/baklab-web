@@ -22,8 +22,8 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import useDocumentTitle from '@/hooks/use-page-title'
 import {
   useAuthedUserStore,
+  useContextStore,
   useDialogStore,
-  useGeoInfoStore,
 } from '@/state/global'
 import { AuthedDataResponse } from '@/types/types'
 
@@ -86,7 +86,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
   const [searchParams, setSearchParams] = useSearchParams()
 
   const { t } = useTranslation()
-  const countryCode = useGeoInfoStore((state) => state.countryCode)
+  const countryCode = useContextStore((state) => state.countryCode)
   const isChina = countryCode === 'CN'
   const isMobile = useIsMobile()
   const isChinaMobile = isChina && isMobile

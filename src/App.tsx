@@ -30,10 +30,10 @@ import { setRootFontSize } from './lib/utils.ts'
 import {
   getLocalUserUISettings,
   useAuthedUserStore,
+  useContextStore,
   useDefaultFontSizeStore,
   useEventSourceStore,
   useForceUpdate,
-  useGeoInfoStore,
   useNotificationStore,
   useRightSidebarStore,
   useSidebarStore,
@@ -255,11 +255,11 @@ const App = () => {
     }
   }, [refreshTokenSync, reconnectEventSource])
 
-  const fetchGeoInfo = useGeoInfoStore((state) => state.fetchGeoInfo)
+  const fetchContext = useContextStore((state) => state.fetchContext)
 
   useEffect(() => {
     const initializeApp = async () => {
-      toSync(fetchGeoInfo)()
+      toSync(fetchContext)()
 
       let isLoggedIn = false
 
@@ -298,7 +298,7 @@ const App = () => {
     authToken,
     routes,
     fetchSiteList,
-    fetchGeoInfo,
+    fetchContext,
     forceUpdate,
     updateBaseData,
     updateUserData,

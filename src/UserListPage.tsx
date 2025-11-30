@@ -331,7 +331,14 @@ export default function UserListPage() {
           const joinedFrom = params.get('joined_from') || ''
           const joinedTo = params.get('joined_to') || ''
 
-          setSearchData((state) => ({ ...state, keywords, roleId, authFrom, joinedFrom, joinedTo }))
+          setSearchData((state) => ({
+            ...state,
+            keywords,
+            roleId,
+            authFrom,
+            joinedFrom,
+            joinedTo,
+          }))
 
           const resp = await getUserList(
             page,

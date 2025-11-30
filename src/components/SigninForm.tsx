@@ -23,8 +23,8 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import useDocumentTitle from '@/hooks/use-page-title'
 import {
   useAuthedUserStore,
+  useContextStore,
   useDialogStore,
-  useGeoInfoStore,
   useSiteStore,
 } from '@/state/global'
 import {
@@ -141,7 +141,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
 
   const siteStore = useSiteStore()
   const { t } = useTranslation()
-  const countryCode = useGeoInfoStore((state) => state.countryCode)
+  const countryCode = useContextStore((state) => state.countryCode)
   const isChina = countryCode === 'CN'
   const isMobile = useIsMobile()
   const isChinaMobile = isChina && isMobile

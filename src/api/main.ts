@@ -10,6 +10,7 @@ import {
   OAuthProvider,
   PermissionListResponse,
   ResponseData,
+  Site,
 } from '@/types/types'
 
 export interface SignupPayload {
@@ -135,12 +136,21 @@ export const eventsPong = (clientID: string) =>
     },
   })
 
-export interface GeoInfoResponse {
+export interface ContextResponse {
   countryCode: string
+  isSingleSite: boolean
+  site: Site | null
+  host?: string
 }
 
-export const getGeoInfo = async (): Promise<ResponseData<GeoInfoResponse>> =>
-  request.get(`geo`)
+export const getContext = async (
+  siteFrontId?: string
+): Promise<ResponseData<ContextResponse>> => {
+  if (siteFrontId) {
+    return authRequest.get(`sites/${siteFrontId}/context`)
+  }
+  return authRequest.get(`context`)
+}
 
 export const getPermissionList = (custom?: CustomRequestOptions) =>
   authRequest.get<ResponseData<PermissionListResponse>>(

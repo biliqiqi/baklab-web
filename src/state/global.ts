@@ -7,7 +7,7 @@ import { noop, setRootFontSize } from '@/lib/utils'
 
 import { getReactOptions } from '@/api/article'
 import { getCategoryList } from '@/api/category'
-import { getGeoInfo } from '@/api/main'
+import { getContext } from '@/api/main'
 import { getNotificationUnreadCount } from '@/api/message'
 import { getJoinedSiteList, getSiteWithFrontId } from '@/api/site'
 import { DEFAULT_CONTENT_WIDTH } from '@/constants/constants'
@@ -1167,25 +1167,35 @@ export const useReactOptionsStore = create<ReactOptionsState>((set) => ({
   },
 }))
 
-export interface GeoInfoState {
+export interface ContextState {
   countryCode: string
+  isSingleSite: boolean
+  site: Site | null
+  host?: string
   setCountryCode: (code: string) => void
-  fetchGeoInfo: () => Promise<void>
+  fetchContext: (siteFrontId?: string) => Promise<void>
 }
 
-export const useGeoInfoStore = create<GeoInfoState>((set) => ({
+export const useContextStore = create<ContextState>((set) => ({
   countryCode: '',
+  isSingleSite: false,
+  site: null,
   setCountryCode(code) {
     set(() => ({ countryCode: code }))
   },
-  async fetchGeoInfo() {
+  async fetchContext(siteFrontId) {
     try {
-      const { code, data } = await getGeoInfo()
-      if (!code && data.countryCode) {
-        set(() => ({ countryCode: data.countryCode }))
+      const { code, data } = await getContext(siteFrontId)
+      if (!code && data) {
+        set(() => ({
+          countryCode: data.countryCode,
+          isSingleSite: data.isSingleSite,
+          site: data.site,
+          host: data.host,
+        }))
       }
     } catch (err) {
-      console.error('fetch geo info failed: ', err)
+      console.error('fetch context failed: ', err)
     }
   },
 }))

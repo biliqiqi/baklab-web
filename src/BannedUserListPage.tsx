@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-table'
 import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
@@ -36,6 +36,8 @@ import BContainer from './components/base/BContainer'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 import UserDetailCard from './components/UserDetailCard'
+
+import { useSiteParams } from '@/hooks/use-site-params'
 
 import { getUser, getUserList, unbanManyUsers } from './api/user'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
@@ -76,7 +78,7 @@ export default function BannedUserListPage() {
   const authStore = useAuthedUserStore()
   const alertDialog = useAlertDialogStore()
 
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
 
   const [pageState, setPageState] = useState<ListPageState>({
     currPage: 1,

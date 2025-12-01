@@ -3,6 +3,8 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router-dom'
 
+import { useContextStore } from '@/state/global'
+
 import BIconCircle from './icon/Circle'
 import {
   Sidebar,
@@ -26,9 +28,10 @@ export default function SettingsSidebar({
 }: SettingsSidebarProps) {
   const { t } = useTranslation()
   const location = useLocation()
+  const isSingleSite = useContextStore((state) => state.isSingleSite)
 
-  const settingsMenuItems = useMemo(
-    () => [
+  const settingsMenuItems = useMemo(() => {
+    const items = [
       {
         key: 'profile',
         label: t('personalProfile'),
@@ -65,9 +68,13 @@ export default function SettingsSidebar({
       //   path: '/settings/data',
       //   icon: <DatabaseIcon size={18} />,
       // },
-    ],
-    [t]
-  )
+    ]
+
+    if (isSingleSite) {
+      return items.filter((item) => item.key !== 'authorizations')
+    }
+    return items
+  }, [t, isSingleSite])
 
   const currentActiveKey = useMemo(() => {
     if (activeKey) return activeKey

@@ -3,7 +3,6 @@ import { CircleAlertIcon } from 'lucide-react'
 import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
 import { cn, getPermissionModuleName, noop } from '@/lib/utils'
@@ -14,6 +13,7 @@ import { deleteRole, submitRole, updateRole } from '@/api/role'
 import { getUserList } from '@/api/user'
 import { defaultRole } from '@/constants/defaults'
 import { I18n, PermissionModule } from '@/constants/types'
+import { useSiteParams } from '@/hooks/use-site-params'
 import i18n from '@/i18n'
 import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
 import {
@@ -128,7 +128,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
   const authStore = useAuthedUserStore()
   const alertDialog = useAlertDialogStore()
 
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
   const { t, i18n } = useTranslation()
 
   const edittingPermissionFrontIds = useMemo(() => {

@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
@@ -21,9 +21,12 @@ import { Input } from './components/ui/input'
 import { Textarea } from './components/ui/textarea'
 
 import BContainer from './components/base/BContainer'
+import SiteLink from './components/base/SiteLink'
 
 import { Empty } from './components/Empty'
 import ModerationForm, { ReasonSchema } from './components/ModerationForm'
+
+import { useSiteParams } from '@/hooks/use-site-params'
 
 import { getSiteUpdates, reviewSiteUpdates } from './api/main'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
@@ -125,8 +128,9 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
                   />
                 ),
                 titleLink: (
-                  <Link
-                    to={`/z/${siteFrontId}/articles/${item.currArticle.id}`}
+                  <SiteLink
+                    to={`/articles/${item.currArticle.id}`}
+                    siteFrontId={siteFrontId}
                     className="text-primary"
                   />
                 ),
@@ -286,7 +290,7 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
 }
 
 export function ArticleReviewPage() {
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
   /* const [loading, setLoading] = useState(false) */
 
   const location = useLocation()

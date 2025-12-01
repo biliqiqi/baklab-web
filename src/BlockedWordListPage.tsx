@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-table'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation, useParams, useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { Badge } from './components/ui/badge'
@@ -36,6 +36,8 @@ import BContainer from './components/base/BContainer'
 import BlockedWordForm from './components/BlockedWordForm'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
+
+import { useSiteParams } from '@/hooks/use-site-params'
 
 import { getSiteBlockedWords, removeSiteBlockedWords } from './api/site'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
@@ -78,7 +80,7 @@ export default function BlockedWordListPage() {
   const location = useLocation()
   const dialogConfirm = useAlertDialogStore((state) => state.confirm)
 
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
 
   const [list, setList] = useState<SiteBlockedWord[]>([])
 

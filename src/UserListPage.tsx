@@ -14,7 +14,7 @@ import {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { Badge } from './components/ui/badge'
@@ -47,6 +47,8 @@ import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 import RoleSelector from './components/RoleSelector'
 import UserDetailCard from './components/UserDetailCard'
+
+import { useSiteParams } from '@/hooks/use-site-params'
 
 import { blockUser, blockUsers, removeMember, removeMembers } from './api/site'
 import { banManyUsers, getUser, getUserList } from './api/user'
@@ -107,7 +109,7 @@ export default function UserListPage() {
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const banDialogRef = useRef<BanDialogRef | null>(null)
 
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
 
   const { checkPermit, levelCompare } = useAuthedUserStore(
     useShallow(({ permit, levelCompare }) => ({

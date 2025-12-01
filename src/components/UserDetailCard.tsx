@@ -2,7 +2,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { timeFmt } from '@/lib/dayjs-custom'
@@ -30,6 +29,7 @@ import {
 import BanDialog, { BanDialogRef, BanSchema } from '@/components/BanDialog'
 
 import { banUser, setUserRole, unBanUser } from '@/api/user'
+import { useSiteParams } from '@/hooks/use-site-params'
 import i18n from '@/i18n'
 import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
 import { Role, StringFn, UserData } from '@/types/types'
@@ -71,7 +71,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
   const [banOpen, setBanOpen] = useState(false)
   const [selectedRole, setSelectedRole] = useState<Role | null>(user.role)
 
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
 
   const banDialogRef = useRef<BanDialogRef | null>(null)
   const alertDialog = useAlertDialogStore()

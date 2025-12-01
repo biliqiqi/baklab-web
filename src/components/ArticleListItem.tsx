@@ -2,7 +2,6 @@ import { PinIcon, SquareArrowOutUpRightIcon } from 'lucide-react'
 import MarkdownIt from 'markdown-it'
 import 'photoswipe/style.css'
 import React, { useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
 
 import { updateArticleState } from '@/lib/article-utils'
 import { createPhotoSwipeLightbox } from '@/lib/photoswipe-utils'
@@ -26,6 +25,7 @@ import { ARTICLE_LIST_MODE, Article, ArticleListMode } from '@/types/types'
 import ArticleControls from './ArticleControls'
 import BIconColorChar from './base/BIconColorChar'
 import BSiteIcon from './base/BSiteIcon'
+import SiteLink from './base/SiteLink'
 import { Badge } from './ui/badge'
 
 interface ArticleListItemProps {
@@ -255,8 +255,9 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
       {isMobile && (
         <div className="mb-3 text-sm text-text-secondary">
           {siteFrontId ? (
-            <Link
-              to={`/z/${article.siteFrontId}/b/${article.category.frontId}`}
+            <SiteLink
+              to={`/b/${article.category.frontId}`}
+              siteFrontId={article.siteFrontId}
             >
               <BIconColorChar
                 iconId={article.categoryFrontId}
@@ -267,9 +268,13 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
                 className="align-[-5px] mx-1"
               />
               {article.category.name}
-            </Link>
+            </SiteLink>
           ) : (
-            <Link to={`/z/${article.siteFrontId}`} className="leading-3 mx-1">
+            <SiteLink
+              to="/"
+              siteFrontId={article.siteFrontId}
+              className="leading-3 mx-1"
+            >
               <BSiteIcon
                 logoUrl={article.site.logoUrl}
                 name={article.site.name}
@@ -277,19 +282,20 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
                 fontSize={12}
                 showSiteName
               />
-            </Link>
+            </SiteLink>
           )}
         </div>
       )}
 
       <div className="mb-3">
         <div className="mb-1">
-          <Link
+          <SiteLink
             className={cn(
               'mr-2',
               mode == ARTICLE_LIST_MODE.Preview && 'font-bold'
             )}
             to={genArticlePath(article)}
+            siteFrontId={article.siteFrontId}
           >
             {shouldShowPinIcon(
               article,
@@ -304,7 +310,7 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
               />
             )}
             {article.title}
-          </Link>
+          </SiteLink>
           {article.link && (
             <span className="text-sm text-text-secondary">
               (

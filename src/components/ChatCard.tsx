@@ -95,7 +95,7 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
 
     const parent = article.replyToArticle
 
-    /* const { siteFrontId } = useParams() */
+    /* const { siteFrontId } = useSiteParams() */
 
     const authStore = useAuthedUserStore()
     /* const permit = useAuthedUserStore((state) => state.permit) */

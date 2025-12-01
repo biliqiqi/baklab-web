@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation, useParams, useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { Button } from './components/ui/button'
@@ -17,6 +17,8 @@ import {
 import BContainer from './components/base/BContainer'
 
 import { ActivityList } from './components/ActivityList'
+
+import { useSiteParams } from '@/hooks/use-site-params'
 
 import { getActivityList } from './api'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
@@ -57,7 +59,7 @@ export default function ActivityPage() {
   const { t } = useTranslation()
   const { setLoading } = useLoading()
 
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
   const [params, setParams] = useSearchParams()
   const location = useLocation()
 

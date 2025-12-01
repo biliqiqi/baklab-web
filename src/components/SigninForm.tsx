@@ -10,7 +10,7 @@ import {
 } from 'react'
 import { Control, Controller, Path, useForm } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
 import { noop } from '@/lib/utils'
@@ -21,6 +21,7 @@ import { getSiteWithFrontId } from '@/api/site'
 import { OAUTH_PROVIDERS } from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
 import useDocumentTitle from '@/hooks/use-page-title'
+import { useSiteParams } from '@/hooks/use-site-params'
 import {
   useAuthedUserStore,
   useContextStore,
@@ -134,7 +135,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
   } | null>(null)
   const updateAuthState = useAuthedUserStore((state) => state.update)
 
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
   const [searchParams, _setSearchParams] = useSearchParams()
   const { updateSignin, updateSignup } = useDialogStore()
   const account = searchParams.get('account') || email

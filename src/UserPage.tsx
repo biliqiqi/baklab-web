@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 
 import { cn, getArticleStatusName, md2text, summaryText } from '@/lib/utils'
 
@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 
 import BAvatar from './components/base/BAvatar'
 import BContainer from './components/base/BContainer'
+import SiteLink from './components/base/SiteLink'
 
 import { ActivityList } from './components/ActivityList'
 import ArticleControls from './components/ArticleControls'
@@ -18,6 +19,7 @@ import { ListPagination } from './components/ListPagination'
 import UserDetailCard from './components/UserDetailCard'
 
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
+import { useSiteParams } from '@/hooks/use-site-params'
 
 import { getArticleList } from './api/article'
 import { getUser, getUserActivityList, getUserPunishedList } from './api/user'
@@ -113,9 +115,13 @@ const ArticleList: React.FC<ArticleListProps> = ({
           >
             <div className="mb-3">
               <div className="mb-1">
-                <Link className="mr-2" to={genArticlePath(item)}>
+                <SiteLink
+                  className="mr-2"
+                  to={genArticlePath(item)}
+                  siteFrontId={item.siteFrontId}
+                >
                   {item.displayTitle}
-                </Link>
+                </SiteLink>
               </div>
 
               {(isMySelf(item.authorId) || checkPermit('article', 'manage')) &&
@@ -180,7 +186,7 @@ export default function UserPage() {
   const { t } = useTranslation()
 
   const [params, setParams] = useSearchParams()
-  const { username, siteFrontId } = useParams()
+  const { username, siteFrontId } = useSiteParams()
 
   const managePermitted = useMemo(() => {
     if (user) {

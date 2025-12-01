@@ -11,15 +11,16 @@ import AboutPage from './AboutPage.tsx'
 import ActivityPage from './ActivityPage.tsx'
 import ArticlePage from './ArticlePage.tsx'
 import { ArticleReviewPage } from './ArticleReviewPage.tsx'
-import BankuaiPage from './BankuaiPage.tsx'
 import BannedUserListPage from './BannedUserListPage.tsx'
 import BlockedUserListPage from './BlockedUserListPage.tsx'
 import BlockedWordListPage from './BlockedWordListPage.tsx'
 import CategoryListPage from './CategoryListPage.tsx'
+import CategoryPage from './CategoryPage.tsx'
 import EditPage from './EditPage.tsx'
 import FeedPage from './FeedPage.tsx'
 import InvitePage from './InvitePage.tsx'
 import MessagePage from './MessagePage.tsx'
+import NotCompatiblePage from './NotCompatiblePage.tsx'
 import NotFoundPage from './NotFoundPage.tsx'
 import OAuthAuthorizationManagePage from './OAuthAuthorizationManagePage.tsx'
 import OAuthAuthorizePage from './OAuthAuthorizePage.tsx'
@@ -150,6 +151,147 @@ const somePermissions =
     return null
   }
 
+const setSingleSiteState = async () => {
+  try {
+    const contextState = useContextStore.getState()
+    if (!contextState.isSingleSite) {
+      return null
+    }
+
+    if (!contextState.site) {
+      await contextState.fetchContext()
+    }
+
+    const site = contextState.site
+    if (!site) {
+      return null
+    }
+
+    const siteState = useSiteStore.getState()
+    const shouldUpdateSite =
+      !siteState.site ||
+      siteState.site.frontId !== site.frontId ||
+      siteState.site.homePage !== site.homePage ||
+      siteState.site.currUserRole?.id !== site.currUserRole?.id ||
+      siteState.site.currUserState?.isMember !== site.currUserState?.isMember
+
+    if (shouldUpdateSite) {
+      siteState.update(site)
+      siteState.updateHomePage(site.homePage)
+    }
+
+    return site
+  } catch (err) {
+    console.error('sync single site state error: ', err)
+    return null
+  }
+}
+
+const singleSiteLoader: LoaderFunction = async () => {
+  const site = await setSingleSiteState()
+  if (!site) {
+    return redirect('/')
+  }
+  return null
+}
+
+const singleSiteEntryLoader: LoaderFunction = async ({ request }) => {
+  const site = await setSingleSiteState()
+  if (!site) {
+    return null
+  }
+
+  const pathname = new URL(request.url).pathname
+  if (site.homePage !== '/' && pathname === '/') {
+    return redirect(site.homePage)
+  }
+
+  const authState = useAuthedUserStore.getState()
+  if (!authState.isLogined()) {
+    return redirect('/all')
+  }
+
+  return null
+}
+
+const withSingleSite =
+  (nextLoader?: LoaderFunction): LoaderFunction =>
+  async (args) => {
+    const siteRedirect = await singleSiteLoader(args)
+    if (siteRedirect) {
+      return siteRedirect
+    }
+    if (nextLoader) {
+      return nextLoader(args)
+    }
+    return null
+  }
+
+const singleSiteRoutes: RouteObject[] = [
+  {
+    path: '/bankuai',
+    Component: CategoryListPage,
+    loader: singleSiteLoader,
+  },
+  {
+    path: '/bankuai/:categoryFrontId',
+    Component: CategoryPage,
+    loader: singleSiteLoader,
+  },
+  {
+    path: '/b/:categoryFrontId',
+    Component: CategoryPage,
+    loader: singleSiteLoader,
+  },
+  {
+    path: '/tags',
+    Component: TagListPage,
+    loader: singleSiteLoader,
+  },
+  {
+    path: '/tags/:tagName',
+    Component: TagPage,
+    loader: singleSiteLoader,
+  },
+  {
+    path: '/submit',
+    Component: SubmitPage,
+    loader: withSingleSite(needPermission('article', 'create')),
+  },
+  {
+    path: '/about',
+    Component: AboutPage,
+    loader: singleSiteLoader,
+  },
+  {
+    path: '/articles/:articleId',
+    Component: ArticlePage,
+    loader: singleSiteLoader,
+  },
+  {
+    path: '/articles/:articleId/edit',
+    Component: EditPage,
+    loader: withSingleSite(
+      somePermissions(['article', 'edit_mine'], ['article', 'edit_others'])
+    ),
+  },
+  {
+    path: '/manage/blocklist',
+    Component: BlockedUserListPage,
+    loader: withSingleSite(needPermission('user', 'manage')),
+  },
+  {
+    path: '/manage/article_review',
+    Component: ArticleReviewPage,
+    loader: withSingleSite(needPermission('article', 'review')),
+  },
+  {
+    path: '/manage/blocked_words',
+    Component: BlockedWordListPage,
+    loader: withSingleSite(needPermission('site', 'manage')),
+  },
+]
+
 const createSiteRoutes = (prefix: '/z' | '/zhandian'): RouteObject[] => [
   {
     path: `${prefix}/:siteFrontId`,
@@ -197,7 +339,7 @@ const createSiteRoutes = (prefix: '/z' | '/zhandian'): RouteObject[] => [
   },
   {
     path: `${prefix}/:siteFrontId/all`,
-    Component: BankuaiPage,
+    Component: CategoryPage,
   },
   {
     path: `${prefix}/:siteFrontId/bankuai`,
@@ -218,7 +360,7 @@ const createSiteRoutes = (prefix: '/z' | '/zhandian'): RouteObject[] => [
   },
   {
     path: `${prefix}/:siteFrontId/bankuai/:categoryFrontId`,
-    Component: BankuaiPage,
+    Component: CategoryPage,
   },
   {
     path: `${prefix}/:siteFrontId/about`,
@@ -226,7 +368,7 @@ const createSiteRoutes = (prefix: '/z' | '/zhandian'): RouteObject[] => [
   },
   {
     path: `${prefix}/:siteFrontId/b/:categoryFrontId`,
-    Component: BankuaiPage,
+    Component: CategoryPage,
   },
   {
     path: `${prefix}/:siteFrontId/articles/:articleId`,
@@ -276,11 +418,17 @@ export const routes: RouteObject[] = [
   {
     path: '/',
     Component: FeedPage,
-    loader: checkHomepageAuth,
+    loader: async (args) => {
+      const singleSiteResult = await singleSiteEntryLoader(args)
+      if (singleSiteResult) {
+        return singleSiteResult
+      }
+      return checkHomepageAuth()
+    },
   },
   {
     path: '/all',
-    Component: BankuaiPage,
+    Component: CategoryPage,
   },
   {
     path: '/invite/:inviteCode',
@@ -377,8 +525,13 @@ export const routes: RouteObject[] = [
       },
     ],
   },
+  ...singleSiteRoutes,
   ...createSiteRoutes('/z'),
   ...createSiteRoutes('/zhandian'),
+  {
+    path: '/not_compatible',
+    Component: NotCompatiblePage,
+  },
   {
     path: '*',
     Component: NotFoundPage,

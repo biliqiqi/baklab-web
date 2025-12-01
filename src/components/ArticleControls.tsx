@@ -22,7 +22,7 @@ import {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
@@ -38,6 +38,8 @@ import {
 import { ArticleContext } from '@/contexts/ArticleContext'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useRem2PxNum } from '@/hooks/use-rem-num'
+import { buildRoutePath } from '@/hooks/use-route-match'
+import { useSiteParams } from '@/hooks/use-site-params'
 import { useAuthedUserStore, useReactOptionsStore } from '@/state/global'
 import {
   Article,
@@ -49,6 +51,7 @@ import {
 
 import BIconColorChar from './base/BIconColorChar'
 import BSiteIcon from './base/BSiteIcon'
+import SiteLink from './base/SiteLink'
 import { BIconTriangleDown } from './icon/TriangleDown'
 import { BIconTriangleUp } from './icon/TriangleUp'
 import { Button } from './ui/button'
@@ -102,7 +105,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   ...props
 }) => {
   const [showActionsMenu, setShowActionsMenu] = useState(false)
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
   const userState = useMemo(() => article.currUserState, [article])
 
   const isRootArticle = useMemo(() => article.replyToId == '0', [article])
@@ -121,10 +124,10 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
   const articleCtx = useContext(ArticleContext)
 
   const clipboardRef = useRef<ClipboardJS | null>(null)
-  const articleUrl = useMemo(
-    () => window.location.origin + genArticlePath(article),
-    [article]
-  )
+  const articleUrl = useMemo(() => {
+    const path = buildRoutePath(genArticlePath(article), article.siteFrontId)
+    return window.location.origin + path
+  }, [article])
   const copyBtnClass = useMemo(
     () => `copy-link-btn-${article.id}`,
     [article.id]
@@ -249,7 +252,9 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
       const shareData = {
         title: article.title,
         text: '',
-        url: window.location.origin + genArticlePath(article),
+        url:
+          window.location.origin +
+          buildRoutePath(genArticlePath(article), article.siteFrontId),
       }
 
       if (navigator.canShare && navigator.canShare(shareData)) {
@@ -338,13 +343,16 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                 title={t('replyPost')}
               >
                 {ctype == 'list' ? (
-                  <Link to={genArticlePath(article)}>
+                  <SiteLink
+                    to={genArticlePath(article)}
+                    siteFrontId={article.siteFrontId}
+                  >
                     <MessageSquare
                       size={rem2pxNum(1.25)}
                       className="inline-block mr-1"
                     />
                     {article.totalReplyCount > 0 && article.totalReplyCount}
-                  </Link>
+                  </SiteLink>
                 ) : (
                   <MessageSquare
                     size={rem2pxNum(1.25)}
@@ -368,8 +376,9 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
               <>
                 &nbsp;·
                 {siteFrontId ? (
-                  <Link
-                    to={`/z/${article.siteFrontId}/b/${article.category.frontId}`}
+                  <SiteLink
+                    to={`/b/${article.category.frontId}`}
+                    siteFrontId={article.siteFrontId}
                   >
                     <BIconColorChar
                       iconId={article.categoryFrontId}
@@ -380,10 +389,11 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                       className="align-[-5px] mx-1"
                     />
                     {article.category.name}
-                  </Link>
+                  </SiteLink>
                 ) : (
-                  <Link
-                    to={`/z/${article.siteFrontId}`}
+                  <SiteLink
+                    to="/"
+                    siteFrontId={article.siteFrontId}
                     className="leading-3 mx-1"
                   >
                     <BSiteIcon
@@ -393,7 +403,7 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                       fontSize={12}
                       showSiteName
                     />
-                  </Link>
+                  </SiteLink>
                 )}
               </>
             )}
@@ -409,12 +419,13 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           </span>
         )}
         {ctype !== 'list' && !isTopArticle && article.childrenCount > 0 && (
-          <Link
-            to={`/z/${article.siteFrontId}/articles/${article.id}`}
+          <SiteLink
+            to={`/articles/${article.id}`}
+            siteFrontId={article.siteFrontId}
             className="inline-block mr-2 hover:underline"
           >
             {t('replyCount', { num: article.childrenCount })}
-          </Link>
+          </SiteLink>
         )}
 
         {((isRootArticle &&
@@ -430,12 +441,13 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
             asChild
             title={t('viewAnswer')}
           >
-            <Link
-              to={`/z/${article.siteFrontId}/articles/${(articleCtx.root || article).acceptAnswerId}`}
+            <SiteLink
+              to={`/articles/${(articleCtx.root || article).acceptAnswerId}`}
+              siteFrontId={article.siteFrontId}
             >
               <CheckIcon size={rem2pxNum(1.25)} />
               <span className="text-sm font-normal">{t('solved')}</span>
-            </Link>
+            </SiteLink>
           </Button>
         )}
 
@@ -473,12 +485,13 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           <div className="flex flex-wrap items-center mr-2">
             {article.tags.slice(0, 3).map((tag, index) => (
               <span key={tag.id} className="text-sm text-text-secondary">
-                <Link
-                  to={`/z/${article.siteFrontId}/tags/${encodeURIComponent(tag.name)}`}
+                <SiteLink
+                  to={`/tags/${encodeURIComponent(tag.name)}`}
+                  siteFrontId={article.siteFrontId}
                   className="hover:text-primary transition-colors"
                 >
                   {tag.name}
-                </Link>
+                </SiteLink>
                 {index < Math.min(article.tags.length, 3) - 1 && (
                   <span className="mr-1.5">,</span>
                 )}

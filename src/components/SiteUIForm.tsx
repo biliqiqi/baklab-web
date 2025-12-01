@@ -8,7 +8,6 @@ import {
 } from 'react'
 import { UseFormReturn, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import z from 'zod'
 
@@ -16,6 +15,7 @@ import { noop } from '@/lib/utils'
 
 import { saveSiteUISettings } from '@/api/site'
 import { saveUserUISettings } from '@/api/user'
+import { useSiteParams } from '@/hooks/use-site-params'
 import {
   useAuthedUserStore,
   useSiteStore,
@@ -86,7 +86,7 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
 
     const { t } = useTranslation()
 
-    const { siteFrontId } = useParams()
+    const { siteFrontId } = useSiteParams()
 
     const initialStateRef = useRef<{
       mode: SiteUIMode

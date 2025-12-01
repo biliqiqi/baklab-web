@@ -1,4 +1,7 @@
-import { useLocation, useParams } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
+
+import { useSiteFrontId } from '@/hooks/use-site-front-id'
+import { useContextStore } from '@/state/global'
 
 interface RouteMatchOptions {
   exact?: boolean
@@ -14,7 +17,7 @@ interface RouteMatchOptions {
  */
 export function useRouteMatch(path: string, options: RouteMatchOptions = {}) {
   const location = useLocation()
-  const { siteFrontId } = useParams()
+  const siteFrontId = useSiteFrontId()
   const { exact = true, caseSensitive = false } = options
 
   const currentPath = caseSensitive
@@ -51,6 +54,11 @@ export function useRouteMatch(path: string, options: RouteMatchOptions = {}) {
  * @returns Built complete path
  */
 export function buildRoutePath(path: string, siteFrontId?: string) {
+  const contextState = useContextStore.getState()
+  if (contextState.isSingleSite) {
+    return path
+  }
+
   if (siteFrontId) {
     const sitePath = path === '/' ? '' : path
     return `/z/${siteFrontId}${sitePath}`
@@ -82,7 +90,7 @@ export interface MenuItemConfig {
  * @returns Menu items with matching status and paths
  */
 export function useMenuItems(menuItems: MenuItemConfig[]) {
-  const { siteFrontId } = useParams()
+  const siteFrontId = useSiteFrontId()
 
   return menuItems.map((item) => ({
     ...item,

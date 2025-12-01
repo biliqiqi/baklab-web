@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router-dom'
 
 import { Badge } from './components/ui/badge'
 import { Card } from './components/ui/card'
 
 import BContainer from './components/base/BContainer'
+import SiteLink from './components/base/SiteLink'
 
 import { Empty } from './components/Empty'
+
+import { useSiteParams } from '@/hooks/use-site-params'
 
 import { getSiteTags } from './api/site'
 import { Tag } from './types/types'
@@ -15,7 +17,7 @@ import { Tag } from './types/types'
 export default function TagListPage() {
   const [tags, setTags] = useState<Tag[]>([])
   const [loading, setLoading] = useState(true)
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
 
   const { t } = useTranslation()
 
@@ -71,9 +73,10 @@ export default function TagListPage() {
         <Card className="p-6">
           <div className="flex flex-wrap gap-3">
             {tags.map((tag) => (
-              <Link
+              <SiteLink
                 key={tag.id}
-                to={`/z/${siteFrontId}/tags/${encodeURIComponent(tag.name)}`}
+                to={`/tags/${encodeURIComponent(tag.name)}`}
+                siteFrontId={siteFrontId}
               >
                 <Badge
                   variant="secondary"
@@ -86,7 +89,7 @@ export default function TagListPage() {
                     </span>
                   )}
                 </Badge>
-              </Link>
+              </SiteLink>
             ))}
           </div>
         </Card>

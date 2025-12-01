@@ -19,7 +19,6 @@ import {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router-dom'
 
 import { cn, noop } from '@/lib/utils'
 
@@ -31,6 +30,7 @@ import {
 import { ArticleContext } from '@/contexts/ArticleContext'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useRem2PxNum } from '@/hooks/use-rem-num'
+import { useSiteParams } from '@/hooks/use-site-params'
 import {
   useArticleHistoryStore,
   useAuthedUserStore,
@@ -38,6 +38,7 @@ import {
 } from '@/state/global'
 import { Article, ArticleAction } from '@/types/types'
 
+import SiteLink from './base/SiteLink'
 import { Button } from './ui/button'
 import {
   DropdownMenu,
@@ -88,7 +89,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
   ...props
 }) => {
   const [showChatMenu, setShowChatMenu] = useState(false)
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
 
   const isRootArticle = useMemo(() => article.replyToId == '0', [article])
   const isPublished = useMemo(() => article.status == 'published', [article])
@@ -436,13 +437,14 @@ const ChatControls: React.FC<ChatControlsProps> = ({
             asChild
             title={t('viewAnswer')}
           >
-            <Link
-              to={`/z/${siteFrontId}/articles/${(articleCtx.root || article).acceptAnswerId}`}
+            <SiteLink
+              to={`/articles/${(articleCtx.root || article).acceptAnswerId}`}
+              siteFrontId={siteFrontId}
             >
               <CheckIcon size={20} className="mr-1" />
               &nbsp;
               <span className="text-sm font-normal">{t('solved')}</span>
-            </Link>
+            </SiteLink>
           </Button>
         )}
         {isTopArticle && (

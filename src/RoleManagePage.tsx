@@ -8,7 +8,7 @@ import {
 import { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { z } from '@/lib/zod-custom'
 
@@ -38,6 +38,8 @@ import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 import RoleForm, { RoleFormType } from './components/RoleForm'
 import RoleSelector from './components/RoleSelector'
+
+import { useSiteParams } from '@/hooks/use-site-params'
 
 import roleAPI, { getDefaultRole, getDefaultRoles, getRoles } from './api/role'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
@@ -86,7 +88,7 @@ export default function RoleManagePage() {
 
   const { setLoading } = useLoading()
 
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
 
   const { t } = useTranslation()
 

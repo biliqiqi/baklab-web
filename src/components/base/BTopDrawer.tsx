@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { cn } from '@/lib/utils'
 
 import SITE_LOGO_IMAGE from '@/assets/logo.png'
 import { DEFAULT_CONTENT_WIDTH, DOCK_HEIGHT } from '@/constants/constants'
+import { useSiteParams } from '@/hooks/use-site-params'
 import {
   useAuthedUserStore,
   useSiteStore,
@@ -15,12 +15,13 @@ import {
 
 import { Button } from '../ui/button'
 import BSiteIcon from './BSiteIcon'
+import SiteLink from './SiteLink'
 
 const ICON_WIDTH = 80
 
 const BTopDrawer = () => {
   const { t } = useTranslation()
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
   const { open: showTopDrawer } = useTopDrawerStore()
   const { siteList, setShowSiteForm } = useSiteStore(
     useShallow(({ siteList, setShowSiteForm }) => ({
@@ -65,8 +66,9 @@ const BTopDrawer = () => {
         >
           {siteList &&
             siteList.map((site) => (
-              <Link
-                to={`/z/${site.frontId}`}
+              <SiteLink
+                to="/"
+                siteFrontId={site.frontId}
                 key={site.frontId}
                 className={cn(
                   'flex justify-center overflow-hidden flex-shrink-0 flex-grow-0 mr-[8px] leading-3'
@@ -83,11 +85,13 @@ const BTopDrawer = () => {
                   vertical
                   className="w-full"
                 />
-              </Link>
+              </SiteLink>
             ))}
 
-          <Link
-            to={`/`}
+          <SiteLink
+            to="/"
+            siteFrontId={undefined}
+            useFallbackSiteFrontId={false}
             className={cn(
               'flex justify-center overflow-hidden flex-shrink-0 flex-grow-0 mr-2 leading-3'
             )}
@@ -103,7 +107,7 @@ const BTopDrawer = () => {
               className="w-full"
               vertical
             />
-          </Link>
+          </SiteLink>
           {isLogined() && checkPermit('site', 'create', true) && (
             <span
               className="inline-flex flex-col flex-shrink-0 items-center align-middle cursor-pointer"

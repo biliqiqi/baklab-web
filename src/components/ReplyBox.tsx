@@ -19,7 +19,6 @@ import {
 } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -38,6 +37,7 @@ import {
 } from '@/constants/constants'
 import { I18n } from '@/constants/types'
 import { useReplyBoxCache } from '@/hooks/use-editor-cache'
+import { useSiteParams } from '@/hooks/use-site-params'
 import i18n from '@/i18n'
 import {
   useAuthedUserStore,
@@ -124,7 +124,7 @@ const ReplyBox = forwardRef<HTMLDivElement, ReplyBoxProps>(
       REPLY_BOX_INITIAL_HEIGHT
     )
 
-    const { siteFrontId } = useParams()
+    const { siteFrontId } = useSiteParams()
 
     const site = useSiteStore((state) => state.site)
     const checkPermit = useAuthedUserStore((state) => state.permit)

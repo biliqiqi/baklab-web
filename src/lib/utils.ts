@@ -186,15 +186,14 @@ export const md2text = (markdown: string) => {
 }
 
 export const genArticlePath = ({
-  siteFrontId,
   id,
   categoryFrontId,
   contentForm,
 }: Article) => {
   if (contentForm && contentForm.frontId == 'chat') {
-    return `/z/${siteFrontId}/b/${categoryFrontId}#message${id}`
+    return `/b/${categoryFrontId}#message${id}`
   }
-  return `/z/${siteFrontId}/articles/${id}`
+  return `/articles/${id}`
 }
 
 export const getSiteStatusName = (status: SiteStatus) => {

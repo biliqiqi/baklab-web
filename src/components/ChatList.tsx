@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useLocation, useParams } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useDebouncedCallback } from 'use-debounce'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -21,6 +21,7 @@ import {
 } from '@/constants/constants'
 import { defaultPageState } from '@/constants/defaults'
 import { usePermit } from '@/hooks/use-auth'
+import { useSiteParams } from '@/hooks/use-site-params'
 import { getIDBChatList, saveIDBChatList } from '@/state/chat-db'
 import {
   useAuthedUserStore,
@@ -104,7 +105,7 @@ const ChatList: React.FC<ChatListProps> = ({
     | null
   >(null)
 
-  const { siteFrontId, categoryFrontId } = useParams()
+  const { siteFrontId, categoryFrontId } = useSiteParams()
 
   const { setShowReplyBox, setReplyBoxState } = useReplyBoxStore(
     useShallow(({ setShow, setState }) => ({

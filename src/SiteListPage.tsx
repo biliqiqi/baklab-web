@@ -56,6 +56,7 @@ import {
 
 import BContainer from './components/base/BContainer'
 import BSiteIcon from './components/base/BSiteIcon'
+import SiteLink from './components/base/SiteLink'
 
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
@@ -517,7 +518,7 @@ export default function SiteListPage() {
       accessorKey: 'name',
       header: t('siteName'),
       cell: ({ row }) => (
-        <Link to={'/z/' + row.original.frontId}>
+        <SiteLink to="/" siteFrontId={row.original.frontId}>
           <BSiteIcon
             logoUrl={row.original.logoUrl}
             name={row.original.name}
@@ -525,7 +526,7 @@ export default function SiteListPage() {
             showSiteName
             className="w-[100px]"
           />
-        </Link>
+        </SiteLink>
       ),
     },
     {

@@ -719,27 +719,58 @@ useRightSidebarStore.subscribe(
 
 export interface CategoryState {
   categories: Category[]
+  siteFrontId: string | null
+  loaded: boolean
   updateCategories: (x: Category[]) => void
-  fetchCategoryList: (siteFrontId: string) => Promise<Category[]>
+  clearCategories: () => void
+  fetchCategoryList: (
+    siteFrontId: string,
+    force?: boolean
+  ) => Promise<Category[]>
 }
 
-export const useCategoryStore = create<CategoryState>((set) => ({
+export const useCategoryStore = create<CategoryState>((set, get) => ({
   categories: [],
+  siteFrontId: null,
+  loaded: false,
   updateCategories(x) {
-    set(() => ({ categories: [...x] }))
+    set((state) => ({
+      ...state,
+      categories: [...x],
+      loaded: true,
+    }))
   },
-  fetchCategoryList: async (siteFrontId) => {
+  clearCategories() {
+    set(() => ({ categories: [], siteFrontId: null, loaded: false }))
+  },
+  fetchCategoryList: async (siteFrontId, force = false) => {
+    const state = get()
+    if (!force && state.loaded && state.siteFrontId === siteFrontId) {
+      return state.categories
+    }
+
     try {
-      const { code, data } = await getCategoryList({ siteFrontId: siteFrontId })
+      const { code, data } = await getCategoryList({ siteFrontId })
       if (!code && data) {
-        set(() => ({ categories: [...data] }))
+        set(() => ({
+          categories: [...data],
+          siteFrontId,
+          loaded: true,
+        }))
         return data
-      } else {
-        set(() => ({ categories: [] }))
-        return []
       }
+      set(() => ({
+        categories: [],
+        siteFrontId,
+        loaded: false,
+      }))
+      return []
     } catch (_err) {
-      set(() => ({ categories: [] }))
+      set(() => ({
+        categories: [],
+        siteFrontId,
+        loaded: false,
+      }))
       return []
     }
   },
@@ -936,7 +967,7 @@ export const ensureSiteData = (frontId: string) => {
 
 export const ensureCategoryList = (siteFrontId: string) => {
   const cateState = useCategoryStore.getState()
-  if (cateState.categories.length) {
+  if (cateState.loaded && cateState.siteFrontId === siteFrontId) {
     return Promise.resolve(cateState.categories)
   } else {
     return cateState.fetchCategoryList(siteFrontId)
@@ -1146,23 +1177,33 @@ export const useDefaultFontSizeStore = create<DefaultFontSizeState>((set) => ({
 
 export interface ReactOptionsState {
   reactOptions: ArticleReact[]
+  loaded: boolean
   setReactOptions: (options: ArticleReact[]) => void
-  fetchReactOptions: () => Promise<void>
+  fetchReactOptions: (force?: boolean) => Promise<void>
 }
 
-export const useReactOptionsStore = create<ReactOptionsState>((set) => ({
+export const useReactOptionsStore = create<ReactOptionsState>((set, get) => ({
   reactOptions: [],
+  loaded: false,
   setReactOptions(options) {
-    set(() => ({ reactOptions: options }))
+    set(() => ({ reactOptions: options, loaded: true }))
   },
-  async fetchReactOptions() {
+  async fetchReactOptions(force = false) {
+    const state = get()
+    if (!force && state.loaded) {
+      return
+    }
+
     try {
       const { code, data } = await getReactOptions()
       if (!code && data.reactOptions) {
-        set(() => ({ reactOptions: data.reactOptions }))
+        set(() => ({ reactOptions: data.reactOptions, loaded: true }))
+        return
       }
+      set(() => ({ reactOptions: [], loaded: false }))
     } catch (err) {
       console.error('fetch react options failed: ', err)
+      set(() => ({ loaded: false }))
     }
   },
 }))
@@ -1172,6 +1213,7 @@ export interface ContextState {
   isSingleSite: boolean
   site: Site | null
   host?: string
+  mainSiteHost?: string
   setCountryCode: (code: string) => void
   fetchContext: (siteFrontId?: string) => Promise<void>
 }
@@ -1180,6 +1222,7 @@ export const useContextStore = create<ContextState>((set) => ({
   countryCode: '',
   isSingleSite: false,
   site: null,
+  mainSiteHost: undefined,
   setCountryCode(code) {
     set(() => ({ countryCode: code }))
   },
@@ -1187,11 +1230,36 @@ export const useContextStore = create<ContextState>((set) => ({
     try {
       const { code, data } = await getContext(siteFrontId)
       if (!code && data) {
+        if (data.host && typeof window !== 'undefined') {
+          const targetHost = data.host
+          const currentHost = window.location.host
+          const currentHostname = window.location.hostname
+          let targetHostname = targetHost
+          try {
+            const url = new URL(`http://${targetHost}`)
+            targetHostname = url.hostname
+          } catch (_err) {
+            targetHostname = targetHost.split(':')[0]
+          }
+
+          const matchesHost = currentHostname === targetHostname
+          const hostMismatch = import.meta.env.DEV
+            ? !matchesHost
+            : targetHost !== currentHost
+
+          if (hostMismatch) {
+            if (window.location.pathname !== '/not_compatible') {
+              window.location.replace('/not_compatible')
+            }
+            return
+          }
+        }
         set(() => ({
           countryCode: data.countryCode,
           isSingleSite: data.isSingleSite,
           site: data.site,
           host: data.host,
+          mainSiteHost: data.mainSiteHost,
         }))
       }
     } catch (err) {

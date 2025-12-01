@@ -1,17 +1,20 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation, useParams } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 
 import BContainer from './components/base/BContainer'
 
 import ArticleList from './components/ArticleList'
 import ChatList from './components/ChatList'
 
+import { buildRoutePath } from '@/hooks/use-route-match'
+import { useSiteParams } from '@/hooks/use-site-params'
+
 import { getCategoryWithFrontId } from './api/category'
 import { toSync } from './lib/fire-and-forget'
 import { Category } from './types/types'
 
-export default function BankuaiPage() {
+export default function CategoryPage() {
   const [serverCate, setServerCate] = useState<Category | null>(null)
   const [initialized, setInitialized] = useState(false)
 
@@ -21,13 +24,13 @@ export default function BankuaiPage() {
   }
 
   const currCate = useMemo(() => state || serverCate, [state, serverCate])
-  const { siteFrontId, categoryFrontId } = useParams()
+  const { siteFrontId, categoryFrontId } = useSiteParams()
   const { t } = useTranslation()
 
-  const isAllPage = useMemo(
-    () => pathname === '/all' || pathname === `/z/${siteFrontId}/all`,
-    [pathname, siteFrontId]
-  )
+  const isAllPage = useMemo(() => {
+    const siteAllPath = buildRoutePath('/all', siteFrontId)
+    return pathname === '/all' || pathname === siteAllPath
+  }, [pathname, siteFrontId])
 
   const isChat = useMemo(
     () => currCate?.contentForm?.frontId == 'chat',

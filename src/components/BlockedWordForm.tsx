@@ -2,13 +2,13 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import React, { useCallback, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router-dom'
 
 import { noop } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
 import { submitSiteBlockedWords } from '@/api/site'
 import { MAX_BLOCKED_WORD_LEN } from '@/constants/constants'
+import { useSiteParams } from '@/hooks/use-site-params'
 
 import { Button } from './ui/button'
 import {
@@ -39,7 +39,7 @@ const BlockedWordForm: React.FC<BlockedWordFormProps> = ({
   onCancel = noop,
   onChange = noop,
 }) => {
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
 
   const { t } = useTranslation()
 

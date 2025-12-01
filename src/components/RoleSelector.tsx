@@ -1,7 +1,6 @@
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
 import { cn, noop } from '@/lib/utils'
@@ -22,6 +21,7 @@ import {
 
 import { getRole, getRoles } from '@/api/role'
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
+import { useSiteParams } from '@/hooks/use-site-params'
 import i18n from '@/i18n'
 import { Role, StringFn } from '@/types/types'
 
@@ -49,7 +49,7 @@ const RoleSelector = ({
 
   const [defaultRole, setDefaultRole] = useState<Role | null>(null)
 
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
   const { t } = useTranslation()
 
   const selectedRole = useMemo(() => {

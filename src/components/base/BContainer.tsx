@@ -12,7 +12,6 @@ import {
   Link,
   useLocation,
   useNavigate,
-  useParams,
   useSearchParams,
 } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
@@ -33,6 +32,8 @@ import {
 } from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
 import useDocumentTitle from '@/hooks/use-page-title'
+import { buildRoutePath } from '@/hooks/use-route-match'
+import { useSiteParams } from '@/hooks/use-site-params'
 import {
   useAlertDialogStore,
   useArticleHistoryStore,
@@ -205,7 +206,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       (state) => state.setIsSiteUIPreview
     )
 
-    const { siteFrontId } = useParams()
+    const { siteFrontId } = useSiteParams()
 
     const alertDialog = useAlertDialogStore()
 
@@ -273,11 +274,10 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       )
     )
 
-    const { fetchCategoryList, updateCategories } = useCategoryStore(
-      useShallow(({ fetchCategoryList, updateCategories, categories }) => ({
-        cateList: categories,
+    const { fetchCategoryList, clearCategories } = useCategoryStore(
+      useShallow(({ fetchCategoryList, clearCategories }) => ({
         fetchCategoryList,
-        updateCategories,
+        clearCategories,
       }))
     )
 
@@ -408,7 +408,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           await Promise.all([
             fetchSiteData(siteFrontId),
             fetchSiteList(),
-            fetchCategoryList(siteFrontId),
+            fetchCategoryList(siteFrontId, true),
           ])
           showCategorySelectionModal(siteFrontId)
         }
@@ -473,7 +473,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         if (!code && data.list) {
           updateSiteList([...data.list])
           if (newSiteFrontId) {
-            navigate(`/z/${newSiteFrontId}`)
+            navigate(buildRoutePath('/', newSiteFrontId))
           }
         }
 
@@ -604,7 +604,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         })()
       } else {
         updateCurrSite(null)
-        updateCategories([])
+        clearCategories()
       }
     }, [
       siteFrontId,
@@ -612,7 +612,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       fetchSiteData,
       updateCurrSite,
       fetchCategoryList,
-      updateCategories,
+      clearCategories,
       fetchReactOptions,
       authToken,
     ])
@@ -758,7 +758,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                     {isLogined() ? (
                       currSite &&
                       currSite.visible &&
-                      !currSite.currUserState.isMember && (
+                      !currSite.currUserState?.isMember && (
                         <Card className="sticky bottom-0 p-2 px-4 -mx-2 text-sm mt-4 text-center">
                           {t('joinTip')}
                           <Button

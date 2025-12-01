@@ -11,6 +11,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { noop } from '@/lib/utils'
 
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
+import { buildRoutePath } from '@/hooks/use-route-match'
 import { isLogined, useAuthedUserStore, useLoading } from '@/state/global'
 import {
   ARTICLE_LIST_MODE,
@@ -95,12 +96,10 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
 
   const sort = (params.get('sort') as ArticleListSort | null) || 'best'
 
-  const submitPath = useMemo(
-    () =>
-      customSubmitPath ||
-      (siteFrontId ? `/z/${siteFrontId}/submit` : `/submit`),
-    [customSubmitPath, siteFrontId]
-  )
+  const submitPath = useMemo(() => {
+    const targetPath = customSubmitPath || '/submit'
+    return buildRoutePath(targetPath, siteFrontId)
+  }, [customSubmitPath, siteFrontId])
 
   const { setLoading } = useLoading()
 

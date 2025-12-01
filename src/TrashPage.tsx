@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
@@ -15,10 +15,13 @@ import {
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 
 import BContainer from './components/base/BContainer'
+import SiteLink from './components/base/SiteLink'
 
 import ArticleControls from './components/ArticleControls'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
+
+import { useSiteParams } from '@/hooks/use-site-params'
 
 import { getArticleTrash, recoverArticle } from './api/article'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
@@ -70,7 +73,7 @@ export default function TrashPage() {
 
   const { setLoading } = useLoading()
 
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
 
   const location = useLocation()
   const [params, setParams] = useSearchParams()
@@ -310,9 +313,13 @@ export default function TrashPage() {
           <Card key={item.id} className="p-3 my-2 hover:bg-slate-50">
             <div className="mb-3">
               <div className="mb-1">
-                <Link className="mr-2" to={genArticlePath(item)}>
+                <SiteLink
+                  className="mr-2"
+                  to={genArticlePath(item)}
+                  siteFrontId={item.siteFrontId}
+                >
                   {item.displayTitle}
-                </Link>
+                </SiteLink>
               </div>
               {item.replyToId != '0' && (
                 <div className="max-h-5 mb-1 overflow-hidden text-sm text-gray-600 text-nowrap text-ellipsis">

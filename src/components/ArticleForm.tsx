@@ -11,7 +11,7 @@ import {
 } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { dayjs, timeAgo } from '@/lib/dayjs-custom'
@@ -28,6 +28,8 @@ import {
 import { defaultArticle } from '@/constants/defaults'
 import { useEditorCache, useInitialCache } from '@/hooks/use-editor-cache'
 import useDocumentTitle from '@/hooks/use-page-title'
+import { buildRoutePath } from '@/hooks/use-route-match'
+import { useSiteParams } from '@/hooks/use-site-params'
 import {
   useAuthedUserStore,
   useCategoryStore,
@@ -146,7 +148,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
     INIT_CONTENT_BOX_HEIGHT
   )
 
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
   /* const [cateList, setCateList] = useState<CategoryOption[]>([]) */
   const { categories: cateList } = useCategoryStore()
   const site = useSiteStore((state) => state.site)
@@ -440,7 +442,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
             toast.info(t('postReviewTip'))
           }
           clearCache()
-          navigate(`/z/${siteFrontId}/articles/${data.data.id}`, {
+          navigate(buildRoutePath(`/articles/${data.data.id}`, siteFrontId), {
             replace: true,
           })
         }

@@ -124,6 +124,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: '0.0.0.0',
+      allowedHosts: ['local.dizkaz.com'],
     },
     test: {
       environment: 'jsdom',

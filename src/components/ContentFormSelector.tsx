@@ -8,7 +8,6 @@ import {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
 import { cn, noop } from '@/lib/utils'
@@ -28,6 +27,7 @@ import {
 
 import { getContentForms } from '@/api/site'
 import { defaultContentForm } from '@/constants/defaults'
+import { useSiteParams } from '@/hooks/use-site-params'
 import i18n from '@/i18n'
 import {
   ContentForm,
@@ -83,7 +83,7 @@ const ContentFormSelector = forwardRef<
     /* const [defaultContentForm, setDefaultContentForm] =
      *   useState<ContentForm | null>(null) */
 
-    const { siteFrontId } = useParams()
+    const { siteFrontId } = useSiteParams()
 
     const selectedContentForm = useMemo(() => {
       return contentFormOptions.find(

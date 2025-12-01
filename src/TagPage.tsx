@@ -1,14 +1,15 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router-dom'
 
 import BContainer from './components/base/BContainer'
 
 import ArticleList from './components/ArticleList'
 
+import { useSiteParams } from '@/hooks/use-site-params'
+
 export default function TagPage() {
   const { t } = useTranslation()
-  const { siteFrontId, tagName } = useParams()
+  const { siteFrontId, tagName } = useSiteParams()
 
   const decodedTagName = useMemo(() => {
     if (!tagName) return ''

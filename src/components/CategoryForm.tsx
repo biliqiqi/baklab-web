@@ -4,7 +4,6 @@ import { ChevronDownIcon } from 'lucide-react'
 import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router-dom'
 import stc from 'string-to-color'
 
 import { cn, getFirstChar, noop, summaryText } from '@/lib/utils'
@@ -19,6 +18,7 @@ import {
 } from '@/api/category'
 import { defaultCategory } from '@/constants/defaults'
 import { I18n } from '@/constants/types'
+import { useSiteParams } from '@/hooks/use-site-params'
 import i18n from '@/i18n'
 import {
   useAlertDialogStore,
@@ -163,7 +163,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
   const alertDialog = useAlertDialogStore()
   const authStore = useAuthedUserStore()
   const siteStore = useSiteStore()
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
 
   const { t, i18n } = useTranslation()
 

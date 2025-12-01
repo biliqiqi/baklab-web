@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { cn, getSiteStatusColor, getSiteStatusName } from '@/lib/utils'
@@ -27,6 +27,7 @@ import SITE_LOGO_IMAGE from '@/assets/logo.png'
 import { NAV_HEIGHT, PLATFORM_NAME } from '@/constants/constants'
 import { PermissionAction, PermissionModule } from '@/constants/types'
 import { buildRoutePath, useRouteMatch } from '@/hooks/use-route-match'
+import { useSiteParams } from '@/hooks/use-site-params'
 import i18n from '@/i18n'
 import {
   useAlertDialogStore,
@@ -67,6 +68,7 @@ import {
 } from '../ui/sidebar'
 import BIconColorChar from './BIconColorChar'
 import BSiteIcon from './BSiteIcon'
+import SiteLink from './SiteLink'
 
 interface EditCategoryData {
   editting: boolean
@@ -171,7 +173,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
     data: undefined,
   })
 
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
 
   const alertDialog = useAlertDialogStore()
 
@@ -246,7 +248,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
       permitModule: 'user',
       permitAction: 'manage',
       name: t('members'),
-      link: `/z/${siteFrontId}/manage/users`,
+      link: `/manage/users`,
       icon: <UserRoundIcon size={18} />,
     },
     {
@@ -254,7 +256,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
       permitModule: 'user',
       permitAction: 'manage',
       name: t('blockList'),
-      link: `/z/${siteFrontId}/manage/blocklist`,
+      link: `/manage/blocklist`,
       icon: <UserRoundIcon size={18} />,
     },
     {
@@ -262,7 +264,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
       permitModule: 'role',
       permitAction: 'edit',
       name: t('role'),
-      link: `/z/${siteFrontId}/manage/roles`,
+      link: `/manage/roles`,
       icon: <UserIcon size={18} />,
     },
     {
@@ -270,7 +272,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
       permitModule: 'article',
       permitAction: 'review',
       name: t('reviewByHuman'),
-      link: `/z/${siteFrontId}/manage/article_review`,
+      link: `/manage/article_review`,
       icon: <ShieldCheckIcon size={18} />,
     },
     {
@@ -278,7 +280,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
       permitModule: 'site',
       permitAction: 'manage',
       name: t('blockedWord'),
-      link: `/z/${siteFrontId}/manage/blocked_words`,
+      link: `/manage/blocked_words`,
       icon: <MessageSquareXIcon size={18} />,
     },
     {
@@ -286,7 +288,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
       permitModule: 'activity',
       permitAction: 'access',
       name: t('modLog'),
-      link: `/z/${siteFrontId}/manage/activities`,
+      link: `/manage/activities`,
       icon: <ActivityIcon size={18} />,
     },
   ]
@@ -329,7 +331,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
       }))
     }, 500)
     if (!siteFrontId) return
-    await fetchCategoryList(siteFrontId)
+    await fetchCategoryList(siteFrontId, true)
   }, [siteFrontId, fetchCategoryList])
 
   return (
@@ -347,9 +349,11 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
               }}
             >
               <div className="flex items-center flex-shrink-0">
-                <Link
+                <SiteLink
                   className="font-bold text-2xl leading-3"
-                  to={siteFrontId && currSite ? `/z/${siteFrontId}` : `/`}
+                  to="/"
+                  siteFrontId={undefined}
+                  useFallbackSiteFrontId={false}
                 >
                   {siteFrontId && currSite ? (
                     currSite.logoHtmlStr ? (
@@ -383,7 +387,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
                       showSiteName
                     />
                   )}
-                </Link>
+                </SiteLink>
                 {currSite && !currSite.visible && (
                   <span
                     className="inline-block text-gray-500 ml-2"
@@ -417,19 +421,20 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
                 {isLogined() && (
                   <SidebarMenuItem key="feed">
                     <SidebarMenuButton asChild isActive={isHomePageActive}>
-                      <Link to={buildRoutePath('/', siteFrontId)}>
+                      <SiteLink to="/" siteFrontId={siteFrontId}>
                         <BIconCircle id="feed" size={32}>
                           <PackageIcon size={18} />
                         </BIconCircle>
                         {t('feed')}
-                      </Link>
+                      </SiteLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )}
                 <SidebarMenuItem key="all">
                   <SidebarMenuButton asChild isActive={isAllPageActive}>
-                    <Link
-                      to={buildRoutePath('/all', siteFrontId)}
+                    <SiteLink
+                      to="/all"
+                      siteFrontId={siteFrontId}
                       title={
                         siteFrontId
                           ? t('siteAllPostsDescription')
@@ -440,7 +445,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
                         <GlobeIcon size={18} />
                       </BIconCircle>
                       {t('allPosts')}
-                    </Link>
+                    </SiteLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 {siteFrontId && currSite && (
@@ -450,23 +455,23 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
                         asChild
                         isActive={isCategoryListActive}
                       >
-                        <Link to={buildRoutePath('/bankuai', siteFrontId)}>
+                        <SiteLink to="/bankuai" siteFrontId={siteFrontId}>
                           <BIconCircle id="categories" size={32}>
                             <ChartBarStackedIcon size={18} />
                           </BIconCircle>
                           {t('allCategories')}
-                        </Link>
+                        </SiteLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                     {currSite.tagConfig?.enabled && (
                       <SidebarMenuItem key="tags">
                         <SidebarMenuButton asChild isActive={isTagListActive}>
-                          <Link to={buildRoutePath('/tags', siteFrontId)}>
+                          <SiteLink to="/tags" siteFrontId={siteFrontId}>
                             <BIconCircle id="tags" size={32}>
                               <TagIcon size={18} />
                             </BIconCircle>
                             {t('tags')}
-                          </Link>
+                          </SiteLink>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     )}
@@ -576,16 +581,20 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
                             asChild
                             isActive={
                               location.pathname ==
-                                `/z/${siteFrontId}/b/${item.frontId}` ||
+                                buildRoutePath(
+                                  `/b/${item.frontId}`,
+                                  siteFrontId
+                                ) ||
                               (currentCategoryFrontId === item.frontId &&
                                 location.pathname.includes(
-                                  `/z/${siteFrontId}/articles/`
+                                  buildRoutePath('/articles/', siteFrontId)
                                 ))
                             }
                           >
-                            <Link
-                              to={`/z/${siteFrontId}/b/${item.frontId}`}
+                            <SiteLink
+                              to={`/b/${item.frontId}`}
                               state={item}
+                              siteFrontId={siteFrontId}
                             >
                               <span
                                 className="relative inline-block"
@@ -605,7 +614,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
                                 )}
                               </span>
                               {item.name}
-                            </Link>
+                            </SiteLink>
                           </SidebarMenuButton>
                           {/* Edit functionality moved to CategoryListPage.tsx */}
                           {/* {authPermit('category', 'edit') && (
@@ -674,20 +683,25 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
                           name,
                           link,
                           icon,
-                        }) =>
-                          authPermit(permitModule, permitAction) && (
+                        }) => {
+                          if (!authPermit(permitModule, permitAction)) {
+                            return null
+                          }
+                          const resolvedPath = buildRoutePath(link, siteFrontId)
+                          return (
                             <SidebarMenuItem key={id}>
                               <SidebarMenuButton
                                 asChild
-                                isActive={location.pathname == link}
+                                isActive={location.pathname == resolvedPath}
                               >
-                                <Link to={link}>
+                                <SiteLink to={link} siteFrontId={siteFrontId}>
                                   <BIconCircle size={32}>{icon}</BIconCircle>
                                   {name}
-                                </Link>
+                                </SiteLink>
                               </SidebarMenuButton>
                             </SidebarMenuItem>
                           )
+                        }
                       )}
                     </SidebarMenu>
                   </SidebarGroupContent>

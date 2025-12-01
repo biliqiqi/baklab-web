@@ -141,6 +141,7 @@ export interface ContextResponse {
   isSingleSite: boolean
   site: Site | null
   host?: string
+  mainSiteHost?: string
 }
 
 export const getContext = async (

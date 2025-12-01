@@ -1,7 +1,6 @@
 import { MessageCircleIcon, PencilIcon } from 'lucide-react'
 import { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router-dom'
 
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
@@ -15,8 +14,11 @@ import {
 
 import BContainer from './components/base/BContainer'
 import BIconColorChar from './components/base/BIconColorChar'
+import SiteLink from './components/base/SiteLink'
 
 import CategoryForm from './components/CategoryForm'
+
+import { useSiteParams } from '@/hooks/use-site-params'
 
 import { toggleSubscribe } from './api/category'
 import {
@@ -35,7 +37,7 @@ export default function CategoryListPage() {
   const cateStore = useCategoryStore()
   const authStore = useAuthedUserStore()
   const alertDialog = useAlertDialogStore()
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
   const [subscribingIds, setSubscribingIds] = useState<Set<string>>(new Set())
   const [showCategoryForm, setShowCategoryForm] = useState(false)
   const [categoryFormDirty, setCategoryFormDirty] = useState(false)
@@ -82,7 +84,7 @@ export default function CategoryListPage() {
       } catch (error) {
         console.error('Failed to toggle subscription:', error)
       } finally {
-        await cateStore.fetchCategoryList(siteFrontId)
+        await cateStore.fetchCategoryList(siteFrontId, true)
         setSubscribingIds((prev) => {
           const newSet = new Set(prev)
           newSet.delete(category.frontId)
@@ -131,7 +133,7 @@ export default function CategoryListPage() {
       }))
     }, 500)
     if (!siteFrontId) return
-    await cateStore.fetchCategoryList(siteFrontId)
+    await cateStore.fetchCategoryList(siteFrontId, true)
   }, [siteFrontId, cateStore])
 
   const onCreateCategoryClick = (ev: MouseEvent<HTMLButtonElement>) => {
@@ -175,9 +177,10 @@ export default function CategoryListPage() {
         {cateStore.categories.map((cate) => (
           <div className="flex p-1" key={cate.frontId}>
             <Card className="flex items-start justify-between p-2 w-full">
-              <Link
-                to={`/z/${siteFrontId}/b/${cate.frontId}`}
+              <SiteLink
+                to={`/b/${cate.frontId}`}
                 state={cate}
+                siteFrontId={siteFrontId}
                 className="flex-grow-0 mr-2"
               >
                 <span className="relative inline-block">
@@ -194,12 +197,16 @@ export default function CategoryListPage() {
                     />
                   )}
                 </span>
-              </Link>
+              </SiteLink>
               <div className="flex-grow">
                 <div className="font-bold pt-2">
-                  <Link to={`/z/${siteFrontId}/b/${cate.frontId}`} state={cate}>
+                  <SiteLink
+                    to={`/b/${cate.frontId}`}
+                    state={cate}
+                    siteFrontId={siteFrontId}
+                  >
                     {cate.name}
-                  </Link>
+                  </SiteLink>
                 </div>
                 <div className="text-sm text-gray-500">{cate.describe}</div>
               </div>

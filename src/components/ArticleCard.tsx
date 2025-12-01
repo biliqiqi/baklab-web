@@ -66,6 +66,7 @@ import {
 import ArticleControls from './ArticleControls'
 import ModerationForm, { ReasonSchema } from './ModerationForm'
 import BAvatar from './base/BAvatar'
+import SiteLink from './base/SiteLink'
 import {
   AlertDialog,
   AlertDialogContent,
@@ -100,7 +101,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
   const parent = article.replyToArticle
 
-  /* const { siteFrontId } = useParams() */
+  /* const { siteFrontId } = useSiteParams() */
 
   const authStore = useAuthedUserStore()
   const permit = useAuthedUserStore((state) => state.permit)
@@ -356,11 +357,12 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               {article.replyToId == '0' ? (
                 article.displayTitle
               ) : (
-                <Link
-                  to={`/z/${article.replyRootArticleSiteFrontId}/articles/${article.replyRootArticleId}`}
+                <SiteLink
+                  to={`/articles/${article.replyRootArticleId}`}
+                  siteFrontId={article.replyRootArticleSiteFrontId}
                 >
                   {article.displayTitle}
-                </Link>
+                </SiteLink>
               )}
 
               {article.link && (
@@ -469,11 +471,12 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                 onClick={onEditClick}
                 title={t('edit')}
               >
-                <Link
-                  to={`/z/${article.siteFrontId}/articles/${article.id}/edit`}
+                <SiteLink
+                  to={`/articles/${article.id}/edit`}
+                  siteFrontId={article.siteFrontId}
                 >
                   <PencilIcon size={14} className="inline-block mr-1" />
-                </Link>
+                </SiteLink>
               </Button>
             )}
           {((isMyself && permit('article', 'delete_mine')) ||
@@ -574,12 +577,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               <TagIcon size={16} className="mr-1.5 flex-shrink-0" />
               {article.tags.map((tag, index) => (
                 <span key={tag.id}>
-                  <Link
-                    to={`/z/${article.siteFrontId}/tags/${encodeURIComponent(tag.name)}`}
+                  <SiteLink
+                    to={`/tags/${encodeURIComponent(tag.name)}`}
+                    siteFrontId={article.siteFrontId}
                     className="hover:text-primary transition-colors"
                   >
                     {tag.name}
-                  </Link>
+                  </SiteLink>
                   {index < article.tags.length - 1 && (
                     <span className="mr-1.5">,</span>
                   )}

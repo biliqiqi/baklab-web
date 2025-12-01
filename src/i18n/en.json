@@ -568,6 +568,7 @@
   "unsavedDropConfirm": "Changes not saved. Discard?",
   "joinTip": "You are not yet a member of this site. Join to subscribe to new content or participate in interactions.",
   "join": "Join",
+  "notCompatibleClient": "This client is not supported yet.",
   "signinTip": "Sign in to participate in interactions.",
   "passwordSignin": "Password Sign In",
   "phoneSignin": "Sign In with Phone",

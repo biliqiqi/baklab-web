@@ -33,6 +33,7 @@ import {
   readArticle,
 } from '@/api/message'
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
+import { buildRoutePath } from '@/hooks/use-route-match'
 import {
   useAlertDialogStore,
   useAuthedUserStore,
@@ -101,9 +102,13 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
 
         if (data.list) {
           const list: MessageFront[] = data.list.map((item) => {
+            const path = buildRoutePath(
+              genArticlePath(item.contentArticle),
+              item.contentArticle.siteFrontId
+            )
             return {
               ...item,
-              targetPath: genArticlePath(item.contentArticle),
+              targetPath: path,
             }
           })
 

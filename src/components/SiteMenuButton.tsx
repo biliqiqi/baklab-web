@@ -7,7 +7,7 @@ import React, {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { cn } from '@/lib/utils'
@@ -21,6 +21,7 @@ import {
 
 import { inviteToSite, quitSite } from '@/api/site'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useSiteParams } from '@/hooks/use-site-params'
 import {
   useAlertDialogStore,
   useAuthedUserStore,
@@ -30,6 +31,7 @@ import {
   useSiteStore,
 } from '@/state/global'
 
+import SiteLink from './base/SiteLink'
 import BIconCircle from './icon/Circle'
 import { Button } from './ui/button'
 
@@ -46,7 +48,7 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
 }) => {
   const [openSiteMenu, setOpenSiteMenu] = useState(false)
 
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
 
   const { t } = useTranslation()
 
@@ -199,7 +201,7 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
         await Promise.all([
           fetchSiteData(siteFrontId),
           fetchSiteList(),
-          fetchCategoryList(siteFrontId),
+          fetchCategoryList(siteFrontId, true),
         ])
       }
     },
@@ -273,14 +275,15 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
           </DropdownMenuItem>
         )}
         <DropdownMenuItem asChild>
-          <Link
-            to={`/z/${siteFrontId}/about`}
+          <SiteLink
+            to="/about"
+            siteFrontId={siteFrontId}
             className="py-2 px-2 cursor-pointer"
           >
             {t('about')}
-          </Link>
+          </SiteLink>
         </DropdownMenuItem>
-        {!isMySite && currSite.currUserState.isMember && (
+        {!isMySite && currSite?.currUserState?.isMember && (
           <DropdownMenuItem
             className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0 text-destructive"
             onClick={onQuitSiteClick}

@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { Button } from './components/ui/button'
@@ -9,6 +9,9 @@ import { Card } from './components/ui/card'
 
 import BLoader from './components/base/BLoader'
 import BSiteIcon from './components/base/BSiteIcon'
+
+import { buildRoutePath } from '@/hooks/use-route-match'
+import { useSiteParams } from '@/hooks/use-site-params'
 
 import { getInvite } from './api/invite-code'
 import { acceptSiteInvite } from './api/site'
@@ -28,7 +31,7 @@ export default function InvitePage() {
   const acceptedRef = useRef(false)
   const lastClickTimeRef = useRef(0)
 
-  const { inviteCode } = useParams()
+  const { inviteCode } = useSiteParams()
   const [searchParams] = useSearchParams()
 
   const navigate = useNavigate()
@@ -63,8 +66,8 @@ export default function InvitePage() {
       } = await getInvite(inviteCode)
       if (!code) {
         /* console.log('site: ', site) */
-        if (site.currUserState.isMember) {
-          navigate(`/z/${site.frontId}`, { replace: true })
+        if (site.currUserState?.isMember) {
+          navigate(buildRoutePath('/', site.frontId), { replace: true })
         } else {
           setSite(() => site)
           setInviteData(() => invite)
@@ -79,8 +82,8 @@ export default function InvitePage() {
         throw new Error('lack of site data and invite data')
       }
 
-      if (site && site.currUserState.isMember) {
-        navigate(`/z/${site.frontId}`, { replace: true })
+      if (site && site.currUserState?.isMember) {
+        navigate(buildRoutePath('/', site.frontId), { replace: true })
         return
       }
 
@@ -95,7 +98,7 @@ export default function InvitePage() {
       if (!code) {
         await fetchSiteList()
         showCategorySelectionModal(site.frontId)
-        navigate(`/z/${site.frontId}`, { replace: true })
+        navigate(buildRoutePath('/', site.frontId), { replace: true })
       }
     } catch (err) {
       console.error('accept invite error: ', err)
@@ -152,7 +155,7 @@ export default function InvitePage() {
     ) {
       toSync(getInvite, ({ code, data: { invite, site } }) => {
         if (!code && invite && site && !acceptedRef.current) {
-          if (site.currUserState.isMember) {
+          if (site.currUserState?.isMember) {
             navigate(`/z/${site.frontId}`, { replace: true })
           } else {
             toSync(acceptInvite)()

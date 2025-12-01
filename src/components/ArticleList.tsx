@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
 
 import { noop } from '@/lib/utils'
 
 import { getArticleList } from '@/api/article'
+import { useSiteParams } from '@/hooks/use-site-params'
 import { useSiteUIStore, useUserUIStore } from '@/state/global'
 import { ArticleListState, Category } from '@/types/types'
 
@@ -35,14 +35,14 @@ const ArticleList: React.FC<ArticleListProps> = ({
       : siteArticleListMode
 
   const [currCate, setCurrCate] = useState<Category | null>(null)
-  const { siteFrontId, categoryFrontId } = useParams()
+  const { siteFrontId, categoryFrontId } = useSiteParams()
 
   const submitPath = useMemo(
     () =>
       categoryFrontId && currCate
-        ? `/z/${siteFrontId}/submit?category_id=` + currCate.id
-        : `/z/${siteFrontId}/submit`,
-    [currCate, siteFrontId, categoryFrontId]
+        ? `/submit?category_id=${currCate.id}`
+        : `/submit`,
+    [currCate, categoryFrontId]
   )
 
   const fetchArticles = useCallback(

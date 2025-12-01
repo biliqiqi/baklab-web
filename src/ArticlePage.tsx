@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { Card } from './components/ui/card'
@@ -19,6 +19,7 @@ import {
   EV_ON_REPLY_CLICK,
   REPLY_BOX_PLACEHOLDER_HEIGHT,
 } from '@/constants/constants'
+import { useSiteParams } from '@/hooks/use-site-params'
 
 import { getArticle, readManyArticle } from './api/article'
 import { ArticleContext } from './contexts/ArticleContext'
@@ -85,7 +86,7 @@ export default function ArticlePage() {
 
   const sort = (params.get('sort') as ArticleListSort | null) || 'oldest'
 
-  const { siteFrontId, articleId } = useParams()
+  const { siteFrontId, articleId } = useSiteParams()
 
   const loadRawCache = useRawReplyBoxCache(siteFrontId || '')
 
@@ -274,7 +275,7 @@ export default function ArticlePage() {
       !article.locked &&
       article.status == 'published' &&
       isLogined() &&
-      (site?.currUserState.isMember || permit('site', 'manage'))
+      (site?.currUserState?.isMember || permit('site', 'manage'))
     ) {
       setShowReplyBox(true)
     } else {

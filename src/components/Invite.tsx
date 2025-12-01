@@ -2,12 +2,13 @@ import ClipboardJS from 'clipboard'
 import { CheckIcon } from 'lucide-react'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router-dom'
 
 import { timeAgo } from '@/lib/dayjs-custom'
 import { cn } from '@/lib/utils'
 
 import { FRONTEND_HOST } from '@/constants/constants'
+import { buildRoutePath } from '@/hooks/use-route-match'
+import { useSiteParams } from '@/hooks/use-site-params'
 import { InviteCode } from '@/types/types'
 
 import { Button } from './ui/button'
@@ -28,10 +29,11 @@ const Invite: React.FC<InviteProps> = ({
 }) => {
   const [copyInviteSuccess, setCopyInviteSuccess] = useState(false)
 
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
   const inviteLink = useMemo(() => {
     if (publicSite) {
-      return `${FRONTEND_HOST}/z/${siteFrontId}`
+      const path = buildRoutePath('/', siteFrontId)
+      return `${FRONTEND_HOST}${path}`
     } else {
       return `${FRONTEND_HOST}/invite/${data?.code || ''}`
     }

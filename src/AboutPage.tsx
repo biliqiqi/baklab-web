@@ -1,5 +1,5 @@
 import { Trans, useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { timeFmt } from '@/lib/dayjs-custom'
@@ -9,10 +9,12 @@ import { Card } from './components/ui/card'
 import BAvatar from './components/base/BAvatar'
 import BContainer from './components/base/BContainer'
 
+import { useSiteParams } from '@/hooks/use-site-params'
+
 import { useSiteStore } from './state/global'
 
 export default function AboutPage() {
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
   const { t } = useTranslation()
 
   const { currSite } = useSiteStore(

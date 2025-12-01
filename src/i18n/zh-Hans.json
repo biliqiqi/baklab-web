@@ -568,6 +568,7 @@
   "unsavedDropConfirm": "改动未保存，确认舍弃？",
   "joinTip": "你还不是当前站点成员，加入后可订阅新内容或参与互动。",
   "join": "加入",
+  "notCompatibleClient": "暂不支持该客户端",
   "signinTip": "登录可后参与互动。",
   "passwordSignin": "密码登录",
   "phoneSignin": "手机号登录",

@@ -1,12 +1,13 @@
 import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router-dom'
 
 import BContainer from './components/base/BContainer'
 
 import FeedArticleList from './components/FeedArticleList'
 
+import { useSiteParams } from '@/hooks/use-site-params'
+
 export default function FeedPage() {
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
   const { t } = useTranslation()
 
   const feedTitle = siteFrontId ? t('siteFeed') : t('feed')

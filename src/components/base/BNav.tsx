@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -24,9 +24,11 @@ import { logoutToken } from '@/api'
 import SITE_LOGO_IMAGE from '@/assets/logo.png'
 import { NAV_HEIGHT, PLATFORM_NAME } from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useSiteParams } from '@/hooks/use-site-params'
 import {
   useAlertDialogStore,
   useAuthedUserStore,
+  useContextStore,
   useDialogStore,
   useLoading,
   useNotificationStore,
@@ -52,6 +54,7 @@ import { SIDEBAR_WIDTH } from '../ui/sidebar'
 import BAvatar from './BAvatar'
 import BLoader from './BLoader'
 import BSiteIcon from './BSiteIcon'
+import SiteLink from './SiteLink'
 
 export interface NavProps extends React.HTMLAttributes<HTMLDivElement> {
   category?: FrontCategory
@@ -69,7 +72,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
   ) => {
     /* const [loading, setLoading] = useState(false) */
     const [showCategoryDetail, setShowCategoryDetail] = useState(false)
-    const { siteFrontId } = useParams()
+    const { siteFrontId } = useSiteParams()
 
     const { loading, setLoading } = useLoading()
     /* const authState = useAuthedUserStore() */
@@ -118,8 +121,42 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
     const { siteListMode } = useUserUIStore(
       useShallow(({ siteListMode }) => ({ siteListMode }))
     )
+    const isSingleSite = useContextStore((state) => state.isSingleSite)
+    const mainSiteHost = useContextStore((state) => state.mainSiteHost)
 
     const msgListRef = useRef<MessageListRef | null>(null)
+
+    const { mainSiteMessagesUrl, mainSiteProfileUrl, mainSiteSettingsUrl } =
+      useMemo(() => {
+        if (!mainSiteHost) {
+          return {
+            mainSiteMessagesUrl: null,
+            mainSiteProfileUrl: null,
+            mainSiteSettingsUrl: null,
+          }
+        }
+
+        const normalizedHost = mainSiteHost.replace(/\/+$/, '')
+        const hasProtocol = /^https?:\/\//i.test(normalizedHost)
+        const protocol = hasProtocol
+          ? ''
+          : typeof window !== 'undefined' && window.location?.protocol
+            ? `${window.location.protocol}//`
+            : 'https://'
+        const base = hasProtocol
+          ? normalizedHost
+          : `${protocol}${normalizedHost}`
+        const formatPath = (path: string) =>
+          `${base}${path.startsWith('/') ? path : `/${path}`}`
+
+        return {
+          mainSiteMessagesUrl: formatPath('/messages'),
+          mainSiteProfileUrl: currUsername
+            ? formatPath(`/users/${currUsername}`)
+            : null,
+          mainSiteSettingsUrl: formatPath('/settings'),
+        }
+      }, [mainSiteHost, currUsername])
 
     const sidebarExpanded = useMemo(
       () => sidebarOpen || sidebarOpenMobile,
@@ -263,9 +300,11 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                 <MenuIcon size={20} />
               </Button>
               {(!sidebarExpanded || siteMode == 'top_nav') && (
-                <Link
+                <SiteLink
                   className="flex-shrink-0 font-bold text-2xl leading-3 mr-2"
-                  to={siteFrontId && currSite ? `/z/${siteFrontId}` : `/`}
+                  to="/"
+                  siteFrontId={undefined}
+                  useFallbackSiteFrontId={false}
                 >
                   {siteFrontId && currSite ? (
                     currSite.logoHtmlStr ? (
@@ -301,7 +340,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                       size={42}
                     />
                   )}
-                </Link>
+                </SiteLink>
               )}
             </>
           )}
@@ -328,12 +367,13 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                     {category.name}
                   </span>
                 ) : (
-                  <Link
-                    to={`/z/${siteFrontId}/b/${category.frontId}`}
+                  <SiteLink
+                    to={`/b/${category.frontId}`}
+                    siteFrontId={siteFrontId}
                     className="flex-shrink-0 text-ellipsis overflow-hidden whitespace-nowrap"
                   >
                     {category.name}
-                  </Link>
+                  </SiteLink>
                 )}
                 <span
                   className="flex-shrink-1 px-4 ml-4 border-l-2 text-sm text-gray-500 cursor-pointer flex-grow overflow-hidden whitespace-nowrap text-ellipsis"
@@ -365,7 +405,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
             </>
           )}
           {/* {siteMode == 'top_nav' && <SiteMenuButton className="mr-2" />} */}
-          {!isMobile && siteListMode == 'top_drawer' && (
+          {!isSingleSite && !isMobile && siteListMode == 'top_drawer' && (
             <Button
               variant="ghost"
               size="sm"
@@ -380,7 +420,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
               <GripIcon size={20} />
             </Button>
           )}
-          {!isMobile && siteListMode == 'dropdown_menu' && (
+          {!isSingleSite && !isMobile && siteListMode == 'dropdown_menu' && (
             <DropdownMenu
               open={showSiteListDropdown}
               onOpenChange={setShowSiteListDropdown}
@@ -410,8 +450,9 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                   <div className="flex flex-wrap">
                     {siteList &&
                       siteList.map((site) => (
-                        <Link
-                          to={`/z/${site.frontId}`}
+                        <SiteLink
+                          to="/"
+                          siteFrontId={site.frontId}
                           key={site.frontId}
                           className={cn(
                             'flex justify-center w-[25%] box-border overflow-hidden flex-shrink-0 flex-grow-0 px-2 py-4 leading-3'
@@ -428,15 +469,17 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                             vertical
                             className="w-full"
                           />
-                        </Link>
+                        </SiteLink>
                       ))}
                   </div>
                   {siteList && siteList.length > 0 && (
                     <div className="my-4 border-t-2 border-gray-300 dark:border-slate-600"></div>
                   )}
                   <div className="flex flex-wrap  items-center">
-                    <Link
-                      to={`/`}
+                    <SiteLink
+                      to="/"
+                      siteFrontId={undefined}
+                      useFallbackSiteFrontId={false}
                       className={cn(
                         'flex justify-center w-[25%] box-border overflow-hidden flex-shrink-0 flex-grow-0 px-2 py-4 leading-3'
                       )}
@@ -452,7 +495,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                         className="w-full"
                         vertical
                       />
-                    </Link>
+                    </SiteLink>
                     {isLogined() && checkPermit('site', 'create', true) && (
                       <span
                         className="inline-flex flex-col w-[25%] box-border items-center align-middle cursor-pointer px-2 py-4"
@@ -494,7 +537,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="px-0" align="end" sideOffset={6}>
-                {isMobile && (
+                {!isSingleSite && isMobile && (
                   <DropdownMenuItem
                     className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                     onClick={() => {
@@ -522,14 +565,19 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
 
           {isLogined() ? (
             <>
-              {!isMobile && (
-                <DropdownMenu onOpenChange={onNotiClick}>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="relative w-[36px] h-[36px] p-0 rounded-full mr-2"
-                      title={t('notifications')}
+              {!isMobile &&
+                (isSingleSite && mainSiteMessagesUrl ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="relative w-[36px] h-[36px] p-0 rounded-full mr-2"
+                    title={t('notifications')}
+                    asChild
+                  >
+                    <a
+                      href={mainSiteMessagesUrl}
+                      target="_blank"
+                      rel="noreferrer"
                     >
                       <BellIcon size={20} />
                       {notiStore.unreadCount > 0 && (
@@ -537,27 +585,44 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                           {notiStore.unreadCount}
                         </Badge>
                       )}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    sideOffset={6}
-                    align="end"
-                    className={cn(
-                      `w-[360px] px-2 pt-2 pb-4 bg-gray-200 text-sm overflow-y-auto`
-                    )}
-                    style={{
-                      maxHeight: `calc(100vh - ${NAV_HEIGHT + 200}px)`,
-                    }}
-                  >
-                    <MessageList ref={msgListRef} pageSize={10} />
-                    <div className="flex justify-center mt-4">
-                      <Button variant="secondary" size="sm" asChild>
-                        <Link to="/messages">{t('viewAll')}</Link>
+                    </a>
+                  </Button>
+                ) : (
+                  <DropdownMenu onOpenChange={onNotiClick}>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="relative w-[36px] h-[36px] p-0 rounded-full mr-2"
+                        title={t('notifications')}
+                      >
+                        <BellIcon size={20} />
+                        {notiStore.unreadCount > 0 && (
+                          <Badge className="absolute bg-pink-600 hover:bg-pink-600 right-[2px] top-[3px] text-xs px-[4px] py-[0px]">
+                            {notiStore.unreadCount}
+                          </Badge>
+                        )}
                       </Button>
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      sideOffset={6}
+                      align="end"
+                      className={cn(
+                        `w-[360px] px-2 pt-2 pb-4 bg-gray-200 text-sm overflow-y-auto`
+                      )}
+                      style={{
+                        maxHeight: `calc(100vh - ${NAV_HEIGHT + 200}px)`,
+                      }}
+                    >
+                      <MessageList ref={msgListRef} pageSize={10} />
+                      <div className="flex justify-center mt-4">
+                        <Button variant="secondary" size="sm" asChild>
+                          <Link to="/messages">{t('viewAll')}</Link>
+                        </Button>
+                      </div>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ))}
 
               <DropdownMenu onOpenChange={onDropdownChange}>
                 <DropdownMenuTrigger asChild>
@@ -584,7 +649,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                   align="end"
                   sideOffset={6}
                 >
-                  {isMobile && (
+                  {!isSingleSite && isMobile && (
                     <DropdownMenuItem
                       className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                       onClick={() => {
@@ -600,43 +665,92 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                       <GripIcon size={20} /> {t('siteList')}
                     </DropdownMenuItem>
                   )}
-                  {isMobile && (
+                  {isMobile &&
+                    (isSingleSite && mainSiteMessagesUrl ? (
+                      <DropdownMenuItem
+                        className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                        asChild
+                      >
+                        <a
+                          href={mainSiteMessagesUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <BellIcon size={20} /> {t('notifications')}{' '}
+                          {notiStore.unreadCount > 0 && (
+                            <Badge className="inline-block bg-pink-600 hover:bg-pink-600 text-xs px-[4px] py-[0px]">
+                              {notiStore.unreadCount}
+                            </Badge>
+                          )}
+                        </a>
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem
+                        className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                        asChild
+                      >
+                        <Link to={'/messages'}>
+                          <BellIcon size={20} /> {t('notifications')}{' '}
+                          {notiStore.unreadCount > 0 && (
+                            <Badge className="inline-block bg-pink-600 hover:bg-pink-600 text-xs px-[4px] py-[0px]">
+                              {notiStore.unreadCount}
+                            </Badge>
+                          )}
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  {isSingleSite && mainSiteProfileUrl ? (
                     <DropdownMenuItem
                       className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                       asChild
                     >
-                      <Link to={'/messages'}>
-                        <BellIcon size={20} /> {t('notifications')}{' '}
-                        {notiStore.unreadCount > 0 && (
-                          <Badge className="inline-block bg-pink-600 hover:bg-pink-600 text-xs px-[4px] py-[0px]">
-                            {notiStore.unreadCount}
-                          </Badge>
-                        )}
+                      <a
+                        href={mainSiteProfileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <UserRoundIcon size={20} /> {t('personalHomePage')}
+                      </a>
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                      asChild
+                    >
+                      <Link to={'/users/' + currUsername}>
+                        <UserRoundIcon size={20} /> {t('personalHomePage')}
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem
-                    className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
-                    asChild
-                  >
-                    <Link to={'/users/' + currUsername}>
-                      <UserRoundIcon size={20} /> {t('personalHomePage')}
-                    </Link>
-                  </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                     onClick={onUserUISettingClick}
                   >
                     <PaletteIcon size={20} /> {t('personalizationUI')}
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
-                    asChild
-                  >
-                    <Link to={'/settings'}>
-                      <SettingsIcon size={20} /> {t('settings')}
-                    </Link>
-                  </DropdownMenuItem>
+                  {isSingleSite && mainSiteSettingsUrl ? (
+                    <DropdownMenuItem
+                      className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                      asChild
+                    >
+                      <a
+                        href={mainSiteSettingsUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <SettingsIcon size={20} /> {t('settings')}
+                      </a>
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
+                      asChild
+                    >
+                      <Link to={'/settings'}>
+                        <SettingsIcon size={20} /> {t('settings')}
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem
                     className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                     onClick={logout}

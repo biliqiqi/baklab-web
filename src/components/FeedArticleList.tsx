@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 
 import { noop } from '@/lib/utils'
 
 import { getFeedList } from '@/api/article'
+import { useSiteParams } from '@/hooks/use-site-params'
 import { useSiteUIStore, useUserUIStore } from '@/state/global'
 
 import BaseArticleList, {
@@ -33,12 +34,9 @@ const FeedArticleLis: React.FC<FeedArticleLisProps> = ({
   const [isFirstLoad, setIsFirstLoad] = useState(true)
   const [listLength, setListLength] = useState(0)
   const [params] = useSearchParams()
-  const { siteFrontId } = useParams()
+  const { siteFrontId } = useSiteParams()
 
-  const submitPath = useMemo(
-    () => (siteFrontId ? `/z/${siteFrontId}/submit` : `/submit`),
-    [siteFrontId]
-  )
+  const submitPath = useMemo(() => `/submit`, [])
 
   const fetchArticles = useCallback(
     async (

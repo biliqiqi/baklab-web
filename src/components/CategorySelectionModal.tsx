@@ -75,7 +75,7 @@ export default function CategorySelectionModal({
       } catch (error) {
         console.error('Failed to toggle subscription:', error)
       } finally {
-        await cateStore.fetchCategoryList(siteFrontId)
+        await cateStore.fetchCategoryList(siteFrontId, true)
         setSubscribingIds((prev) => {
           const newSet = new Set(prev)
           newSet.delete(category.frontId)

@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import BContainer from './components/base/BContainer'
 
 import ArticleForm from './components/ArticleForm'
+
+import { useSiteParams } from '@/hooks/use-site-params'
 
 import { getArticle } from './api/article'
 import { toSync } from './lib/fire-and-forget'
@@ -19,7 +21,7 @@ import { Article } from './types/types'
 export default function EditPage() {
   /* const [loading, setLoading] = useState(false) */
   const [article, setArticle] = useState<Article | null>(null)
-  const { siteFrontId, articleId } = useParams()
+  const { siteFrontId, articleId } = useSiteParams()
   const { updateNotFound } = useNotFoundStore()
   const authState = useAuthedUserStore()
   const navigate = useNavigate()

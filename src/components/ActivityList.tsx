@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 
 import { timeAgo } from '@/lib/dayjs-custom'
 
+import { buildRoutePath } from '@/hooks/use-route-match'
 import i18n from '@/i18n'
 import {
   ARTICLE_LOCK_ACTION,
@@ -17,6 +18,7 @@ import {
 
 import { Empty } from './Empty'
 import { ListPagination } from './ListPagination'
+import SiteLink from './base/SiteLink'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
@@ -107,23 +109,47 @@ const SiteAction = ({ activity: item }: ActivityActionTextProps) => {
 
 const ActivityTargetLink = ({ activity: item }: ActivityActionTextProps) => {
   switch (item.targetModel) {
-    case 'article':
-      return (
-        <Link to={`/z/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}>
-          {item.extraInfo.title ||
-            `/z/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}
-        </Link>
+    case 'article': {
+      const targetId = String(item.targetId)
+      const targetSiteFrontId =
+        typeof item.extraInfo?.siteFrontId === 'string'
+          ? item.extraInfo.siteFrontId
+          : undefined
+      const articleRoute = buildRoutePath(
+        `/articles/${targetId}`,
+        targetSiteFrontId
       )
+      return (
+        <SiteLink to={`/articles/${targetId}`} siteFrontId={targetSiteFrontId}>
+          {item.extraInfo.title || articleRoute}
+        </SiteLink>
+      )
+    }
     case 'user':
       return <Link to={`/users/${item.targetId}`}>{item.targetId}</Link>
-    case 'category':
+    case 'category': {
+      const targetId = String(item.targetId)
+      const targetSiteFrontId =
+        typeof item.extraInfo?.siteFrontId === 'string'
+          ? item.extraInfo.siteFrontId
+          : undefined
+      const categoryRoute = buildRoutePath(`/b/${targetId}`, targetSiteFrontId)
       return (
-        <Link to={`/z/${item.extraInfo.siteFrontId}/b/${item.targetId}`}>
-          {item.extraInfo.categoryName}
-        </Link>
+        <SiteLink to={`/b/${targetId}`} siteFrontId={targetSiteFrontId}>
+          {item.extraInfo.categoryName || categoryRoute}
+        </SiteLink>
       )
-    case 'site':
-      return <Link to={`/z/${item.targetId}`}>{`/z/${item.targetId}`}</Link>
+    }
+    case 'site': {
+      const targetFrontId =
+        typeof item.targetId === 'string' ? item.targetId : undefined
+      const siteRoute = buildRoutePath('/', targetFrontId)
+      return (
+        <SiteLink to="/" siteFrontId={targetFrontId}>
+          {siteRoute}
+        </SiteLink>
+      )
+    }
     default:
       return null
   }
@@ -405,41 +431,46 @@ const ActivityActionText = ({ activity: item }: ActivityActionTextProps) => {
           )}
         </>
       )
-    case 'review_article':
+    case 'review_article': {
+      const targetSiteFrontId =
+        typeof item.extraInfo?.siteFrontId === 'string'
+          ? item.extraInfo.siteFrontId
+          : undefined
+      const targetId = String(item.targetId)
       return (
-        <>
-          <Trans
-            i18nKey={'acReviewPost'}
-            values={{
-              action:
-                reviewArticleResult == 'published'
-                  ? t('reviewPassed')
-                  : reviewArticleResult == 'rejected'
-                    ? t('rejectedVerb')
-                    : t('updatedVerb'),
-              postType: isReviewedReply
-                ? t('reply').toLowerCase()
-                : t('post').toLowerCase(),
-            }}
-            components={{
-              authorLink: (
-                <Link to={`/users/${item.userName}`}>{item.userName}</Link>
-              ),
-              postLink: (
-                <Link
-                  to={`/z/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}
-                >
-                  {item.extraInfo.displayTitle ||
-                    `/z/${item.extraInfo.siteFrontId}/articles/${item.targetId}`}
-                </Link>
-              ),
-              timeTag: (
-                <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
-              ),
-            }}
-          />
-        </>
+        <Trans
+          i18nKey={'acReviewPost'}
+          values={{
+            action:
+              reviewArticleResult == 'published'
+                ? t('reviewPassed')
+                : reviewArticleResult == 'rejected'
+                  ? t('rejectedVerb')
+                  : t('updatedVerb'),
+            postType: isReviewedReply
+              ? t('reply').toLowerCase()
+              : t('post').toLowerCase(),
+          }}
+          components={{
+            authorLink: (
+              <Link to={`/users/${item.userName}`}>{item.userName}</Link>
+            ),
+            postLink: (
+              <SiteLink
+                to={`/articles/${targetId}`}
+                siteFrontId={targetSiteFrontId}
+              >
+                {item.extraInfo.displayTitle ||
+                  buildRoutePath(`/articles/${targetId}`, targetSiteFrontId)}
+              </SiteLink>
+            ),
+            timeTag: (
+              <time title={item.createdAt}>{timeAgo(item.createdAt)}</time>
+            ),
+          }}
+        />
       )
+    }
     case 'lock_article':
       return (
         <Trans

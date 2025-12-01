@@ -637,6 +637,19 @@ export interface SiteListResponse extends ListPageState {
   list: Site[] | null
 }
 
+export interface SiteDomain {
+  id: number
+  siteId: number
+  domain: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface SiteDomainListResponse {
+  list: SiteDomain[]
+}
+
 export interface UploadResponse {
   data: {
     customUrl: string

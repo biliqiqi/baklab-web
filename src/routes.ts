@@ -167,7 +167,9 @@ const createSiteRoutes = (prefix: '/z' | '/zhandian'): RouteObject[] => [
 
         if (contextSite && contextSite.frontId === params.siteFrontId) {
           siteState.update(contextSite)
-          siteState.updateHomePage(`${prefix}/${contextSite.frontId}${contextSite.homePage}`)
+          siteState.updateHomePage(
+            `${prefix}/${contextSite.frontId}${contextSite.homePage}`
+          )
         }
 
         const site = siteState.site

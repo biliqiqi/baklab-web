@@ -9,6 +9,8 @@ import {
   ResponseID,
   Site,
   SiteBlockedWordList,
+  SiteDomain,
+  SiteDomainListResponse,
   SiteInviteResponse,
   SiteListResponse,
   SiteStatus,
@@ -154,6 +156,32 @@ export const getSiteList = (
 
 export const getJoinedSiteList = () =>
   authRequest.get<ResponseData<SiteListResponse>>(`sites/joins`)
+
+export const getSiteDomainList = (siteFrontId: string) =>
+  authRequest.get<ResponseData<SiteDomainListResponse>>(`sites/domains`, {
+    searchParams: { siteFrontId },
+  })
+
+export const createSiteDomain = (
+  siteFrontId: string,
+  domain: string,
+  isActive = true
+) =>
+  authRequest.post<ResponseData<SiteDomain>>(`sites/domains`, {
+    json: { siteFrontId, domain, isActive },
+  })
+
+export const deleteSiteDomain = (domainId: number) =>
+  authRequest.delete<ResponseData<null>>(`sites/domains/${domainId}`)
+
+export const updateSiteDomainStatus = (
+  domainId: number,
+  domain: string,
+  isActive: boolean
+) =>
+  authRequest.patch<ResponseData<null>>(`sites/domains/${domainId}`, {
+    json: { domain, isActive },
+  })
 
 export const getSiteWithFrontId = (frontId: string) =>
   authRequest.get<ResponseData<Site>>(

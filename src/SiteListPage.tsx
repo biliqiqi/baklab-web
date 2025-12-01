@@ -18,6 +18,7 @@ import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
 import { Checkbox } from './components/ui/checkbox'
 import { Input } from './components/ui/input'
+import { Switch } from './components/ui/switch'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
 import {
   AlertDialog,
@@ -29,6 +30,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   Form,
   FormControl,
@@ -52,7 +60,14 @@ import BSiteIcon from './components/base/BSiteIcon'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 
-import { getSiteList, setSiteStatus } from './api/site'
+import {
+  createSiteDomain,
+  deleteSiteDomain,
+  getSiteDomainList,
+  getSiteList,
+  setSiteStatus,
+  updateSiteDomainStatus,
+} from './api/site'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
@@ -63,6 +78,7 @@ import {
   SITE_STATUS,
   SITE_VISIBLE,
   Site,
+  SiteDomain,
   SiteStatus,
 } from './types/types'
 
@@ -75,6 +91,9 @@ const defaultSearchData: SearchFields = {
   keywords: '',
   creatorName: '',
 }
+
+const DOMAIN_REGEX =
+  /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/
 
 const tabs: SiteStatus[] = [
   SITE_STATUS.All,
@@ -114,8 +133,6 @@ export default function SiteListPage() {
 
   const { setLoading } = useLoading()
 
-  const currSite = useMemo(() => editSite.site, [editSite])
-
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
   const [pageState, setPageState] = useState<ListPageState>({
@@ -124,6 +141,25 @@ export default function SiteListPage() {
     total: 0,
     totalPage: 0,
   })
+
+  const [domainDialog, setDomainDialog] = useState<{
+    open: boolean
+    site: Site | null
+  }>({
+    open: false,
+    site: null,
+  })
+  const [domainList, setDomainList] = useState<SiteDomain[]>([])
+  const [domainLoading, setDomainLoading] = useState(false)
+  const [domainInputVisible, setDomainInputVisible] = useState(false)
+  const [domainInputValue, setDomainInputValue] = useState('')
+  const [domainSubmitting, setDomainSubmitting] = useState(false)
+  const [domainDeletingId, setDomainDeletingId] = useState<number | null>(null)
+  const [domainTogglingId, setDomainTogglingId] = useState<number | null>(null)
+  const [domainInputError, setDomainInputError] = useState('')
+
+  const currSite = useMemo(() => editSite.site, [editSite])
+  const currDomainSite = domainDialog.site
 
   const { t } = useTranslation()
 
@@ -199,6 +235,132 @@ export default function SiteListPage() {
       },
       [params, setLoading]
     )
+  )
+
+  const fetchDomainList = useCallback(async (siteFrontId: string) => {
+    try {
+      setDomainLoading(true)
+      const { code, data } = await getSiteDomainList(siteFrontId)
+      if (!code) {
+        setDomainList(data.list || [])
+      }
+    } catch (err) {
+      console.error('get site domain list error: ', err)
+    } finally {
+      setDomainLoading(false)
+    }
+  }, [])
+
+  const onLinkDomainClick = useCallback(
+    (site: Site) => {
+      setDomainDialog({ open: true, site })
+      setDomainInputVisible(false)
+      setDomainInputValue('')
+      setDomainInputError('')
+      void fetchDomainList(site.frontId)
+    },
+    [fetchDomainList]
+  )
+
+  const onDomainDialogOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      setDomainDialog({ open: false, site: null })
+      setDomainList([])
+      setDomainInputVisible(false)
+      setDomainInputValue('')
+      setDomainSubmitting(false)
+      setDomainDeletingId(null)
+      setDomainInputError('')
+    }
+  }, [])
+
+  const onConfirmAddDomain = useCallback(async () => {
+    const domain = domainInputValue.trim()
+    if (!domain || !currDomainSite) {
+      return
+    }
+    if (!DOMAIN_REGEX.test(domain)) {
+      setDomainInputError(t('domainFormatError'))
+      return
+    }
+    setDomainInputError('')
+    const confirmed = await alertDialog.confirm(
+      t('confirm'),
+      t('addDomainConfirm', { domain, siteName: currDomainSite.name })
+    )
+    if (!confirmed) {
+      return
+    }
+    try {
+      setDomainSubmitting(true)
+      const { code } = await createSiteDomain(
+        currDomainSite.frontId,
+        domain,
+        true
+      )
+      if (!code) {
+        setDomainInputValue('')
+        setDomainInputVisible(false)
+        void fetchDomainList(currDomainSite.frontId)
+      }
+    } catch (err) {
+      console.error('create site domain error: ', err)
+    } finally {
+      setDomainSubmitting(false)
+    }
+  }, [alertDialog, currDomainSite, domainInputValue, fetchDomainList, t])
+
+  const onDeleteDomain = useCallback(
+    async (domainItem: SiteDomain) => {
+      if (!currDomainSite) {
+        return
+      }
+      const confirmed = await alertDialog.confirm(
+        t('confirm'),
+        t('deleteDomainConfirm', { domain: domainItem.domain }),
+        'danger'
+      )
+      if (!confirmed) {
+        return
+      }
+      try {
+        setDomainDeletingId(domainItem.id)
+        const { code } = await deleteSiteDomain(domainItem.id)
+        if (!code) {
+          void fetchDomainList(currDomainSite.frontId)
+        }
+      } catch (err) {
+        console.error('delete site domain error: ', err)
+      } finally {
+        setDomainDeletingId(null)
+      }
+    },
+    [alertDialog, currDomainSite, fetchDomainList, t]
+  )
+
+  const onToggleDomainActive = useCallback(
+    async (domainItem: SiteDomain) => {
+      if (!currDomainSite) {
+        return
+      }
+      const nextActive = !domainItem.isActive
+      try {
+        setDomainTogglingId(domainItem.id)
+        const { code } = await updateSiteDomainStatus(
+          domainItem.id,
+          domainItem.domain,
+          nextActive
+        )
+        if (!code) {
+          void fetchDomainList(currDomainSite.frontId)
+        }
+      } catch (err) {
+        console.error('update site domain status error: ', err)
+      } finally {
+        setDomainTogglingId(null)
+      }
+    },
+    [currDomainSite, fetchDomainList]
   )
 
   const rejecttingForm = useForm<RejecttingSchema>({
@@ -413,6 +575,14 @@ export default function SiteListPage() {
       header: t('operations'),
       cell: ({ row: { original } }) => (
         <>
+          <Button
+            variant="secondary"
+            className="mr-1"
+            size="sm"
+            onClick={() => onLinkDomainClick(original)}
+          >
+            {t('linkDomain')}
+          </Button>
           {original.status == SITE_STATUS.Pending && (
             <>
               <Button
@@ -678,6 +848,133 @@ export default function SiteListPage() {
           )}
         </>
       )}
+
+      <Dialog open={domainDialog.open} onOpenChange={onDomainDialogOpenChange}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>{t('siteDomainManage')}</DialogTitle>
+            {currDomainSite && (
+              <DialogDescription>
+                {t('siteDomainForSite', { siteName: currDomainSite.name })}
+              </DialogDescription>
+            )}
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              {t('siteDomainDesc')}
+            </p>
+            {domainInputVisible ? (
+              <>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Input
+                    autoFocus
+                    placeholder={t('addDomainPlaceholder')}
+                    value={domainInputValue}
+                    onChange={(e) => {
+                      const nextValue = e.target.value
+                      setDomainInputValue(nextValue)
+                      if (
+                        domainInputError &&
+                        DOMAIN_REGEX.test(nextValue.trim())
+                      ) {
+                        setDomainInputError('')
+                      }
+                    }}
+                    className="flex-1 min-w-[200px]"
+                    disabled={domainSubmitting}
+                    onKeyUp={(e) => {
+                      if (e.key === 'Enter') {
+                        void onConfirmAddDomain()
+                      }
+                    }}
+                  />
+                  <Button
+                    size="sm"
+                    onClick={onConfirmAddDomain}
+                    disabled={
+                      domainSubmitting || domainInputValue.trim().length === 0
+                    }
+                  >
+                    {t('confirm')}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setDomainInputVisible(false)
+                      setDomainInputValue('')
+                    }}
+                    disabled={domainSubmitting}
+                  >
+                    {t('cancel')}
+                  </Button>
+                </div>
+                {domainInputError && (
+                  <p className="text-sm text-destructive">{domainInputError}</p>
+                )}
+              </>
+            ) : (
+              <div className="flex justify-end">
+                <Button size="sm" onClick={() => setDomainInputVisible(true)}>
+                  {t('add')}
+                </Button>
+              </div>
+            )}
+            <div className="rounded-md border">
+              {domainLoading ? (
+                <div className="p-4 text-sm text-muted-foreground">
+                  {t('loading')}
+                </div>
+              ) : domainList.length === 0 ? (
+                <div className="p-4">
+                  <Empty />
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {domainList.map((item) => {
+                    const busy =
+                      domainDeletingId === item.id ||
+                      domainTogglingId === item.id
+                    return (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between px-3 py-2"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Switch
+                            checked={item.isActive}
+                            onCheckedChange={() =>
+                              void onToggleDomainActive(item)
+                            }
+                            disabled={busy}
+                            aria-label={t('siteDomainSwitchLabel', {
+                              domain: item.domain,
+                            })}
+                          />
+                          <div>
+                            <div className="font-medium">{item.domain}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {item.isActive ? t('enabled') : t('disabled')}
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => onDeleteDomain(item)}
+                          disabled={busy}
+                        >
+                          {t('delete')}
+                        </Button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog
         defaultOpen={false}

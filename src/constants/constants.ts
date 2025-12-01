@@ -1,16 +1,12 @@
 export const PLATFORM_NAME =
   (import.meta.env.VITE_BRAND_NAME as string) || 'BakLab'
 
-export const FRONTEND_HOST =
-  (import.meta.env.VITE_FRONTEND_HOST as string) || 'http://localhost:5173'
+export const FRONTEND_HOST = import.meta.env.VITE_FRONTEND_HOST as string
 
-export const API_HOST =
-  (import.meta.env.VITE_API_HOST as string) || 'http://localhost:3000'
-export const API_PATH_PREFIX =
-  (import.meta.env.VITE_API_PATH_PREFIX as string) || '/api/'
+export const API_HOST = import.meta.env.VITE_API_HOST as string
+export const API_PATH_PREFIX = import.meta.env.VITE_API_PATH_PREFIX as string
 
-export const STATIC_HOST =
-  (import.meta.env.VITE_STATIC_HOST as string) || 'https://static.example.com'
+export const STATIC_HOST = import.meta.env.VITE_STATIC_HOST as string
 
 export const SERVER_ERR_ACCOUNT_EXIST = 1000
 

@@ -259,7 +259,7 @@ const App = () => {
 
   useEffect(() => {
     const initializeApp = async () => {
-      toSync(fetchContext)()
+      await fetchContext()
 
       let isLoggedIn = false
 

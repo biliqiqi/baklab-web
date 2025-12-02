@@ -153,13 +153,20 @@ const somePermissions =
 
 const setSingleSiteState = async () => {
   try {
-    const contextState = useContextStore.getState()
+    let contextState = useContextStore.getState()
+
+    if (!contextState.hasFetchedContext) {
+      await contextState.fetchContext()
+      contextState = useContextStore.getState()
+    }
+
     if (!contextState.isSingleSite) {
       return null
     }
 
     if (!contextState.site) {
       await contextState.fetchContext()
+      contextState = useContextStore.getState()
     }
 
     const site = contextState.site

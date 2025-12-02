@@ -4,7 +4,12 @@ const NotCompatiblePage = () => {
   const { t } = useTranslation()
   return (
     <div className="w-full min-h-screen flex items-center justify-center">
-      <p>{t('notCompatibleClient')}</p>
+      <p>
+        {t('notCompatibleClient')}{' '}
+        <a href="/" className="text-blue-500 underline">
+          {t('retry')}
+        </a>
+      </p>
     </div>
   )
 }

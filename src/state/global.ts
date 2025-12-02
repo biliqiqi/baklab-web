@@ -1214,6 +1214,7 @@ export interface ContextState {
   site: Site | null
   host?: string
   mainSiteHost?: string
+  hasFetchedContext: boolean
   setCountryCode: (code: string) => void
   fetchContext: (siteFrontId?: string) => Promise<void>
 }
@@ -1223,6 +1224,7 @@ export const useContextStore = create<ContextState>((set) => ({
   isSingleSite: false,
   site: null,
   mainSiteHost: undefined,
+  hasFetchedContext: false,
   setCountryCode(code) {
     set(() => ({ countryCode: code }))
   },
@@ -1251,6 +1253,7 @@ export const useContextStore = create<ContextState>((set) => ({
             if (window.location.pathname !== '/not_compatible') {
               window.location.replace('/not_compatible')
             }
+            set(() => ({ hasFetchedContext: true }))
             return
           }
         }
@@ -1260,10 +1263,14 @@ export const useContextStore = create<ContextState>((set) => ({
           site: data.site,
           host: data.host,
           mainSiteHost: data.mainSiteHost,
+          hasFetchedContext: true,
         }))
+      } else {
+        set(() => ({ hasFetchedContext: true }))
       }
     } catch (err) {
       console.error('fetch context failed: ', err)
+      set(() => ({ hasFetchedContext: true }))
     }
   },
 }))

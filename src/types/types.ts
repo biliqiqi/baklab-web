@@ -642,6 +642,7 @@ export interface SiteDomain {
   siteId: number
   domain: string
   isActive: boolean
+  robotsTxt: string
   createdAt: string
   updatedAt: string
 }

@@ -20,6 +20,7 @@ import { Checkbox } from './components/ui/checkbox'
 import { Input } from './components/ui/input'
 import { Switch } from './components/ui/switch'
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs'
+import { Textarea } from './components/ui/textarea'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -72,7 +73,7 @@ import {
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
-import { getSiteStatusColor, getSiteStatusName } from './lib/utils'
+import { cn, getSiteStatusColor, getSiteStatusName } from './lib/utils'
 import { useAlertDialogStore, useLoading } from './state/global'
 import {
   ListPageState,
@@ -95,6 +96,14 @@ const defaultSearchData: SearchFields = {
 
 const DOMAIN_REGEX =
   /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/
+
+const DEFAULT_DOMAIN_ROBOTS = `User-agent: *
+Allow: /
+
+Disallow: /api/
+Disallow: /manage/
+Disallow: /settings/
+Disallow: /static/`
 
 const tabs: SiteStatus[] = [
   SITE_STATUS.All,
@@ -158,6 +167,11 @@ export default function SiteListPage() {
   const [domainDeletingId, setDomainDeletingId] = useState<number | null>(null)
   const [domainTogglingId, setDomainTogglingId] = useState<number | null>(null)
   const [domainInputError, setDomainInputError] = useState('')
+  const [editingRobotsDomainId, setEditingRobotsDomainId] = useState<
+    number | null
+  >(null)
+  const [robotsInputValue, setRobotsInputValue] = useState('')
+  const [robotsSubmitting, setRobotsSubmitting] = useState(false)
 
   const currSite = useMemo(() => editSite.site, [editSite])
   const currDomainSite = domainDialog.site
@@ -258,6 +272,8 @@ export default function SiteListPage() {
       setDomainInputVisible(false)
       setDomainInputValue('')
       setDomainInputError('')
+      setEditingRobotsDomainId(null)
+      setRobotsInputValue('')
       void fetchDomainList(site.frontId)
     },
     [fetchDomainList]
@@ -272,6 +288,9 @@ export default function SiteListPage() {
       setDomainSubmitting(false)
       setDomainDeletingId(null)
       setDomainInputError('')
+      setEditingRobotsDomainId(null)
+      setRobotsInputValue('')
+      setRobotsSubmitting(false)
     }
   }, [])
 
@@ -350,7 +369,8 @@ export default function SiteListPage() {
         const { code } = await updateSiteDomainStatus(
           domainItem.id,
           domainItem.domain,
-          nextActive
+          nextActive,
+          domainItem.robotsTxt
         )
         if (!code) {
           void fetchDomainList(currDomainSite.frontId)
@@ -363,6 +383,54 @@ export default function SiteListPage() {
     },
     [currDomainSite, fetchDomainList]
   )
+
+  const onEditDomainRobots = useCallback((domainItem: SiteDomain) => {
+    setEditingRobotsDomainId(domainItem.id)
+    setRobotsInputValue(domainItem.robotsTxt || DEFAULT_DOMAIN_ROBOTS)
+  }, [])
+
+  const onCancelEditRobots = useCallback(() => {
+    setEditingRobotsDomainId(null)
+    setRobotsInputValue('')
+  }, [])
+
+  const onSaveDomainRobots = useCallback(async () => {
+    if (!currDomainSite || !editingRobotsDomainId) {
+      return
+    }
+    try {
+      setRobotsSubmitting(true)
+      const robotsTxt = robotsInputValue.trim() || DEFAULT_DOMAIN_ROBOTS
+      const targetDomain = domainList.find(
+        (domain) => domain.id === editingRobotsDomainId
+      )
+      if (!targetDomain) {
+        setRobotsSubmitting(false)
+        return
+      }
+      const { code } = await updateSiteDomainStatus(
+        targetDomain.id,
+        targetDomain.domain,
+        targetDomain.isActive,
+        robotsTxt
+      )
+      if (!code) {
+        setEditingRobotsDomainId(null)
+        setRobotsInputValue('')
+        void fetchDomainList(currDomainSite.frontId)
+      }
+    } catch (err) {
+      console.error('update site domain robots error:', err)
+    } finally {
+      setRobotsSubmitting(false)
+    }
+  }, [
+    currDomainSite,
+    domainList,
+    editingRobotsDomainId,
+    fetchDomainList,
+    robotsInputValue,
+  ])
 
   const rejecttingForm = useForm<RejecttingSchema>({
     resolver: zodResolver(
@@ -936,37 +1004,101 @@ export default function SiteListPage() {
                     const busy =
                       domainDeletingId === item.id ||
                       domainTogglingId === item.id
+                    const isEditing = editingRobotsDomainId === item.id
                     return (
-                      <div
-                        key={item.id}
-                        className="flex items-center justify-between px-3 py-2"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Switch
-                            checked={item.isActive}
-                            onCheckedChange={() =>
-                              void onToggleDomainActive(item)
-                            }
-                            disabled={busy}
-                            aria-label={t('siteDomainSwitchLabel', {
-                              domain: item.domain,
-                            })}
-                          />
-                          <div>
-                            <div className="font-medium">{item.domain}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {item.isActive ? t('enabled') : t('disabled')}
+                      <div key={item.id} className="px-3 py-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Switch
+                              checked={item.isActive}
+                              onCheckedChange={() =>
+                                void onToggleDomainActive(item)
+                              }
+                              disabled={busy}
+                              aria-label={t('siteDomainSwitchLabel', {
+                                domain: item.domain,
+                              })}
+                            />
+                            <div>
+                              <div className="font-medium">{item.domain}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {item.isActive ? t('enabled') : t('disabled')}
+                              </div>
                             </div>
                           </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                isEditing
+                                  ? onCancelEditRobots()
+                                  : onEditDomainRobots(item)
+                              }
+                              disabled={busy || robotsSubmitting}
+                            >
+                              {t('editRobotsTxt')}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => onDeleteDomain(item)}
+                              disabled={busy}
+                            >
+                              {t('delete')}
+                            </Button>
+                          </div>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => onDeleteDomain(item)}
-                          disabled={busy}
+                        <div
+                          className={cn(
+                            'overflow-hidden transition-all duration-300',
+                            isEditing
+                              ? 'max-h-[600px] opacity-100'
+                              : 'max-h-0 opacity-0'
+                          )}
                         >
-                          {t('delete')}
-                        </Button>
+                          {isEditing && (
+                            <div className="space-y-3 pt-3 text-sm">
+                              <div>
+                                <div className="font-medium">
+                                  {t('robotsTxtTitle', {
+                                    domain: item.domain,
+                                  })}
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  {t('robotsTxtDesc')}
+                                </p>
+                              </div>
+                              <Textarea
+                                value={robotsInputValue}
+                                onChange={(event) =>
+                                  setRobotsInputValue(event.target.value)
+                                }
+                                rows={8}
+                              />
+                              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                <span>{t('robotsTxtHint')}</span>
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={onCancelEditRobots}
+                                    disabled={robotsSubmitting}
+                                  >
+                                    {t('cancel')}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => void onSaveDomainRobots()}
+                                    disabled={robotsSubmitting}
+                                  >
+                                    {robotsSubmitting ? t('saving') : t('save')}
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )
                   })}

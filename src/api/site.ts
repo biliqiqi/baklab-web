@@ -165,11 +165,17 @@ export const getSiteDomainList = (siteFrontId: string) =>
 export const createSiteDomain = (
   siteFrontId: string,
   domain: string,
-  isActive = true
-) =>
-  authRequest.post<ResponseData<SiteDomain>>(`sites/domains`, {
-    json: { siteFrontId, domain, isActive },
+  isActive = true,
+  robotsTxt?: string
+) => {
+  const payload: Record<string, unknown> = { siteFrontId, domain, isActive }
+  if (robotsTxt !== undefined) {
+    payload.robotsTxt = robotsTxt
+  }
+  return authRequest.post<ResponseData<SiteDomain>>(`sites/domains`, {
+    json: payload,
   })
+}
 
 export const deleteSiteDomain = (domainId: number) =>
   authRequest.delete<ResponseData<null>>(`sites/domains/${domainId}`)
@@ -177,11 +183,17 @@ export const deleteSiteDomain = (domainId: number) =>
 export const updateSiteDomainStatus = (
   domainId: number,
   domain: string,
-  isActive: boolean
-) =>
-  authRequest.patch<ResponseData<null>>(`sites/domains/${domainId}`, {
-    json: { domain, isActive },
+  isActive: boolean,
+  robotsTxt?: string
+) => {
+  const payload: Record<string, unknown> = { domain, isActive }
+  if (robotsTxt !== undefined) {
+    payload.robotsTxt = robotsTxt
+  }
+  return authRequest.patch<ResponseData<null>>(`sites/domains/${domainId}`, {
+    json: payload,
   })
+}
 
 export const getSiteWithFrontId = (frontId: string) =>
   authRequest.get<ResponseData<Site>>(

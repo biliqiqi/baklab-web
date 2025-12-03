@@ -216,6 +216,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     const {
       currSite,
+      pendingSiteFrontId,
+      joinTipReadyFrontId,
       updateCurrSite,
       fetchSiteList,
       fetchSiteData,
@@ -232,6 +234,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       useShallow(
         ({
           site,
+          pendingSiteFrontId,
+          joinTipReadyFrontId,
           update,
           fetchSiteList,
           fetchSiteData,
@@ -246,6 +250,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           updateSiteList,
         }) => ({
           currSite: site,
+          pendingSiteFrontId,
+          joinTipReadyFrontId,
           updateCurrSite: update,
           fetchSiteList,
           fetchSiteData,
@@ -261,6 +267,24 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         })
       )
     )
+
+    const isSiteDataReady = useMemo(() => {
+      if (!currSite) return false
+      if (!pendingSiteFrontId) {
+        return currSite.frontId === siteFrontId
+      }
+      return currSite.frontId === pendingSiteFrontId
+    }, [currSite, pendingSiteFrontId, siteFrontId])
+
+    const currSiteFrontId = currSite?.frontId
+
+    const shouldShowJoinTip =
+      joinTipReadyFrontId === siteFrontId &&
+      isSiteDataReady &&
+      currSite &&
+      currSite.visible &&
+      currSiteFrontId === siteFrontId &&
+      !currSite.currUserState?.isMember
 
     const { fetchCategoryList, clearCategories } = useCategoryStore(
       useShallow(({ fetchCategoryList, clearCategories }) => ({
@@ -757,9 +781,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                   <>
                     {children}
                     {isLogined() ? (
-                      currSite &&
-                      currSite.visible &&
-                      !currSite.currUserState?.isMember && (
+                      shouldShowJoinTip && (
                         <Card className="sticky bottom-0 p-2 px-4 -mx-2 text-sm mt-4 text-center">
                           {t('joinTip')}
                           <Button

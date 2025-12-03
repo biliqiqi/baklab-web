@@ -822,6 +822,8 @@ export interface SiteState {
   pendingSiteFrontId: string | null
   homePage: string
   showSiteForm: boolean
+  joinTipReadyFrontId: string | null
+  setJoinTipReadyFrontId: (frontId: string | null) => void
   editting: boolean
   setEditting: (editing: boolean) => void
   edittingData: Site | null
@@ -845,8 +847,12 @@ export const useSiteStore = create(
     cachedSiteList: [],
     pendingSiteFrontId: null,
     showSiteForm: false,
+    joinTipReadyFrontId: null,
     homePage: '/',
     editting: false,
+    setJoinTipReadyFrontId(joinTipReadyFrontId) {
+      set((state) => ({ ...state, joinTipReadyFrontId }))
+    },
     setEditting(editting) {
       set((state) => ({ ...state, editting }))
     },
@@ -893,7 +899,11 @@ export const useSiteStore = create(
       set((state) => ({ ...state, cachedSiteList: nextList }))
     },
     fetchSiteData: async (frontId) => {
-      set((state) => ({ ...state, pendingSiteFrontId: frontId }))
+      set((state) => ({
+        ...state,
+        pendingSiteFrontId: frontId,
+        joinTipReadyFrontId: null,
+      }))
 
       try {
         const { code, data } = await getSiteWithFrontId(frontId)
@@ -907,6 +917,7 @@ export const useSiteStore = create(
               site: clone(data),
               homePage: `/z/${data.frontId}${data.homePage}`,
               pendingSiteFrontId: null,
+              joinTipReadyFrontId: data.frontId,
             }
           })
           const authedUserState = useAuthedUserStore.getState()
@@ -924,6 +935,7 @@ export const useSiteStore = create(
               site: null,
               homePage: `/`,
               pendingSiteFrontId: null,
+              joinTipReadyFrontId: null,
             }
           })
         }
@@ -935,6 +947,7 @@ export const useSiteStore = create(
           return {
             ...state,
             pendingSiteFrontId: null,
+            joinTipReadyFrontId: null,
           }
         })
         console.error('fetch site data error: ', err)

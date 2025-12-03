@@ -819,6 +819,7 @@ export interface SiteState {
   site?: Site | null
   siteList?: Site[] | null
   cachedSiteList: CachedSiteSummary[]
+  pendingSiteFrontId: string | null
   homePage: string
   showSiteForm: boolean
   editting: boolean
@@ -842,6 +843,7 @@ export const useSiteStore = create(
     site: null,
     siteList: null,
     cachedSiteList: [],
+    pendingSiteFrontId: null,
     showSiteForm: false,
     homePage: '/',
     editting: false,
@@ -891,42 +893,53 @@ export const useSiteStore = create(
       set((state) => ({ ...state, cachedSiteList: nextList }))
     },
     fetchSiteData: async (frontId) => {
-      const ps = new Promise((resolve) => {
-        const unsub = useSiteStore.subscribe(
-          (state) => state.site,
-          (site, _prevSite) => {
-            // console.log('state changed in fetchSiteData! site: ', site)
-            // console.log('state changed in fetchSiteData! prevSite: ', prevSite)
-            if (site) {
-              resolve(site)
-            } else {
-              resolve(null)
-            }
-            unsub()
-          }
-        )
-      }) as unknown as Promise<Site | null>
+      set((state) => ({ ...state, pendingSiteFrontId: frontId }))
 
       try {
         const { code, data } = await getSiteWithFrontId(frontId)
         if (!code) {
-          set((state) => ({
-            ...state,
-            site: clone(data),
-            homePage: `/z/${data.frontId}${data.homePage}`,
-          }))
+          set((state) => {
+            if (state.pendingSiteFrontId !== frontId) {
+              return state
+            }
+            return {
+              ...state,
+              site: clone(data),
+              homePage: `/z/${data.frontId}${data.homePage}`,
+              pendingSiteFrontId: null,
+            }
+          })
           const authedUserState = useAuthedUserStore.getState()
           if (!authedUserState.isLogined()) {
             get().cacheVisitedSite(data)
           }
+          return data
         } else {
-          set((state) => ({ ...state, site: null, homePage: `/` }))
+          set((state) => {
+            if (state.pendingSiteFrontId !== frontId) {
+              return state
+            }
+            return {
+              ...state,
+              site: null,
+              homePage: `/`,
+              pendingSiteFrontId: null,
+            }
+          })
         }
       } catch (err) {
-        set((state) => ({ ...state, site: null, homePage: `/` }))
+        set((state) => {
+          if (state.pendingSiteFrontId !== frontId) {
+            return state
+          }
+          return {
+            ...state,
+            pendingSiteFrontId: null,
+          }
+        })
         console.error('fetch site data error: ', err)
       }
-      return ps
+      return get().site ?? null
     },
     fetchSiteList: async () => {
       try {
@@ -1255,10 +1268,11 @@ export interface ContextState {
   fetchContext: (siteFrontId?: string) => Promise<void>
 }
 
-export const useContextStore = create<ContextState>((set) => ({
-  countryCode: '',
-  isSingleSite: false,
-  site: null,
+export const useContextStore = create(
+  subscribeWithSelector<ContextState>((set) => ({
+    countryCode: '',
+    isSingleSite: false,
+    site: null,
   mainSiteHost: undefined,
   hasFetchedContext: false,
   setCountryCode(code) {
@@ -1309,7 +1323,8 @@ export const useContextStore = create<ContextState>((set) => ({
       set(() => ({ hasFetchedContext: true }))
     }
   },
-}))
+  }))
+)
 
 useContextStore.subscribe(
   (state) => state.isSingleSite,

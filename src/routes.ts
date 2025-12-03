@@ -303,41 +303,14 @@ const createSiteRoutes = (prefix: '/z' | '/zhandian'): RouteObject[] => [
   {
     path: `${prefix}/:siteFrontId`,
     loader: async ({ params }) => {
-      if (!params.siteFrontId) {
+      const siteFrontId = params.siteFrontId
+      if (!siteFrontId) {
         return redirect('/')
       }
 
-      try {
-        const contextState = useContextStore.getState()
-        await contextState.fetchContext(params.siteFrontId)
-
-        const siteState = useSiteStore.getState()
-        const contextSite = contextState.site
-
-        if (contextSite && contextSite.frontId === params.siteFrontId) {
-          siteState.update(contextSite)
-          siteState.updateHomePage(
-            `${prefix}/${contextSite.frontId}${contextSite.homePage}`
-          )
-        }
-
-        const site = siteState.site
-
-        if (!site) {
-          return null
-        }
-
-        if (site.homePage !== '/') {
-          return redirect(`${prefix}/${params.siteFrontId}${site.homePage}`)
-        }
-
-        const authState = useAuthedUserStore.getState()
-        if (!authState.isLogined()) {
-          return redirect(`${prefix}/${params.siteFrontId}/all`)
-        }
-      } catch (err) {
-        console.error(`error in ${prefix}/:siteFrontId route: `, err)
-        return null
+      const authState = useAuthedUserStore.getState()
+      if (!authState.isLogined()) {
+        return redirect(`${prefix}/${siteFrontId}/all`)
       }
 
       return null

@@ -8,7 +8,12 @@ import { cn } from '@/lib/utils'
 import SITE_LOGO_IMAGE from '@/assets/logo.png'
 import { SITE_LIST_DOCK_WIDTH } from '@/constants/constants'
 import { useSiteParams } from '@/hooks/use-site-params'
-import { useAuthedUserStore, useSiteStore } from '@/state/global'
+import {
+  useAuthedUserStore,
+  useSiteStore,
+  type CachedSiteSummary,
+} from '@/state/global'
+import type { Site } from '@/types/types'
 
 import { Button } from '../ui/button'
 import {
@@ -24,6 +29,10 @@ type BSiteListDockProps = HTMLAttributes<HTMLDivElement>
 
 const ICON_SIZE = 44
 
+const isFullSite = (
+  site: Site | CachedSiteSummary
+): site is Site => 'currUserRole' in site
+
 const BSiteListDock: FC<BSiteListDockProps> = ({
   className,
   style,
@@ -31,22 +40,29 @@ const BSiteListDock: FC<BSiteListDockProps> = ({
 }) => {
   const { t } = useTranslation()
   const { siteFrontId } = useSiteParams()
-  const { siteList, cachedSiteList, setShowSiteForm, loadCachedSiteList } =
-    useSiteStore(
-      useShallow(
-        ({
-          siteList,
-          cachedSiteList,
-          setShowSiteForm,
-          loadCachedSiteList,
-        }) => ({
-          siteList,
-          cachedSiteList,
-          setShowSiteForm,
-          loadCachedSiteList,
-        })
-      )
+  const {
+    siteList,
+    cachedSiteList,
+    setShowSiteForm,
+    loadCachedSiteList,
+    updateCurrSite,
+  } = useSiteStore(
+    useShallow(
+      ({
+        siteList,
+        cachedSiteList,
+        setShowSiteForm,
+        loadCachedSiteList,
+        update,
+      }) => ({
+        siteList,
+        cachedSiteList,
+        setShowSiteForm,
+        loadCachedSiteList,
+        updateCurrSite: update,
+      })
     )
+  )
 
   useEffect(() => {
     loadCachedSiteList()
@@ -142,6 +158,11 @@ const BSiteListDock: FC<BSiteListDockProps> = ({
                     style={{
                       width: `${SITE_LIST_DOCK_WIDTH}px`,
                       height: `${SITE_LIST_DOCK_WIDTH}px`,
+                    }}
+                    onClick={() => {
+                      if (isFullSite(site)) {
+                        updateCurrSite(site)
+                      }
                     }}
                   >
                     <div className="relative flex h-full w-full items-center justify-center">

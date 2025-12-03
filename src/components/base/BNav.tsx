@@ -313,7 +313,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                 <SiteLink
                   className="flex-shrink-0 font-bold text-2xl leading-3 mr-2"
                   to="/"
-                  siteFrontId={undefined}
+                  siteFrontId={siteFrontId || undefined}
                   useFallbackSiteFrontId={false}
                 >
                   {siteFrontId && currSite ? (

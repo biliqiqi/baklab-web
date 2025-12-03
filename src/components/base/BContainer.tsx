@@ -38,6 +38,7 @@ import {
   useAuthedUserStore,
   useCategorySelectionModalStore,
   useCategoryStore,
+  useContextStore,
   useDialogStore,
   useForceUpdate,
   useInviteCodeStore,
@@ -564,33 +565,61 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     }
 
     useEffect(() => {
-      if (siteFrontId) {
-        toSync(async () => {
-          const promises: (
-            | Promise<Site | null>
-            | Promise<Category[]>
-            | Promise<void>
-          )[] = [fetchCategoryList(siteFrontId), fetchReactOptions()]
+    if (siteFrontId) {
+      toSync(async () => {
+        const promises: (
+          | Promise<Site | null>
+          | Promise<Category[]>
+          | Promise<void>
+        )[] = [
+          fetchSiteData(siteFrontId),
+          fetchCategoryList(siteFrontId),
+          fetchReactOptions(),
+        ]
 
-          if (!currSite || currSite.frontId !== siteFrontId) {
-            promises.push(fetchSiteData(siteFrontId))
-          }
+        await Promise.all(promises)
+      })()
+    } else {
+      updateCurrSite(null)
+      clearCategories()
+    }
+  }, [
+    siteFrontId,
+    fetchSiteData,
+    updateCurrSite,
+    fetchCategoryList,
+    clearCategories,
+    fetchReactOptions,
+    authToken,
+  ])
 
-          await Promise.all(promises)
-        })()
-      } else {
-        updateCurrSite(null)
-        clearCategories()
+    const { fetchContext, contextSiteFrontId, hasFetchedContext } =
+      useContextStore(
+        useShallow(({ fetchContext, site, hasFetchedContext }) => ({
+          fetchContext,
+          contextSiteFrontId: site?.frontId,
+          hasFetchedContext,
+        }))
+      )
+
+    useEffect(() => {
+      if (!siteFrontId) {
+        if (!hasFetchedContext) {
+          toSync(fetchContext)()
+        }
+        return
       }
+
+      if (contextSiteFrontId === siteFrontId) {
+        return
+      }
+
+      toSync(fetchContext)(siteFrontId)
     }, [
       siteFrontId,
-      currSite,
-      fetchSiteData,
-      updateCurrSite,
-      fetchCategoryList,
-      clearCategories,
-      fetchReactOptions,
-      authToken,
+      fetchContext,
+      contextSiteFrontId,
+      hasFetchedContext,
     ])
 
     useDocumentTitle(category?.name || '')

@@ -6,7 +6,14 @@ const NotCompatiblePage = () => {
     <div className="w-full min-h-screen flex items-center justify-center">
       <p>
         {t('notCompatibleClient')}{' '}
-        <a href="/" className="text-blue-500 underline">
+        <a
+          href="/"
+          onClick={(e) => {
+            e.preventDefault()
+            window.location.assign('/')
+          }}
+          className="text-blue-500 underline"
+        >
           {t('retry')}
         </a>
       </p>

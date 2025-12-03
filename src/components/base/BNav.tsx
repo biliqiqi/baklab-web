@@ -9,10 +9,11 @@ import {
   LogOutIcon,
   MenuIcon,
   PaletteIcon,
+  SearchIcon,
   SettingsIcon,
   UserRoundIcon,
 } from 'lucide-react'
-import React, { useCallback, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -40,6 +41,7 @@ import {
 } from '@/state/global'
 import { FrontCategory } from '@/types/types'
 
+import ArticleSearchDialog from '../ArticleSearchDialog'
 import MessageList, { MessageListRef } from '../MessageList'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
@@ -73,6 +75,44 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
     /* const [loading, setLoading] = useState(false) */
     const [showCategoryDetail, setShowCategoryDetail] = useState(false)
     const { siteFrontId } = useSiteParams()
+    const [searchOpen, setSearchOpen] = useState(false)
+
+    useEffect(() => {
+      const shouldSkipShortcut = (target: EventTarget | null) => {
+        if (!target || !(target instanceof HTMLElement)) return false
+        const tagName = target.tagName
+        return (
+          tagName === 'INPUT' ||
+          tagName === 'TEXTAREA' ||
+          tagName === 'SELECT' ||
+          target.isContentEditable
+        )
+      }
+
+      const handleShortcut = (event: KeyboardEvent) => {
+        if (
+          (event.metaKey || event.ctrlKey) &&
+          event.key.toLowerCase() === 'k'
+        ) {
+          if (shouldSkipShortcut(event.target)) {
+            return
+          }
+          event.preventDefault()
+          setSearchOpen(true)
+          return
+        }
+
+        if (event.key === 'Escape' && searchOpen) {
+          event.preventDefault()
+          setSearchOpen(false)
+        }
+      }
+
+      window.addEventListener('keydown', handleShortcut)
+      return () => {
+        window.removeEventListener('keydown', handleShortcut)
+      }
+    }, [searchOpen])
 
     const { loading, setLoading } = useLoading()
     /* const authState = useAuthedUserStore() */
@@ -405,6 +445,15 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
             </>
           )}
           {/* {siteMode == 'top_nav' && <SiteMenuButton className="mr-2" />} */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-[36px] h-[36px] p-0 rounded-full mr-2"
+            title={t('search')}
+            onClick={() => setSearchOpen(true)}
+          >
+            <SearchIcon size={20} />
+          </Button>
           {!isSingleSite && !isMobile && siteListMode == 'top_drawer' && (
             <Button
               variant="ghost"
@@ -777,6 +826,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
           )}
         </div>
 
+        <ArticleSearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
         <Dialog open={showCategoryDetail} onOpenChange={setShowCategoryDetail}>
           <DialogContent>
             <DialogHeader>

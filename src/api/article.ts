@@ -195,6 +195,43 @@ export const getArticleList = (
   )
 }
 
+export const searchArticles = (
+  keywords: string,
+  page: number = 1,
+  pageSize: number = 20,
+  siteFrontId?: string,
+  custom?: CustomRequestOptions
+): Promise<ResponseData<ArticleListResponse>> => {
+  const params = new URLSearchParams()
+
+  if (page > 0) {
+    params.set('page', String(page))
+  }
+
+  if (pageSize > 0) {
+    params.set('pageSize', String(pageSize))
+  }
+
+  if (keywords) {
+    params.set('keywords', keywords)
+  }
+
+  const requestOptions: CustomRequestOptions | undefined = siteFrontId
+    ? {
+        ...(custom || {}),
+        siteFrontId,
+      }
+    : custom
+
+  return authRequest.get(
+    `articles/search`,
+    {
+      searchParams: params,
+    },
+    requestOptions
+  )
+}
+
 export const getChatList = (
   cursor?: string,
   next?: boolean,

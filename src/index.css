@@ -32,7 +32,7 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
+    --sidebar-background: 220 16% 94%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
@@ -71,7 +71,7 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --sidebar-background: 231 15% 18%;
+    --sidebar-background: 231 28% 12%;
     --sidebar-foreground: 0 0% 87%;
     --sidebar-primary: 211 100% 73%;
     --sidebar-primary-foreground: 231 15% 18%;
@@ -132,6 +132,7 @@
   background-color: #ffe6e6 !important;
   color: #8b0000 !important;
 }
+
 
 .bg-dialog {
   background-color: hsl(var(--dialog-background));

@@ -23,7 +23,6 @@ import { useShallow } from 'zustand/react/shallow'
 
 import { cn, getSiteStatusColor, getSiteStatusName } from '@/lib/utils'
 
-import SITE_LOGO_IMAGE from '@/assets/logo.png'
 import { NAV_HEIGHT, PLATFORM_NAME } from '@/constants/constants'
 import { PermissionAction, PermissionModule } from '@/constants/types'
 import { buildRoutePath, useRouteMatch } from '@/hooks/use-route-match'
@@ -67,7 +66,7 @@ import {
   SidebarMenuItem,
 } from '../ui/sidebar'
 import BIconColorChar from './BIconColorChar'
-import BSiteIcon from './BSiteIcon'
+import BSiteListDock from './BSiteListDock'
 import SiteLink from './SiteLink'
 
 interface EditCategoryData {
@@ -338,377 +337,386 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
     <>
       <Sidebar className="relative max-h-full" gap={false}>
         <SidebarContent
-          className="gap-0 pb-4"
+          className="gap-0 h-full"
           style={{ minHeight: bodyHeight || '' }}
         >
-          {siteMode == 'sidebar' && (
+          <div
+            className={cn(
+              'flex h-full min-h-0 w-full grow overflow-hidden',
+              'bg-[hsl(var(--sidebar-background))]'
+            )}
+          >
+            <BSiteListDock className="h-full" style={{ height: bodyHeight }} />
             <div
-              className="flex justify-between items-center px-2 py-1"
-              style={{
-                minHeight: `${NAV_HEIGHT}px`,
-              }}
+              className={cn(
+                'flex-1 min-w-0 overflow-y-auto pb-4',
+                'bg-[hsl(var(--sidebar-background))]'
+              )}
             >
-              <div className="flex items-center flex-shrink-0">
-                <SiteLink
-                  className="font-bold text-2xl leading-3"
-                  to="/"
-                  siteFrontId={undefined}
-                  useFallbackSiteFrontId={false}
+              {siteMode == 'sidebar' && (
+                <div
+                  className="flex items-center justify-between px-2"
+                  style={{
+                    minHeight: `${NAV_HEIGHT}px`,
+                  }}
                 >
-                  {siteFrontId && currSite ? (
-                    currSite.logoHtmlStr ? (
-                      <div
-                        dangerouslySetInnerHTML={{
-                          __html: currSite.logoHtmlStr,
-                        }}
-                        className="logo-brand"
-                        style={{
-                          height: `${NAV_HEIGHT - 8}px`,
-                          maxWidth: `calc(${SIDEBAR_WIDTH} - 60px)`,
-                        }}
-                      ></div>
-                    ) : (
-                      <BSiteIcon
-                        key={currSite.frontId}
-                        className="max-w-[180px]"
-                        logoUrl={currSite.logoUrl}
-                        name={currSite.name}
-                        size={42}
-                        showSiteName
-                      />
-                    )
-                  ) : (
-                    <BSiteIcon
-                      key="home"
-                      className="max-w-[180px]"
-                      logoUrl={SITE_LOGO_IMAGE}
-                      name={PLATFORM_NAME}
-                      size={42}
-                      showSiteName
-                    />
-                  )}
-                </SiteLink>
-                {currSite && !currSite.visible && (
-                  <span
-                    className="inline-block text-gray-500 ml-2"
-                    title={t('privateSite')}
-                  >
-                    <LockIcon size={14} />
-                  </span>
-                )}
-              </div>
-              {currSite && <SiteMenuButton />}
-            </div>
-          )}
-          {currSite && currSite.status != SITE_STATUS.Normal && (
-            <div className="bg-yellow-300 p-2 m-2 text-sm rounded-sm leading-6">
-              {t('siteStatus')}：
-              <span className={getSiteStatusColor(currSite.status)}>
-                {getSiteStatusName(currSite.status)}
-              </span>
-              <br />
-              {String(currSite.creatorId) == currUserId &&
-                currSite.status != SITE_STATUS.ReadOnly && (
-                  <span className="text-sm text-gray-500">
-                    {t('siteReadOnlyDescribe')}
-                  </span>
-                )}
-            </div>
-          )}
-          <SidebarGroup key={'default sides'}>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {isLogined() && (
-                  <SidebarMenuItem key="feed">
-                    <SidebarMenuButton asChild isActive={isHomePageActive}>
-                      <SiteLink to="/" siteFrontId={siteFrontId}>
-                        <BIconCircle id="feed" size={32}>
-                          <PackageIcon size={18} />
-                        </BIconCircle>
-                        {t('feed')}
-                      </SiteLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )}
-                <SidebarMenuItem key="all">
-                  <SidebarMenuButton asChild isActive={isAllPageActive}>
+                  <div className="flex flex-shrink-0 items-center">
                     <SiteLink
-                      to="/all"
+                      className="flex max-w-full items-center truncate font-semibold"
+                      to="/"
                       siteFrontId={siteFrontId}
-                      title={
-                        siteFrontId
-                          ? t('siteAllPostsDescription')
-                          : t('allPostsDescription')
-                      }
+                      style={{
+                        maxWidth: `calc(${SIDEBAR_WIDTH} - 60px)`,
+                        fontSize: '16px',
+                        lineHeight: 1.2,
+                      }}
                     >
-                      <BIconCircle id="feed" size={32}>
-                        <GlobeIcon size={18} />
-                      </BIconCircle>
-                      {t('allPosts')}
+                      {currSite?.name ?? PLATFORM_NAME}
                     </SiteLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                {siteFrontId && currSite && (
-                  <>
-                    <SidebarMenuItem key="categories">
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isCategoryListActive}
+                    {currSite && !currSite.visible && (
+                      <span
+                        className="ml-2 inline-block text-gray-500"
+                        title={t('privateSite')}
                       >
-                        <SiteLink to="/bankuai" siteFrontId={siteFrontId}>
-                          <BIconCircle id="categories" size={32}>
-                            <ChartBarStackedIcon size={18} />
-                          </BIconCircle>
-                          {t('allCategories')}
-                        </SiteLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    {currSite.tagConfig?.enabled && (
-                      <SidebarMenuItem key="tags">
-                        <SidebarMenuButton asChild isActive={isTagListActive}>
-                          <SiteLink to="/tags" siteFrontId={siteFrontId}>
-                            <BIconCircle id="tags" size={32}>
-                              <TagIcon size={18} />
+                        <LockIcon size={14} />
+                      </span>
+                    )}
+                  </div>
+                  {currSite && <SiteMenuButton />}
+                </div>
+              )}
+              {currSite && currSite.status != SITE_STATUS.Normal && (
+                <div className="m-2 rounded-sm bg-yellow-300 p-2 text-sm leading-6">
+                  {t('siteStatus')}：
+                  <span className={getSiteStatusColor(currSite.status)}>
+                    {getSiteStatusName(currSite.status)}
+                  </span>
+                  <br />
+                  {String(currSite.creatorId) == currUserId &&
+                    currSite.status != SITE_STATUS.ReadOnly && (
+                      <span className="text-sm text-gray-500">
+                        {t('siteReadOnlyDescribe')}
+                      </span>
+                    )}
+                </div>
+              )}
+              <SidebarGroup key={'default sides'}>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {isLogined() && (
+                      <SidebarMenuItem key="feed">
+                        <SidebarMenuButton asChild isActive={isHomePageActive}>
+                          <SiteLink to="/" siteFrontId={siteFrontId}>
+                            <BIconCircle id="feed" size={32}>
+                              <PackageIcon size={18} />
                             </BIconCircle>
-                            {t('tags')}
+                            {t('feed')}
                           </SiteLink>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     )}
-                  </>
-                )}
-                {siteMode == 'top_nav' && (
-                  <SidebarMenuItem key="siteMenu">
-                    <SidebarMenuButton asChild>
-                      <a
-                        href="#"
-                        style={{ padding: 0, textDecoration: 'none' }}
-                      >
-                        <SiteMenuButton mode="block" />
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          {!siteFrontId && authPermit('platform_manage', 'access') && (
-            <SidebarGroup key={'platformManage'}>
-              <SidebarGroupLabel>{t('platformManagement')}</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {platformSidebarMenus().map(
-                    ({ id, permitModule, permitAction, link, icon, name }) =>
-                      authPermit(permitModule, permitAction) && (
-                        <SidebarMenuItem key={id}>
+                    <SidebarMenuItem key="all">
+                      <SidebarMenuButton asChild isActive={isAllPageActive}>
+                        <SiteLink
+                          to="/all"
+                          siteFrontId={siteFrontId}
+                          title={
+                            siteFrontId
+                              ? t('siteAllPostsDescription')
+                              : t('allPostsDescription')
+                          }
+                        >
+                          <BIconCircle id="feed" size={32}>
+                            <GlobeIcon size={18} />
+                          </BIconCircle>
+                          {t('allPosts')}
+                        </SiteLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    {siteFrontId && currSite && (
+                      <>
+                        <SidebarMenuItem key="categories">
                           <SidebarMenuButton
                             asChild
-                            isActive={location.pathname == link}
+                            isActive={isCategoryListActive}
                           >
-                            {id === 'access_report' ? (
-                              <a
-                                href={link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <BIconCircle size={32}>{icon}</BIconCircle>
-                                {name}
-                              </a>
-                            ) : (
-                              <Link to={link}>
-                                <BIconCircle size={32}>{icon}</BIconCircle>
-                                {name}
-                              </Link>
-                            )}
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      )
-                  )}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )}
-
-          {siteFrontId && (
-            <SidebarGroup key={'categories'}>
-              <Collapsible
-                open={groupsOpen.category}
-                onOpenChange={(open) =>
-                  setGroupsOpen((state) => ({
-                    ...state,
-                    category: open,
-                  }))
-                }
-              >
-                <CollapsibleTrigger asChild>
-                  <SidebarGroupLabel
-                    className={cn(
-                      'flex justify-between cursor-pointer',
-                      !groupsOpen.category && 'mb-0'
-                    )}
-                  >
-                    <span>
-                      <ChevronDownIcon
-                        size={14}
-                        className={cn(
-                          'transition-transform duration-200 ease-in-out rotate-0 inline-block align-bottom mr-1',
-                          !groupsOpen.category && '-rotate-90'
-                        )}
-                      />
-                      <span>{t('category')}</span>
-                    </span>
-
-                    {/* Create functionality moved to CategoryListPage.tsx */}
-                    {/* {authPermit('category', 'create') && (
-                      <Button
-                        variant="ghost"
-                        className="p-0 w-[24px] h-[24px] rounded-full"
-                        onClick={onCreateCategoryClick}
-                        title={t('createCategory')}
-                      >
-                        <PlusIcon size={18} className="text-gray-500" />
-                      </Button>
-                    )} */}
-                  </SidebarGroupLabel>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="CollapsibleContent">
-                  <SidebarGroupContent>
-                    <SidebarMenu>
-                      {currCateList.map((item) => (
-                        <SidebarMenuItem key={item.frontId}>
-                          <SidebarMenuButton
-                            asChild
-                            isActive={
-                              location.pathname ==
-                                buildRoutePath(
-                                  `/b/${item.frontId}`,
-                                  siteFrontId
-                                ) ||
-                              (currentCategoryFrontId === item.frontId &&
-                                location.pathname.includes(
-                                  buildRoutePath('/articles/', siteFrontId)
-                                ))
-                            }
-                          >
-                            <SiteLink
-                              to={`/b/${item.frontId}`}
-                              state={item}
-                              siteFrontId={siteFrontId}
-                            >
-                              <span
-                                className="relative inline-block"
-                                style={{ overflow: 'visible' }}
-                              >
-                                <BIconColorChar
-                                  iconId={item.frontId}
-                                  char={item.iconContent}
-                                  color={item.iconBgColor}
-                                  size={32}
-                                />
-                                {item.contentForm?.frontId == 'chat' && (
-                                  <MessageCircleIcon
-                                    size={20}
-                                    className="absolute -right-[9px] bottom-0 text-gray-500 z-20 bg-white rounded-full p-[2px]"
-                                  />
-                                )}
-                              </span>
-                              {item.name}
+                            <SiteLink to="/bankuai" siteFrontId={siteFrontId}>
+                              <BIconCircle id="categories" size={32}>
+                                <ChartBarStackedIcon size={18} />
+                              </BIconCircle>
+                              {t('allCategories')}
                             </SiteLink>
                           </SidebarMenuButton>
-                          {/* Edit functionality moved to CategoryListPage.tsx */}
-                          {/* {authPermit('category', 'edit') && (
-                            <SidebarMenuAction
-                              style={{
-                                top: '10px',
-                                width: '28px',
-                                height: '28px',
-                              }}
-                              className="rounded-full"
-                              onClick={(e) => onEditCategoryClick(e, item)}
-                            >
-                              <PencilIcon
-                                size={14}
-                                className="inline-block mr-1 text-gray-500"
-                              />
-                            </SidebarMenuAction>
-                          )} */}
                         </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </CollapsibleContent>
-              </Collapsible>
-            </SidebarGroup>
-          )}
-          {siteFrontId && authPermit('site', 'manage') && (
-            <SidebarGroup key={'siteManage'}>
-              <Collapsible
-                open={groupsOpen.siteManage}
-                onOpenChange={(open) =>
-                  setGroupsOpen((state) => ({
-                    ...state,
-                    siteManage: open,
-                  }))
-                }
-              >
-                <CollapsibleTrigger asChild>
-                  <SidebarGroupLabel
-                    className={cn(
-                      'flex justify-between cursor-pointer',
-                      !groupsOpen.siteManage && 'mb-0'
-                    )}
-                  >
-                    <span>
-                      <ChevronDownIcon
-                        size={14}
-                        className={cn(
-                          'transition-transform duration-200 ease-in-out rotate-0 inline-block align-bottom mr-1',
-                          !groupsOpen.siteManage && '-rotate-90'
+                        {currSite.tagConfig?.enabled && (
+                          <SidebarMenuItem key="tags">
+                            <SidebarMenuButton
+                              asChild
+                              isActive={isTagListActive}
+                            >
+                              <SiteLink to="/tags" siteFrontId={siteFrontId}>
+                                <BIconCircle id="tags" size={32}>
+                                  <TagIcon size={18} />
+                                </BIconCircle>
+                                {t('tags')}
+                              </SiteLink>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
                         )}
-                      />
-                      <span>{t('siteManagement')}</span>
-                    </span>
-                    <span></span>
+                      </>
+                    )}
+                    {siteMode == 'top_nav' && (
+                      <SidebarMenuItem key="siteMenu">
+                        <SidebarMenuButton asChild>
+                          <a
+                            href="#"
+                            style={{ padding: 0, textDecoration: 'none' }}
+                          >
+                            <SiteMenuButton mode="block" />
+                          </a>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+
+              {!siteFrontId && authPermit('platform_manage', 'access') && (
+                <SidebarGroup key={'platformManage'}>
+                  <SidebarGroupLabel>
+                    {t('platformManagement')}
                   </SidebarGroupLabel>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="CollapsibleContent">
                   <SidebarGroupContent>
                     <SidebarMenu>
-                      {siteSidebarMenus().map(
+                      {platformSidebarMenus().map(
                         ({
                           id,
                           permitModule,
                           permitAction,
-                          name,
                           link,
                           icon,
-                        }) => {
-                          if (!authPermit(permitModule, permitAction)) {
-                            return null
-                          }
-                          const resolvedPath = buildRoutePath(link, siteFrontId)
-                          return (
+                          name,
+                        }) =>
+                          authPermit(permitModule, permitAction) && (
                             <SidebarMenuItem key={id}>
                               <SidebarMenuButton
                                 asChild
-                                isActive={location.pathname == resolvedPath}
+                                isActive={location.pathname == link}
                               >
-                                <SiteLink to={link} siteFrontId={siteFrontId}>
-                                  <BIconCircle size={32}>{icon}</BIconCircle>
-                                  {name}
-                                </SiteLink>
+                                {id === 'access_report' ? (
+                                  <a
+                                    href={link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <BIconCircle size={32}>{icon}</BIconCircle>
+                                    {name}
+                                  </a>
+                                ) : (
+                                  <Link to={link}>
+                                    <BIconCircle size={32}>{icon}</BIconCircle>
+                                    {name}
+                                  </Link>
+                                )}
                               </SidebarMenuButton>
                             </SidebarMenuItem>
                           )
-                        }
                       )}
                     </SidebarMenu>
                   </SidebarGroupContent>
-                </CollapsibleContent>
-              </Collapsible>
-            </SidebarGroup>
-          )}
+                </SidebarGroup>
+              )}
+
+              {siteFrontId && (
+                <SidebarGroup key={'categories'}>
+                  <Collapsible
+                    open={groupsOpen.category}
+                    onOpenChange={(open) =>
+                      setGroupsOpen((state) => ({
+                        ...state,
+                        category: open,
+                      }))
+                    }
+                  >
+                    <CollapsibleTrigger asChild>
+                      <SidebarGroupLabel
+                        className={cn(
+                          'flex cursor-pointer justify-between',
+                          !groupsOpen.category && 'mb-0'
+                        )}
+                      >
+                        <span>
+                          <ChevronDownIcon
+                            size={14}
+                            className={cn(
+                              'inline-block rotate-0 align-bottom transition-transform duration-200 ease-in-out',
+                              !groupsOpen.category && '-rotate-90'
+                            )}
+                          />
+                          <span>{t('category')}</span>
+                        </span>
+
+                        {/* Create functionality moved to CategoryListPage.tsx */}
+                        {/* {authPermit('category', 'create') && (
+                          <Button
+                            variant="ghost"
+                            className="p-0 w-[24px] h-[24px] rounded-full"
+                            onClick={onCreateCategoryClick}
+                            title={t('createCategory')}
+                          >
+                            <PlusIcon size={18} className="text-gray-500" />
+                          </Button>
+                        )} */}
+                      </SidebarGroupLabel>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="CollapsibleContent">
+                      <SidebarGroupContent>
+                        <SidebarMenu>
+                          {currCateList.map((item) => (
+                            <SidebarMenuItem key={item.frontId}>
+                              <SidebarMenuButton
+                                asChild
+                                isActive={
+                                  location.pathname ==
+                                    buildRoutePath(
+                                      `/b/${item.frontId}`,
+                                      siteFrontId
+                                    ) ||
+                                  (currentCategoryFrontId === item.frontId &&
+                                    location.pathname.includes(
+                                      buildRoutePath('/articles/', siteFrontId)
+                                    ))
+                                }
+                              >
+                                <SiteLink
+                                  to={`/b/${item.frontId}`}
+                                  state={item}
+                                  siteFrontId={siteFrontId}
+                                >
+                                  <span
+                                    className="relative inline-block"
+                                    style={{ overflow: 'visible' }}
+                                  >
+                                    <BIconColorChar
+                                      iconId={item.frontId}
+                                      char={item.iconContent}
+                                      color={item.iconBgColor}
+                                      size={32}
+                                    />
+                                    {item.contentForm?.frontId == 'chat' && (
+                                      <MessageCircleIcon
+                                        size={20}
+                                        className="absolute -right-[9px] bottom-0 z-20 rounded-full bg-white p-[2px] text-gray-500"
+                                      />
+                                    )}
+                                  </span>
+                                  {item.name}
+                                </SiteLink>
+                              </SidebarMenuButton>
+                              {/* Edit functionality moved to CategoryListPage.tsx */}
+                              {/* {authPermit('category', 'edit') && (
+                                <SidebarMenuAction
+                                  style={{
+                                    top: '10px',
+                                    width: '28px',
+                                    height: '28px',
+                                  }}
+                                  className="rounded-full"
+                                  onClick={(e) => onEditCategoryClick(e, item)}
+                                >
+                                  <PencilIcon
+                                    size={14}
+                                    className="inline-block mr-1 text-gray-500"
+                                  />
+                                </SidebarMenuAction>
+                              )} */}
+                            </SidebarMenuItem>
+                          ))}
+                        </SidebarMenu>
+                      </SidebarGroupContent>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </SidebarGroup>
+              )}
+
+              {siteFrontId && authPermit('site', 'manage') && (
+                <SidebarGroup key={'siteManage'}>
+                  <Collapsible
+                    open={groupsOpen.siteManage}
+                    onOpenChange={(open) =>
+                      setGroupsOpen((state) => ({
+                        ...state,
+                        siteManage: open,
+                      }))
+                    }
+                  >
+                    <CollapsibleTrigger asChild>
+                      <SidebarGroupLabel
+                        className={cn(
+                          'flex cursor-pointer justify-between',
+                          !groupsOpen.siteManage && 'mb-0'
+                        )}
+                      >
+                        <span>
+                          <ChevronDownIcon
+                            size={14}
+                            className={cn(
+                              'inline-block rotate-0 align-bottom transition-transform duration-200 ease-in-out',
+                              !groupsOpen.siteManage && '-rotate-90'
+                            )}
+                          />
+                          <span>{t('siteManagement')}</span>
+                        </span>
+                        <span></span>
+                      </SidebarGroupLabel>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="CollapsibleContent">
+                      <SidebarGroupContent>
+                        <SidebarMenu>
+                          {siteSidebarMenus().map(
+                            ({
+                              id,
+                              permitModule,
+                              permitAction,
+                              name,
+                              link,
+                              icon,
+                            }) => {
+                              if (!authPermit(permitModule, permitAction)) {
+                                return null
+                              }
+                              const resolvedPath = buildRoutePath(
+                                link,
+                                siteFrontId
+                              )
+                              return (
+                                <SidebarMenuItem key={id}>
+                                  <SidebarMenuButton
+                                    asChild
+                                    isActive={location.pathname == resolvedPath}
+                                  >
+                                    <SiteLink
+                                      to={link}
+                                      siteFrontId={siteFrontId}
+                                    >
+                                      <BIconCircle size={32}>
+                                        {icon}
+                                      </BIconCircle>
+                                      {name}
+                                    </SiteLink>
+                                  </SidebarMenuButton>
+                                </SidebarMenuItem>
+                              )
+                            }
+                          )}
+                        </SidebarMenu>
+                      </SidebarGroupContent>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </SidebarGroup>
+              )}
+            </div>
+          </div>
         </SidebarContent>
       </Sidebar>
 

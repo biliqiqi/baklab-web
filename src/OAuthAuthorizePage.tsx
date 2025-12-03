@@ -174,7 +174,7 @@ export default function OAuthAuthorizePage() {
   // Simplified navigation component
   const renderNav = () => (
     <div
-      className="flex justify-between items-center py-2 px-4 bg-white dark:bg-slate-900 sticky top-0 z-10 border-b-2 shadow-sm"
+      className="flex justify-between items-center py-2 px-4 bg-[hsl(var(--sidebar-background))] sticky top-0 z-10 border-b-2 shadow-sm"
       style={{ height: `${NAV_HEIGHT - 2}px` }}
     >
       <Link

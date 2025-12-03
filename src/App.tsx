@@ -19,7 +19,6 @@ import {
   LEFT_SIDEBAR_STATE_KEY,
   RIGHT_SIDEBAR_SETTINGS_TYPE_KEY,
   RIGHT_SIDEBAR_STATE_KEY,
-  TOP_DRAWER_STATE_KEY,
 } from './constants/constants.ts'
 import { useIsMobile } from './hooks/use-mobile.tsx'
 import './i18n'
@@ -38,7 +37,6 @@ import {
   useRightSidebarStore,
   useSidebarStore,
   useSiteStore,
-  useTopDrawerStore,
   useUserUIStore,
 } from './state/global.ts'
 import { useRoutesStore } from './state/routes.ts'
@@ -171,7 +169,6 @@ const App = () => {
   const { theme, setTheme } = useTheme()
 
   const setSidebarOpen = useSidebarStore((state) => state.setOpen)
-  const setShowTopDrawer = useTopDrawerStore((state) => state.update)
   const setRightSidebarOpen = useRightSidebarStore((state) => state.setOpen)
   const setSettingsType = useRightSidebarStore((state) => state.setSettingsType)
 
@@ -347,11 +344,6 @@ const App = () => {
     setTheme,
     setDefaultFontSize,
   ])
-
-  useEffect(() => {
-    const showDock = localStorage.getItem(TOP_DRAWER_STATE_KEY) == 'true'
-    setShowTopDrawer(showDock)
-  }, [setShowTopDrawer])
 
   useEffect(() => {
     setFaviconBadge(unreadCount).catch(console.error)

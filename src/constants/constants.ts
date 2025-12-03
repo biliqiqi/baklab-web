@@ -26,7 +26,6 @@ export const SIGNUP_TEMP_TOKEN_KEY = 'signup_temp_token'
 export const LEFT_SIDEBAR_STATE_KEY = 'left_sidebar_state'
 export const LEFT_SIDEBAR_DEFAULT_OPEN = true
 export const RIGHT_SIDEBAR_STATE_KEY = 'right_sidebar_state'
-export const TOP_DRAWER_STATE_KEY = 'top_drawer_state'
 export const RIGHT_SIDEBAR_SETTINGS_TYPE_KEY = 'right_sidebar_settings_type'
 export const USER_UI_SETTINGS_KEY = 'user_ui_settings'
 export const CHAT_DATA_CACHE_KEY = 'chat_data_cache'
@@ -38,7 +37,7 @@ export const DEFAULT_INNER_CONTENT_WIDTH = '900'
 export const URL_PATTERN =
   /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g
 
-export const DOCK_HEIGHT = 80
+export const SITE_LIST_DOCK_WIDTH = 60
 
 export const MAX_BLOCKED_WORD_LEN = 20
 

@@ -29,17 +29,10 @@ import {
   useAuthedUserStore,
   useDefaultFontSizeStore,
   useForceUpdate,
-  useSiteStore,
   useSiteUIStore,
-  useTopDrawerStore,
   useUserUIStore,
 } from '@/state/global'
-import {
-  ARTICLE_LIST_MODE,
-  ArticleListMode,
-  SITE_LIST_MODE,
-  SiteListMode,
-} from '@/types/types'
+import { ARTICLE_LIST_MODE, ArticleListMode } from '@/types/types'
 
 import { useTheme } from './theme-provider'
 import { Button } from './ui/button'
@@ -63,8 +56,6 @@ import {
   SelectValue,
 } from './ui/select'
 import { Switch } from './ui/switch'
-
-/* const modeList = [SITE_LIST_MODE.TopDrawer, SITE_LIST_MODE.DropdownMenu] */
 
 const themeList = ['light', 'dark', 'system'] as const
 const themeLabelMap = (theme: ThemeSchema) => {
@@ -147,10 +138,6 @@ const normalizeLanguageForForm = (lang: string): LanguageSchema => {
 }
 
 const userUISchema = z.object({
-  mode: z.union([
-    z.literal(SITE_LIST_MODE.TopDrawer),
-    z.literal(SITE_LIST_MODE.DropdownMenu),
-  ]),
   theme: themeSchema,
   fontSize: fontSizeSchema,
   customFontSize: z.string(),
@@ -172,7 +159,6 @@ type ThemeSchema = z.infer<typeof themeSchema>
 type LanguageSchema = z.infer<typeof languageSchema>
 
 const defaultUserUIData: UserUISchema = {
-  mode: SITE_LIST_MODE.TopDrawer,
   theme: DEFAULT_THEME,
   fontSize: useDefaultFontSizeStore.getState()
     .defaultFontSize as FontSizeSchema,
@@ -201,7 +187,6 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
     const isLogined = useAuthedUserStore((state) => state.isLogined())
 
     const initialStateRef = useRef<{
-      siteListMode: SiteListMode
       fontSize: number
       contentWidth: number
       theme: ThemeSchema
@@ -210,14 +195,12 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
 
     // Get all UI settings from userUIStore for consistency using useShallow
     const {
-      siteListMode: currSiteListMode,
       fontSize: userUIFontSizeNum,
       contentWidth: userUIContentWidthNum,
       theme: userUITheme,
       articleListMode: currArticleListMode,
     } = useUserUIStore(
       useShallow((state) => ({
-        siteListMode: state.siteListMode,
         fontSize: state.fontSize || Number(defaultFontSize),
         contentWidth: state.contentWidth || Number(DEFAULT_CONTENT_WIDTH),
         theme: state.theme,
@@ -227,12 +210,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
 
     const siteArticleListMode = useSiteUIStore((state) => state.articleListMode)
 
-    const setSiteListMode = useUserUIStore((state) => state.setSiteListMode)
     const setUserUIState = useUserUIStore((state) => state.setState)
-    const setOpenTopDrawer = useTopDrawerStore((state) => state.update)
-    const setShowSiteListDropdown = useSiteStore(
-      (state) => state.setShowSiteListDropdown
-    )
     const forceUpdate = useForceUpdate((state) => state.forceUpdate)
 
     const { t, i18n } = useTranslation()
@@ -265,7 +243,6 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
       resolver: zodResolver(userUISchema),
       defaultValues: {
         ...defaultUserUIData,
-        mode: currSiteListMode,
         theme: effectiveTheme as ThemeSchema,
         fontSize: fontSizeGlobalVal,
         customFontSize: fontSizeGlobalVal == 'custom' ? userUIFontSize : '',
@@ -284,7 +261,6 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
     useEffect(() => {
       if (!form.formState.isDirty && !initialStateRef.current) {
         initialStateRef.current = {
-          siteListMode: currSiteListMode,
           fontSize: userUIFontSizeNum,
           contentWidth: userUIContentWidthNum,
           theme: userUITheme || DEFAULT_THEME,
@@ -293,7 +269,6 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
       }
     }, [
       form.formState.isDirty,
-      currSiteListMode,
       userUIFontSizeNum,
       userUIContentWidthNum,
       userUITheme,
@@ -302,7 +277,6 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
 
     const restoreGlobalState = useCallback(() => {
       if (initialStateRef.current) {
-        setSiteListMode(initialStateRef.current.siteListMode)
         setTheme(initialStateRef.current.theme)
         setRootFontSize(String(initialStateRef.current.fontSize))
         setUserUIState({
@@ -311,7 +285,7 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
         })
         initialStateRef.current = null
       }
-    }, [setSiteListMode, setTheme, setUserUIState])
+    }, [setTheme, setUserUIState])
 
     useImperativeHandle(ref, () => ({ form, restoreGlobalState }))
 
@@ -319,7 +293,6 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
 
     const onSubmit = useCallback(
       async ({
-        mode,
         theme,
         fontSize,
         customFontSize,
@@ -347,7 +320,6 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
         const savedContentWidth = Number(cw) || Number(DEFAULT_CONTENT_WIDTH)
 
         setLocalUserUISettings({
-          siteListMode: mode,
           theme,
           fontSize: savedFontSize,
           contentWidth: savedContentWidth,
@@ -371,7 +343,6 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
         if (syncToOtherDevices) {
           try {
             await saveUserUISettings({
-              mode,
               theme,
               fontSize: Number(fs) || Number(defaultFontSize),
               contentWidth: Number(cw) || Number(DEFAULT_CONTENT_WIDTH),
@@ -385,7 +356,6 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
         }
 
         form.reset({
-          mode,
           theme,
           fontSize,
           customFontSize,
@@ -402,26 +372,6 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
       },
       [form, i18n, forceUpdate, setUserUIState, defaultFontSize]
     )
-
-    useEffect(() => {
-      setSiteListMode(formVals.mode)
-
-      if (form.formState.isDirty) {
-        if (formVals.mode == 'top_drawer') {
-          setShowSiteListDropdown(false)
-          setOpenTopDrawer(true)
-        } else {
-          setOpenTopDrawer(false)
-          setShowSiteListDropdown(true)
-        }
-      }
-    }, [
-      form,
-      formVals.mode,
-      setSiteListMode,
-      setOpenTopDrawer,
-      setShowSiteListDropdown,
-    ])
 
     useEffect(() => {
       /* console.log('set new theme in user ui form: ', formVals.theme) */
@@ -489,7 +439,6 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
 
               form.reset({
                 ...defaultUserUIData,
-                mode: settings.mode || SITE_LIST_MODE.TopDrawer,
                 theme: (settings.theme || DEFAULT_THEME) as ThemeSchema,
                 fontSize: newFontSizeVal,
                 customFontSize:
@@ -744,56 +693,6 @@ const UserUIForm = forwardRef<UserUIFormRef, UserUIFormProps>(
                         </FormItem>
                       )
                     )}
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="mode"
-            key="mode"
-            render={({ field }) => (
-              <FormItem className="mb-8">
-                <FormLabel>{t('siteListMode')}</FormLabel>
-                <FormDescription></FormDescription>
-                <FormControl>
-                  <RadioGroup
-                    className="flex flex-wrap"
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    ref={field.ref}
-                  >
-                    <FormItem
-                      className="flex items-center space-y-0 mr-4 mb-4"
-                      key={SITE_LIST_MODE.TopDrawer}
-                    >
-                      <FormControl>
-                        <RadioGroupItem
-                          value={SITE_LIST_MODE.TopDrawer}
-                          className="mr-1"
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        {t('topDrawer')}
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem
-                      className="flex items-center space-y-0 mr-4 mb-4"
-                      key={SITE_LIST_MODE.DropdownMenu}
-                    >
-                      <FormControl>
-                        <RadioGroupItem
-                          value={SITE_LIST_MODE.DropdownMenu}
-                          className="mr-1"
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        {t('dropdown')}
-                      </FormLabel>
-                    </FormItem>
                   </RadioGroup>
                 </FormControl>
                 <FormMessage />

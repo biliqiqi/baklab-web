@@ -4,7 +4,6 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   EllipsisVerticalIcon,
-  GripIcon,
   Loader,
   LogOutIcon,
   MenuIcon,
@@ -37,7 +36,6 @@ import {
   useSidebarStore,
   useSiteStore,
   useSiteUIStore,
-  useUserUIStore,
 } from '@/state/global'
 import { FrontCategory } from '@/types/types'
 
@@ -61,17 +59,13 @@ import SiteLink from './SiteLink'
 export interface NavProps extends React.HTMLAttributes<HTMLDivElement> {
   category?: FrontCategory
   goBack?: boolean
-  onGripClick?: () => void
 }
 
 const isOneOfPath = (loc: Location, pathes: string[]) =>
   pathes.some((path) => loc.pathname == path)
 
 const BNav = React.forwardRef<HTMLDivElement, NavProps>(
-  (
-    { className, style, category, goBack = false, onGripClick, ...props },
-    ref
-  ) => {
+  ({ className, style, category, goBack = false, ...props }, ref) => {
     /* const [loading, setLoading] = useState(false) */
     const [showCategoryDetail, setShowCategoryDetail] = useState(false)
     const { siteFrontId } = useSiteParams()
@@ -121,15 +115,13 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
 
     const alertConfirm = useAlertDialogStore((state) => state.confirm)
     /* const sidebar = useSidebar() */
-    const { checkPermit, isLogined, authLogout, currUsername } =
-      useAuthedUserStore(
-        useShallow(({ permit, isLogined, logout, username }) => ({
-          checkPermit: permit,
-          authLogout: logout,
-          currUsername: username,
-          isLogined,
-        }))
-      )
+    const { isLogined, authLogout, currUsername } = useAuthedUserStore(
+      useShallow(({ isLogined, logout, username }) => ({
+        authLogout: logout,
+        currUsername: username,
+        isLogined,
+      }))
+    )
     const {
       sidebarOpen,
       setSidebarOpen,
@@ -156,10 +148,6 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
 
     const { siteMode } = useSiteUIStore(
       useShallow(({ mode }) => ({ siteMode: mode }))
-    )
-
-    const { siteListMode } = useUserUIStore(
-      useShallow(({ siteListMode }) => ({ siteListMode }))
     )
     const isSingleSite = useContextStore((state) => state.isSingleSite)
     const mainSiteHost = useContextStore((state) => state.mainSiteHost)
@@ -207,28 +195,10 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
     const notiStore = useNotificationStore()
     const { t } = useTranslation()
 
-    const {
-      currSite,
-      siteList,
-      setShowSiteForm,
-      showSiteListDropdown,
-      setShowSiteListDropdown,
-    } = useSiteStore(
-      useShallow(
-        ({
-          site,
-          siteList,
-          setShowSiteForm,
-          showSiteListDropdown,
-          setShowSiteListDropdown,
-        }) => ({
-          currSite: site,
-          siteList,
-          setShowSiteForm,
-          showSiteListDropdown,
-          setShowSiteListDropdown,
-        })
-      )
+    const { currSite } = useSiteStore(
+      useShallow(({ site }) => ({
+        currSite: site,
+      }))
     )
 
     const onDropdownChange = (open: boolean) => {
@@ -301,13 +271,13 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
     return (
       <div
         className={cn(
-          'flex justify-between items-center py-2 bg-white dark:bg-slate-900 sticky top-0 z-10',
-          siteMode == 'sidebar' && 'px-4 border-b-2 shadow-sm',
+          'flex justify-between items-center py-2 bg-[hsl(var(--sidebar-background))] sticky top-0 z-10',
+          siteMode == 'sidebar' && 'px-4 shadow-sm',
           isMobile && 'px-2',
           className
         )}
         style={{
-          height: `${NAV_HEIGHT - 2}px`,
+          height: `${NAV_HEIGHT}px`,
           ...style,
         }}
         ref={ref}
@@ -454,125 +424,6 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
           >
             <SearchIcon size={20} />
           </Button>
-          {!isSingleSite && !isMobile && siteListMode == 'top_drawer' && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-[36px] h-[36px] p-0 rounded-full mr-2"
-              title={t('siteList')}
-              onClick={() => {
-                if (onGripClick && typeof onGripClick == 'function') {
-                  onGripClick()
-                }
-              }}
-            >
-              <GripIcon size={20} />
-            </Button>
-          )}
-          {!isSingleSite && !isMobile && siteListMode == 'dropdown_menu' && (
-            <DropdownMenu
-              open={showSiteListDropdown}
-              onOpenChange={setShowSiteListDropdown}
-            >
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-[36px] h-[36px] p-0 rounded-full mr-2"
-                  title={t('siteList')}
-                >
-                  <GripIcon size={20} />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                sideOffset={6}
-                align="end"
-                className={cn(
-                  `px-2 pt-2 pb-4 bg-gray-200 text-sm overflow-y-auto`
-                )}
-                style={{
-                  maxHeight: `calc(100vh - ${NAV_HEIGHT + 200}px)!important`,
-                  width: `${400}px`,
-                }}
-              >
-                <div>
-                  <div className="flex flex-wrap">
-                    {siteList &&
-                      siteList.map((site) => (
-                        <SiteLink
-                          to="/"
-                          siteFrontId={site.frontId}
-                          key={site.frontId}
-                          className={cn(
-                            'flex justify-center w-[25%] box-border overflow-hidden flex-shrink-0 flex-grow-0 px-2 py-4 leading-3'
-                          )}
-                          onClick={() => setShowSiteListDropdown(false)}
-                        >
-                          <BSiteIcon
-                            logoUrl={site.logoUrl}
-                            name={site.name}
-                            size={40}
-                            fontSize={14}
-                            showSiteName
-                            active={siteFrontId == site.frontId}
-                            vertical
-                            className="w-full"
-                          />
-                        </SiteLink>
-                      ))}
-                  </div>
-                  {siteList && siteList.length > 0 && (
-                    <div className="my-4 border-t-2 border-gray-300 dark:border-slate-600"></div>
-                  )}
-                  <div className="flex flex-wrap  items-center">
-                    <SiteLink
-                      to="/"
-                      siteFrontId={undefined}
-                      useFallbackSiteFrontId={false}
-                      className={cn(
-                        'flex justify-center w-[25%] box-border overflow-hidden flex-shrink-0 flex-grow-0 px-2 py-4 leading-3'
-                      )}
-                      onClick={() => setShowSiteListDropdown(false)}
-                    >
-                      <BSiteIcon
-                        logoUrl={SITE_LOGO_IMAGE}
-                        name={t('homePage')}
-                        size={40}
-                        fontSize={14}
-                        showSiteName
-                        active={!siteFrontId}
-                        className="w-full"
-                        vertical
-                      />
-                    </SiteLink>
-                    {isLogined() && checkPermit('site', 'create', true) && (
-                      <span
-                        className="inline-flex flex-col w-[25%] box-border items-center align-middle cursor-pointer px-2 py-4"
-                        onClick={(e) => {
-                          e.preventDefault()
-                          setShowSiteForm(true)
-                          setShowSiteListDropdown(false)
-                        }}
-                      >
-                        <Button
-                          variant="secondary"
-                          className="rounded-full w-[40px] h-[40px] text-[24px] text-center text-gray-500 mb-1"
-                          key="new-site"
-                          title={t('createSite')}
-                        >
-                          +
-                        </Button>
-                        <span className="text-[14px] leading-[1.2]">
-                          {t('createSite')}
-                        </span>
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-
           {!isLogined() && (
             <DropdownMenu onOpenChange={onDropdownChange}>
               <DropdownMenuTrigger asChild>
@@ -586,22 +437,6 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="px-0" align="end" sideOffset={6}>
-                {!isSingleSite && isMobile && (
-                  <DropdownMenuItem
-                    className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
-                    onClick={() => {
-                      if (siteListMode == 'top_drawer') {
-                        if (onGripClick && typeof onGripClick == 'function') {
-                          onGripClick()
-                        }
-                      } else {
-                        setShowSiteListDropdown(true)
-                      }
-                    }}
-                  >
-                    <GripIcon size={20} /> {t('siteList')}
-                  </DropdownMenuItem>
-                )}
                 <DropdownMenuItem
                   className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                   onClick={onUserUISettingClick}
@@ -698,22 +533,6 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                   align="end"
                   sideOffset={6}
                 >
-                  {!isSingleSite && isMobile && (
-                    <DropdownMenuItem
-                      className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
-                      onClick={() => {
-                        if (siteListMode == 'top_drawer') {
-                          if (onGripClick && typeof onGripClick == 'function') {
-                            onGripClick()
-                          }
-                        } else {
-                          setShowSiteListDropdown(true)
-                        }
-                      }}
-                    >
-                      <GripIcon size={20} /> {t('siteList')}
-                    </DropdownMenuItem>
-                  )}
                   {isMobile &&
                     (isSingleSite && mainSiteMessagesUrl ? (
                       <DropdownMenuItem

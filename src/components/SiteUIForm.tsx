@@ -18,6 +18,7 @@ import { saveUserUISettings } from '@/api/user'
 import { useSiteParams } from '@/hooks/use-site-params'
 import {
   useAuthedUserStore,
+  useContextStore,
   useSiteStore,
   useSiteUIStore,
   useUserUIStore,
@@ -78,6 +79,7 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
     const currArticleListMode = useSiteUIStore((state) => state.articleListMode)
 
     const isLogined = useAuthedUserStore((state) => state.isLogined())
+    const isSingleSite = useContextStore((state) => state.isSingleSite)
     const userArticleListMode = useUserUIStore((state) => state.articleListMode)
     const setUserUIState = useUserUIStore((state) => state.setState)
 
@@ -188,17 +190,20 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
 
     useEffect(() => {
       /* console.log('site ui settings update: ', siteUISettings) */
+      const resolvedMode = isSingleSite
+        ? (siteUISettings?.mode as SiteUIMode | null | undefined) ||
+          SITE_UI_MODE.TopNav
+        : SITE_UI_MODE.Sidebar
+
       form.reset({
-        mode:
-          (siteUISettings?.mode as SiteUIMode | null | undefined) ||
-          SITE_UI_MODE.TopNav,
+        mode: resolvedMode,
         articleListMode:
           (siteUISettings?.articleListMode as
             | ArticleListMode
             | null
             | undefined) || ARTICLE_LIST_MODE.Compact,
       })
-    }, [siteUISettings, form])
+    }, [siteUISettings, form, isSingleSite])
 
     useEffect(() => {
       setUIMode(formVals.mode)
@@ -233,7 +238,12 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
                   <RadioGroup
                     className="flex flex-wrap"
                     value={field.value}
-                    onValueChange={field.onChange}
+                    onValueChange={(value) => {
+                      if (!isSingleSite) {
+                        return
+                      }
+                      field.onChange(value)
+                    }}
                   >
                     <FormItem
                       className="flex items-center space-y-0 mr-4 mb-4"
@@ -243,6 +253,7 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
                         <RadioGroupItem
                           value={SITE_UI_MODE.Sidebar}
                           className="mr-1"
+                          disabled={!isSingleSite}
                         />
                       </FormControl>
                       <FormLabel className="font-normal">
@@ -257,6 +268,7 @@ const SiteUIForm = forwardRef<SiteUIFormRef, SiteUIFormProps>(
                         <RadioGroupItem
                           value={SITE_UI_MODE.TopNav}
                           className="mr-1"
+                          disabled={!isSingleSite}
                         />
                       </FormControl>
                       <FormLabel className="font-normal">

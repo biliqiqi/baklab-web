@@ -22,13 +22,11 @@ import { cn, isInnerURL, summaryText } from '@/lib/utils'
 import { getSiteList, joinSite } from '@/api/site'
 import {
   DEFAULT_CONTENT_WIDTH,
-  DEFAULT_INNER_CONTENT_WIDTH,
   DEFAULT_PAGE_SIZE,
   LEFT_SIDEBAR_STATE_KEY,
   NAV_HEIGHT,
   RIGHT_SIDEBAR_STATE_KEY,
   SIGNUP_TEMP_TOKEN_KEY,
-  TOP_DRAWER_STATE_KEY,
 } from '@/constants/constants'
 import { useIsMobile } from '@/hooks/use-mobile'
 import useDocumentTitle from '@/hooks/use-page-title'
@@ -50,7 +48,6 @@ import {
   useSidebarStore,
   useSiteStore,
   useSiteUIStore,
-  useTopDrawerStore,
   useUserUIStore,
 } from '@/state/global'
 import { Category, FrontCategory, SITE_VISIBLE, Site } from '@/types/types'
@@ -89,7 +86,6 @@ import { Input } from '../ui/input'
 import { Sidebar, SidebarContent, SidebarProvider } from '../ui/sidebar'
 import BNav from './BNav'
 import BSidebar from './BSidebar'
-import BTopDrawer from './BTopDrawer'
 
 export interface BContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string
@@ -115,13 +111,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const [siteFormDirty, setSiteFormDirty] = useState(false)
     const [userUIFormDirty, setUserUIFormDirty] = useState(false)
     const [siteUIFormDirty, setSiteUIFormDirty] = useState(false)
-
-    const { showTopDrawer, setShowTopDrawer } = useTopDrawerStore(
-      useShallow(({ open, update }) => ({
-        showTopDrawer: open,
-        setShowTopDrawer: update,
-      }))
-    )
 
     const { signin, signup, updateSignin, updateSignup } = useDialogStore()
     const { showNotFound, updateNotFound } = useNotFoundStore()
@@ -174,11 +163,9 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       )
     )
 
-    const { siteListMode, contentWidth } = useUserUIStore(
-      useShallow(({ siteListMode, contentWidth, innerContentWidth }) => ({
-        siteListMode,
+    const { contentWidth } = useUserUIStore(
+      useShallow(({ contentWidth }) => ({
         contentWidth: contentWidth || DEFAULT_CONTENT_WIDTH,
-        innerContentWidth: innerContentWidth || DEFAULT_INNER_CONTENT_WIDTH,
       }))
     )
 
@@ -387,17 +374,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       },
       [setAlertOpen, alertType, alertDialog]
     )
-
-    const onToggleTopDrawer = useCallback(() => {
-      if (!showTopDrawer) {
-        window.scrollTo({
-          top: 0,
-          behavior: 'smooth',
-        })
-      }
-      setShowTopDrawer(!showTopDrawer)
-      localStorage.setItem(TOP_DRAWER_STATE_KEY, String(!showTopDrawer))
-    }, [showTopDrawer, setShowTopDrawer])
 
     const onJoinSiteClick = useCallback(
       async (ev: MouseEvent<HTMLButtonElement>) => {
@@ -665,10 +641,9 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     return (
       <div className="b-bg-main min-h-screen">
-        {siteListMode == 'top_drawer' && <BTopDrawer />}
         {siteMode == 'top_nav' && (
           <div
-            className="bg-white dark:bg-slate-900 sticky top-0 z-50 border-b-2 shadow-sm"
+            className="bg-[hsl(var(--sidebar-background))] sticky top-0 z-50 border-b-2 shadow-sm"
             style={{
               height: `${NAV_HEIGHT}px`,
               boxSizing: 'border-box',
@@ -677,7 +652,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             <BNav
               category={category}
               goBack={goBack}
-              onGripClick={onToggleTopDrawer}
               className={cn('mx-auto')}
               style={{
                 maxWidth: contentWidth == -1 ? '' : `${contentWidth}px`,
@@ -732,7 +706,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
               <BNav
                 category={category}
                 goBack={goBack}
-                onGripClick={onToggleTopDrawer}
               />
             )}
             <div
@@ -746,7 +719,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                 className="container mx-auto p-4 max-md:px-2"
                 {...props}
                 style={{
-                  // maxWidth: `${innerContentWidth}px`,
                   ...props.style,
                 }}
               >
@@ -834,7 +806,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
                   style={{ minHeight: bodyHeight }}
                 >
                   <div
-                    className="flex items-center justify-between mb-2"
+                    className="mb-2 flex items-center justify-between"
                     style={{ height: `${NAV_HEIGHT}px` }}
                   >
                     {settingsType == 'site_ui' && (

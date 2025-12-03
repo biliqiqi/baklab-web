@@ -30,12 +30,10 @@ import {
   InviteCode,
   ReplyBoxProps,
   Role,
-  SITE_LIST_MODE,
   SITE_STATUS,
   SITE_UI_MODE,
   SettingsType,
   Site,
-  SiteListMode,
   SiteUIMode,
   StringFn,
   Theme,
@@ -271,7 +269,6 @@ export const getLocalUserUISettings = () => {
 }
 
 export interface BackendUISettings {
-  mode?: SiteListMode
   theme?: Theme
   fontSize?: number
   contentWidth?: number
@@ -300,10 +297,6 @@ export const unregisterUISettingsCallback = () => {
 // Core logic for applying UI settings (without form interaction check)
 const applyUISettingsCore = (settings: BackendUISettings) => {
   const userUIStore = useUserUIStore.getState()
-
-  if (settings.mode) {
-    userUIStore.setSiteListMode(settings.mode)
-  }
 
   if (settings.fontSize) {
     setRootFontSize(String(settings.fontSize))
@@ -364,7 +357,6 @@ useAuthedUserStore.subscribe(
         const defaultFontSize =
           useDefaultFontSizeStore.getState().defaultFontSize
         setLocalUserUISettings({
-          siteListMode: backendSettings.mode || currentState.siteListMode,
           theme: backendSettings.theme || currentState.theme,
           fontSize:
             backendSettings.fontSize ||
@@ -389,26 +381,6 @@ type IsLogined = (x: AuthedUserState | AuthedUserData) => boolean
 
 export const isLogined: IsLogined = ({ authToken, username, userID }) =>
   Boolean(authToken && username && userID)
-
-export interface TopDrawerState {
-  open: boolean
-  update: (x: boolean) => void
-  toggle: () => void
-}
-
-export const useTopDrawerStore = create<TopDrawerState>((set) => ({
-  open: false,
-  update(open: boolean) {
-    set(() => ({
-      open,
-    }))
-  },
-  toggle() {
-    set(({ open }) => ({
-      open: !open,
-    }))
-  },
-}))
 
 export interface DialogState {
   signin: boolean
@@ -816,8 +788,6 @@ export interface SiteState {
   setShowSiteForm: (show: boolean) => void
   showSiteAbout: boolean
   setShowSiteAbout: (show: boolean) => void
-  showSiteListDropdown: boolean
-  setShowSiteListDropdown: (show: boolean) => void
 }
 
 export const useSiteStore = create(
@@ -849,10 +819,6 @@ export const useSiteStore = create(
     showSiteAbout: false,
     setShowSiteAbout(show) {
       set((state) => ({ ...state, showSiteAbout: show }))
-    },
-    showSiteListDropdown: false,
-    setShowSiteListDropdown(show) {
-      set((state) => ({ ...state, showSiteListDropdown: show }))
     },
     fetchSiteData: async (frontId) => {
       const ps = new Promise((resolve) => {
@@ -906,16 +872,27 @@ export const useSiteStore = create(
   }))
 )
 
+const deriveSiteMode = (
+  site: Site | null | undefined,
+  isSingleSite: boolean
+): SiteUIMode => {
+  if (!isSingleSite) {
+    return SITE_UI_MODE.Sidebar
+  }
+  return (
+    (site?.uiSettings?.mode as SiteUIMode | undefined) || SITE_UI_MODE.Sidebar
+  )
+}
+
 useSiteStore.subscribe(
   (state) => state.site,
   (site) => {
     updateCurrRole()
     const siteUIStore = useSiteUIStore.getState()
+    const isSingleSite = useContextStore.getState().isSingleSite
 
     // Always set site mode when site changes, regardless of uiSettings existence
-    siteUIStore.setMode(
-      (site?.uiSettings?.mode as SiteUIMode | undefined) || SITE_UI_MODE.Sidebar
-    )
+    siteUIStore.setMode(deriveSiteMode(site, isSingleSite))
     siteUIStore.setArticleListMode(
       (site?.uiSettings?.articleListMode as ArticleListMode | undefined) ||
         ARTICLE_LIST_MODE.Preview
@@ -1030,8 +1007,6 @@ export const useSiteUIStore = create<SiteUIState>((set) => ({
 }))
 
 export interface UserUIState {
-  siteListMode: SiteListMode
-  setSiteListMode: (mode: SiteListMode) => void
   theme?: Theme
   fontSize?: number
   contentWidth?: number
@@ -1043,33 +1018,20 @@ export interface UserUIState {
 export interface UserUIStateData
   extends Pick<
     UserUIState,
-    'siteListMode' | 'theme' | 'fontSize' | 'contentWidth' | 'articleListMode'
+    'theme' | 'fontSize' | 'contentWidth' | 'articleListMode'
   > {
   updatedAt: number
 }
 
 export const useUserUIStore = create(
   subscribeWithSelector<UserUIState>((set) => ({
-    siteListMode: SITE_LIST_MODE.TopDrawer,
     fontSize: undefined,
     contentWidth: Number(DEFAULT_CONTENT_WIDTH),
     articleListMode: undefined,
-    setSiteListMode(mode) {
-      set((state) => ({ ...state, siteListMode: mode }))
-    },
     setState(newState) {
       set((state) => ({ ...state, ...newState }))
     },
   }))
-)
-
-useUserUIStore.subscribe(
-  (state) => state.siteListMode,
-  (mode) => {
-    if (mode == SITE_LIST_MODE.DropdownMenu) {
-      useTopDrawerStore.getState().update(false)
-    }
-  }
 )
 
 export interface InviteDataState {
@@ -1274,3 +1236,12 @@ export const useContextStore = create<ContextState>((set) => ({
     }
   },
 }))
+
+useContextStore.subscribe(
+  (state) => state.isSingleSite,
+  (isSingleSite) => {
+    const siteState = useSiteStore.getState()
+    const siteUIStore = useSiteUIStore.getState()
+    siteUIStore.setMode(deriveSiteMode(siteState.site, isSingleSite))
+  }
+)

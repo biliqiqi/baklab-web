@@ -32,6 +32,7 @@ import {
   useAlertDialogStore,
   useAuthedUserStore,
   useCategoryStore,
+  useContextStore,
   useCurrentArticleStore,
   useSidebarStore,
   useSiteStore,
@@ -214,6 +215,7 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
       updateCurrSite: update,
     }))
   )
+  const isSingleSite = useContextStore((state) => state.isSingleSite)
 
   const currCateList = useMemo(
     () => (isLogined() ? subscribedCateList : cateList),
@@ -346,7 +348,12 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
               'bg-[hsl(var(--sidebar-background))]'
             )}
           >
-            <BSiteListDock className="h-full" style={{ height: bodyHeight }} />
+            {!isSingleSite && (
+              <BSiteListDock
+                className="h-full"
+                style={{ height: bodyHeight }}
+              />
+            )}
             <div
               className={cn(
                 'flex-1 min-w-0 overflow-y-auto pb-4',

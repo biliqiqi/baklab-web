@@ -183,6 +183,7 @@ export interface Article {
   viewCount: number
   articleLinkClick: number
   tags: Tag[]
+  searchSnippet?: string
 }
 
 export interface ArticleListResponse {

@@ -40,9 +40,11 @@ const ArticleSearchDialog = ({
   const [searchState, setSearchState] = useState<SearchState>('idle')
   const [showContent, setShowContent] = useState(false)
   const [selectedSite, setSelectedSite] = useState<string>(ALL_SITES_OPTION)
+  const [activeResultIndex, setActiveResultIndex] = useState(-1)
   const rem2pxNum = useRem2PxNum()
   const currentSiteFrontId = useSiteFrontId()
   const selectIconSize = rem2pxNum(2)
+  const resultRefs = useRef<Array<HTMLAnchorElement | null>>([])
 
   const { siteList, fetchSiteList, site } = useSiteStore(
     useShallow(({ siteList, fetchSiteList, site }) => ({
@@ -136,6 +138,42 @@ const ArticleSearchDialog = ({
     400
   )
 
+  const focusResultItem = useCallback(
+    (index: number) => {
+      if (index < 0) {
+        setActiveResultIndex(-1)
+        inputRef.current?.focus()
+        return
+      }
+
+      const maxIndex = articles.length - 1
+      if (maxIndex < 0) return
+
+      const clamped = Math.max(0, Math.min(index, maxIndex))
+      setActiveResultIndex(clamped)
+      requestAnimationFrame(() => {
+        const target = resultRefs.current[clamped]
+        target?.focus()
+        target?.scrollIntoView({ block: 'nearest' })
+      })
+    },
+    [articles.length]
+  )
+
+  const moveResultFocus = useCallback(
+    (delta: number) => {
+      if (!articles.length) return
+      const nextIndex =
+        activeResultIndex === -1
+          ? delta > 0
+            ? 0
+            : articles.length - 1
+          : (activeResultIndex + delta + articles.length) % articles.length
+      focusResultItem(nextIndex)
+    },
+    [activeResultIndex, articles.length, focusResultItem]
+  )
+
   useEffect(() => {
     if (!open) return
     const timer = setTimeout(() => {
@@ -162,6 +200,7 @@ const ArticleSearchDialog = ({
     setArticles([])
     setSearchState('idle')
     setSelectedSite(ALL_SITES_OPTION)
+    setActiveResultIndex(-1)
     debouncedSearch.cancel()
   }, [open, debouncedSearch])
 
@@ -214,6 +253,112 @@ const ArticleSearchDialog = ({
     setSelectedSite(currentSiteFrontId)
   }, [open, currentSiteFrontId])
 
+  useEffect(() => {
+    resultRefs.current = []
+    setActiveResultIndex(-1)
+  }, [articles])
+
+  const handleInputKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (!showDropdown || articles.length === 0) return
+
+      if (event.key === 'Tab' && event.shiftKey) {
+        return
+      }
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault()
+        moveResultFocus(1)
+        return
+      }
+
+      if (event.key === 'ArrowUp') {
+        event.preventDefault()
+        moveResultFocus(-1)
+        return
+      }
+
+      if (event.key === 'Tab') {
+        event.preventDefault()
+        moveResultFocus(1)
+        return
+      }
+
+      if (event.key === 'Home') {
+        event.preventDefault()
+        focusResultItem(0)
+        return
+      }
+
+      if (event.key === 'End') {
+        event.preventDefault()
+        focusResultItem(articles.length - 1)
+      }
+    },
+    [showDropdown, articles.length, moveResultFocus, focusResultItem]
+  )
+
+  const handleResultKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLAnchorElement>, index: number) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        onOpenChange(false)
+        return
+      }
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault()
+        moveResultFocus(1)
+        return
+      }
+
+      if (event.key === 'ArrowUp') {
+        event.preventDefault()
+        if (index === 0) {
+          focusResultItem(-1)
+        } else {
+          moveResultFocus(-1)
+        }
+        return
+      }
+
+      if (event.key === 'Tab') {
+        event.preventDefault()
+        if (event.shiftKey) {
+          if (index === 0) {
+            focusResultItem(-1)
+          } else {
+            moveResultFocus(-1)
+          }
+        } else {
+          moveResultFocus(1)
+        }
+        return
+      }
+
+      if (event.key === 'Home') {
+        event.preventDefault()
+        focusResultItem(0)
+        return
+      }
+
+      if (event.key === 'End') {
+        event.preventDefault()
+        focusResultItem(articles.length - 1)
+        return
+      }
+
+      if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+        event.preventDefault()
+        const target = resultRefs.current[index]
+        if (target?.href) {
+          window.open(target.href, '_blank', 'noopener')
+        }
+      }
+    },
+    [moveResultFocus, focusResultItem, onOpenChange, articles.length]
+  )
+
   const renderDropdownContent = () => {
     if (searchState === 'loading') {
       return (
@@ -249,15 +394,25 @@ const ArticleSearchDialog = ({
 
     return (
       <div className="max-h-80 overflow-y-auto">
-        {articles.map((article) => {
+        {articles.map((article, index) => {
           const siteName = article.site?.name
           const categoryName = article.category?.name
+          const isActive = index === activeResultIndex
           return (
             <SiteLink
               key={article.id}
               to={`/articles/${article.id}`}
               siteFrontId={article.siteFrontId}
-              className="block px-4 py-3 no-underline hover:bg-gray-100 hover:no-underline focus-visible:no-underline dark:hover:bg-slate-800"
+              className={cn(
+                'block px-4 py-3 no-underline hover:bg-gray-100 hover:no-underline focus-visible:outline-none focus-visible:ring-0 focus-visible:no-underline dark:hover:bg-slate-800',
+                isActive && 'bg-gray-100 dark:bg-slate-800'
+              )}
+              tabIndex={-1}
+              aria-selected={isActive}
+              ref={(element) => {
+                resultRefs.current[index] = element
+              }}
+              onKeyDown={(event) => handleResultKeyDown(event, index)}
               onClick={() => onOpenChange(false)}
             >
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -394,6 +549,7 @@ const ArticleSearchDialog = ({
                       : 'opacity-0 -translate-y-1'
                   )}
                   onChange={(event) => setKeywords(event.target.value)}
+                  onKeyDown={handleInputKeyDown}
                 />
               </div>
             </div>

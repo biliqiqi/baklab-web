@@ -30,6 +30,7 @@ import {
 } from '@/state/global'
 import {
   Article,
+  ArticleAction,
   CHAT_DB_EVENT,
   Category,
   ChatListState,
@@ -222,6 +223,48 @@ const ChatList: React.FC<ChatListProps> = ({
       setLoading,
       currCursor,
     ]
+  )
+
+  const handleChatCardSuccess = useCallback(
+    async (action: ArticleAction, id?: string, updates?: Partial<Article>) => {
+      if (action === 'react' && id) {
+        if (!updates) {
+          await fetchChatList(false)
+          return
+        }
+
+        setChatList((current) => {
+          const targetIdx = current.list.findIndex((item) => item.id === id)
+          if (targetIdx === -1) {
+            return current
+          }
+
+          const targetArticle = current.list[targetIdx]
+          const nextArticle: Article = {
+            ...targetArticle,
+            ...(updates.reactCounts
+              ? { reactCounts: { ...updates.reactCounts } }
+              : {}),
+            ...(updates.currUserState
+              ? { currUserState: { ...updates.currUserState } }
+              : {}),
+          }
+
+          const nextList = [...current.list]
+          nextList[targetIdx] = nextArticle
+
+          return {
+            ...current,
+            list: nextList,
+          }
+        })
+
+        return
+      }
+
+      await fetchChatList(false)
+    },
+    [fetchChatList]
   )
 
   const onReplyClick = useCallback(
@@ -747,9 +790,7 @@ const ChatList: React.FC<ChatListProps> = ({
               <ChatCard
                 article={item}
                 key={item.id}
-                onSuccess={async () => {
-                  await fetchChatList(false)
-                }}
+                onSuccess={handleChatCardSuccess}
                 ref={(el) => {
                   if (el) {
                     listItemRef.current.set(item.id, el)

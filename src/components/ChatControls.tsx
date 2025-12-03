@@ -67,7 +67,8 @@ interface ChatControlsProps extends HTMLAttributes<HTMLDivElement> {
   /* onSaveClick?: MouseEventHandler<HTMLButtonElement> */
   /* onVoteUpClick?: MouseEventHandler<HTMLButtonElement>
    * onVoteDownClick?: MouseEventHandler<HTMLButtonElement> */
-  onSuccess?: (a: ArticleAction) => void
+  onSuccess?: (a: ArticleAction, id?: string, updates?: Partial<Article>) => void
+  onReactOptionClick?: (reactId: string) => Promise<void> | void
 }
 
 const checkContentForm = (targetArticle: Article, contentForm: string) => {
@@ -86,6 +87,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
   onDeleteClick = noop,
   onToggleLockClick = noop,
   onSuccess = noop,
+  onReactOptionClick,
   ...props
 }) => {
   const [showChatMenu, setShowChatMenu] = useState(false)
@@ -267,6 +269,11 @@ const ChatControls: React.FC<ChatControlsProps> = ({
 
   const onReactClick = useCallback(
     async (reactId: string) => {
+      if (onReactOptionClick) {
+        await onReactOptionClick(reactId)
+        return
+      }
+
       try {
         if (!isLogined()) {
           await loginWithDialog()
@@ -283,7 +290,13 @@ const ChatControls: React.FC<ChatControlsProps> = ({
         console.error('toggle react article failed: ', err)
       }
     },
-    [article, onSuccess, isLogined, loginWithDialog]
+    [
+      article,
+      onSuccess,
+      isLogined,
+      loginWithDialog,
+      onReactOptionClick,
+    ]
   )
 
   return (

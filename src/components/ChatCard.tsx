@@ -50,7 +50,13 @@ import {
   useAuthedUserStore,
   useReactOptionsStore,
 } from '@/state/global'
-import { ARTICLE_LOCK_ACTION, Article, ArticleAction } from '@/types/types'
+import { defaultCurrState } from '@/constants/defaults'
+import {
+  ARTICLE_LOCK_ACTION,
+  Article,
+  ArticleAction,
+  ArticleReact,
+} from '@/types/types'
 
 import ChatControls from './ChatControls'
 import ModerationForm, { ReasonSchema } from './ModerationForm'
@@ -68,7 +74,7 @@ import { Skeleton } from './ui/skeleton'
 
 interface ChatCardProps extends HTMLAttributes<HTMLDivElement> {
   article: Article
-  onSuccess?: (a: ArticleAction, id?: string) => void
+  onSuccess?: (a: ArticleAction, id?: string, updates?: Partial<Article>) => void
   isTop?: boolean
   previewMode?: boolean
 }
@@ -88,8 +94,6 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
     const [alertOpen, setAlertOpen] = useState(false)
     const contentRef = useRef<HTMLDivElement>(null)
     const lightboxRef = useRef<PhotoSwipeLightbox | null>(null)
-
-    const userState = useMemo(() => article.currUserState, [article])
 
     const isMobile = useIsMobile()
 
@@ -112,6 +116,12 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
     const checkPermit = useAuthedUserStore((state) => state.permit)
 
     const reactOptions = useReactOptionsStore((state) => state.reactOptions)
+    const reactOptionMap = useMemo(() => {
+      return reactOptions.reduce((map, react) => {
+        map.set(react.id, react)
+        return map
+      }, new Map<string, ArticleReact>())
+    }, [reactOptions])
 
     const onEditClick = useCallback(
       (e: MouseEvent) => {
@@ -220,17 +230,62 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
             return
           }
 
+          const reactOption = reactOptionMap.get(reactId)
+          if (!reactOption) {
+            console.warn('React option not found for id:', reactId)
+            return
+          }
+
           const resp = await toggleReactArticle(article.id, reactId, {
             siteFrontId: article.siteFrontId,
           })
           if (!resp.code) {
-            onSuccess('react')
+            const currentCounts = article.reactCounts || {}
+            const nextCounts = { ...currentCounts }
+            const prevFrontId = article.currUserState?.reactFrontId || ''
+
+            if (prevFrontId) {
+              const updatedPrevCount = (nextCounts[prevFrontId] || 0) - 1
+              if (updatedPrevCount <= 0) {
+                delete nextCounts[prevFrontId]
+              } else {
+                nextCounts[prevFrontId] = updatedPrevCount
+              }
+            }
+
+            let nextFrontId = prevFrontId
+            if (prevFrontId === reactOption.frontId) {
+              nextFrontId = ''
+            } else {
+              nextFrontId = reactOption.frontId
+              nextCounts[reactOption.frontId] =
+                (nextCounts[reactOption.frontId] || 0) + 1
+            }
+
+            const nextCurrUserState = {
+              ...(article.currUserState || { ...defaultCurrState }),
+              reactFrontId: nextFrontId,
+            }
+
+            onSuccess('react', article.id, {
+              reactCounts: nextCounts,
+              currUserState: nextCurrUserState,
+            })
           }
         } catch (err) {
           console.error('toggle react article failed: ', err)
         }
       },
-      [article, onSuccess, isLogined, loginWithDialog]
+      [
+        article.currUserState,
+        article.id,
+        article.reactCounts,
+        article.siteFrontId,
+        reactOptionMap,
+        onSuccess,
+        isLogined,
+        loginWithDialog,
+      ]
     )
 
     useEffect(() => {
@@ -459,41 +514,38 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
                   ></div>
                   {article.reactCounts &&
                     Object.keys(article.reactCounts).length > 0 && (
-                      <div className="flex flex-wrap items-center gap-1 mr-1">
-                        {reactOptions
-                          .filter(
-                            (react) => article.reactCounts[react.frontId] > 0
+                    <div className="flex flex-wrap items-center gap-1 mr-1">
+                      {reactOptions
+                        .filter(
+                          (react) => (article.reactCounts?.[react.frontId] || 0) > 0
+                        )
+                        .map((react) => {
+                          const isActive =
+                            article.currUserState?.reactFrontId === react.frontId
+                          return (
+                            <Button
+                              key={react.id}
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onReactClick(react.id)}
+                              disabled={
+                                isLogined() && !checkPermit('article', 'react')
+                              }
+                              className={cn(
+                                'h-[1.5rem] px-2 py-1 gap-1 text-sm',
+                                isActive && 'bg-accent'
+                              )}
+                              title={react.describe}
+                            >
+                              <span className="text-base leading-none">
+                                {react.emoji}
+                              </span>
+                              <span>{article.reactCounts?.[react.frontId]}</span>
+                            </Button>
                           )
-                          .map((react) => {
-                            const isActive =
-                              userState?.reactFrontId === react.frontId
-                            return (
-                              <Button
-                                key={react.id}
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => onReactClick(react.id)}
-                                disabled={
-                                  isLogined() &&
-                                  !checkPermit('article', 'react')
-                                }
-                                className={cn(
-                                  'h-[1.5rem] px-2 py-1 gap-1 text-sm',
-                                  isActive && 'bg-accent'
-                                )}
-                                title={react.describe}
-                              >
-                                <span className="text-base leading-none">
-                                  {react.emoji}
-                                </span>
-                                <span>
-                                  {article.reactCounts[react.frontId]}
-                                </span>
-                              </Button>
-                            )
-                          })}
-                      </div>
-                    )}
+                        })}
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -501,6 +553,7 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
               <ChatControls
                 isTopArticle={isTop}
                 article={article}
+                onReactOptionClick={onReactClick}
                 onCommentClick={(e) => {
                   e.preventDefault()
                   bus.emit(EV_ON_REPLY_CLICK, article)

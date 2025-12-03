@@ -29,6 +29,7 @@ export const RIGHT_SIDEBAR_STATE_KEY = 'right_sidebar_state'
 export const RIGHT_SIDEBAR_SETTINGS_TYPE_KEY = 'right_sidebar_settings_type'
 export const USER_UI_SETTINGS_KEY = 'user_ui_settings'
 export const CHAT_DATA_CACHE_KEY = 'chat_data_cache'
+export const VISITED_SITE_LIST_CACHE_KEY = 'visited_site_list_cache'
 
 export const DEFAULT_THEME = 'system'
 export const DEFAULT_CONTENT_WIDTH = '-1'

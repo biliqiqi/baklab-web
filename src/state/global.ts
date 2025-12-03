@@ -17,6 +17,7 @@ import {
   RIGHT_SIDEBAR_SETTINGS_TYPE_KEY,
   RIGHT_SIDEBAR_STATE_KEY,
   USER_UI_SETTINGS_KEY,
+  VISITED_SITE_LIST_CACHE_KEY,
 } from '@/constants/constants'
 import { PermitFn, PermitUnderSiteFn } from '@/constants/types'
 import i18n from '@/i18n'
@@ -771,9 +772,53 @@ export const useNotificationStore = create<NotificationState>((set) => ({
   },
 }))
 
+export type CachedSiteSummary = Pick<Site, 'frontId' | 'name' | 'logoUrl'>
+
+const getCachedSiteListFromStorage = (): CachedSiteSummary[] => {
+  const cached = localStorage.getItem(VISITED_SITE_LIST_CACHE_KEY)
+  if (!cached) {
+    return []
+  }
+
+  try {
+    const parsed = JSON.parse(cached) as CachedSiteSummary[]
+    if (!Array.isArray(parsed)) {
+      return []
+    }
+    return parsed
+      .filter(
+        (item): item is CachedSiteSummary =>
+          Boolean(item && typeof item.frontId === 'string')
+      )
+      .map((item) => ({
+        frontId: item.frontId,
+        name: typeof item.name === 'string' ? item.name : '',
+        logoUrl: typeof item.logoUrl === 'string' ? item.logoUrl : '',
+      }))
+  } catch (err) {
+    console.error('parse cached site list failed: ', err)
+    return []
+  }
+}
+
+const persistCachedSiteList = (list: CachedSiteSummary[]) => {
+  try {
+    localStorage.setItem(VISITED_SITE_LIST_CACHE_KEY, JSON.stringify(list))
+  } catch (err) {
+    console.error('persist cached site list failed: ', err)
+  }
+}
+
+const toCachedSiteSummary = (site: Site): CachedSiteSummary => ({
+  frontId: site.frontId,
+  name: site.name,
+  logoUrl: site.logoUrl,
+})
+
 export interface SiteState {
   site?: Site | null
   siteList?: Site[] | null
+  cachedSiteList: CachedSiteSummary[]
   homePage: string
   showSiteForm: boolean
   editting: boolean
@@ -788,12 +833,15 @@ export interface SiteState {
   setShowSiteForm: (show: boolean) => void
   showSiteAbout: boolean
   setShowSiteAbout: (show: boolean) => void
+  loadCachedSiteList: () => void
+  cacheVisitedSite: (site: Site) => void
 }
 
 export const useSiteStore = create(
   subscribeWithSelector<SiteState>((set, get) => ({
     site: null,
     siteList: null,
+    cachedSiteList: [],
     showSiteForm: false,
     homePage: '/',
     editting: false,
@@ -820,6 +868,28 @@ export const useSiteStore = create(
     setShowSiteAbout(show) {
       set((state) => ({ ...state, showSiteAbout: show }))
     },
+    loadCachedSiteList() {
+      set((state) => ({
+        ...state,
+        cachedSiteList: getCachedSiteListFromStorage(),
+      }))
+    },
+    cacheVisitedSite(site) {
+      const summary = toCachedSiteSummary(site)
+      const currentStateList = get().cachedSiteList
+      const cachedSites = currentStateList.length
+        ? currentStateList
+        : getCachedSiteListFromStorage()
+      const existingIndex = cachedSites.findIndex(
+        (item) => item.frontId === summary.frontId
+      )
+
+      if (existingIndex >= 0) return
+
+      const nextList = [...cachedSites, summary].slice(-50)
+      persistCachedSiteList(nextList)
+      set((state) => ({ ...state, cachedSiteList: nextList }))
+    },
     fetchSiteData: async (frontId) => {
       const ps = new Promise((resolve) => {
         const unsub = useSiteStore.subscribe(
@@ -845,6 +915,10 @@ export const useSiteStore = create(
             site: clone(data),
             homePage: `/z/${data.frontId}${data.homePage}`,
           }))
+          const authedUserState = useAuthedUserStore.getState()
+          if (!authedUserState.isLogined()) {
+            get().cacheVisitedSite(data)
+          }
         } else {
           set((state) => ({ ...state, site: null, homePage: `/` }))
         }

@@ -1,3 +1,5 @@
+import type { FC, HTMLAttributes } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -9,26 +11,57 @@ import { useSiteParams } from '@/hooks/use-site-params'
 import { useAuthedUserStore, useSiteStore } from '@/state/global'
 
 import { Button } from '../ui/button'
-import BSiteIcon from './BSiteIcon'
 import SiteLink from './SiteLink'
 
-type BSiteListDockProps = React.HTMLAttributes<HTMLDivElement>
+type BSiteListDockProps = HTMLAttributes<HTMLDivElement>
 
 const ICON_SIZE = 44
 
-const BSiteListDock: React.FC<BSiteListDockProps> = ({
+const BSiteListDock: FC<BSiteListDockProps> = ({
   className,
   style,
   ...props
 }) => {
   const { t } = useTranslation()
   const { siteFrontId } = useSiteParams()
-  const { siteList, setShowSiteForm } = useSiteStore(
-    useShallow(({ siteList, setShowSiteForm }) => ({
-      siteList,
-      setShowSiteForm,
-    }))
+  const {
+    siteList,
+    cachedSiteList,
+    setShowSiteForm,
+    loadCachedSiteList,
+  } = useSiteStore(
+    useShallow(
+      ({
+        siteList,
+        cachedSiteList,
+        setShowSiteForm,
+        loadCachedSiteList,
+      }) => ({
+        siteList,
+        cachedSiteList,
+        setShowSiteForm,
+        loadCachedSiteList,
+      })
+    )
   )
+
+  useEffect(() => {
+    loadCachedSiteList()
+  }, [loadCachedSiteList])
+
+  const combinedSiteList = useMemo(() => {
+    const subscribedSites = siteList ?? []
+    if (!cachedSiteList.length) {
+      return subscribedSites
+    }
+    const subscribedFrontIds = new Set(
+      subscribedSites.map((site) => site.frontId)
+    )
+    const dedupedCachedSites = cachedSiteList.filter(
+      (cached) => !subscribedFrontIds.has(cached.frontId)
+    )
+    return [...subscribedSites, ...dedupedCachedSites]
+  }, [siteList, cachedSiteList])
 
   const { checkPermit, isLogined } = useAuthedUserStore(
     useShallow(({ permit, isLogined }) => ({
@@ -79,7 +112,7 @@ const BSiteListDock: React.FC<BSiteListDockProps> = ({
         className="flex flex-1 flex-col items-center overflow-y-auto pb-4"
         style={{ zIndex: 100 }}
       >
-        {siteList?.map((site) => {
+        {combinedSiteList.map((site) => {
           const isActive = siteFrontId == site.frontId
           return (
             <SiteLink

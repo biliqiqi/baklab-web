@@ -11,6 +11,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { noop } from '@/lib/utils'
 
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
+import { useDelayedVisibility } from '@/hooks/useDelayedVisibility'
 import { buildRoutePath } from '@/hooks/use-route-match'
 import { isLogined, useAuthedUserStore, useLoading } from '@/state/global'
 import {
@@ -84,6 +85,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
     total: 0,
     totalPage: 0,
   })
+  const showSkeleton = useDelayedVisibility(isLoading)
 
   const checkPermit = useAuthedUserStore((state) => state.permit)
   const loginWithDialog = useAuthedUserStore((state) => state.loginWithDialog)
@@ -233,13 +235,15 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
       </div>
       <div className="mt-4">
         {isLoading ? (
-          <Card>
-            {Array(3)
-              .fill('')
-              .map((_, idx) => (
-                <ArticleListItemSkeleton key={idx} />
-              ))}
-          </Card>
+          showSkeleton ? (
+            <Card>
+              {Array(3)
+                .fill('')
+                .map((_, idx) => (
+                  <ArticleListItemSkeleton key={idx} />
+                ))}
+            </Card>
+          ) : null
         ) : list.length == 0 ? (
           <Empty />
         ) : mode == ARTICLE_LIST_MODE.Compact ? (

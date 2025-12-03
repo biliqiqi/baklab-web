@@ -19,6 +19,7 @@ import {
   EV_ON_REPLY_CLICK,
   REPLY_BOX_PLACEHOLDER_HEIGHT,
 } from '@/constants/constants'
+import { useDelayedVisibility } from '@/hooks/useDelayedVisibility'
 import { useSiteParams } from '@/hooks/use-site-params'
 
 import { getArticle, readManyArticle } from './api/article'
@@ -52,6 +53,7 @@ export default function ArticlePage() {
   const [article, setArticle] = useState<Article | null>(null)
   const [rootArticle, setRootArticle] = useState<Article | null>(null)
   const [articleCategory, setArticleCategory] = useState<Category | null>(null)
+  const showInitialSkeleton = useDelayedVisibility(!initialized)
 
   const { loading, setLoading } = useLoading()
   const { t } = useTranslation()
@@ -432,19 +434,21 @@ export default function ArticlePage() {
         loading={loading}
       >
         {!initialized ? (
-          <>
-            <Card className="mb-3">
-              <ArticleCardSkeleton />
-            </Card>
-            <div className="py-1 mb-3">
-              <Skeleton className="w-[210px] h-[44px]"></Skeleton>
-            </div>
-            <Card>
-              <ArticleCardSkeleton />
-              <ArticleCardSkeleton />
-              <ArticleCardSkeleton />
-            </Card>
-          </>
+          showInitialSkeleton ? (
+            <>
+              <Card className="mb-3">
+                <ArticleCardSkeleton />
+              </Card>
+              <div className="py-1 mb-3">
+                <Skeleton className="w-[210px] h-[44px]"></Skeleton>
+              </div>
+              <Card>
+                <ArticleCardSkeleton />
+                <ArticleCardSkeleton />
+                <ArticleCardSkeleton />
+              </Card>
+            </>
+          ) : null
         ) : article ? (
           <ArticleContext.Provider
             value={{

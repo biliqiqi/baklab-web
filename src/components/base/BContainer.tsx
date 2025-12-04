@@ -643,12 +643,10 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     useEffect(() => {
       updateNotFound(false)
-      return () => {
-        if (isMobile) {
-          closeMobileSidebar()
-        }
-        // setShowSiteAbout(false)
+      if (isMobile) {
+        closeMobileSidebar()
       }
+      // setShowSiteAbout(false)
     }, [
       location,
       isMobile,

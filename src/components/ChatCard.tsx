@@ -44,13 +44,13 @@ import {
   EV_ON_REPLY_CLICK,
   NAV_HEIGHT,
 } from '@/constants/constants'
+import { defaultCurrState } from '@/constants/defaults'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
   useAlertDialogStore,
   useAuthedUserStore,
   useReactOptionsStore,
 } from '@/state/global'
-import { defaultCurrState } from '@/constants/defaults'
 import {
   ARTICLE_LOCK_ACTION,
   Article,
@@ -74,7 +74,11 @@ import { Skeleton } from './ui/skeleton'
 
 interface ChatCardProps extends HTMLAttributes<HTMLDivElement> {
   article: Article
-  onSuccess?: (a: ArticleAction, id?: string, updates?: Partial<Article>) => void
+  onSuccess?: (
+    a: ArticleAction,
+    id?: string,
+    updates?: Partial<Article>
+  ) => void
   isTop?: boolean
   previewMode?: boolean
 }
@@ -514,38 +518,43 @@ const ChatCard = forwardRef<HTMLDivElement, ChatCardProps>(
                   ></div>
                   {article.reactCounts &&
                     Object.keys(article.reactCounts).length > 0 && (
-                    <div className="flex flex-wrap items-center gap-1 mr-1">
-                      {reactOptions
-                        .filter(
-                          (react) => (article.reactCounts?.[react.frontId] || 0) > 0
-                        )
-                        .map((react) => {
-                          const isActive =
-                            article.currUserState?.reactFrontId === react.frontId
-                          return (
-                            <Button
-                              key={react.id}
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onReactClick(react.id)}
-                              disabled={
-                                isLogined() && !checkPermit('article', 'react')
-                              }
-                              className={cn(
-                                'h-[1.5rem] px-2 py-1 gap-1 text-sm',
-                                isActive && 'bg-accent'
-                              )}
-                              title={react.describe}
-                            >
-                              <span className="text-base leading-none">
-                                {react.emoji}
-                              </span>
-                              <span>{article.reactCounts?.[react.frontId]}</span>
-                            </Button>
+                      <div className="flex flex-wrap items-center gap-1 mr-1">
+                        {reactOptions
+                          .filter(
+                            (react) =>
+                              (article.reactCounts?.[react.frontId] || 0) > 0
                           )
-                        })}
-                    </div>
-                  )}
+                          .map((react) => {
+                            const isActive =
+                              article.currUserState?.reactFrontId ===
+                              react.frontId
+                            return (
+                              <Button
+                                key={react.id}
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onReactClick(react.id)}
+                                disabled={
+                                  isLogined() &&
+                                  !checkPermit('article', 'react')
+                                }
+                                className={cn(
+                                  'h-[1.5rem] px-2 py-1 gap-1 text-sm',
+                                  isActive && 'bg-accent'
+                                )}
+                                title={react.describe}
+                              >
+                                <span className="text-base leading-none">
+                                  {react.emoji}
+                                </span>
+                                <span>
+                                  {article.reactCounts?.[react.frontId]}
+                                </span>
+                              </Button>
+                            )
+                          })}
+                      </div>
+                    )}
                 </>
               )}
             </div>

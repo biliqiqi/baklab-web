@@ -1,5 +1,5 @@
 import type { FC, HTMLAttributes } from 'react'
-import { useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -7,18 +7,19 @@ import { cn } from '@/lib/utils'
 
 import SITE_LOGO_IMAGE from '@/assets/logo.png'
 import { SITE_LIST_DOCK_WIDTH } from '@/constants/constants'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { useSiteParams } from '@/hooks/use-site-params'
 import {
-  useAuthedUserStore,
-  useSiteStore,
   type CachedSiteSummary,
+  useAuthedUserStore,
+  useSidebarStore,
+  useSiteStore,
 } from '@/state/global'
 import type { Site } from '@/types/types'
 
 import { Button } from '../ui/button'
 import {
   Tooltip,
-  TooltipArrow,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
@@ -29,9 +30,8 @@ type BSiteListDockProps = HTMLAttributes<HTMLDivElement>
 
 const ICON_SIZE = 44
 
-const isFullSite = (
-  site: Site | CachedSiteSummary
-): site is Site => 'currUserRole' in site
+const isFullSite = (site: Site | CachedSiteSummary): site is Site =>
+  'currUserRole' in site
 
 const BSiteListDock: FC<BSiteListDockProps> = ({
   className,
@@ -40,6 +40,10 @@ const BSiteListDock: FC<BSiteListDockProps> = ({
 }) => {
   const { t } = useTranslation()
   const { siteFrontId } = useSiteParams()
+  const isMobile = useIsMobile()
+  const setPreventMobileCloseUntil = useSidebarStore(
+    (state) => state.setPreventMobileCloseUntil
+  )
   const {
     siteList,
     cachedSiteList,
@@ -91,6 +95,13 @@ const BSiteListDock: FC<BSiteListDockProps> = ({
 
   const canCreateSite = isLogined() && checkPermit('site', 'create', true)
 
+  const preventSidebarClose = useCallback(() => {
+    if (!isMobile) {
+      return
+    }
+    setPreventMobileCloseUntil(Date.now() + 1000)
+  }, [isMobile, setPreventMobileCloseUntil])
+
   return (
     <TooltipProvider delayDuration={150}>
       <div
@@ -119,6 +130,8 @@ const BSiteListDock: FC<BSiteListDockProps> = ({
                 height: `${SITE_LIST_DOCK_WIDTH}px`,
                 zIndex: 100,
               }}
+              onPointerDown={preventSidebarClose}
+              onClick={preventSidebarClose}
             >
               <div className="relative flex h-full w-full items-center justify-center">
                 <span
@@ -159,10 +172,14 @@ const BSiteListDock: FC<BSiteListDockProps> = ({
                       width: `${SITE_LIST_DOCK_WIDTH}px`,
                       height: `${SITE_LIST_DOCK_WIDTH}px`,
                     }}
+                    onPointerDown={() => {
+                      preventSidebarClose()
+                    }}
                     onClick={() => {
                       if (isFullSite(site)) {
                         updateCurrSite(site)
                       }
+                      preventSidebarClose()
                     }}
                   >
                     <div className="relative flex h-full w-full items-center justify-center">

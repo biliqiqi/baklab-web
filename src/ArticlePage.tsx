@@ -19,8 +19,8 @@ import {
   EV_ON_REPLY_CLICK,
   REPLY_BOX_PLACEHOLDER_HEIGHT,
 } from '@/constants/constants'
-import { useDelayedVisibility } from '@/hooks/useDelayedVisibility'
 import { useSiteParams } from '@/hooks/use-site-params'
+import { useDelayedVisibility } from '@/hooks/useDelayedVisibility'
 
 import { getArticle, readManyArticle } from './api/article'
 import { ArticleContext } from './contexts/ArticleContext'

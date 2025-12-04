@@ -127,13 +127,23 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
       setSidebarOpen,
       sidebarOpenMobile,
       setSidebarOpenMobile,
+      preventMobileCloseUntil,
     } = useSidebarStore(
-      useShallow(({ open, setOpen, openMobile, setOpenMobile }) => ({
-        sidebarOpen: open,
-        setSidebarOpen: setOpen,
-        sidebarOpenMobile: openMobile,
-        setSidebarOpenMobile: setOpenMobile,
-      }))
+      useShallow(
+        ({
+          open,
+          setOpen,
+          openMobile,
+          setOpenMobile,
+          preventMobileCloseUntil,
+        }) => ({
+          sidebarOpen: open,
+          setSidebarOpen: setOpen,
+          sidebarOpenMobile: openMobile,
+          setSidebarOpenMobile: setOpenMobile,
+          preventMobileCloseUntil,
+        })
+      )
     )
 
     const { setOpenRightSidebar, setSettingsType, setOpenRightSidebarMobile } =
@@ -214,14 +224,17 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
     }
 
     const onMenuClick = useCallback(() => {
-      /* sidebarStore.setOpen(!sidebarStore.open) */
-      /* sidebar.toggleSidebar() */
+      if (
+        isMobile &&
+        !sidebarOpenMobile &&
+        preventMobileCloseUntil > Date.now()
+      ) {
+        return
+      }
+
       if (isMobile) {
-        /* sidebar.setOpenMobile(!sidebar.openMobile) */
         setSidebarOpenMobile(!sidebarOpenMobile)
       } else {
-        /* console.log('toggle desktop sidebar') */
-        /* sidebar.toggleSidebar() */
         setSidebarOpen(!sidebarOpen)
       }
     }, [
@@ -230,6 +243,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
       sidebarOpen,
       setSidebarOpenMobile,
       sidebarOpenMobile,
+      preventMobileCloseUntil,
     ])
 
     const logout = useCallback(async () => {

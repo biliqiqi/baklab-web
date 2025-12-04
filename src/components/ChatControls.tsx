@@ -67,7 +67,11 @@ interface ChatControlsProps extends HTMLAttributes<HTMLDivElement> {
   /* onSaveClick?: MouseEventHandler<HTMLButtonElement> */
   /* onVoteUpClick?: MouseEventHandler<HTMLButtonElement>
    * onVoteDownClick?: MouseEventHandler<HTMLButtonElement> */
-  onSuccess?: (a: ArticleAction, id?: string, updates?: Partial<Article>) => void
+  onSuccess?: (
+    a: ArticleAction,
+    id?: string,
+    updates?: Partial<Article>
+  ) => void
   onReactOptionClick?: (reactId: string) => Promise<void> | void
 }
 
@@ -290,13 +294,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
         console.error('toggle react article failed: ', err)
       }
     },
-    [
-      article,
-      onSuccess,
-      isLogined,
-      loginWithDialog,
-      onReactOptionClick,
-    ]
+    [article, onSuccess, isLogined, loginWithDialog, onReactOptionClick]
   )
 
   return (

@@ -78,6 +78,7 @@ interface EditCategoryData {
 interface BSidebarProps {
   category?: FrontCategory
   bodyHeight?: string
+  preventMobileCloseUntil?: number
 }
 
 interface SidebarMenuItem<T extends PermissionModule> {
@@ -164,7 +165,11 @@ const platformSidebarMenus: () => (
   },
 ]
 
-const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
+const BSidebar: React.FC<BSidebarProps> = ({
+  category: _,
+  bodyHeight,
+  preventMobileCloseUntil,
+}) => {
   const [showCategoryForm, setShowCategoryForm] = useState(false)
   const [categoryFormDirty, setCategoryFormDirty] = useState(false)
 
@@ -337,7 +342,11 @@ const BSidebar: React.FC<BSidebarProps> = ({ category: _, bodyHeight }) => {
 
   return (
     <>
-      <Sidebar className="relative max-h-full" gap={false}>
+      <Sidebar
+        className="relative max-h-full"
+        gap={false}
+        preventMobileCloseUntil={preventMobileCloseUntil}
+      >
         <SidebarContent
           className="gap-0 h-full"
           style={{ minHeight: bodyHeight || '' }}

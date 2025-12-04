@@ -617,6 +617,9 @@ export interface SidebarState {
   setOpen: (x: boolean) => void
   openMobile: boolean
   setOpenMobile: (x: boolean) => void
+  preventMobileCloseUntil: number
+  setPreventMobileCloseUntil: (ts: number) => void
+  closeMobileSidebar: (opts?: { force?: boolean }) => void
   groupsOpen: SidebarGroupsOpenState
   setGroupsOpen: (
     s:
@@ -635,6 +638,22 @@ export const useSidebarStore = create<SidebarState>((set) => ({
   setOpenMobile(openMobile) {
     set((state) => ({ ...state, openMobile }))
     localStorage.setItem(LEFT_SIDEBAR_STATE_KEY, String(openMobile))
+  },
+  preventMobileCloseUntil: 0,
+  setPreventMobileCloseUntil(ts) {
+    set((state) => ({ ...state, preventMobileCloseUntil: ts }))
+  },
+  closeMobileSidebar({ force = false }: { force?: boolean } = {}) {
+    set((state) => {
+      const now = Date.now()
+      if (!force) {
+        if (state.preventMobileCloseUntil > now) {
+          return state
+        }
+      }
+      localStorage.setItem(LEFT_SIDEBAR_STATE_KEY, 'false')
+      return { ...state, openMobile: false, preventMobileCloseUntil: 0 }
+    })
   },
   groupsOpen: {
     category: true,
@@ -786,9 +805,8 @@ const getCachedSiteListFromStorage = (): CachedSiteSummary[] => {
       return []
     }
     return parsed
-      .filter(
-        (item): item is CachedSiteSummary =>
-          Boolean(item && typeof item.frontId === 'string')
+      .filter((item): item is CachedSiteSummary =>
+        Boolean(item && typeof item.frontId === 'string')
       )
       .map((item) => ({
         frontId: item.frontId,
@@ -1286,56 +1304,56 @@ export const useContextStore = create(
     countryCode: '',
     isSingleSite: false,
     site: null,
-  mainSiteHost: undefined,
-  hasFetchedContext: false,
-  setCountryCode(code) {
-    set(() => ({ countryCode: code }))
-  },
-  async fetchContext(siteFrontId) {
-    try {
-      const { code, data } = await getContext(siteFrontId)
-      if (!code && data) {
-        if (data.host && typeof window !== 'undefined') {
-          const targetHost = data.host
-          const currentHost = window.location.host
-          const currentHostname = window.location.hostname
-          let targetHostname = targetHost
-          try {
-            const url = new URL(`http://${targetHost}`)
-            targetHostname = url.hostname
-          } catch (_err) {
-            targetHostname = targetHost.split(':')[0]
-          }
-
-          const matchesHost = currentHostname === targetHostname
-          const hostMismatch = import.meta.env.DEV
-            ? !matchesHost
-            : targetHost !== currentHost
-
-          if (hostMismatch) {
-            if (window.location.pathname !== '/not_compatible') {
-              window.location.replace('/not_compatible')
+    mainSiteHost: undefined,
+    hasFetchedContext: false,
+    setCountryCode(code) {
+      set(() => ({ countryCode: code }))
+    },
+    async fetchContext(siteFrontId) {
+      try {
+        const { code, data } = await getContext(siteFrontId)
+        if (!code && data) {
+          if (data.host && typeof window !== 'undefined') {
+            const targetHost = data.host
+            const currentHost = window.location.host
+            const currentHostname = window.location.hostname
+            let targetHostname = targetHost
+            try {
+              const url = new URL(`http://${targetHost}`)
+              targetHostname = url.hostname
+            } catch (_err) {
+              targetHostname = targetHost.split(':')[0]
             }
-            set(() => ({ hasFetchedContext: true }))
-            return
+
+            const matchesHost = currentHostname === targetHostname
+            const hostMismatch = import.meta.env.DEV
+              ? !matchesHost
+              : targetHost !== currentHost
+
+            if (hostMismatch) {
+              if (window.location.pathname !== '/not_compatible') {
+                window.location.replace('/not_compatible')
+              }
+              set(() => ({ hasFetchedContext: true }))
+              return
+            }
           }
+          set(() => ({
+            countryCode: data.countryCode,
+            isSingleSite: data.isSingleSite,
+            site: data.site,
+            host: data.host,
+            mainSiteHost: data.mainSiteHost,
+            hasFetchedContext: true,
+          }))
+        } else {
+          set(() => ({ hasFetchedContext: true }))
         }
-        set(() => ({
-          countryCode: data.countryCode,
-          isSingleSite: data.isSingleSite,
-          site: data.site,
-          host: data.host,
-          mainSiteHost: data.mainSiteHost,
-          hasFetchedContext: true,
-        }))
-      } else {
+      } catch (err) {
+        console.error('fetch context failed: ', err)
         set(() => ({ hasFetchedContext: true }))
       }
-    } catch (err) {
-      console.error('fetch context failed: ', err)
-      set(() => ({ hasFetchedContext: true }))
-    }
-  },
+    },
   }))
 )
 

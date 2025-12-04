@@ -56,6 +56,7 @@ const SidebarProvider = React.forwardRef<
     openMobile?: boolean
     onOpenMobileChange?: (open: boolean) => void
     statePersistKey?: string
+    preventMobileCloseUntil?: number
   }
 >(
   (
@@ -66,6 +67,7 @@ const SidebarProvider = React.forwardRef<
       openMobile: openMobileProp,
       onOpenMobileChange: setOpenMobileProp,
       statePersistKey,
+      preventMobileCloseUntil = 0,
       className,
       style,
       children,
@@ -82,6 +84,12 @@ const SidebarProvider = React.forwardRef<
       (value: boolean | ((value: boolean) => boolean)) => {
         const openState =
           typeof value === 'function' ? value(openMobile) : value
+
+        // Check preventMobileCloseUntil before allowing close
+        if (!openState && preventMobileCloseUntil > Date.now()) {
+          return
+        }
+
         if (setOpenMobileProp) {
           setOpenMobileProp(openState)
         } else {
@@ -95,7 +103,7 @@ const SidebarProvider = React.forwardRef<
           localStorage.setItem(statePersistKey, String(openState))
         }
       },
-      [setOpenMobileProp, openMobile, statePersistKey]
+      [setOpenMobileProp, openMobile, statePersistKey, preventMobileCloseUntil]
     )
 
     // This is the internal state of the sidebar.
@@ -195,6 +203,7 @@ const Sidebar = React.forwardRef<
     variant?: 'sidebar' | 'floating' | 'inset'
     collapsible?: 'offcanvas' | 'icon' | 'none'
     gap?: boolean
+    preventMobileCloseUntil?: number
   }
 >(
   (
@@ -203,6 +212,7 @@ const Sidebar = React.forwardRef<
       variant = 'sidebar',
       collapsible = 'offcanvas',
       gap = true,
+      preventMobileCloseUntil = 0,
       className,
       children,
       ...props
@@ -210,6 +220,16 @@ const Sidebar = React.forwardRef<
     ref
   ) => {
     const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+
+    const handleOpenMobileChange = React.useCallback(
+      (open: boolean) => {
+        if (!open && preventMobileCloseUntil > Date.now()) {
+          return
+        }
+        setOpenMobile(open)
+      },
+      [setOpenMobile, preventMobileCloseUntil]
+    )
 
     if (collapsible === 'none') {
       return (
@@ -228,7 +248,11 @@ const Sidebar = React.forwardRef<
 
     if (isMobile) {
       return (
-        <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
+        <Sheet
+          open={openMobile}
+          onOpenChange={handleOpenMobileChange}
+          {...props}
+        >
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"

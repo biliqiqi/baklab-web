@@ -140,14 +140,37 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       sidebarOpen,
       setSidebarOpen,
       sidebarOpenMobile,
-      setSidebarOpenMobile,
+      setSidebarOpenMobile: _setSidebarOpenMobile,
+      closeMobileSidebar,
+      preventMobileCloseUntil,
     } = useSidebarStore(
-      useShallow(({ open, setOpen, openMobile, setOpenMobile }) => ({
-        sidebarOpen: open,
-        setSidebarOpen: setOpen,
-        sidebarOpenMobile: openMobile,
-        setSidebarOpenMobile: setOpenMobile,
-      }))
+      useShallow(
+        ({
+          open,
+          setOpen,
+          openMobile,
+          setOpenMobile,
+          closeMobileSidebar,
+          preventMobileCloseUntil,
+        }) => ({
+          sidebarOpen: open,
+          setSidebarOpen: setOpen,
+          sidebarOpenMobile: openMobile,
+          setSidebarOpenMobile: setOpenMobile,
+          closeMobileSidebar,
+          preventMobileCloseUntil,
+        })
+      )
+    )
+
+    const setSidebarOpenMobile = useCallback(
+      (open: boolean) => {
+        if (!open && preventMobileCloseUntil > Date.now()) {
+          return
+        }
+        _setSidebarOpenMobile(open)
+      },
+      [_setSidebarOpenMobile, preventMobileCloseUntil]
     )
 
     const { showReplyBox, ...replyBoxProps } = useReplyBoxStore(
@@ -589,33 +612,33 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     }
 
     useEffect(() => {
-    if (siteFrontId) {
-      toSync(async () => {
-        const promises: (
-          | Promise<Site | null>
-          | Promise<Category[]>
-          | Promise<void>
-        )[] = [
-          fetchSiteData(siteFrontId),
-          fetchCategoryList(siteFrontId),
-          fetchReactOptions(),
-        ]
+      if (siteFrontId) {
+        toSync(async () => {
+          const promises: (
+            | Promise<Site | null>
+            | Promise<Category[]>
+            | Promise<void>
+          )[] = [
+            fetchSiteData(siteFrontId),
+            fetchCategoryList(siteFrontId),
+            fetchReactOptions(),
+          ]
 
-        await Promise.all(promises)
-      })()
-    } else {
-      updateCurrSite(null)
-      clearCategories()
-    }
-  }, [
-    siteFrontId,
-    fetchSiteData,
-    updateCurrSite,
-    fetchCategoryList,
-    clearCategories,
-    fetchReactOptions,
-    authToken,
-  ])
+          await Promise.all(promises)
+        })()
+      } else {
+        updateCurrSite(null)
+        clearCategories()
+      }
+    }, [
+      siteFrontId,
+      fetchSiteData,
+      updateCurrSite,
+      fetchCategoryList,
+      clearCategories,
+      fetchReactOptions,
+      authToken,
+    ])
 
     const { fetchContext, contextSiteFrontId, hasFetchedContext } =
       useContextStore(
@@ -639,12 +662,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       }
 
       toSync(fetchContext)(siteFrontId)
-    }, [
-      siteFrontId,
-      fetchContext,
-      contextSiteFrontId,
-      hasFetchedContext,
-    ])
+    }, [siteFrontId, fetchContext, contextSiteFrontId, hasFetchedContext])
 
     useDocumentTitle(category?.name || '')
 
@@ -652,7 +670,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       updateNotFound(false)
       return () => {
         if (isMobile) {
-          setSidebarOpenMobile(false)
+          closeMobileSidebar()
         }
         // setShowSiteAbout(false)
       }
@@ -661,7 +679,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       isMobile,
       updateNotFound,
       // setShowSiteAbout,
-      setSidebarOpenMobile,
+      closeMobileSidebar,
     ])
 
     useEffect(() => {
@@ -723,6 +741,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
           openMobile={sidebarOpenMobile}
           onOpenMobileChange={setSidebarOpenMobile}
           statePersistKey={LEFT_SIDEBAR_STATE_KEY}
+          preventMobileCloseUntil={preventMobileCloseUntil}
           style={{
             minHeight: 'auto',
             maxWidth: contentWidth == -1 ? '' : `${contentWidth}px`,
@@ -742,7 +761,11 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             {sidebarType === 'settings' ? (
               <SettingsSidebar bodyHeight={bodyHeight} />
             ) : (
-              <BSidebar category={category} bodyHeight={bodyHeight} />
+              <BSidebar
+                category={category}
+                bodyHeight={bodyHeight}
+                preventMobileCloseUntil={preventMobileCloseUntil}
+              />
             )}
           </div>
           <main
@@ -756,10 +779,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
             )}
           >
             {siteMode == 'sidebar' && (
-              <BNav
-                category={category}
-                goBack={goBack}
-              />
+              <BNav category={category} goBack={goBack} />
             )}
             <div
               id="outer-container"

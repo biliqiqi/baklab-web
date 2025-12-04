@@ -302,7 +302,7 @@ const singleSiteRoutes: RouteObject[] = [
 const createSiteRoutes = (prefix: '/z' | '/zhandian'): RouteObject[] => [
   {
     path: `${prefix}/:siteFrontId`,
-    loader: async ({ params }) => {
+    loader: ({ params }) => {
       const siteFrontId = params.siteFrontId
       if (!siteFrontId) {
         return redirect('/')

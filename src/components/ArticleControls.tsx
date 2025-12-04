@@ -7,6 +7,7 @@ import {
   LinkIcon,
   MessageSquare,
   QrCode,
+  ReplyIcon,
   Share2Icon,
   SmileIcon,
 } from 'lucide-react'
@@ -333,32 +334,26 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                 {article.voteDown > 0 && <span>{article.voteDown}</span>}
               </div>
             )}
-            {comment && (
+            {comment && ctype == 'list' && (
               <Button
                 variant="ghost"
                 size="sm"
-                asChild={ctype == 'list'}
-                onClick={ctype == 'list' ? noop : handleCommentClick}
+                asChild
                 className="mr-1 h-[1.5rem]"
-                title={t('replyPost')}
+                title={t('replyCount', { num: article.totalReplyCount })}
               >
-                {ctype == 'list' ? (
-                  <SiteLink
-                    to={genArticlePath(article)}
-                    siteFrontId={article.siteFrontId}
-                  >
-                    <MessageSquare
-                      size={rem2pxNum(1.25)}
-                      className="inline-block mr-1"
-                    />
-                    {article.totalReplyCount > 0 && article.totalReplyCount}
-                  </SiteLink>
-                ) : (
+                <SiteLink
+                  to={genArticlePath(article)}
+                  siteFrontId={article.siteFrontId}
+                >
                   <MessageSquare
                     size={rem2pxNum(1.25)}
-                    className="inline-block mr-1"
+                    className="inline-block"
                   />
-                )}
+                  <span>
+                    {article.totalReplyCount > 0 && article.totalReplyCount}
+                  </span>
+                </SiteLink>
               </Button>
             )}
           </>
@@ -414,18 +409,24 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
           </>
         )}
         {isTopArticle && (
-          <span className="inline-block mr-2">
-            {t('replyCount', { num: article.totalReplyCount })}
-          </span>
+          <>
+            <span className="inline-block mx-2">·</span>
+            <span className="inline-block mr-2">
+              {t('replyCount', { num: article.totalReplyCount })}
+            </span>
+          </>
         )}
         {ctype !== 'list' && !isTopArticle && article.childrenCount > 0 && (
-          <SiteLink
-            to={`/articles/${article.id}`}
-            siteFrontId={article.siteFrontId}
-            className="inline-block mr-2 hover:underline"
-          >
-            {t('replyCount', { num: article.childrenCount })}
-          </SiteLink>
+          <>
+            <span className="inline-block mx-2">·</span>
+            <SiteLink
+              to={`/articles/${article.id}`}
+              siteFrontId={article.siteFrontId}
+              className="inline-block mr-2 hover:underline"
+            >
+              {t('replyCount', { num: article.childrenCount })}
+            </SiteLink>
+          </>
         )}
 
         {((isRootArticle &&
@@ -569,6 +570,25 @@ const ArticleControls: React.FC<ArticleControlsProps> = ({
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
+
+            {ctype !== 'list' &&
+              comment &&
+              checkPermit('article', 'reply') &&
+              isPublished && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleCommentClick}
+                  className="mr-1 h-[1.5rem]"
+                  title={t('replyPost')}
+                >
+                  <ReplyIcon
+                    size={rem2pxNum(1.25)}
+                    className="inline-block mr-1"
+                  />
+                </Button>
+              )}
+
             {isPublished && ctype == 'item' && (
               <DropdownMenu
                 open={showActionsMenu}

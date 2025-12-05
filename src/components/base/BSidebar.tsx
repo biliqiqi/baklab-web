@@ -18,7 +18,6 @@ import {
 } from 'lucide-react'
 import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { cn, getSiteStatusColor, getSiteStatusName } from '@/lib/utils'
@@ -192,12 +191,13 @@ const BSidebar: React.FC<BSidebarProps> = ({
     }))
   )
 
-  const { groupsOpen, setGroupsOpen } = useSidebarStore(
-    useShallow(({ open, setOpen, groupsOpen, setGroupsOpen }) => ({
+  const { groupsOpen, setGroupsOpen, closeMobileSidebar } = useSidebarStore(
+    useShallow(({ open, setOpen, groupsOpen, setGroupsOpen, closeMobileSidebar }) => ({
       sidebarOpen: open,
       setSidebarOpen: setOpen,
       groupsOpen,
       setGroupsOpen,
+      closeMobileSidebar,
     }))
   )
 
@@ -422,7 +422,11 @@ const BSidebar: React.FC<BSidebarProps> = ({
                     {isLogined() && (
                       <SidebarMenuItem key="feed">
                         <SidebarMenuButton asChild isActive={isHomePageActive}>
-                          <SiteLink to="/" siteFrontId={siteFrontId}>
+                          <SiteLink
+                            to="/"
+                            siteFrontId={siteFrontId}
+                            closeSidebarOnClick
+                          >
                             <BIconCircle id="feed" size={32}>
                               <PackageIcon size={18} />
                             </BIconCircle>
@@ -441,6 +445,7 @@ const BSidebar: React.FC<BSidebarProps> = ({
                               ? t('siteAllPostsDescription')
                               : t('allPostsDescription')
                           }
+                          closeSidebarOnClick
                         >
                           <BIconCircle id="feed" size={32}>
                             <GlobeIcon size={18} />
@@ -456,7 +461,11 @@ const BSidebar: React.FC<BSidebarProps> = ({
                             asChild
                             isActive={isCategoryListActive}
                           >
-                            <SiteLink to="/bankuai" siteFrontId={siteFrontId}>
+                            <SiteLink
+                              to="/bankuai"
+                              siteFrontId={siteFrontId}
+                              closeSidebarOnClick
+                            >
                               <BIconCircle id="categories" size={32}>
                                 <ChartBarStackedIcon size={18} />
                               </BIconCircle>
@@ -470,7 +479,11 @@ const BSidebar: React.FC<BSidebarProps> = ({
                               asChild
                               isActive={isTagListActive}
                             >
-                              <SiteLink to="/tags" siteFrontId={siteFrontId}>
+                              <SiteLink
+                                to="/tags"
+                                siteFrontId={siteFrontId}
+                                closeSidebarOnClick
+                              >
                                 <BIconCircle id="tags" size={32}>
                                   <TagIcon size={18} />
                                 </BIconCircle>
@@ -524,15 +537,20 @@ const BSidebar: React.FC<BSidebarProps> = ({
                                     href={link}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    onClick={() => closeMobileSidebar()}
                                   >
                                     <BIconCircle size={32}>{icon}</BIconCircle>
                                     {name}
                                   </a>
                                 ) : (
-                                  <Link to={link}>
+                                  <SiteLink
+                                    to={link}
+                                    siteFrontId={siteFrontId}
+                                    closeSidebarOnClick
+                                  >
                                     <BIconCircle size={32}>{icon}</BIconCircle>
                                     {name}
-                                  </Link>
+                                  </SiteLink>
                                 )}
                               </SidebarMenuButton>
                             </SidebarMenuItem>
@@ -608,6 +626,7 @@ const BSidebar: React.FC<BSidebarProps> = ({
                                   to={`/b/${item.frontId}`}
                                   state={item}
                                   siteFrontId={siteFrontId}
+                                  closeSidebarOnClick
                                 >
                                   <span
                                     className="relative inline-block"
@@ -714,6 +733,7 @@ const BSidebar: React.FC<BSidebarProps> = ({
                                     <SiteLink
                                       to={link}
                                       siteFrontId={siteFrontId}
+                                      closeSidebarOnClick
                                     >
                                       <BIconCircle size={32}>
                                         {icon}

@@ -388,6 +388,8 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     /* const [sidebarOpen, setSidebarOpen] = useState(!isMobile) */
 
     const location = useLocation()
+    const locationKey = `${location.pathname}${location.search}${location.hash}`
+    const prevLocationKeyRef = useRef<string | null>(null)
 
     const onAlertDialogCancel = useCallback(() => {
       if (alertType == 'confirm' || alertType == 'prompt') {
@@ -642,13 +644,16 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     useDocumentTitle(category?.name || '')
 
     useEffect(() => {
-      updateNotFound(false)
-      if (isMobile) {
-        closeMobileSidebar()
+      if (prevLocationKeyRef.current !== locationKey) {
+        prevLocationKeyRef.current = locationKey
+        updateNotFound(false)
+        if (isMobile) {
+          closeMobileSidebar()
+        }
       }
       // setShowSiteAbout(false)
     }, [
-      location,
+      locationKey,
       isMobile,
       updateNotFound,
       // setShowSiteAbout,

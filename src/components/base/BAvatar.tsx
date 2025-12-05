@@ -38,6 +38,7 @@ const BAvatar: React.FC<BAvatarProps> = ({
           char={username.charAt(0)}
           size={size}
           className="align-top"
+          generateColorFromId
           {...props}
         />
       </span>

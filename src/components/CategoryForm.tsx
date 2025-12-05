@@ -4,7 +4,6 @@ import { ChevronDownIcon } from 'lucide-react'
 import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import stc from 'string-to-color'
 
 import { cn, getFirstChar, noop, summaryText } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
@@ -45,8 +44,6 @@ import {
   FormMessage,
 } from './ui/form'
 import { Input } from './ui/input'
-import { Label } from './ui/label'
-import { Switch } from './ui/switch'
 import { Textarea } from './ui/textarea'
 
 const MAX_CATEGORY_FRONT_ID_LENGTH = 20
@@ -145,7 +142,7 @@ interface CategoryFormProps {
 const defaultCategoryData: CategorySchema = {
   frontID: '',
   name: '',
-  iconBgColor: stc('x'),
+  iconBgColor: '#1e73ca',
   iconContent: '',
   description: '',
   contentFormId: '0',
@@ -158,7 +155,6 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
   onChange = noop,
 }) => {
   const [showMoreSettings, setShowMoreSettings] = useState(isEdit)
-  const [autoGenerateColor, setAutoGenerateColor] = useState(true)
 
   const alertDialog = useAlertDialogStore()
   const authStore = useAuthedUserStore()
@@ -189,8 +185,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
         ? {
             name: category.name,
             description: category.describe,
-            iconBgColor:
-              category.iconBgColor || stc(category.frontId.toLowerCase()),
+            iconBgColor: category.iconBgColor || '#1e73ca',
             iconContent: category.iconContent,
             contentFormId: category.contentFormId,
           }
@@ -351,10 +346,6 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
     onChange(form.formState.isDirty)
   }, [form, formVals, onChange])
 
-  useEffect(() => {
-    setAutoGenerateColor(true)
-  }, [category.id, isEdit])
-
   /* useEffect(() => {
    *   onFrontIDChange.call(frontIDVal)
    * }, [frontIDVal]) */
@@ -428,15 +419,6 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
                     autoComplete="off"
                     state={fieldState.invalid ? 'invalid' : 'default'}
                     {...field}
-                    onChange={(e) => {
-                      field.onChange(e)
-                      if (autoGenerateColor) {
-                        const newId = e.target.value.toLowerCase() || 'x'
-                        form.setValue('iconBgColor', stc(newId), {
-                          shouldDirty: true,
-                        })
-                      }
-                    }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -521,45 +503,15 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
                         placeholder={t('inputTip', { field: t('iconBgColor') })}
                         autoComplete="off"
                         state={fieldState.invalid ? 'invalid' : 'default'}
-                        disabled={autoGenerateColor}
                         {...field}
-                        onChange={(e) => {
-                          setAutoGenerateColor(false)
-                          field.onChange(e)
-                        }}
                         className="w-36 mr-2"
                       />
                       <Input
                         key={'iconBgColorPicker'}
                         type="color"
-                        className="w-16 mr-4"
-                        disabled={autoGenerateColor}
+                        className="w-16"
                         {...field}
-                        onChange={(e) => {
-                          setAutoGenerateColor(false)
-                          field.onChange(e)
-                        }}
                       />
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          id="auto-generate-color"
-                          checked={autoGenerateColor}
-                          onCheckedChange={(checked) => {
-                            setAutoGenerateColor(checked)
-                            if (checked) {
-                              form.setValue('iconBgColor', stc(iconId), {
-                                shouldDirty: true,
-                              })
-                            }
-                          }}
-                        />
-                        <Label
-                          htmlFor="auto-generate-color"
-                          className="text-sm font-normal cursor-pointer whitespace-nowrap"
-                        >
-                          {t('generateBasedOnIdentifier')}
-                        </Label>
-                      </div>
                     </div>
                   </FormControl>
                   <FormMessage />

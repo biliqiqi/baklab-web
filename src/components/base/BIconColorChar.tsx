@@ -3,19 +3,40 @@ import stc from 'string-to-color'
 
 import { cn } from '@/lib/utils'
 
+const DEFAULT_ICON_BG_COLOR = '#1e73ca'
+
 interface BIconColorCharProps extends React.SVGProps<SVGSVGElement> {
   iconId: string
   char: string
   color?: string
   size?: number
   fontSize?: string | number
+  generateColorFromId?: boolean
 }
 
 const BIconColorChar = React.forwardRef<SVGSVGElement, BIconColorCharProps>(
-  ({ iconId, char, size = 24, fontSize, color, className, ...props }, ref) => {
+  (
+    {
+      iconId,
+      char,
+      size = 24,
+      fontSize,
+      color,
+      className,
+      generateColorFromId = false,
+      ...props
+    },
+    ref
+  ) => {
     if (!fontSize) {
       fontSize = size * 0.5
     }
+
+    const bgColor = color
+      ? color
+      : generateColorFromId
+        ? stc(iconId)
+        : DEFAULT_ICON_BG_COLOR
 
     return (
       <svg
@@ -35,7 +56,7 @@ const BIconColorChar = React.forwardRef<SVGSVGElement, BIconColorCharProps>(
           cx={`${size / 2}`}
           cy={`${size / 2}`}
           r={`${size / 2}`}
-          fill={color || stc(iconId)}
+          fill={bgColor}
         />
         <text
           x="50%"

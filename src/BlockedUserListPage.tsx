@@ -58,6 +58,7 @@ export default function BlockedUserListPage() {
   const [list, setList] = useState<BlockedUser[]>([])
   const [params, setParams] = useSearchParams()
   const location = useLocation()
+  const locationKey = `${location.pathname}${location.search}${location.hash}`
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
   const { setLoading } = useLoading()
@@ -302,7 +303,7 @@ export default function BlockedUserListPage() {
 
   useEffect(() => {
     fetchUserList(true)
-  }, [location])
+  }, [locationKey])
 
   return (
     <BContainer

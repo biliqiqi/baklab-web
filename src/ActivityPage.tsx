@@ -62,6 +62,7 @@ export default function ActivityPage() {
   const { siteFrontId } = useSiteParams()
   const [params, setParams] = useSearchParams()
   const location = useLocation()
+  const locationKey = `${location.pathname}${location.search}${location.hash}`
 
   const { checkPermit } = useAuthedUserStore(
     useShallow(({ permit }) => ({ checkPermit: permit }))
@@ -170,7 +171,7 @@ export default function ActivityPage() {
 
   useEffect(() => {
     fetchList(true)
-  }, [location])
+  }, [locationKey])
 
   return (
     <BContainer

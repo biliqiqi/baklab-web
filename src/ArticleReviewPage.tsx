@@ -294,6 +294,7 @@ export function ArticleReviewPage() {
   /* const [loading, setLoading] = useState(false) */
 
   const location = useLocation()
+  const locationKey = `${location.pathname}${location.search}${location.hash}`
   const [pageState, setPageState] = useState<ListPageState>({
     currPage: 1,
     pageSize: DEFAULT_PAGE_SIZE,
@@ -411,7 +412,7 @@ export function ArticleReviewPage() {
 
   useEffect(() => {
     toSync(fetchSiteUpdates)()
-  }, [location, fetchSiteUpdates])
+  }, [locationKey, fetchSiteUpdates])
 
   return (
     <BContainer

@@ -78,6 +78,7 @@ export default function BlockedWordListPage() {
 
   const [params, setParams] = useSearchParams()
   const location = useLocation()
+  const locationKey = `${location.pathname}${location.search}${location.hash}`
   const dialogConfirm = useAlertDialogStore((state) => state.confirm)
 
   const { siteFrontId } = useSiteParams()
@@ -319,7 +320,7 @@ export default function BlockedWordListPage() {
 
   useEffect(() => {
     fetchBlockedWordList(true)
-  }, [location])
+  }, [locationKey])
 
   return (
     <BContainer

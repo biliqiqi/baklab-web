@@ -85,6 +85,7 @@ export default function OAuthClientListPage() {
   const { setLoading } = useLoading()
   const { t } = useTranslation()
   const location = useLocation()
+  const locationKey = `${location.pathname}${location.search}${location.hash}`
   const alertDialog = useAlertDialogStore()
 
   const { checkPermit } = useAuthedUserStore(
@@ -350,7 +351,7 @@ export default function OAuthClientListPage() {
 
   useEffect(() => {
     fetchClientList(true)
-  }, [location])
+  }, [locationKey])
 
   if (!checkPermit('oauth', 'manage')) {
     return (

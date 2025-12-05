@@ -76,6 +76,7 @@ export default function TrashPage() {
   const { siteFrontId } = useSiteParams()
 
   const location = useLocation()
+  const locationKey = `${location.pathname}${location.search}${location.hash}`
   const [params, setParams] = useSearchParams()
   const [searchData, setSearchData] = useState<SearchFields>({
     ...defaultSearchData,
@@ -215,7 +216,7 @@ export default function TrashPage() {
 
   useEffect(() => {
     fetchList(true)
-  }, [location])
+  }, [locationKey])
 
   return (
     <BContainer

@@ -179,6 +179,7 @@ export default function SiteListPage() {
   const { t } = useTranslation()
 
   const location = useLocation()
+  const locationKey = `${location.pathname}${location.search}${location.hash}`
 
   const alertDialog = useAlertDialogStore()
 
@@ -766,7 +767,7 @@ export default function SiteListPage() {
 
   useEffect(() => {
     fetchSiteList(true)
-  }, [location])
+  }, [locationKey])
 
   return (
     <BContainer

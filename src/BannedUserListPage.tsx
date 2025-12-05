@@ -69,6 +69,7 @@ export default function BannedUserListPage() {
   const [list, setList] = useState<UserData[]>([])
   const [params, setParams] = useSearchParams()
   const location = useLocation()
+  const locationKey = `${location.pathname}${location.search}${location.hash}`
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
   const { setLoading } = useLoading()
@@ -334,7 +335,7 @@ export default function BannedUserListPage() {
 
   useEffect(() => {
     fetchUserList(true)
-  }, [location])
+  }, [locationKey])
 
   return (
     <BContainer

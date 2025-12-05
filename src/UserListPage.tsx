@@ -106,6 +106,7 @@ export default function UserListPage() {
 
   const [params, setParams] = useSearchParams()
   const location = useLocation()
+  const locationKey = `${location.pathname}${location.search}${location.hash}`
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const banDialogRef = useRef<BanDialogRef | null>(null)
 
@@ -586,7 +587,7 @@ export default function UserListPage() {
 
   useEffect(() => {
     fetchUserList(true)
-  }, [location])
+  }, [locationKey])
 
   return (
     <BContainer

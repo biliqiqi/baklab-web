@@ -194,6 +194,12 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
               <span className="table-cell py-2">{user.email}</span>
             </div>
           )}
+          {!user.email && user.phone && (
+            <div className="table-row">
+              <b className="table-cell py-2 w-24">{t('phone')}：</b>
+              <span className="table-cell py-2">{user.phone}</span>
+            </div>
+          )}
           <div className="table-row">
             <b className="table-cell py-2 w-24">{t('role')}：</b>
             <div className="table-cell py-2">

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useLocation } from 'react-router-dom'
 import { useDebouncedCallback } from 'use-debounce'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -21,6 +20,7 @@ import {
 } from '@/constants/constants'
 import { defaultPageState } from '@/constants/defaults'
 import { usePermit } from '@/hooks/use-auth'
+import { useLocationKey } from '@/hooks/use-location-key'
 import { useSiteParams } from '@/hooks/use-site-params'
 import { getIDBChatList, saveIDBChatList } from '@/state/chat-db'
 import {
@@ -117,7 +117,8 @@ const ChatList: React.FC<ChatListProps> = ({
 
   const isLogined = useAuthedUserStore((state) => state.isLogined)
 
-  const location = useLocation()
+  const { location, locationKey } = useLocationKey()
+  const locationHash = location.hash
 
   const currUserId = useAuthedUserStore((state) => state.userID)
   const hasReplyPermit = usePermit('article', 'reply')
@@ -651,8 +652,8 @@ const ChatList: React.FC<ChatListProps> = ({
         initialized: true,
       }
 
-      const messageId = /^#message\d+$/.test(location.hash)
-        ? location.hash
+      const messageId = /^#message\d+$/.test(locationHash)
+        ? locationHash
         : null
 
       const cb = () => {
@@ -694,7 +695,7 @@ const ChatList: React.FC<ChatListProps> = ({
 
       setTimeout(tryScrollToMessage, 0)
     })(false, true, false, true)
-  }, [siteFrontId, categoryFrontId, location, currCate])
+  }, [siteFrontId, categoryFrontId, locationKey, locationHash, currCate])
 
   useEffect(() => {
     if (replySuccess) {
@@ -707,7 +708,9 @@ const ChatList: React.FC<ChatListProps> = ({
   useEffect(() => {
     if (!chatList.initialized) return
 
-    const messageId = /^#message\d+$/.test(location.hash) ? location.hash : null
+    const messageId = /^#message\d+$/.test(locationHash)
+      ? locationHash
+      : null
 
     if (messageId) {
       const tryScrollToMessage = (retries = 3) => {
@@ -731,7 +734,7 @@ const ChatList: React.FC<ChatListProps> = ({
 
       setTimeout(tryScrollToMessage, 0)
     }
-  }, [location.hash, chatList.initialized])
+  }, [locationHash, chatList.initialized])
 
   useEffect(() => {
     if (!siteFrontId || !categoryFrontId || !currCate) return

@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  Link,
-  useLocation,
-  useNavigate,
-  useSearchParams,
-} from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { Badge } from './components/ui/badge'
@@ -17,6 +12,7 @@ import BAvatar from './components/base/BAvatar'
 import BSiteIcon from './components/base/BSiteIcon'
 
 import SITE_LOGO_IMAGE from '@/assets/logo.png'
+import { useLocationKey } from '@/hooks/use-location-key'
 
 import { authorizeOAuth, handleAuthorizeConfirm } from './api/oauth'
 import { NAV_HEIGHT, PLATFORM_NAME } from './constants/constants'
@@ -33,7 +29,7 @@ export default function OAuthAuthorizePage() {
   const mountedRef = useRef(true)
 
   const navigate = useNavigate()
-  const location = useLocation()
+  const { locationKey } = useLocationKey()
   const { setLoading } = useLoading()
   const { t } = useTranslation()
   const { currUsername } = useAuthedUserStore(
@@ -169,7 +165,7 @@ export default function OAuthAuthorizePage() {
         redirectTimerRef.current = null
       }
     }
-  }, [location])
+  }, [locationKey])
 
   // Simplified navigation component
   const renderNav = () => (

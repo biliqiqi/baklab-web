@@ -8,12 +8,7 @@ import React, {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  Link,
-  useLocation,
-  useNavigate,
-  useSearchParams,
-} from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { toSync } from '@/lib/fire-and-forget'
@@ -28,6 +23,7 @@ import {
   RIGHT_SIDEBAR_STATE_KEY,
   SIGNUP_TEMP_TOKEN_KEY,
 } from '@/constants/constants'
+import { useLocationKey } from '@/hooks/use-location-key'
 import { useIsMobile } from '@/hooks/use-mobile'
 import useDocumentTitle from '@/hooks/use-page-title'
 import { buildRoutePath } from '@/hooks/use-route-match'
@@ -387,8 +383,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     /* const [sidebarOpen, setSidebarOpen] = useState(!isMobile) */
 
-    const location = useLocation()
-    const locationKey = `${location.pathname}${location.search}${location.hash}`
+    const { locationKey } = useLocationKey()
     const prevLocationKeyRef = useRef<string | null>(null)
 
     const onAlertDialogCancel = useCallback(() => {

@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-table'
 import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
@@ -37,6 +37,7 @@ import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 import UserDetailCard from './components/UserDetailCard'
 
+import { useLocationKey } from '@/hooks/use-location-key'
 import { useSiteParams } from '@/hooks/use-site-params'
 
 import { getUser, getUserList, unbanManyUsers } from './api/user'
@@ -68,8 +69,7 @@ export default function BannedUserListPage() {
 
   const [list, setList] = useState<UserData[]>([])
   const [params, setParams] = useSearchParams()
-  const location = useLocation()
-  const locationKey = `${location.pathname}${location.search}${location.hash}`
+  const { locationKey } = useLocationKey()
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
   const { setLoading } = useLoading()

@@ -8,7 +8,7 @@ import {
   useState,
 } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
 import { cn, genArticlePath } from '@/lib/utils'
@@ -33,6 +33,7 @@ import {
   readArticle,
 } from '@/api/message'
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
+import { useLocationKey } from '@/hooks/use-location-key'
 import { buildRoutePath } from '@/hooks/use-route-match'
 import {
   useAlertDialogStore,
@@ -79,7 +80,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
     const { t } = useTranslation()
 
     const [params] = useSearchParams()
-    const location = useLocation()
+    const { location } = useLocationKey()
 
     const authState = useAuthedUserStore()
     const alertDialog = useAlertDialogStore()
@@ -195,7 +196,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
           }, 0)
         }
       },
-      [location, forceUpdate, fetchNotifications, notiStore]
+      [location.pathname, forceUpdate, fetchNotifications, notiStore]
     )
 
     useEffect(() => {

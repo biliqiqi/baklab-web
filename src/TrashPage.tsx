@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
@@ -21,6 +21,7 @@ import ArticleControls from './components/ArticleControls'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 
+import { useLocationKey } from '@/hooks/use-location-key'
 import { useSiteParams } from '@/hooks/use-site-params'
 
 import { getArticleTrash, recoverArticle } from './api/article'
@@ -74,9 +75,7 @@ export default function TrashPage() {
   const { setLoading } = useLoading()
 
   const { siteFrontId } = useSiteParams()
-
-  const location = useLocation()
-  const locationKey = `${location.pathname}${location.search}${location.hash}`
+  const { locationKey } = useLocationKey()
   const [params, setParams] = useSearchParams()
   const [searchData, setSearchData] = useState<SearchFields>({
     ...defaultSearchData,

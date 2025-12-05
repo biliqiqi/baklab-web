@@ -9,7 +9,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { z } from '@/lib/zod-custom'
 
@@ -61,6 +61,8 @@ import SiteLink from './components/base/SiteLink'
 
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
+
+import { useLocationKey } from '@/hooks/use-location-key'
 
 import {
   createSiteDomain,
@@ -177,9 +179,7 @@ export default function SiteListPage() {
   const currDomainSite = domainDialog.site
 
   const { t } = useTranslation()
-
-  const location = useLocation()
-  const locationKey = `${location.pathname}${location.search}${location.hash}`
+  const { locationKey } = useLocationKey()
 
   const alertDialog = useAlertDialogStore()
 

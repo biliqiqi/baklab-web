@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
@@ -26,6 +26,7 @@ import SiteLink from './components/base/SiteLink'
 import { Empty } from './components/Empty'
 import ModerationForm, { ReasonSchema } from './components/ModerationForm'
 
+import { useLocationKey } from '@/hooks/use-location-key'
 import { useSiteParams } from '@/hooks/use-site-params'
 
 import { getSiteUpdates, reviewSiteUpdates } from './api/main'
@@ -293,8 +294,7 @@ export function ArticleReviewPage() {
   const { siteFrontId } = useSiteParams()
   /* const [loading, setLoading] = useState(false) */
 
-  const location = useLocation()
-  const locationKey = `${location.pathname}${location.search}${location.hash}`
+  const { locationKey } = useLocationKey()
   const [pageState, setPageState] = useState<ListPageState>({
     currPage: 1,
     pageSize: DEFAULT_PAGE_SIZE,

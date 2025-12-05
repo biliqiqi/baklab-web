@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { Button } from './components/ui/button'
@@ -18,6 +18,7 @@ import BContainer from './components/base/BContainer'
 
 import { ActivityList } from './components/ActivityList'
 
+import { useLocationKey } from '@/hooks/use-location-key'
 import { useSiteParams } from '@/hooks/use-site-params'
 
 import { getActivityList } from './api'
@@ -61,8 +62,7 @@ export default function ActivityPage() {
 
   const { siteFrontId } = useSiteParams()
   const [params, setParams] = useSearchParams()
-  const location = useLocation()
-  const locationKey = `${location.pathname}${location.search}${location.hash}`
+  const { locationKey } = useLocationKey()
 
   const { checkPermit } = useAuthedUserStore(
     useShallow(({ permit }) => ({ checkPermit: permit }))

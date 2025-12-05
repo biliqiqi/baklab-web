@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-table'
 import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
@@ -29,6 +29,7 @@ import BContainer from './components/base/BContainer'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 
+import { useLocationKey } from '@/hooks/use-location-key'
 import { useSiteParams } from '@/hooks/use-site-params'
 
 import { getSiteBlocklist, unblockUser, unblockUsers } from './api/site'
@@ -57,8 +58,7 @@ export default function BlockedUserListPage() {
 
   const [list, setList] = useState<BlockedUser[]>([])
   const [params, setParams] = useSearchParams()
-  const location = useLocation()
-  const locationKey = `${location.pathname}${location.search}${location.hash}`
+  const { locationKey } = useLocationKey()
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
   const { setLoading } = useLoading()

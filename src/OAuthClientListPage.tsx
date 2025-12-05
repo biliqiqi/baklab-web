@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-table'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import {
@@ -43,6 +43,8 @@ import BContainer from './components/base/BContainer'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 import OAuthClientForm from './components/OAuthClientForm'
+
+import { useLocationKey } from '@/hooks/use-location-key'
 
 import {
   deleteOAuthClient,
@@ -84,8 +86,7 @@ export default function OAuthClientListPage() {
 
   const { setLoading } = useLoading()
   const { t } = useTranslation()
-  const location = useLocation()
-  const locationKey = `${location.pathname}${location.search}${location.hash}`
+  const { locationKey } = useLocationKey()
   const alertDialog = useAlertDialogStore()
 
   const { checkPermit } = useAuthedUserStore(

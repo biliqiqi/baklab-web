@@ -14,7 +14,7 @@ import {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { Badge } from './components/ui/badge'
@@ -48,6 +48,7 @@ import { ListPagination } from './components/ListPagination'
 import RoleSelector from './components/RoleSelector'
 import UserDetailCard from './components/UserDetailCard'
 
+import { useLocationKey } from '@/hooks/use-location-key'
 import { useSiteParams } from '@/hooks/use-site-params'
 
 import { blockUser, blockUsers, removeMember, removeMembers } from './api/site'
@@ -105,8 +106,7 @@ export default function UserListPage() {
   )
 
   const [params, setParams] = useSearchParams()
-  const location = useLocation()
-  const locationKey = `${location.pathname}${location.search}${location.hash}`
+  const { locationKey } = useLocationKey()
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const banDialogRef = useRef<BanDialogRef | null>(null)
 

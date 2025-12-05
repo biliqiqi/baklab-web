@@ -386,7 +386,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                     className="inline-block mr-2 align-middle text-gray-500"
                   />
                 )}
-                {!isMobile &&
+                {!(isMobile && !isLogined()) &&
                   (category.isFront ? (
                     <span className="flex-shrink-0 text-ellipsis overflow-hidden whitespace-nowrap">
                       {category.name}

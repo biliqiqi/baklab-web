@@ -243,16 +243,19 @@ const request = <T = any>(
     } else if (method.toLowerCase() == 'delete') {
       // @ts-expect-error url search params no error
       const params = new URLSearchParams(kyOpts.searchParams || '')
-      let extra: JSONMap | undefined
-      try {
-        extra = JSON.parse(params.get('extra') || '') as JSONMap
-      } catch (err) {
-        console.error('json parse error: ', err)
-        extra = {}
+      const extraStr = params.get('extra')
+      let extra: JSONMap = {}
+
+      if (extraStr) {
+        try {
+          extra = JSON.parse(extraStr) as JSONMap
+        } catch (err) {
+          console.error('json parse error: ', err)
+        }
       }
 
-      // params.set('fromSite', siteState.site.frontId)
       extra['siteFrontId'] = siteState.site.frontId
+      params.set('extra', JSON.stringify(extra))
       kyOpts.searchParams = params
     }
   }

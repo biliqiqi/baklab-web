@@ -26,6 +26,7 @@ import OAuthAuthorizationManagePage from './OAuthAuthorizationManagePage.tsx'
 import OAuthAuthorizePage from './OAuthAuthorizePage.tsx'
 import OAuthClientListPage from './OAuthClientListPage.tsx'
 import RoleManagePage from './RoleManagePage.tsx'
+import SettingsLayout from './SettingsLayout.tsx'
 import SigninPage from './SigninPage.tsx'
 import SignupPage from './SignupPage.tsx'
 import SiteListPage from './SiteListPage.tsx'
@@ -448,17 +449,22 @@ export const routes: RouteObject[] = [
   },
   {
     path: '/settings',
-    loader: () => redirect('/settings/profile'),
-  },
-  {
-    path: '/settings/profile',
-    Component: UserProfileSettingsPage,
+    Component: SettingsLayout,
     loader: mustAuthed,
-  },
-  {
-    path: '/settings/authorizations',
-    Component: OAuthAuthorizationManagePage,
-    loader: mustAuthed,
+    children: [
+      {
+        path: 'profile',
+        Component: UserProfileSettingsPage,
+      },
+      {
+        path: 'authorizations',
+        Component: OAuthAuthorizationManagePage,
+      },
+      {
+        path: '',
+        loader: () => redirect('/settings/profile'),
+      },
+    ],
   },
   {
     path: '/manage',

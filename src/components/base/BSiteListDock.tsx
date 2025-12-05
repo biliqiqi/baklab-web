@@ -209,21 +209,19 @@ const BSiteListDock: FC<BSiteListDockProps> = ({
         {canCreateSite && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <button
-                className="mt-auto flex w-full flex-col items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-300"
-                onClick={(e) => {
-                  e.preventDefault()
-                  setShowSiteForm(true)
-                }}
-              >
+              <div className="mt-auto flex w-full flex-col items-center">
                 <Button
                   variant="secondary"
-                  className="mb-1 h-10 w-10 rounded-full p-0 text-2xl text-gray-500"
+                  className="h-10 w-10 rounded-full p-0 text-2xl text-gray-500"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setShowSiteForm(true)
+                  }}
+                  aria-label={t('createSite')}
                 >
-                  +
+                  +<span className="sr-only">{t('createSite')}</span>
                 </Button>
-                <span className="sr-only">{t('createSite')}</span>
-              </button>
+              </div>
             </TooltipTrigger>
             <TooltipContent
               side="right"

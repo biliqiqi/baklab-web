@@ -1,5 +1,5 @@
 import { startTransition, useCallback, useEffect, useState } from 'react'
-import { RouterProvider, createBrowserRouter } from 'react-router-dom'
+import { BrowserRouter } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { Toaster } from './components/ui/sonner.tsx'
@@ -11,6 +11,7 @@ import { useTheme } from './components/theme-provider.ts'
 import '@/state/chat-db.ts'
 import { deleteIDBMessage, saveIDBMessage } from '@/state/chat-db.ts'
 
+import ModalRoutesWrapper from './ModalRoutesWrapper'
 import {
   API_HOST,
   API_PATH_PREFIX,
@@ -44,8 +45,6 @@ import { Article, SSE_EVENT, SettingsType } from './types/types.ts'
 
 const DESKTOP_FONT_SIZE = '16'
 const MOBILE_FONT_SIZE = '14'
-
-type Router = ReturnType<typeof createBrowserRouter>
 
 const fetchNotiCount = toSync(async () => {
   const notiState = useNotificationStore.getState()
@@ -100,6 +99,9 @@ const connectEvents = () => {
     SSE_EVENT.NewMessage,
     (ev: MessageEvent<string>) => {
       try {
+        if (!ev.data || ev.data === 'undefined') {
+          return
+        }
         /* console.log('new message data str: ', ev.data) */
         const item = JSON.parse(ev.data) as Article
         /* console.log('new message data: ', item) */
@@ -135,7 +137,6 @@ const connectEvents = () => {
 
 const App = () => {
   const [initialized, setInitialized] = useState(false)
-  const [router, setRouter] = useState<Router | null>(null)
 
   /* const updateToastState = useToastStore((state) => state.update) */
   const { currUsername, authToken, updateBaseData, updateUserData } =
@@ -286,7 +287,6 @@ const App = () => {
         toSync(fetchSiteList)()
       }
 
-      setRouter(createBrowserRouter(routes))
       setInitialized(true)
     }
 
@@ -354,8 +354,10 @@ const App = () => {
   {/* prettier-ignore */}
   return (
     <>
-      {initialized && router ? (
-        <RouterProvider router={router} key={forceState} />
+      {initialized ? (
+        <BrowserRouter key={forceState}>
+          <ModalRoutesWrapper />
+        </BrowserRouter>
       ) : (
         <div className="flex h-screen items-center justify-center">
           <BLoader className="-mt-8" />

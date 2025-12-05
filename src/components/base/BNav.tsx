@@ -631,7 +631,16 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                       className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
                       asChild
                     >
-                      <Link to={'/settings'}>
+                      <Link
+                        to="/settings/profile"
+                        state={{
+                          backgroundLocation: {
+                            pathname: location.pathname,
+                            search: location.search,
+                            hash: location.hash,
+                          },
+                        }}
+                      >
                         <SettingsIcon size={20} /> {t('settings')}
                       </Link>
                     </DropdownMenuItem>

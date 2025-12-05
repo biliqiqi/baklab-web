@@ -19,7 +19,6 @@ import {
 } from './components/ui/alert-dialog'
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
-import { Card } from './components/ui/card'
 import {
   Table,
   TableBody,
@@ -34,8 +33,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from './components/ui/tooltip'
-
-import BContainer from './components/base/BContainer'
 
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
@@ -282,15 +279,7 @@ export default function OAuthAuthorizationManagePage() {
   }, [fetchAuthorizationList])
 
   return (
-    <BContainer
-      category={{
-        isFront: true,
-        frontId: 'settingsAuthorizations',
-        name: t('oauthAuthorizations'),
-        describe: t('oauthAuthorizationsDescribe'),
-      }}
-      sidebarType="settings"
-    >
+    <>
       <div className="flex justify-between items-center mb-4">
         <div>
           <Badge variant="secondary">
@@ -310,16 +299,14 @@ export default function OAuthAuthorizationManagePage() {
       </div>
 
       {list.length === 0 ? (
-        <Card className="p-8">
-          <div className="text-center space-y-4">
-            <Empty text={t('oauthNoAuthorizations')} />
-            <p className="text-sm text-muted-foreground">
-              {t('oauthNoAuthorizationsNote')}
-            </p>
-          </div>
-        </Card>
+        <div className="text-center space-y-4 py-8">
+          <Empty text={t('oauthNoAuthorizations')} />
+          <p className="text-sm text-muted-foreground">
+            {t('oauthNoAuthorizationsNote')}
+          </p>
+        </div>
       ) : (
-        <Card className="overflow-hidden">
+        <div className="border rounded-md">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -365,7 +352,7 @@ export default function OAuthAuthorizationManagePage() {
           </Table>
 
           <ListPagination pageState={pageState} />
-        </Card>
+        </div>
       )}
 
       <AlertDialog
@@ -390,6 +377,6 @@ export default function OAuthAuthorizationManagePage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </BContainer>
+    </>
   )
 }

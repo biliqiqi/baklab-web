@@ -300,7 +300,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
         <div
           className="flex flex-grow  items-center"
           style={{
-            maxWidth: 'calc(100% - 8rem)',
+            maxWidth: 'calc(100% - 9rem)',
             lineHeight: '36px',
           }}
         >
@@ -349,7 +349,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                     ) : (
                       <BSiteIcon
                         key={currSite.frontId}
-                        className="max-w-[180px]"
+                        className="max-w-[118px]"
                         logoUrl={currSite.logoUrl}
                         name={currSite.name}
                         size={42}
@@ -358,7 +358,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                     )
                   ) : (
                     <BSiteIcon
-                      className="max-w-[180px]"
+                      className="max-w-[118px]"
                       logoUrl={SITE_LOGO_IMAGE}
                       name={PLATFORM_NAME}
                       size={42}
@@ -386,25 +386,28 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                     className="inline-block mr-2 align-middle text-gray-500"
                   />
                 )}
-                {category.isFront ? (
-                  <span className="flex-shrink-0 text-ellipsis overflow-hidden whitespace-nowrap">
-                    {category.name}
-                  </span>
-                ) : (
-                  <SiteLink
-                    to={`/b/${category.frontId}`}
-                    siteFrontId={siteFrontId}
-                    className="flex-shrink-0 text-ellipsis overflow-hidden whitespace-nowrap"
+                {!isMobile &&
+                  (category.isFront ? (
+                    <span className="flex-shrink-0 text-ellipsis overflow-hidden whitespace-nowrap">
+                      {category.name}
+                    </span>
+                  ) : (
+                    <SiteLink
+                      to={`/b/${category.frontId}`}
+                      siteFrontId={siteFrontId}
+                      className="flex-shrink-0 text-ellipsis overflow-hidden whitespace-nowrap"
+                    >
+                      {category.name}
+                    </SiteLink>
+                  ))}
+                {!(isMobile && !isLogined()) && (
+                  <span
+                    className="flex-shrink-1 px-4 ml-4 border-l-2 text-sm text-gray-500 cursor-pointer flex-grow overflow-hidden whitespace-nowrap text-ellipsis"
+                    onClick={() => setShowCategoryDetail(true)}
                   >
-                    {category.name}
-                  </SiteLink>
+                    {summaryText(category.describe, isMobile ? 20 : 100)}{' '}
+                  </span>
                 )}
-                <span
-                  className="flex-shrink-1 px-4 ml-4 border-l-2 text-sm text-gray-500 cursor-pointer flex-grow overflow-hidden whitespace-nowrap text-ellipsis"
-                  onClick={() => setShowCategoryDetail(true)}
-                >
-                  {summaryText(category.describe, isMobile ? 20 : 100)}{' '}
-                </span>
               </>
             )
           )}

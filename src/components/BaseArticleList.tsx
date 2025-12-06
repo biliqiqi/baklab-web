@@ -211,7 +211,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
     return () => {
       cancelled = true
     }
-  }, [params, categoryFrontId, siteFrontId, setLoading])
+  }, [params, categoryFrontId, siteFrontId, isFeedList, setLoading])
 
   return (
     <>

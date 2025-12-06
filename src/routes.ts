@@ -17,7 +17,6 @@ import BlockedWordListPage from './BlockedWordListPage.tsx'
 import CategoryListPage from './CategoryListPage.tsx'
 import CategoryPage from './CategoryPage.tsx'
 import EditPage from './EditPage.tsx'
-import FeedPage from './FeedPage.tsx'
 import InvitePage from './InvitePage.tsx'
 import MessagePage from './MessagePage.tsx'
 import NotCompatiblePage from './NotCompatiblePage.tsx'
@@ -316,7 +315,7 @@ const createSiteRoutes = (prefix: '/z' | '/zhandian'): RouteObject[] => [
 
       return null
     },
-    Component: FeedPage,
+    Component: CategoryPage,
   },
   {
     path: `${prefix}/:siteFrontId/all`,
@@ -398,7 +397,7 @@ const createSiteRoutes = (prefix: '/z' | '/zhandian'): RouteObject[] => [
 export const routes: RouteObject[] = [
   {
     path: '/',
-    Component: FeedPage,
+    Component: CategoryPage,
     loader: async (args) => {
       const singleSiteResult = await singleSiteEntryLoader(args)
       if (singleSiteResult) {

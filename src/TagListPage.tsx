@@ -22,11 +22,13 @@ export default function TagListPage() {
   const { t } = useTranslation()
 
   useEffect(() => {
-    if (!siteFrontId) return
-
     const fetchTags = async () => {
       try {
         setLoading(true)
+        if (!siteFrontId) {
+          setTags([])
+          return
+        }
         const { code, data } = await getSiteTags(siteFrontId)
         if (!code && data) {
           setTags(data.list || [])

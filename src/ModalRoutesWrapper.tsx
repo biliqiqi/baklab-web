@@ -38,7 +38,12 @@ export default function ModalRoutesWrapper() {
     if (!backgroundLocation) {
       setFrozenRoutesElement(routesElement)
     }
-  }, [backgroundLocation, routesElement])
+  }, [
+    backgroundLocation,
+    effectiveLocation.pathname,
+    effectiveLocation.search,
+    effectiveLocation.hash,
+  ])
 
   const modalContent =
     backgroundLocation && modalRoutesElement

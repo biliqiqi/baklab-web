@@ -90,7 +90,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
 
   useEffect(() => {
     onReady()
-  }, [siteFrontId, categoryFrontId])
+  }, [siteFrontId, categoryFrontId, onReady])
 
   return (
     <div key={categoryFrontId}>

@@ -81,7 +81,7 @@ const FeedArticleLis: React.FC<FeedArticleLisProps> = ({
     if (isFirstLoad) {
       onReady()
     }
-  }, [isFirstLoad])
+  }, [isFirstLoad, onReady])
 
   return (
     <BaseArticleList

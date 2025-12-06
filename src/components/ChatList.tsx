@@ -132,15 +132,18 @@ const ChatList: React.FC<ChatListProps> = ({
       try {
         let cursor: string | undefined
         if (withCursor) {
-          if (isNext) {
-            cursor = chatList.nextCursor
-          } else {
-            cursor = chatList.prevCursor
-          }
+          setChatList((currentChatList) => {
+            if (isNext) {
+              cursor = currentChatList.nextCursor
+            } else {
+              cursor = currentChatList.prevCursor
+            }
 
-          if (!cursor) {
-            cursor = currCursor
-          }
+            if (!cursor) {
+              cursor = currCursor
+            }
+            return currentChatList
+          })
         }
 
         /* console.log('cursor: ', cursor) */
@@ -215,15 +218,7 @@ const ChatList: React.FC<ChatListProps> = ({
 
       return null
     },
-    [
-      currCate,
-      siteFrontId,
-      categoryFrontId,
-      isLoading,
-      chatList,
-      setLoading,
-      currCursor,
-    ]
+    [currCate, siteFrontId, categoryFrontId, isLoading, setLoading, currCursor]
   )
 
   const handleChatCardSuccess = useCallback(
@@ -652,9 +647,7 @@ const ChatList: React.FC<ChatListProps> = ({
         initialized: true,
       }
 
-      const messageId = /^#message\d+$/.test(locationHash)
-        ? locationHash
-        : null
+      const messageId = /^#message\d+$/.test(locationHash) ? locationHash : null
 
       const cb = () => {
         setChatList((state) => {
@@ -708,9 +701,7 @@ const ChatList: React.FC<ChatListProps> = ({
   useEffect(() => {
     if (!chatList.initialized) return
 
-    const messageId = /^#message\d+$/.test(locationHash)
-      ? locationHash
-      : null
+    const messageId = /^#message\d+$/.test(locationHash) ? locationHash : null
 
     if (messageId) {
       const tryScrollToMessage = (retries = 3) => {

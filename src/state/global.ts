@@ -628,51 +628,56 @@ export interface SidebarState {
   ) => void
 }
 
-export const useSidebarStore = create<SidebarState>((set) => ({
-  open: LEFT_SIDEBAR_DEFAULT_OPEN,
-  setOpen(open) {
-    set((state) => ({ ...state, open }))
-    localStorage.setItem(LEFT_SIDEBAR_STATE_KEY, String(open))
-  },
-  openMobile: false,
-  setOpenMobile(openMobile) {
-    set((state) => ({ ...state, openMobile }))
-    localStorage.setItem(LEFT_SIDEBAR_STATE_KEY, String(openMobile))
-  },
-  preventMobileCloseUntil: 0,
-  setPreventMobileCloseUntil(ts) {
-    set((state) => ({ ...state, preventMobileCloseUntil: ts }))
-  },
-  closeMobileSidebar({ force = false }: { force?: boolean } = {}) {
-    set((state) => {
-      const now = Date.now()
-      if (!force) {
-        if (state.preventMobileCloseUntil > now) {
-          return state
+export const useSidebarStore = create<SidebarState>((set) => {
+  const savedState = localStorage.getItem(LEFT_SIDEBAR_STATE_KEY)
+  const initialOpen =
+    savedState !== null ? savedState === 'true' : LEFT_SIDEBAR_DEFAULT_OPEN
+
+  return {
+    open: initialOpen,
+    setOpen(open) {
+      set((state) => ({ ...state, open }))
+      localStorage.setItem(LEFT_SIDEBAR_STATE_KEY, String(open))
+    },
+    openMobile: false,
+    setOpenMobile(openMobile) {
+      set((state) => ({ ...state, openMobile }))
+      localStorage.setItem(LEFT_SIDEBAR_STATE_KEY, String(openMobile))
+    },
+    preventMobileCloseUntil: 0,
+    setPreventMobileCloseUntil(ts) {
+      set((state) => ({ ...state, preventMobileCloseUntil: ts }))
+    },
+    closeMobileSidebar({ force = false }: { force?: boolean } = {}) {
+      set((state) => {
+        const now = Date.now()
+        if (!force) {
+          if (state.preventMobileCloseUntil > now) {
+            return state
+          }
         }
+        return { ...state, openMobile: false, preventMobileCloseUntil: 0 }
+      })
+    },
+    groupsOpen: {
+      category: true,
+      siteManage: true,
+    },
+    setGroupsOpen(s) {
+      if (typeof s == 'function') {
+        set((state) => ({
+          ...state,
+          groupsOpen: s(state.groupsOpen),
+        }))
+      } else {
+        set((state) => ({
+          ...state,
+          groupsOpen: s,
+        }))
       }
-      localStorage.setItem(LEFT_SIDEBAR_STATE_KEY, 'false')
-      return { ...state, openMobile: false, preventMobileCloseUntil: 0 }
-    })
-  },
-  groupsOpen: {
-    category: true,
-    siteManage: true,
-  },
-  setGroupsOpen(s) {
-    if (typeof s == 'function') {
-      set((state) => ({
-        ...state,
-        groupsOpen: s(state.groupsOpen),
-      }))
-    } else {
-      set((state) => ({
-        ...state,
-        groupsOpen: s,
-      }))
-    }
-  },
-}))
+    },
+  }
+})
 
 export interface RightSidebarState
   extends Pick<

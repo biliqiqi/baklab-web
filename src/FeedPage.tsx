@@ -25,7 +25,7 @@ export default function FeedPage() {
         describe: feedDescription,
       }}
     >
-      <FeedArticleList key={`feed-${siteFrontId || 'global'}`} />
+      <FeedArticleList />
     </BContainer>
   )
 }

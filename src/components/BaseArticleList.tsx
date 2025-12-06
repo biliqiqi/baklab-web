@@ -79,13 +79,14 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
 }) => {
   const [list, updateList] = useState<Article[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [pageState, setPageState] = useState<ArticleListState>({
     currPage: 1,
     pageSize: DEFAULT_PAGE_SIZE,
     total: 0,
     totalPage: 0,
   })
-  const showSkeleton = useDelayedVisibility(isLoading)
+  const showSkeleton = useDelayedVisibility(isLoading && isInitialLoad, 200)
 
   const checkPermit = useAuthedUserStore((state) => state.permit)
   const loginWithDialog = useAuthedUserStore((state) => state.loginWithDialog)
@@ -200,6 +201,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
         if (!cancelled) {
           setLoading(false)
           setIsLoading(false)
+          setIsInitialLoad(false)
         }
       }
     }
@@ -209,7 +211,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
     return () => {
       cancelled = true
     }
-  }, [params, setLoading])
+  }, [params, categoryFrontId, setLoading])
 
   return (
     <>
@@ -234,16 +236,26 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
         </div>
       </div>
       <div className="mt-4">
-        {isLoading ? (
-          showSkeleton ? (
+        {showSkeleton ? (
+          mode == ARTICLE_LIST_MODE.Compact ? (
             <Card>
-              {Array(3)
+              {Array(8)
                 .fill('')
                 .map((_, idx) => (
-                  <ArticleListItemSkeleton key={idx} />
+                  <ArticleListItemSkeleton key={idx} mode="compact" />
                 ))}
             </Card>
-          ) : null
+          ) : (
+            <>
+              {Array(8)
+                .fill('')
+                .map((_, idx) => (
+                  <Card className="mb-3" key={idx}>
+                    <ArticleListItemSkeleton mode="preview" />
+                  </Card>
+                ))}
+            </>
+          )
         ) : list.length == 0 ? (
           <Empty />
         ) : mode == ARTICLE_LIST_MODE.Compact ? (

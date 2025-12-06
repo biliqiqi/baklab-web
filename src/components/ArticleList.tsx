@@ -93,26 +93,36 @@ const ArticleList: React.FC<ArticleListProps> = ({
   }, [siteFrontId, categoryFrontId, onReady])
 
   return (
-    <div key={categoryFrontId}>
-      <BaseArticleList
-        fetchArticles={fetchArticles}
-        siteFrontId={siteFrontId}
-        categoryFrontId={categoryFrontId}
-        submitPath={submitPath}
-        onLoad={onLoad}
-        onReady={noop}
-        onPageStateChange={handlePageStateChange}
-        mode={articleListMode}
-      />
-    </div>
+    <BaseArticleList
+      fetchArticles={fetchArticles}
+      siteFrontId={siteFrontId}
+      categoryFrontId={categoryFrontId}
+      submitPath={submitPath}
+      onLoad={onLoad}
+      onReady={noop}
+      onPageStateChange={handlePageStateChange}
+      mode={articleListMode}
+    />
   )
 }
 
-export const ArticleListItemSkeleton = () => (
+interface ArticleListItemSkeletonProps {
+  mode?: 'compact' | 'preview'
+}
+
+export const ArticleListItemSkeleton: React.FC<
+  ArticleListItemSkeletonProps
+> = ({ mode = 'compact' }) => (
   <div className="p-3 border-b-[1px]">
     <div className="mb-3">
       <Skeleton className="w-3/4 h-[24px] mb-2" />
-      <Skeleton className="w-1/2 h-[16px]" />
+      {mode === 'preview' && (
+        <>
+          <Skeleton className="w-full h-[16px] mb-2" />
+          <Skeleton className="w-5/6 h-[16px] mb-2" />
+          <Skeleton className="w-4/6 h-[16px]" />
+        </>
+      )}
     </div>
     <div className="flex gap-2">
       <Skeleton className="w-[60px] h-[24px]" />

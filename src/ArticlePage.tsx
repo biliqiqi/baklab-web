@@ -67,6 +67,9 @@ export default function ArticlePage() {
 
   const replyHandlerRef = useRef<((x: Article) => void) | null>(null)
   const editHandlerRef = useRef<((x: Article) => void) | null>(null)
+  const isFirstLoadRef = useRef(true)
+  const prevParamsRef = useRef<URLSearchParams | null>(null)
+  const prevForceStateRef = useRef<number | null>(null)
 
   const [params, setParams] = useSearchParams()
   const { updateNotFound } = useNotFoundStore()
@@ -239,10 +242,39 @@ export default function ArticlePage() {
   useDocumentTitle(article?.displayTitle || '')
 
   useEffect(() => {
-    if (articleId) {
+    const paramsChanged =
+      prevParamsRef.current !== null &&
+      prevParamsRef.current.toString() !== params.toString()
+    const forceStateChanged =
+      prevForceStateRef.current !== null &&
+      prevForceStateRef.current !== forceState
+
+    if (!articleId) return
+
+    if (isFirstLoadRef.current) {
       fetchArticleSync(true)
+      isFirstLoadRef.current = false
+      prevParamsRef.current = new URLSearchParams(params)
+      prevForceStateRef.current = forceState
+      return
     }
 
+    if (!initialized) {
+      return
+    }
+
+    if (!paramsChanged && !forceStateChanged) {
+      prevParamsRef.current = new URLSearchParams(params)
+      prevForceStateRef.current = forceState
+      return
+    }
+
+    fetchArticleSync(false)
+    prevParamsRef.current = new URLSearchParams(params)
+    prevForceStateRef.current = forceState
+  }, [articleId, params, forceState, initialized])
+
+  useEffect(() => {
     if (replyHandlerRef.current) {
       bus.off(EV_ON_REPLY_CLICK, replyHandlerRef.current)
       bus.on(EV_ON_REPLY_CLICK, replyHandlerRef.current)
@@ -262,13 +294,7 @@ export default function ArticlePage() {
         bus.off(EV_ON_EDIT_CLICK, editHandlerRef.current)
       }
     }
-  }, [articleId])
-
-  useEffect(() => {
-    if (initialized && articleId) {
-      fetchArticleSync(false)
-    }
-  }, [params, initialized, forceState, articleId])
+  }, [])
 
   useEffect(() => {
     if (

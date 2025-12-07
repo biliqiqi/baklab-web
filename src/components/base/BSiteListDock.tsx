@@ -205,33 +205,43 @@ const BSiteListDock: FC<BSiteListDockProps> = ({
               </Tooltip>
             )
           })}
-        </div>
-        {canCreateSite && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="mt-auto flex w-full flex-col items-center">
-                <Button
-                  variant="secondary"
-                  className="h-10 w-10 rounded-full p-0 text-2xl text-gray-500"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setShowSiteForm(true)
+          {canCreateSite && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className="flex w-full items-center justify-center"
+                  style={{
+                    width: `${SITE_LIST_DOCK_WIDTH}px`,
+                    height: `${SITE_LIST_DOCK_WIDTH}px`,
                   }}
-                  aria-label={t('createSite')}
                 >
-                  +<span className="sr-only">{t('createSite')}</span>
-                </Button>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent
-              side="right"
-              sideOffset={12}
-              className="text-xs font-medium"
-            >
-              {t('createSite')}
-            </TooltipContent>
-          </Tooltip>
-        )}
+                  <Button
+                    variant="secondary"
+                    className="rounded-full p-0 text-2xl text-gray-500"
+                    style={{
+                      width: `${ICON_SIZE}px`,
+                      height: `${ICON_SIZE}px`,
+                    }}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setShowSiteForm(true)
+                    }}
+                    aria-label={t('createSite')}
+                  >
+                    +<span className="sr-only">{t('createSite')}</span>
+                  </Button>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                sideOffset={12}
+                className="text-xs font-medium"
+              >
+                {t('createSite')}
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
       </div>
     </TooltipProvider>
   )

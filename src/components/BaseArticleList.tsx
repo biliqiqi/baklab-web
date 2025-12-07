@@ -12,7 +12,6 @@ import { noop } from '@/lib/utils'
 
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 import { buildRoutePath } from '@/hooks/use-route-match'
-import { useDelayedVisibility } from '@/hooks/useDelayedVisibility'
 import { isLogined, useAuthedUserStore, useLoading } from '@/state/global'
 import {
   ARTICLE_LIST_MODE,
@@ -86,7 +85,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
     total: 0,
     totalPage: 0,
   })
-  const showSkeleton = useDelayedVisibility(isLoading && isInitialLoad, 200)
+  const showSkeleton = isLoading && isInitialLoad
 
   const checkPermit = useAuthedUserStore((state) => state.permit)
   const loginWithDialog = useAuthedUserStore((state) => state.loginWithDialog)
@@ -155,6 +154,11 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
       )
     }
   }, [])
+
+  useEffect(() => {
+    updateList([])
+    setIsInitialLoad(true)
+  }, [categoryFrontId, siteFrontId, isFeedList])
 
   useEffect(() => {
     let cancelled = false

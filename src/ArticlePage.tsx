@@ -20,7 +20,6 @@ import {
   REPLY_BOX_PLACEHOLDER_HEIGHT,
 } from '@/constants/constants'
 import { useSiteParams } from '@/hooks/use-site-params'
-import { useDelayedVisibility } from '@/hooks/useDelayedVisibility'
 
 import { getArticle, readManyArticle } from './api/article'
 import { ArticleContext } from './contexts/ArticleContext'
@@ -53,7 +52,7 @@ export default function ArticlePage() {
   const [article, setArticle] = useState<Article | null>(null)
   const [rootArticle, setRootArticle] = useState<Article | null>(null)
   const [articleCategory, setArticleCategory] = useState<Category | null>(null)
-  const showInitialSkeleton = useDelayedVisibility(!initialized)
+  const showInitialSkeleton = !initialized
 
   const { loading, setLoading } = useLoading()
   const { t } = useTranslation()

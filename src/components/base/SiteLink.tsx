@@ -45,9 +45,7 @@ const SiteLink = forwardRef<HTMLAnchorElement, SiteLinkProps>(
       [closeSidebarOnClick, closeMobileSidebar, onClick]
     )
 
-    return (
-      <Link ref={ref} to={resolvedTo} onClick={handleClick} {...rest} />
-    )
+    return <Link ref={ref} to={resolvedTo} onClick={handleClick} {...rest} />
   }
 )
 

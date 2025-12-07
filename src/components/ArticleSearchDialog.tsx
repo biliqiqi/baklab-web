@@ -510,7 +510,7 @@ const ArticleSearchDialog = ({
     >
       <div
         className={cn(
-          'absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-200',
+          'absolute inset-0 bg-black/80 transition-opacity duration-200',
           showContent ? 'opacity-100' : 'opacity-0'
         )}
       ></div>

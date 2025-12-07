@@ -315,12 +315,11 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       (state) => state.fetchReactOptions
     )
 
-    const { isLogined, authToken, currUserId } = useAuthedUserStore(
-      useShallow(({ permit, userID, authToken, isLogined }) => ({
+    const { isLogined, currUserId } = useAuthedUserStore(
+      useShallow(({ permit, userID, isLogined }) => ({
         currUserId: userID,
         authPermit: permit,
         isLogined,
-        authToken,
       }))
     )
 
@@ -609,31 +608,35 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     useEffect(() => {
       if (siteFrontId) {
-        toSync(async () => {
-          const promises: (
-            | Promise<Site | null>
-            | Promise<Category[]>
-            | Promise<void>
-          )[] = [
-            fetchSiteData(siteFrontId),
-            fetchCategoryList(siteFrontId),
-            fetchReactOptions(),
-          ]
+        const needsFetch = !currSite || currSite.frontId !== siteFrontId
 
-          await Promise.all(promises)
-        })()
+        if (needsFetch) {
+          toSync(async () => {
+            const promises: (
+              | Promise<Site | null>
+              | Promise<Category[]>
+              | Promise<void>
+            )[] = [
+              fetchSiteData(siteFrontId),
+              fetchCategoryList(siteFrontId),
+              fetchReactOptions(),
+            ]
+
+            await Promise.all(promises)
+          })()
+        }
       } else {
         updateCurrSite(null)
         clearCategories()
       }
     }, [
       siteFrontId,
+      currSite,
       fetchSiteData,
       updateCurrSite,
       fetchCategoryList,
       clearCategories,
       fetchReactOptions,
-      authToken,
     ])
 
     useDocumentTitle(category?.name || '')

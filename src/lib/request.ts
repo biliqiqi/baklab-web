@@ -62,7 +62,7 @@ const defaultOptions: Options = {
           try {
             data = await resp.json()
             if (import.meta.env.DEV) {
-              console.log('Response error data:', { status, data })
+              // console.log('Response error data:', { status, data })
             }
           } catch (e) {
             if (import.meta.env.DEV) {

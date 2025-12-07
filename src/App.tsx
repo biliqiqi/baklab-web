@@ -1,5 +1,4 @@
 import { startTransition, useCallback, useEffect, useState } from 'react'
-import { BrowserRouter } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { Toaster } from './components/ui/sonner.tsx'
@@ -355,9 +354,7 @@ const App = () => {
   return (
     <>
       {initialized ? (
-        <BrowserRouter key={forceState}>
-          <ModalRoutesWrapper />
-        </BrowserRouter>
+        <ModalRoutesWrapper key={forceState} />
       ) : (
         <div className="flex h-screen items-center justify-center">
           <BLoader className="-mt-8" />

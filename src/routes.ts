@@ -299,100 +299,103 @@ const singleSiteRoutes: RouteObject[] = [
   },
 ]
 
-const createSiteRoutes = (prefix: '/z' | '/zhandian'): RouteObject[] => [
-  {
-    path: `${prefix}/:siteFrontId`,
-    loader: ({ params }) => {
-      const siteFrontId = params.siteFrontId
-      if (!siteFrontId) {
-        return redirect('/')
-      }
+const createSiteRoutes = (prefix: '/z' | '/zhandian'): RouteObject[] => {
+  return [
+    {
+      path: `${prefix}/:siteFrontId`,
+      loader: ({ params }) => {
+        const authState = useAuthedUserStore.getState()
 
-      const authState = useAuthedUserStore.getState()
-      if (!authState.isLogined()) {
-        return redirect(`${prefix}/${siteFrontId}/all`)
-      }
+        const siteFrontId = params.siteFrontId
+        if (!siteFrontId) {
+          return redirect('/')
+        }
 
-      return null
+        if (!authState.isLogined()) {
+          return redirect(`${prefix}/${siteFrontId}/all`)
+        }
+
+        return null
+      },
+      Component: CategoryPage,
     },
-    Component: CategoryPage,
-  },
-  {
-    path: `${prefix}/:siteFrontId/all`,
-    Component: CategoryPage,
-  },
-  {
-    path: `${prefix}/:siteFrontId/bankuai`,
-    Component: CategoryListPage,
-  },
-  {
-    path: `${prefix}/:siteFrontId/tags`,
-    Component: TagListPage,
-  },
-  {
-    path: `${prefix}/:siteFrontId/tags/:tagName`,
-    Component: TagPage,
-  },
-  {
-    path: `${prefix}/:siteFrontId/submit`,
-    Component: SubmitPage,
-    loader: needPermission('article', 'create'),
-  },
-  {
-    path: `${prefix}/:siteFrontId/bankuai/:categoryFrontId`,
-    Component: CategoryPage,
-  },
-  {
-    path: `${prefix}/:siteFrontId/about`,
-    Component: AboutPage,
-  },
-  {
-    path: `${prefix}/:siteFrontId/b/:categoryFrontId`,
-    Component: CategoryPage,
-  },
-  {
-    path: `${prefix}/:siteFrontId/articles/:articleId`,
-    Component: ArticlePage,
-  },
-  {
-    path: `${prefix}/:siteFrontId/articles/:articleId/edit`,
-    Component: EditPage,
-    loader: somePermissions(
-      ['article', 'edit_mine'],
-      ['article', 'edit_others']
-    ),
-  },
-  {
-    path: `${prefix}/:siteFrontId/manage/users`,
-    Component: UserListPage,
-    loader: needPermission('user', 'manage'),
-  },
-  {
-    path: `${prefix}/:siteFrontId/manage/blocklist`,
-    Component: BlockedUserListPage,
-    loader: needPermission('user', 'manage'),
-  },
-  {
-    path: `${prefix}/:siteFrontId/manage/roles`,
-    Component: RoleManagePage,
-    loader: needPermission('role', 'manage'),
-  },
-  {
-    path: `${prefix}/:siteFrontId/manage/activities`,
-    Component: ActivityPage,
-    loader: needPermission('activity', 'access'),
-  },
-  {
-    path: `${prefix}/:siteFrontId/manage/article_review`,
-    Component: ArticleReviewPage,
-    loader: needPermission('article', 'review'),
-  },
-  {
-    path: `${prefix}/:siteFrontId/manage/blocked_words`,
-    Component: BlockedWordListPage,
-    loader: needPermission('site', 'manage'),
-  },
-]
+    {
+      path: `${prefix}/:siteFrontId/all`,
+      Component: CategoryPage,
+    },
+    {
+      path: `${prefix}/:siteFrontId/bankuai`,
+      Component: CategoryListPage,
+    },
+    {
+      path: `${prefix}/:siteFrontId/tags`,
+      Component: TagListPage,
+    },
+    {
+      path: `${prefix}/:siteFrontId/tags/:tagName`,
+      Component: TagPage,
+    },
+    {
+      path: `${prefix}/:siteFrontId/submit`,
+      Component: SubmitPage,
+      loader: needPermission('article', 'create'),
+    },
+    {
+      path: `${prefix}/:siteFrontId/bankuai/:categoryFrontId`,
+      Component: CategoryPage,
+    },
+    {
+      path: `${prefix}/:siteFrontId/about`,
+      Component: AboutPage,
+    },
+    {
+      path: `${prefix}/:siteFrontId/b/:categoryFrontId`,
+      Component: CategoryPage,
+    },
+    {
+      path: `${prefix}/:siteFrontId/articles/:articleId`,
+      Component: ArticlePage,
+    },
+    {
+      path: `${prefix}/:siteFrontId/articles/:articleId/edit`,
+      Component: EditPage,
+      loader: somePermissions(
+        ['article', 'edit_mine'],
+        ['article', 'edit_others']
+      ),
+    },
+    {
+      path: `${prefix}/:siteFrontId/manage/users`,
+      Component: UserListPage,
+      loader: needPermission('user', 'manage'),
+    },
+    {
+      path: `${prefix}/:siteFrontId/manage/blocklist`,
+      Component: BlockedUserListPage,
+      loader: needPermission('user', 'manage'),
+    },
+    {
+      path: `${prefix}/:siteFrontId/manage/roles`,
+      Component: RoleManagePage,
+      loader: needPermission('role', 'manage'),
+    },
+    {
+      path: `${prefix}/:siteFrontId/manage/activities`,
+      Component: ActivityPage,
+      loader: needPermission('activity', 'access'),
+    },
+    {
+      path: `${prefix}/:siteFrontId/manage/article_review`,
+      Component: ArticleReviewPage,
+      loader: needPermission('article', 'review'),
+    },
+    {
+      path: `${prefix}/:siteFrontId/manage/blocked_words`,
+      Component: BlockedWordListPage,
+      loader: needPermission('site', 'manage'),
+    },
+  ]
+}
 
 export const routes: RouteObject[] = [
   {

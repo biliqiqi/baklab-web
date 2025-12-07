@@ -619,6 +619,7 @@ export interface Site {
   updatedAt: string
   status: SiteStatus
   categoryFrontIds: string[]
+  categories?: Category[]
   currUserRole: Role | null
   currUserState: SiteUserState
   allowNonMemberInteract: boolean

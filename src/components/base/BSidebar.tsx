@@ -192,40 +192,78 @@ const BSidebar: React.FC<BSidebarProps> = ({
   )
 
   const { groupsOpen, setGroupsOpen, closeMobileSidebar } = useSidebarStore(
-    useShallow(({ open, setOpen, groupsOpen, setGroupsOpen, closeMobileSidebar }) => ({
-      sidebarOpen: open,
-      setSidebarOpen: setOpen,
-      groupsOpen,
-      setGroupsOpen,
-      closeMobileSidebar,
-    }))
+    useShallow(
+      ({ open, setOpen, groupsOpen, setGroupsOpen, closeMobileSidebar }) => ({
+        sidebarOpen: open,
+        setSidebarOpen: setOpen,
+        groupsOpen,
+        setGroupsOpen,
+        closeMobileSidebar,
+      })
+    )
   )
 
-  const { cateList, fetchCategoryList } = useCategoryStore(
-    useShallow(({ fetchCategoryList, updateCategories, categories }) => ({
-      cateList: categories,
-      fetchCategoryList,
-      updateCategories,
-    }))
-  )
+  const { cateList, fetchCategoryList, cateStoreSiteFrontId } =
+    useCategoryStore(
+      useShallow(
+        ({ fetchCategoryList, updateCategories, categories, siteFrontId }) => ({
+          cateList: categories,
+          fetchCategoryList,
+          updateCategories,
+          cateStoreSiteFrontId: siteFrontId,
+        })
+      )
+    )
 
   const subscribedCateList = useMemo(
     () => cateList.filter((cate) => cate?.userState?.subscribed),
     [cateList]
   )
 
-  const { currSite } = useSiteStore(
-    useShallow(({ site, update }) => ({
+  const { currSite, siteList } = useSiteStore(
+    useShallow(({ site, update, siteList }) => ({
       currSite: site,
       updateCurrSite: update,
+      siteList,
     }))
   )
   const isSingleSite = useContextStore((state) => state.isSingleSite)
 
-  const currCateList = useMemo(
-    () => (isLogined() ? subscribedCateList : cateList),
-    [isLogined, subscribedCateList, cateList]
-  )
+  const currCateList = useMemo(() => {
+    if (cateStoreSiteFrontId === siteFrontId) {
+      return isLogined() ? subscribedCateList : cateList
+    }
+
+    const targetSite = siteList?.find((s) => s.frontId === siteFrontId)
+    if (targetSite?.categories) {
+      return isLogined()
+        ? targetSite.categories.filter((cate) => cate?.userState?.subscribed)
+        : targetSite.categories
+    }
+
+    return []
+  }, [
+    isLogined,
+    subscribedCateList,
+    cateList,
+    cateStoreSiteFrontId,
+    siteFrontId,
+    siteList,
+  ])
+
+  const displaySite = useMemo(() => {
+    if (!siteFrontId) {
+      return currSite
+    }
+
+    const cachedSite = siteList?.find((s) => s.frontId === siteFrontId)
+
+    if (cachedSite) {
+      return currSite?.frontId === siteFrontId ? currSite : cachedSite
+    }
+
+    return currSite?.frontId === siteFrontId ? currSite : null
+  }, [currSite, siteFrontId, siteList])
 
   const { siteMode } = useSiteUIStore(
     useShallow(({ mode }) => ({ siteMode: mode }))
@@ -387,9 +425,9 @@ const BSidebar: React.FC<BSidebarProps> = ({
                         lineHeight: 1.2,
                       }}
                     >
-                      {currSite?.name ?? PLATFORM_NAME}
+                      {displaySite?.name ?? PLATFORM_NAME}
                     </SiteLink>
-                    {currSite && !currSite.visible && (
+                    {displaySite && !displaySite.visible && (
                       <span
                         className="ml-2 inline-block text-gray-500"
                         title={t('privateSite')}
@@ -398,18 +436,18 @@ const BSidebar: React.FC<BSidebarProps> = ({
                       </span>
                     )}
                   </div>
-                  {currSite && <SiteMenuButton />}
+                  {displaySite && <SiteMenuButton />}
                 </div>
               )}
-              {currSite && currSite.status != SITE_STATUS.Normal && (
+              {displaySite && displaySite.status != SITE_STATUS.Normal && (
                 <div className="m-2 rounded-sm bg-yellow-300 p-2 text-sm leading-6">
                   {t('siteStatus')}：
-                  <span className={getSiteStatusColor(currSite.status)}>
-                    {getSiteStatusName(currSite.status)}
+                  <span className={getSiteStatusColor(displaySite.status)}>
+                    {getSiteStatusName(displaySite.status)}
                   </span>
                   <br />
-                  {String(currSite.creatorId) == currUserId &&
-                    currSite.status != SITE_STATUS.ReadOnly && (
+                  {String(displaySite.creatorId) == currUserId &&
+                    displaySite.status != SITE_STATUS.ReadOnly && (
                       <span className="text-sm text-gray-500">
                         {t('siteReadOnlyDescribe')}
                       </span>
@@ -454,7 +492,7 @@ const BSidebar: React.FC<BSidebarProps> = ({
                         </SiteLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                    {siteFrontId && currSite && (
+                    {siteFrontId && displaySite && (
                       <>
                         <SidebarMenuItem key="categories">
                           <SidebarMenuButton
@@ -473,7 +511,7 @@ const BSidebar: React.FC<BSidebarProps> = ({
                             </SiteLink>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
-                        {currSite.tagConfig?.enabled && (
+                        {displaySite?.tagConfig?.enabled && (
                           <SidebarMenuItem key="tags">
                             <SidebarMenuButton
                               asChild

@@ -754,6 +754,9 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
           siteFrontId,
           loaded: true,
         }))
+
+        useSiteStore.getState().updateSiteCategories(siteFrontId, data)
+
         return data
       }
       set(() => ({
@@ -853,6 +856,7 @@ export interface SiteState {
   setEdittingData: (site: Site | null) => void
   update: (s: Site | null) => void
   updateSiteList: (list: Site[]) => void
+  updateSiteCategories: (siteFrontId: string, categories: Category[]) => void
   updateHomePage: (path: string) => void
   fetchSiteData: (siteFrontId: string) => Promise<Site | null>
   fetchSiteList: () => Promise<void>
@@ -888,6 +892,17 @@ export const useSiteStore = create(
     },
     updateSiteList(list) {
       set((state) => ({ ...state, siteList: [...list] }))
+    },
+    updateSiteCategories(siteFrontId, categories) {
+      set((state) => {
+        if (!state.siteList) return state
+        const updatedSiteList = state.siteList.map((site) =>
+          site.frontId === siteFrontId
+            ? { ...site, categories: [...categories] }
+            : site
+        )
+        return { ...state, siteList: updatedSiteList }
+      })
     },
     updateHomePage(path) {
       set((state) => ({ ...state, homePage: path }))

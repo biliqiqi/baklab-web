@@ -737,5 +737,6 @@
   "rejected": "Rejected",
   "archived": "Archived",
   "required": "Required",
-  "tagPageDescribe": "All content related to \"{{tagName}}\""
+  "tagPageDescribe": "All content related to \"{{tagName}}\"",
+  "privateCategory": "Private bankuai"
 }

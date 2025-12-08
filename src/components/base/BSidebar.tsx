@@ -679,11 +679,20 @@ const BSidebar: React.FC<BSidebarProps> = ({
                                     {item.contentForm?.frontId == 'chat' && (
                                       <MessageCircleIcon
                                         size={20}
-                                        className="absolute -right-[9px] bottom-0 z-20 rounded-full bg-white p-[2px] text-gray-500"
+                                        className="absolute -right-[9px] bottom-0 z-20 rounded-full bg-white p-[2px] text-text-secondary"
                                       />
                                     )}
                                   </span>
                                   {item.name}
+
+                                  {!item.visible && (
+                                    <span
+                                      className="ml-2 inline-block text-text-secondary"
+                                      title={t('privateCategory')}
+                                    >
+                                      <LockIcon size={14} />
+                                    </span>
+                                  )}
                                 </SiteLink>
                               </SidebarMenuButton>
                               {/* Edit functionality moved to CategoryListPage.tsx */}

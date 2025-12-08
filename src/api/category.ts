@@ -21,6 +21,7 @@ export const submitCategory = async (
   frontID: string,
   name: string,
   description: string,
+  visible: boolean,
   iconBgColor: string,
   iconContent: string,
   contentFormId: string,
@@ -33,6 +34,7 @@ export const submitCategory = async (
         frontID,
         name,
         description,
+        visible,
         iconBgColor,
         iconContent,
         contentFormId,
@@ -48,6 +50,7 @@ export const updateCategory = async (
   frontID: string,
   name: string,
   description: string,
+  visible: boolean,
   iconBgColor: string,
   iconContent: string,
   custom?: CustomRequestOptions
@@ -58,6 +61,7 @@ export const updateCategory = async (
       json: {
         name,
         description,
+        visible,
         iconBgColor,
         iconContent,
         extra: {

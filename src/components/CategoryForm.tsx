@@ -44,6 +44,7 @@ import {
   FormMessage,
 } from './ui/form'
 import { Input } from './ui/input'
+import { RadioGroup, RadioGroupItem } from './ui/radio-group'
 import { Textarea } from './ui/textarea'
 
 const MAX_CATEGORY_FRONT_ID_LENGTH = 20
@@ -118,6 +119,7 @@ const categorySchema = z.object({
   iconContent: iconContentSchema(i18n),
   description: descriptionSchema,
   contentFormId: contentFormIdSchema,
+  visible: z.boolean(),
 })
 
 const categoryEditSchema = z.object({
@@ -126,6 +128,7 @@ const categoryEditSchema = z.object({
   iconContent: iconContentSchema(i18n),
   description: descriptionSchema,
   contentFormId: contentFormIdSchema,
+  visible: z.boolean(),
 })
 
 type CategorySchema = z.infer<typeof categorySchema>
@@ -146,6 +149,7 @@ const defaultCategoryData: CategorySchema = {
   iconContent: '',
   description: '',
   contentFormId: '0',
+  visible: true,
 }
 
 const CategoryForm: React.FC<CategoryFormProps> = ({
@@ -188,6 +192,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
             iconBgColor: category.iconBgColor || '#1e73ca',
             iconContent: category.iconContent,
             contentFormId: category.contentFormId,
+            visible: category.visible,
           }
         : defaultCategoryData),
     },
@@ -210,6 +215,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
       iconBgColor,
       iconContent,
       contentFormId,
+      visible,
     }: CategorySchema) => {
       /* console.log('category vals: ', vals) */
       try {
@@ -220,6 +226,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
             category.frontId,
             name,
             description,
+            visible,
             iconBgColor,
             iconContent,
             {
@@ -246,6 +253,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
             frontID,
             name,
             description,
+            visible,
             iconBgColor,
             iconContent,
             contentFormId,
@@ -450,6 +458,56 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
             </FormItem>
           )}
         />
+
+        <FormField
+          control={form.control}
+          name="visible"
+          key="visible"
+          render={({ field }) => (
+            <FormItem className="mb-8">
+              <FormLabel>{t('visibility')}</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={(val) => {
+                    if (val == '1') {
+                      field.onChange(true)
+                    } else {
+                      field.onChange(false)
+                    }
+                  }}
+                  defaultValue="1"
+                  className="flex flex-wrap"
+                  value={field.value ? '1' : '0'}
+                >
+                  <FormItem
+                    className="flex items-center space-y-0 mr-4 mb-4"
+                    key="1"
+                  >
+                    <FormControl>
+                      <RadioGroupItem value="1" className="mr-1" />
+                    </FormControl>
+                    <FormLabel className="font-normal mr-1">
+                      {t('public')}
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem
+                    className="flex items-center space-y-0 mr-4 mb-4"
+                    key="0"
+                  >
+                    <FormControl>
+                      <RadioGroupItem value="0" className="mr-1" />
+                    </FormControl>
+                    <FormLabel className="font-normal mr-1">
+                      {t('private')}
+                    </FormLabel>
+                  </FormItem>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <Collapsible open={showMoreSettings} onOpenChange={setShowMoreSettings}>
           <CollapsibleTrigger asChild>
             <Button

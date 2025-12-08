@@ -61,6 +61,7 @@ export const defaultCategory: Category = {
   contentFormId: '',
   contentForm: null,
   userState: null,
+  visible: true,
 }
 
 export const defaultContentForm: ContentForm = {

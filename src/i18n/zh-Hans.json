@@ -737,5 +737,6 @@
   "rejected": "已拒绝",
   "archived": "已归档",
   "required": "必需",
-  "tagPageDescribe": "\"{{tagName}}\" 关联的所有内容"
+  "tagPageDescribe": "\"{{tagName}}\" 关联的所有内容",
+  "privateCategory": "私有板块"
 }

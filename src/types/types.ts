@@ -48,6 +48,7 @@ export interface Category {
   contentFormId: string
   contentForm: ContentForm | null
   userState: CategoryUserState | null
+  visible: boolean
 }
 
 export type CategoryExists = ItemExists

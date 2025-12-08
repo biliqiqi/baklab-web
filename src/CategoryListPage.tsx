@@ -1,4 +1,4 @@
-import { MessageCircleIcon, PencilIcon } from 'lucide-react'
+import { LockIcon, MessageCircleIcon, PencilIcon } from 'lucide-react'
 import { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -207,6 +207,14 @@ export default function CategoryListPage() {
                   >
                     {cate.name}
                   </SiteLink>
+                  {!cate.visible && (
+                    <span
+                      className="ml-2 inline-block text-gray-500"
+                      title={t('privateCategory')}
+                    >
+                      <LockIcon size={14} />
+                    </span>
+                  )}
                 </div>
                 <div className="text-sm text-gray-500">{cate.describe}</div>
               </div>

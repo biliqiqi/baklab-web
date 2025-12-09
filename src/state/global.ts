@@ -718,7 +718,7 @@ export interface CategoryState {
   categories: Category[]
   siteFrontId: string | null
   loaded: boolean
-  updateCategories: (x: Category[]) => void
+  updateCategories: (x: Category[], siteFrontId?: string | null) => void
   clearCategories: () => void
   fetchCategoryList: (
     siteFrontId: string,
@@ -730,10 +730,11 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
   categories: [],
   siteFrontId: null,
   loaded: false,
-  updateCategories(x) {
+  updateCategories(x, siteFrontId?: string | null) {
     set((state) => ({
       ...state,
       categories: [...x],
+      siteFrontId: siteFrontId !== undefined ? siteFrontId : state.siteFrontId,
       loaded: true,
     }))
   },
@@ -1366,6 +1367,13 @@ export const useContextStore = create(
             mainSiteHost: data.mainSiteHost,
             hasFetchedContext: true,
           }))
+
+          // If site data has categories, update category store
+          if (data.site?.categories && data.site.categories.length > 0) {
+            const categoryStore = useCategoryStore.getState()
+            // Update categories with siteFrontId
+            categoryStore.updateCategories(data.site.categories, data.site.frontId)
+          }
         } else {
           set(() => ({ hasFetchedContext: true }))
         }

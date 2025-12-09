@@ -176,7 +176,7 @@ const BSiteListDock: FC<BSiteListDockProps> = ({
                       preventSidebarClose()
                     }}
                     onClick={() => {
-                      if (isFullSite(site)) {
+                      if (isFullSite(site) && !isActive) {
                         updateCurrSite(site)
                       }
                       preventSidebarClose()

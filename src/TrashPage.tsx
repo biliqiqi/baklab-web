@@ -93,6 +93,16 @@ export default function TrashPage() {
     })
   }, [setParams])
 
+  const hasSearchParamsChanged = useCallback(() => {
+    const currentKeywords = params.get('keywords') || ''
+    const currentCategory = params.get('category') || ''
+
+    return (
+      currentKeywords !== (searchData.keywords || '') ||
+      currentCategory !== (searchData.category || '')
+    )
+  }, [params, searchData])
+
   const cateStore = useCategoryStore()
   const alertDialog = useAlertDialogStore()
 
@@ -167,6 +177,7 @@ export default function TrashPage() {
   }, [resetParams])
 
   const onSearchClick = useCallback(() => {
+    const changed = hasSearchParamsChanged()
     resetParams()
     setParams((params) => {
       const { keywords, category } = searchData
@@ -180,7 +191,10 @@ export default function TrashPage() {
 
       return params
     })
-  }, [resetParams, setParams, searchData])
+    if (!changed) {
+      fetchList(true)
+    }
+  }, [resetParams, setParams, searchData, fetchList, hasSearchParamsChanged])
 
   const onRecoverClick = useCallback(
     async (id: string, title: string, siteFrontId: string) => {

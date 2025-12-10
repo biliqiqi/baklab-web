@@ -170,6 +170,16 @@ export default function BlockedUserListPage() {
     })
   }, [setParams])
 
+  const hasSearchParamsChanged = useCallback(() => {
+    const currentKeywords = params.get('keywords') || ''
+    const currentRoleId = params.get('role_id') || ''
+
+    return (
+      currentKeywords !== (searchData.keywords || '') ||
+      currentRoleId !== (searchData.roleId || '')
+    )
+  }, [params, searchData])
+
   const fetchUserList = toSync(
     useCallback(
       async (showLoading = false) => {
@@ -230,6 +240,7 @@ export default function BlockedUserListPage() {
   }, [resetParams])
 
   const onSearchClick = useCallback(() => {
+    const changed = hasSearchParamsChanged()
     resetParams()
     setParams((params) => {
       const { keywords, roleId } = searchData
@@ -246,7 +257,16 @@ export default function BlockedUserListPage() {
 
       return params
     })
-  }, [searchData, resetParams, setParams])
+    if (!changed) {
+      fetchUserList(true)
+    }
+  }, [
+    searchData,
+    resetParams,
+    setParams,
+    fetchUserList,
+    hasSearchParamsChanged,
+  ])
 
   const onUnblockSelectedClick = useCallback(
     async (e: MouseEvent<HTMLButtonElement>) => {

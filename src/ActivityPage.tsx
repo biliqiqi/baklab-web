@@ -86,6 +86,18 @@ export default function ActivityPage() {
     })
   }, [setParams])
 
+  const hasSearchParamsChanged = useCallback(() => {
+    const currentUsername = params.get('username') || ''
+    const currentActType = params.get('act_type') || ''
+    const currentAction = params.get('action') || ''
+
+    return (
+      currentUsername !== (searchData.username || '') ||
+      currentActType !== (searchData.actType || '') ||
+      currentAction !== (searchData.action || '')
+    )
+  }, [params, searchData])
+
   const fetchList = toSync(
     useCallback(
       async (showLoading: boolean = false) => {
@@ -151,6 +163,7 @@ export default function ActivityPage() {
   }, [resetParams])
 
   const onSearchClick = useCallback(() => {
+    const changed = hasSearchParamsChanged()
     resetParams()
     setParams((params) => {
       const { username, actType, action } = searchData
@@ -167,7 +180,10 @@ export default function ActivityPage() {
       }
       return params
     })
-  }, [resetParams, setParams, searchData])
+    if (!changed) {
+      fetchList(true)
+    }
+  }, [resetParams, setParams, searchData, hasSearchParamsChanged, fetchList])
 
   useEffect(() => {
     fetchList(true)

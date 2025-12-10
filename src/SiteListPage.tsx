@@ -454,12 +454,23 @@ export default function SiteListPage() {
     })
   }, [setParams])
 
+  const hasSearchParamsChanged = useCallback(() => {
+    const currentKeywords = params.get('keywords') || ''
+    const currentCreatorName = params.get('creator_name') || ''
+
+    return (
+      currentKeywords !== (searchData.keywords || '') ||
+      currentCreatorName !== (searchData.creatorName || '')
+    )
+  }, [params, searchData])
+
   const onResetClick = useCallback(() => {
     setSearchData({ ...defaultSearchData })
     resetParams()
   }, [resetParams])
 
   const onSearchClick = useCallback(() => {
+    const changed = hasSearchParamsChanged()
     resetParams()
     setParams((params) => {
       const { keywords, creatorName } = searchData
@@ -474,7 +485,16 @@ export default function SiteListPage() {
 
       return params
     })
-  }, [setParams, resetParams, searchData])
+    if (!changed) {
+      fetchSiteList(true)
+    }
+  }, [
+    setParams,
+    resetParams,
+    searchData,
+    fetchSiteList,
+    hasSearchParamsChanged,
+  ])
 
   const onPassSiteClick = useCallback(
     async (site: Site) => {

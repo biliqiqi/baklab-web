@@ -315,31 +315,6 @@ export function ArticleReviewPage() {
     username: params.get('username') || '',
   })
 
-  const resetParams = useCallback(() => {
-    setParams((params) => {
-      params.delete('page')
-      params.delete('pageSize')
-      params.delete('username')
-      return params
-    })
-  }, [setParams])
-
-  const onResetClick = useCallback(() => {
-    setSearchData({ ...defaultSearchData })
-    resetParams()
-  }, [resetParams])
-
-  const onSearchClick = useCallback(() => {
-    resetParams()
-    setParams((params) => {
-      const { username } = searchData
-      if (username) {
-        params.set('username', username)
-      }
-      return params
-    })
-  }, [searchData, resetParams, setParams])
-
   const fetchSiteUpdates = useCallback(async () => {
     if (!siteFrontId) return
 
@@ -376,6 +351,46 @@ export function ArticleReviewPage() {
       setLoading(false)
     }
   }, [siteFrontId, params, setLoading])
+
+  const resetParams = useCallback(() => {
+    setParams((params) => {
+      params.delete('page')
+      params.delete('pageSize')
+      params.delete('username')
+      return params
+    })
+  }, [setParams])
+
+  const hasSearchParamsChanged = useCallback(() => {
+    const currentUsername = params.get('username') || ''
+    return currentUsername !== (searchData.username || '')
+  }, [params, searchData])
+
+  const onResetClick = useCallback(() => {
+    setSearchData({ ...defaultSearchData })
+    resetParams()
+  }, [resetParams])
+
+  const onSearchClick = useCallback(() => {
+    const changed = hasSearchParamsChanged()
+    resetParams()
+    setParams((params) => {
+      const { username } = searchData
+      if (username) {
+        params.set('username', username)
+      }
+      return params
+    })
+    if (!changed) {
+      toSync(fetchSiteUpdates)()
+    }
+  }, [
+    searchData,
+    resetParams,
+    setParams,
+    fetchSiteUpdates,
+    hasSearchParamsChanged,
+  ])
 
   const onReviewConfirmClick = useCallback(
     async (history: ArticleLog, action: ReviewAction, content: string) => {

@@ -319,6 +319,22 @@ export default function UserListPage() {
     })
   }, [setParams])
 
+  const hasSearchParamsChanged = useCallback(() => {
+    const currentKeywords = params.get('keywords') || ''
+    const currentRoleId = params.get('role_id') || ''
+    const currentAuthFrom = params.get('auth_from') || ''
+    const currentJoinedFrom = params.get('joined_from') || ''
+    const currentJoinedTo = params.get('joined_to') || ''
+
+    return (
+      currentKeywords !== (searchData.keywords || '') ||
+      currentRoleId !== (searchData.roleId || '') ||
+      currentAuthFrom !== (searchData.authFrom || '') ||
+      currentJoinedFrom !== (searchData.joinedFrom || '') ||
+      currentJoinedTo !== (searchData.joinedTo || '')
+    )
+  }, [params, searchData])
+
   const fetchUserList = toSync(
     useCallback(
       async (showLoading = false) => {
@@ -395,6 +411,7 @@ export default function UserListPage() {
   }, [resetParams])
 
   const onSearchClick = useCallback(() => {
+    const changed = hasSearchParamsChanged()
     resetParams()
     setParams((params) => {
       const { keywords, roleId, authFrom, joinedFrom, joinedTo } = searchData
@@ -423,7 +440,16 @@ export default function UserListPage() {
 
       return params
     })
-  }, [setParams, searchData, resetParams])
+    if (!changed) {
+      fetchUserList(true)
+    }
+  }, [
+    setParams,
+    searchData,
+    resetParams,
+    fetchUserList,
+    hasSearchParamsChanged,
+  ])
 
   const onCancelBanAlert = () => {
     setBanOpen(false)

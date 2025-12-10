@@ -276,12 +276,18 @@ export default function BlockedWordListPage() {
     })
   }, [setParams])
 
+  const hasSearchParamsChanged = useCallback(() => {
+    const currentKeywords = params.get('keywords') || ''
+    return currentKeywords !== (searchData.keywords || '')
+  }, [params, searchData])
+
   const onResetClick = useCallback(() => {
     setSearchData({ ...defaultSearchData })
     resetParams()
   }, [resetParams])
 
   const onSearchClick = useCallback(() => {
+    const changed = hasSearchParamsChanged()
     resetParams()
     setParams((params) => {
       const { keywords } = searchData
@@ -291,7 +297,16 @@ export default function BlockedWordListPage() {
       }
       return params
     })
-  }, [setParams, searchData, resetParams])
+    if (!changed) {
+      fetchBlockedWordList(true)
+    }
+  }, [
+    setParams,
+    searchData,
+    resetParams,
+    fetchBlockedWordList,
+    hasSearchParamsChanged,
+  ])
 
   const onWordFormClose = useCallback(async () => {
     if (wordFormDirty) {

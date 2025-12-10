@@ -207,6 +207,16 @@ export default function BannedUserListPage() {
     })
   }, [setParams])
 
+  const hasSearchParamsChanged = useCallback(() => {
+    const currentKeywords = params.get('keywords') || ''
+    const currentRoleId = params.get('role_id') || ''
+
+    return (
+      currentKeywords !== (searchData.keywords || '') ||
+      currentRoleId !== (searchData.roleId || '')
+    )
+  }, [params, searchData])
+
   const fetchUserList = toSync(
     useCallback(
       async (showLoading = false) => {
@@ -271,6 +281,7 @@ export default function BannedUserListPage() {
   }, [resetParams])
 
   const onSearchClick = useCallback(() => {
+    const changed = hasSearchParamsChanged()
     resetParams()
     setParams((params) => {
       const { keywords, roleId } = searchData
@@ -287,7 +298,16 @@ export default function BannedUserListPage() {
 
       return params
     })
-  }, [resetParams, setParams, searchData])
+    if (!changed) {
+      fetchUserList(true)
+    }
+  }, [
+    resetParams,
+    setParams,
+    searchData,
+    fetchUserList,
+    hasSearchParamsChanged,
+  ])
 
   const onUnbanSelectedClick = useCallback(
     async (e: MouseEvent<HTMLButtonElement>) => {

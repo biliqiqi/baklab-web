@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import emojiRegex from 'emoji-regex'
-import { ChevronDownIcon } from 'lucide-react'
+import { ChevronDownIcon, XIcon } from 'lucide-react'
 import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -24,9 +24,11 @@ import {
   useAuthedUserStore,
   useSiteStore,
 } from '@/state/global'
-import { Category, ResponseData, ResponseID } from '@/types/types'
+import { Category, ResponseData, ResponseID, UserData } from '@/types/types'
 
 import ContentFormSelector from './ContentFormSelector'
+import MemberSelectionDialog from './MemberSelectionDialog'
+import BAvatar from './base/BAvatar'
 import BIconColorChar from './base/BIconColorChar'
 import { Button } from './ui/button'
 import {
@@ -49,6 +51,7 @@ import { Textarea } from './ui/textarea'
 
 const MAX_CATEGORY_FRONT_ID_LENGTH = 20
 const MAX_CATEGORY_NAME_LENGTH = 12
+const defaultCategoryMemberRole = 'category_common_member'
 
 const frontIDSchema = (i: I18n) =>
   z
@@ -159,13 +162,19 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
   onChange = noop,
 }) => {
   const [showMoreSettings, setShowMoreSettings] = useState(isEdit)
-
   const alertDialog = useAlertDialogStore()
   const authStore = useAuthedUserStore()
   const siteStore = useSiteStore()
   const { siteFrontId } = useSiteParams()
 
   const { t, i18n } = useTranslation()
+
+  const [memberDialogOpen, setMemberDialogOpen] = useState(false)
+  const [invitedMembers, setInvitedMembers] = useState<UserData[]>([])
+  const excludedMemberIds = useMemo(
+    () => (authStore.userID ? [authStore.userID] : []),
+    [authStore.userID]
+  )
 
   const form = useForm<CategorySchema>({
     resolver: zodResolver(
@@ -249,14 +258,26 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
             form.clearErrors('frontID')
           }
 
+          const memberIds =
+            !visible && invitedMembers.length
+              ? invitedMembers
+                  .map((member) => Number(member.id))
+                  .filter((id) => Number.isFinite(id))
+              : []
+
           resp = await submitCategory(
-            frontID,
-            name,
-            description,
-            visible,
-            iconBgColor,
-            iconContent,
-            contentFormId,
+            {
+              frontID,
+              name,
+              description,
+              visible,
+              iconBgColor,
+              iconContent,
+              contentFormId,
+              memberIds: memberIds.length ? memberIds : undefined,
+              memberRole:
+                memberIds.length > 0 ? defaultCategoryMemberRole : undefined,
+            },
             {
               siteFrontId,
             }
@@ -269,7 +290,16 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
         console.error('validate front id error: ', err)
       }
     },
-    [form, isEdit, onSuccess, category, siteStore, siteFrontId, t]
+    [
+      form,
+      isEdit,
+      onSuccess,
+      category,
+      siteStore,
+      siteFrontId,
+      t,
+      invitedMembers,
+    ]
   )
 
   const onDeleteClick = useCallback(
@@ -351,8 +381,8 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
   )
 
   useEffect(() => {
-    onChange(form.formState.isDirty)
-  }, [form, formVals, onChange])
+    onChange(form.formState.isDirty || invitedMembers.length > 0)
+  }, [form, formVals, invitedMembers, onChange])
 
   /* useEffect(() => {
    *   onFrontIDChange.call(frontIDVal)
@@ -507,6 +537,60 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
             </FormItem>
           )}
         />
+        {!isEdit && !formVals.visible && (
+          <div className="mb-8">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <FormLabel className="block">{t('inviteMembers')}</FormLabel>
+                <FormDescription>
+                  {t('inviteMembersDescription')}
+                </FormDescription>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  if (!siteFrontId) return
+                  setMemberDialogOpen(true)
+                }}
+                disabled={!siteFrontId}
+              >
+                {t('inviteMembers')}
+              </Button>
+            </div>
+            {invitedMembers.length > 0 && (
+              <>
+                <div className="mt-4 text-sm text-muted-foreground">
+                  {t('selectedMembers')}
+                </div>
+                <div className="mt-2 flex flex-wrap gap-3">
+                  {invitedMembers.map((member) => (
+                    <div
+                      key={member.id}
+                      className="flex items-center gap-2 rounded-full border px-3 py-1"
+                    >
+                      <BAvatar username={member.name} size={28} />
+                      <span className="text-sm font-medium">{member.name}</span>
+                      <button
+                        type="button"
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                        onClick={() =>
+                          setInvitedMembers((prev) =>
+                            prev.filter((item) => item.id !== member.id)
+                          )
+                        }
+                        aria-label={t('removeName')}
+                      >
+                        <XIcon size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         <Collapsible open={showMoreSettings} onOpenChange={setShowMoreSettings}>
           <CollapsibleTrigger asChild>
@@ -622,6 +706,14 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
           </Button>
         </div>
       </form>
+      <MemberSelectionDialog
+        open={memberDialogOpen}
+        onOpenChange={setMemberDialogOpen}
+        siteFrontId={siteFrontId || ''}
+        selectedMembers={invitedMembers}
+        onConfirm={setInvitedMembers}
+        excludedUserIds={excludedMemberIds}
+      />
     </Form>
   )
 }

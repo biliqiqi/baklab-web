@@ -8,6 +8,18 @@ import {
   ResponseID,
 } from '@/types/types'
 
+interface SubmitCategoryPayload {
+  frontID: string
+  name: string
+  description: string
+  visible: boolean
+  iconBgColor: string
+  iconContent: string
+  contentFormId: string
+  memberIds?: number[]
+  memberRole?: string
+}
+
 export const getCategoryList = async (custom?: CustomRequestOptions) =>
   authRequest.get<ResponseData<Category[] | null>>(`categories`, {}, custom)
 
@@ -18,13 +30,17 @@ export const getCategoryWithFrontId = async (
   authRequest.get<ResponseData<Category>>(`categories/${frontId}`, {}, custom)
 
 export const submitCategory = async (
-  frontID: string,
-  name: string,
-  description: string,
-  visible: boolean,
-  iconBgColor: string,
-  iconContent: string,
-  contentFormId: string,
+  {
+    frontID,
+    name,
+    description,
+    visible,
+    iconBgColor,
+    iconContent,
+    contentFormId,
+    memberIds,
+    memberRole,
+  }: SubmitCategoryPayload,
   custom?: CustomRequestOptions
 ) =>
   authRequest.post<ResponseData<ResponseID>>(
@@ -38,6 +54,11 @@ export const submitCategory = async (
         iconBgColor,
         iconContent,
         contentFormId,
+        memberIds: memberIds && memberIds.length > 0 ? memberIds : undefined,
+        memberRole:
+          memberIds && memberIds.length > 0
+            ? memberRole || undefined
+            : undefined,
         extra: {
           categoryName: name,
         },

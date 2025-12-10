@@ -230,6 +230,7 @@ export default function BannedUserListPage() {
             '',
             '',
             '',
+            undefined,
             { siteFrontId }
           )
 

@@ -29,6 +29,7 @@ export const getUserList = (
   authFrom?: string,
   joinedFrom?: string,
   joinedTo?: string,
+  excludedUserIds?: Array<string | number>,
   custom?: CustomRequestOptions
 ) => {
   const params = new URLSearchParams()
@@ -55,6 +56,14 @@ export const getUserList = (
 
   if (joinedTo) {
     params.set('joined_to', joinedTo)
+  }
+
+  if (excludedUserIds && excludedUserIds.length > 0) {
+    excludedUserIds.forEach((id) => {
+      if (id !== undefined && id !== null) {
+        params.append('excludeIds', String(id))
+      }
+    })
   }
 
   if (page) {

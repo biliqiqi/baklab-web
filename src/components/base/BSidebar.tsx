@@ -644,76 +644,84 @@ const BSidebar: React.FC<BSidebarProps> = ({
                     <CollapsibleContent className="CollapsibleContent">
                       <SidebarGroupContent>
                         <SidebarMenu>
-                          {currCateList.map((item) => (
-                            <SidebarMenuItem key={item.frontId}>
-                              <SidebarMenuButton
-                                asChild
-                                isActive={
-                                  location.pathname ==
-                                    buildRoutePath(
-                                      `/b/${item.frontId}`,
-                                      siteFrontId
-                                    ) ||
-                                  (currentCategoryFrontId === item.frontId &&
-                                    location.pathname.includes(
-                                      buildRoutePath('/articles/', siteFrontId)
-                                    ))
-                                }
-                              >
-                                <SiteLink
-                                  to={`/b/${item.frontId}`}
-                                  state={item}
-                                  siteFrontId={siteFrontId}
-                                  closeSidebarOnClick
-                                >
-                                  <span
-                                    className="relative inline-block"
-                                    style={{ overflow: 'visible' }}
-                                  >
-                                    <BIconColorChar
-                                      iconId={item.frontId}
-                                      char={item.iconContent}
-                                      color={item.iconBgColor}
-                                      size={32}
-                                    />
-                                    {item.contentForm?.frontId == 'chat' && (
-                                      <MessageCircleIcon
-                                        size={20}
-                                        className="absolute -right-[9px] bottom-0 z-20 rounded-full bg-white p-[2px] text-text-secondary"
-                                      />
-                                    )}
-                                  </span>
-                                  {item.name}
+                          {currCateList.map((item) => {
+                            const isActive =
+                              location.pathname ==
+                                buildRoutePath(
+                                  `/b/${item.frontId}`,
+                                  siteFrontId
+                                ) ||
+                              (currentCategoryFrontId === item.frontId &&
+                                location.pathname.includes(
+                                  buildRoutePath('/articles/', siteFrontId)
+                                ))
 
-                                  {!item.visible && (
+                            return (
+                              <SidebarMenuItem key={item.frontId}>
+                                <SidebarMenuButton asChild isActive={isActive}>
+                                  <SiteLink
+                                    to={`/b/${item.frontId}`}
+                                    state={item}
+                                    siteFrontId={siteFrontId}
+                                    closeSidebarOnClick
+                                  >
                                     <span
-                                      className="ml-2 inline-block text-text-secondary"
-                                      title={t('privateCategory')}
+                                      className="relative inline-block"
+                                      style={{ overflow: 'visible' }}
                                     >
-                                      <LockIcon size={14} />
+                                      <BIconColorChar
+                                        iconId={item.frontId}
+                                        char={item.iconContent}
+                                        color={item.iconBgColor}
+                                        size={32}
+                                      />
+                                      {item.contentForm?.frontId == 'chat' && (
+                                        <MessageCircleIcon
+                                          size={20}
+                                          className="absolute -right-[9px] bottom-0 z-20 rounded-full bg-white p-[2px] text-text-secondary"
+                                        />
+                                      )}
                                     </span>
-                                  )}
-                                </SiteLink>
-                              </SidebarMenuButton>
-                              {/* Edit functionality moved to CategoryListPage.tsx */}
-                              {/* {authPermit('category', 'edit') && (
-                                <SidebarMenuAction
-                                  style={{
-                                    top: '10px',
-                                    width: '28px',
-                                    height: '28px',
-                                  }}
-                                  className="rounded-full"
-                                  onClick={(e) => onEditCategoryClick(e, item)}
-                                >
-                                  <PencilIcon
-                                    size={14}
-                                    className="inline-block mr-1 text-gray-500"
-                                  />
-                                </SidebarMenuAction>
-                              )} */}
-                            </SidebarMenuItem>
-                          ))}
+                                    {item.name}
+
+                                    {!item.visible && (
+                                      <span
+                                        className={cn(
+                                          'ml-2 inline-flex items-center text-current transition-opacity',
+                                          isActive
+                                            ? 'opacity-100'
+                                            : 'opacity-70'
+                                        )}
+                                        title={t('privateCategory')}
+                                      >
+                                        <LockIcon
+                                          size={14}
+                                          className="text-current"
+                                        />
+                                      </span>
+                                    )}
+                                  </SiteLink>
+                                </SidebarMenuButton>
+                                {/* Edit functionality moved to CategoryListPage.tsx */}
+                                {/* {authPermit('category', 'edit') && (
+                                  <SidebarMenuAction
+                                    style={{
+                                      top: '10px',
+                                      width: '28px',
+                                      height: '28px',
+                                    }}
+                                    className="rounded-full"
+                                    onClick={(e) => onEditCategoryClick(e, item)}
+                                  >
+                                    <PencilIcon
+                                      size={14}
+                                      className="inline-block mr-1 text-gray-500"
+                                    />
+                                  </SidebarMenuAction>
+                                )} */}
+                              </SidebarMenuItem>
+                            )
+                          })}
                         </SidebarMenu>
                       </SidebarGroupContent>
                     </CollapsibleContent>

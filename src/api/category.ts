@@ -142,3 +142,15 @@ export const toggleSubscribe = async (
     {},
     custom
   )
+
+export const acceptCategoryInvite = async (
+  siteFrontId: string,
+  categoryFrontId: string,
+  code: string
+): Promise<ResponseData<null>> =>
+  authRequest.post<ResponseData<null>>(
+    `sites/${siteFrontId}/categories/${categoryFrontId}/members/accept_invite`,
+    {
+      json: { code },
+    }
+  )

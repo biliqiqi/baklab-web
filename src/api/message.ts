@@ -35,7 +35,12 @@ export const getNotifications = (
 export const readAllNotifications = () =>
   authRequest.post<ResponseData<null>>(`messages/read_all`)
 
-export const readArticle = (articleId: string) =>
+export const readArticle = (articleId: string | number) =>
   authRequest.post<ResponseData<null>>(`messages/read_article`, {
-    json: { articleId },
+    json: { articleId: String(articleId) },
+  })
+
+export const readMessage = (messageId: string | number) =>
+  authRequest.post<ResponseData<null>>(`messages/read_message`, {
+    json: { messageId: String(messageId) },
   })

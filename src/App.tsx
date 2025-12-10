@@ -127,6 +127,7 @@ const connectEvents = () => {
     }
   )
 
+
   eventSource.onerror = (err) => {
     console.error('event source error: ', err)
   }

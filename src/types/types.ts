@@ -488,6 +488,24 @@ export interface Message<T = Article> {
   siteFrontId: string
   siteName: string
   siteLogoUrl: string
+  metadata?: Record<string, unknown> | null
+  categoryJoined?: boolean
+}
+
+export interface MessageTargetCategory {
+  id: string
+  frontId: string
+  name: string
+  describe?: string
+  authorId?: string
+  siteId?: string
+  siteFrontId?: string
+}
+
+export interface CategoryInviteMetadata {
+  inviteCode?: string
+  role?: string
+  expiredAt?: string
 }
 
 export interface NotificationUnreadCount {

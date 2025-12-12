@@ -17,24 +17,29 @@ type LooseParams = Record<string, string | undefined>
 
 type LooseLinkProps = Omit<
   BaseLinkProps,
-  'to' | 'params' | 'search' | 'state'
+  'to' | 'params' | 'search' | 'state' | 'mask'
 > & {
   to: string
   params?: LooseParams
   search?: LooseSearch
   state?: unknown
+  mask?: BaseLinkProps['mask']
 }
 
 export const Link = forwardRef<HTMLAnchorElement, LooseLinkProps>(
   (props, ref) => {
-    const { to, params, search, state, ...rest } = props
+    const { to, params, search, state, mask, ...rest } = props
     return (
       <BaseLink
         to={to as BaseLinkProps['to']}
         params={params as BaseLinkProps['params']}
         search={search as BaseLinkProps['search']}
         state={state as BaseLinkProps['state']}
-        {...(rest as Omit<BaseLinkProps, 'to' | 'params' | 'search' | 'state'>)}
+        mask={mask as BaseLinkProps['mask']}
+        {...(rest as Omit<
+          BaseLinkProps,
+          'to' | 'params' | 'search' | 'state' | 'mask'
+        >)}
         ref={ref}
       />
     )
@@ -53,6 +58,7 @@ type LooseNavigateOptions = {
   hash?: string
   replace?: boolean
   viewTransition?: boolean
+  mask?: unknown
 } & Record<string, unknown>
 
 export const useNavigate = () => {

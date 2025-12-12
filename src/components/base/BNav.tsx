@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { useShallow } from 'zustand/react/shallow'
 
-import { Link } from '@/lib/router'
+import { Link, useNavigate } from '@/lib/router'
 import { cn, summaryText } from '@/lib/utils'
 
 import { logoutToken } from '@/api'
@@ -109,8 +109,25 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
     }, [searchOpen])
 
     const { loading, setLoading } = useLoading()
+    const navigate = useNavigate()
     /* const authState = useAuthedUserStore() */
     const isMobile = useIsMobile()
+
+    const openSettingsModal = useCallback(
+      (path: string) => {
+        navigate({
+          to: '.',
+          state: {
+            __settingsModalKey: Date.now(),
+            __settingsModalPath: path,
+          },
+          mask: {
+            to: path,
+          },
+        })
+      },
+      [navigate]
+    )
 
     const alertConfirm = useAlertDialogStore((state) => state.confirm)
     /* const sidebar = useSidebar() */
@@ -628,20 +645,12 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
                   ) : (
                     <DropdownMenuItem
                       className="cursor-pointer py-2 px-2 hover:bg-gray-200 hover:outline-0"
-                      asChild
+                      onClick={(event) => {
+                        event.preventDefault()
+                        openSettingsModal('/settings/profile')
+                      }}
                     >
-                      <Link
-                        to="/settings/profile"
-                        state={{
-                          backgroundLocation: {
-                            pathname: location.pathname,
-                            search: location.search,
-                            hash: location.hash,
-                          },
-                        }}
-                      >
-                        <SettingsIcon size={20} /> {t('settings')}
-                      </Link>
+                      <SettingsIcon size={20} /> {t('settings')}
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem

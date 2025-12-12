@@ -1,7 +1,13 @@
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { Outlet, useLocation } from '@tanstack/react-router'
 import { KeyIcon, UserIcon } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Link, useNavigate } from '@/lib/router'
@@ -20,7 +26,21 @@ interface BackgroundLocation {
   hash?: string
 }
 
-export default function SettingsLayout() {
+interface SettingsLayoutProps {
+  modalOverride?: boolean
+  forcedPathname?: string
+  onRequestClose?: () => void
+  onRouteChange?: (path: string) => void
+  children?: ReactNode
+}
+
+export default function SettingsLayout({
+  modalOverride,
+  forcedPathname,
+  onRequestClose,
+  onRouteChange,
+  children,
+}: SettingsLayoutProps = {}) {
   const { t } = useTranslation()
   const location = useLocation()
   const navigate = useNavigate()
@@ -28,7 +48,8 @@ export default function SettingsLayout() {
   const isMobile = useIsMobile()
 
   const state = location.state as { backgroundLocation?: BackgroundLocation }
-  const showAsModal = Boolean(state?.backgroundLocation)
+  const effectivePathname = forcedPathname ?? location.pathname
+  const showAsModal = modalOverride ?? Boolean(state?.backgroundLocation)
   const canCloseRef = useRef(!showAsModal)
 
   useEffect(() => {
@@ -71,16 +92,20 @@ export default function SettingsLayout() {
   }, [t, isSingleSite])
 
   const activeKey = useMemo(() => {
-    const currentPath = location.pathname
     const activeItem = settingsMenuItems.find((item) =>
-      currentPath.startsWith(item.path)
+      effectivePathname.startsWith(item.path)
     )
     return activeItem?.key || 'profile'
-  }, [location.pathname, settingsMenuItems])
+  }, [effectivePathname, settingsMenuItems])
 
   const handleDialogClose = useCallback(
     (open: boolean) => {
       if (open || !canCloseRef.current) {
+        return
+      }
+
+      if (onRequestClose) {
+        onRequestClose()
         return
       }
 
@@ -91,8 +116,19 @@ export default function SettingsLayout() {
         window.history.back()
       }
     },
-    [navigate, state]
+    [navigate, onRequestClose, state]
   )
+
+  const handleRouteChange = useCallback(
+    (path: string) => {
+      if (showAsModal && onRouteChange) {
+        onRouteChange(path)
+      }
+    },
+    [onRouteChange, showAsModal]
+  )
+
+  const settingsContent = children ?? <Outlet />
 
   const content = (
     <div
@@ -120,30 +156,47 @@ export default function SettingsLayout() {
             isMobile ? 'flex gap-2 overflow-x-auto px-2 pb-3' : 'flex flex-col'
           )}
         >
-          {settingsMenuItems.map((item) => (
-            <Link
-              key={item.key}
-              to={item.path}
-              state={{ backgroundLocation: state?.backgroundLocation }}
-              className={cn(
-                'flex items-center gap-2 text-left text-sm outline-none transition-colors h-auto',
-                'px-2 py-2',
-                isMobile &&
-                  'min-w-[120px] justify-center rounded-full border border-input bg-sidebar text-sidebar-foreground',
-                activeKey === item.key
-                  ? 'bg-primary/90 font-medium text-primary-foreground'
-                  : 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-              )}
-            >
-              <BIconCircle size={isMobile ? 28 : 32}>{item.icon}</BIconCircle>
-              <span className="truncate">{item.label}</span>
-            </Link>
-          ))}
+          {settingsMenuItems.map((item) => {
+            const className = cn(
+              'flex items-center gap-2 text-left text-sm outline-none transition-colors h-auto',
+              'px-2 py-2',
+              isMobile &&
+                'min-w-[120px] justify-center rounded-full border border-input bg-sidebar text-sidebar-foreground',
+              activeKey === item.key
+                ? 'bg-primary/90 font-medium text-primary-foreground'
+                : 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+            )
+
+            if (showAsModal) {
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  className={className}
+                  onClick={() => handleRouteChange(item.path)}
+                >
+                  <BIconCircle size={isMobile ? 28 : 32}>
+                    {item.icon}
+                  </BIconCircle>
+                  <span className="truncate">{item.label}</span>
+                </button>
+              )
+            }
+
+            return (
+              <Link key={item.key} to={item.path} className={className}>
+                <BIconCircle size={isMobile ? 28 : 32}>
+                  {item.icon}
+                </BIconCircle>
+                <span className="truncate">{item.label}</span>
+              </Link>
+            )
+          })}
         </div>
       </div>
 
       <div className={cn('flex-1 overflow-y-auto p-6', isMobile && 'p-4')}>
-        <Outlet />
+        {settingsContent}
       </div>
     </div>
   )

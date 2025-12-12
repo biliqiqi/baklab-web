@@ -4,8 +4,17 @@ import {
   createRoute,
   createRouter,
   redirect,
+  useRouterState,
 } from '@tanstack/react-router'
-import { startTransition, useCallback, useEffect, useState } from 'react'
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
+import type { ReactNode } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 
 import { Toaster } from './components/ui/sonner'
@@ -61,6 +70,7 @@ import { PermissionAction, PermissionModule } from './constants/types'
 import { useIsMobile } from './hooks/use-mobile'
 import './i18n'
 import { setFaviconBadge } from './lib/favicon'
+import { useNavigate } from './lib/router'
 import { toSync } from './lib/fire-and-forget'
 import { refreshAuthState, refreshToken } from './lib/request'
 import { setRootFontSize } from './lib/utils'
@@ -203,6 +213,16 @@ function RootComponent() {
   const { forceState, forceUpdate } = useForceUpdate(
     useShallow(({ forceState, forceUpdate }) => ({ forceState, forceUpdate }))
   )
+  const routerLocation = useRouterState({
+    select: (s) => s.location,
+  })
+  const navigateRouter = useNavigate()
+
+  const maskedSettingsPath =
+    routerLocation.maskedLocation?.pathname?.startsWith('/settings') &&
+    routerLocation.maskedLocation.pathname
+      ? routerLocation.maskedLocation.pathname
+      : null
 
   const refreshTokenSync = toSync(
     useCallback(
@@ -221,6 +241,31 @@ function RootComponent() {
       },
       [updateBaseData, updateUserData]
     )
+  )
+
+  const handleSettingsModalClose = useCallback(() => {
+    navigateRouter(-1)
+  }, [navigateRouter])
+
+  const handleSettingsRouteChange = useCallback(
+    (path: string) => {
+      if (!path.startsWith('/settings')) {
+        return
+      }
+      const nextState =
+        (routerLocation.state as Record<string, unknown> | undefined) ?? {}
+      navigateRouter({
+        to: '.',
+        state: {
+          ...nextState,
+          __settingsModalKey: Date.now(),
+        },
+        mask: {
+          to: path,
+        },
+      })
+    },
+    [navigateRouter, routerLocation.state]
   )
 
   const reconnectEventSource = useCallback(() => {
@@ -360,10 +405,35 @@ function RootComponent() {
     setFaviconBadge(unreadCount).catch(console.error)
   }, [unreadCount])
 
+  const settingsModalContent = useMemo(() => {
+    if (!maskedSettingsPath) {
+      return null
+    }
+    if (maskedSettingsPath.startsWith('/settings/authorizations')) {
+      return <OAuthAuthorizationManagePage />
+    }
+    return <UserProfileSettingsPage />
+  }, [maskedSettingsPath])
+
+  const settingsModal =
+    maskedSettingsPath && settingsModalContent ? (
+      <SettingsLayout
+        modalOverride
+        forcedPathname={maskedSettingsPath}
+        onRequestClose={handleSettingsModalClose}
+        onRouteChange={handleSettingsRouteChange}
+      >
+        {settingsModalContent}
+      </SettingsLayout>
+    ) : null
+
   return (
     <>
       {initialized ? (
-        <Outlet key={forceState} />
+        <>
+          <Outlet key={forceState} />
+          {settingsModal}
+        </>
       ) : (
         <div className="flex h-screen items-center justify-center">
           <BLoader className="-mt-8" />

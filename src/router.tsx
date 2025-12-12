@@ -16,9 +16,9 @@ import {
 } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 
-import { Toaster } from './components/ui/sonner'
-
 import BLoader from './components/base/BLoader'
+import { ScrollRestoration } from './components/ScrollRestoration'
+import { Toaster } from './components/ui/sonner'
 
 // Page imports
 import OAuthCallback from './components/OAuthCallback'
@@ -430,6 +430,7 @@ function RootComponent() {
 
   return (
     <>
+      <ScrollRestoration />
       {initialized ? (
         <>
           <Outlet key={forceState} />

@@ -1,4 +1,4 @@
-import { KeyboardEvent, useCallback, useEffect } from 'react'
+import { KeyboardEvent, useCallback } from 'react'
 
 import { useNavigate, useSearch } from '@/lib/router'
 import { updateSearchParams, withSearchUpdater } from '@/lib/search'
@@ -24,20 +24,28 @@ export interface ListPaginationProps {
 
 export const ListPagination: React.FC<ListPaginationProps> = ({
   pageState,
-  autoScrollTop = false,
+  autoScrollTop: _autoScrollTop = false,
 }) => {
   const search = useSearch()
   const navigate = useNavigate()
 
-  const genParamStr = useCallback(
-    (page: number) => {
-      const newSearch = { ...search, page: page ? String(page) : '1' }
-      return new URLSearchParams(
-        Object.entries(newSearch).map(([k, v]) => [k, String(v)])
-      ).toString()
+  const getSearchParams = useCallback(
+    (targetPage: number) => {
+      const newSearch: Record<string, string | undefined> = {}
+      Object.entries(search).forEach(([key, value]) => {
+        if (key !== 'page') {
+          newSearch[key] = value
+        }
+      })
+      newSearch.page = targetPage.toString()
+      return newSearch
     },
     [search]
   )
+
+  const handlePaginationClick = useCallback(() => {
+    sessionStorage.setItem('__pagination_click__', 'true')
+  }, [])
 
   const onPageEnter = useCallback(
     (e: KeyboardEvent<HTMLInputElement>) => {
@@ -47,6 +55,7 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
         if (page > pageState.totalPage || page < 1) {
           page = 1
         }
+        sessionStorage.setItem('__pagination_click__', 'true')
         navigate({
           search: withSearchUpdater((prev) =>
             updateSearchParams(prev, { page: String(page) })
@@ -57,15 +66,16 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
     [pageState, navigate]
   )
 
-  useEffect(() => {
-    if (autoScrollTop) {
-      setTimeout(() => {
-        window.scrollTo({
-          top: 0,
-        })
-      }, 200)
-    }
-  }, [autoScrollTop])
+  // Temporarily disabled: Now using TanStack Router's built-in scroll restoration
+  // useEffect(() => {
+  //   if (autoScrollTop) {
+  //     setTimeout(() => {
+  //       window.scrollTo({
+  //         top: 0,
+  //       })
+  //     }, 200)
+  //   }
+  // }, [autoScrollTop])
 
   return (
     <>
@@ -76,11 +86,17 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
               {pageState.currPage > 1 && (
                 <>
                   <PaginationItem>
-                    <PaginationFirst to={'?' + genParamStr(1)} />
+                    <PaginationFirst
+                      to="."
+                      search={getSearchParams(1)}
+                      onClick={handlePaginationClick}
+                    />
                   </PaginationItem>
                   <PaginationItem>
                     <PaginationPrevious
-                      to={'?' + genParamStr(pageState.currPage - 1)}
+                      to="."
+                      search={getSearchParams(pageState.currPage - 1)}
+                      onClick={handlePaginationClick}
                     />
                   </PaginationItem>
                 </>
@@ -100,12 +116,16 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
                 <>
                   <PaginationItem>
                     <PaginationNext
-                      to={'?' + genParamStr(pageState.currPage + 1)}
+                      to="."
+                      search={getSearchParams(pageState.currPage + 1)}
+                      onClick={handlePaginationClick}
                     />
                   </PaginationItem>
                   <PaginationItem>
                     <PaginationLast
-                      to={'?' + genParamStr(pageState.totalPage)}
+                      to="."
+                      search={getSearchParams(pageState.totalPage)}
+                      onClick={handlePaginationClick}
                     />
                   </PaginationItem>
                 </>

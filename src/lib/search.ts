@@ -1,6 +1,11 @@
 import type { SearchState } from './router'
 
-export const isSearchState = (value: unknown): value is SearchState => {
+type LooseSearchState = Record<
+  string,
+  string | number | boolean | undefined | null
+>
+
+const isStrictSearchState = (value: unknown): value is SearchState => {
   if (!value || typeof value !== 'object') {
     return false
   }
@@ -10,8 +15,39 @@ export const isSearchState = (value: unknown): value is SearchState => {
   )
 }
 
-export const ensureSearchState = (value: unknown): SearchState =>
-  isSearchState(value) ? value : {}
+const isLooseSearchState = (value: unknown): value is LooseSearchState => {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  return Object.values(value as Record<string, unknown>).every(
+    (entry) =>
+      typeof entry === 'string' ||
+      typeof entry === 'number' ||
+      typeof entry === 'boolean' ||
+      typeof entry === 'undefined' ||
+      entry === null
+  )
+}
+
+export const ensureSearchState = (value: unknown): SearchState => {
+  if (isStrictSearchState(value)) {
+    return value
+  }
+
+  if (!isLooseSearchState(value)) {
+    return {}
+  }
+
+  const next: SearchState = {}
+  Object.entries(value).forEach(([key, entry]) => {
+    if (entry === undefined || entry === null) {
+      return
+    }
+    next[key] = String(entry)
+  })
+  return next
+}
 
 export const omitSearchParams = (
   state: unknown,

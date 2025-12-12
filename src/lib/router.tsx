@@ -35,7 +35,7 @@ export const Link = forwardRef<HTMLAnchorElement, LooseLinkProps>(
         params={params as BaseLinkProps['params']}
         search={search as BaseLinkProps['search']}
         state={state as BaseLinkProps['state']}
-        mask={mask as BaseLinkProps['mask']}
+        mask={mask}
         {...(rest as Omit<
           BaseLinkProps,
           'to' | 'params' | 'search' | 'state' | 'mask'

@@ -4,6 +4,7 @@ import {
   createRoute,
   createRouter,
   redirect,
+  stringifySearchWith,
   useRouterState,
 } from '@tanstack/react-router'
 import {
@@ -11,10 +12,8 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react'
-import type { ReactNode } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 
 import { Toaster } from './components/ui/sonner'
@@ -70,9 +69,9 @@ import { PermissionAction, PermissionModule } from './constants/types'
 import { useIsMobile } from './hooks/use-mobile'
 import './i18n'
 import { setFaviconBadge } from './lib/favicon'
-import { useNavigate } from './lib/router'
 import { toSync } from './lib/fire-and-forget'
 import { refreshAuthState, refreshToken } from './lib/request'
+import { useNavigate } from './lib/router'
 import { setRootFontSize } from './lib/utils'
 import {
   getLocalUserUISettings,
@@ -91,6 +90,10 @@ import { Article, SSE_EVENT, SettingsType } from './types/types'
 
 const DESKTOP_FONT_SIZE = '16'
 const MOBILE_FONT_SIZE = '14'
+
+interface RouterState {
+  __settingsModalKey?: number
+}
 
 const fetchNotiCount = toSync(async () => {
   const notiState = useNotificationStore.getState()
@@ -252,20 +255,18 @@ function RootComponent() {
       if (!path.startsWith('/settings')) {
         return
       }
-      const nextState =
-        (routerLocation.state as Record<string, unknown> | undefined) ?? {}
+      const nextState: RouterState = {
+        __settingsModalKey: Date.now(),
+      }
       navigateRouter({
         to: '.',
-        state: {
-          ...nextState,
-          __settingsModalKey: Date.now(),
-        },
+        state: nextState,
         mask: {
           to: path,
         },
       })
     },
-    [navigateRouter, routerLocation.state]
+    [navigateRouter]
   )
 
   const reconnectEventSource = useCallback(() => {
@@ -1257,10 +1258,25 @@ const routeTree = rootRoute.addChildren([
   notFoundRoute,
 ])
 
+const simpleStringifySearch = stringifySearchWith(JSON.stringify)
+const simpleParseSearch = (searchStr: string) => {
+  const params = new URLSearchParams(
+    searchStr.startsWith('?') ? searchStr.slice(1) : searchStr
+  )
+  const next: Record<string, string> = {}
+  params.forEach((value, key) => {
+    next[key] = value
+  })
+  return next
+}
+
 // Create router
 export const router = createRouter({
   routeTree,
   defaultPreload: 'intent',
+  scrollRestoration: false,
+  stringifySearch: simpleStringifySearch,
+  parseSearch: simpleParseSearch,
 })
 
 // Register router for type safety

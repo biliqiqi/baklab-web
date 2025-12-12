@@ -1,12 +1,17 @@
+import { useLocation } from '@tanstack/react-router'
 import { useMemo } from 'react'
-import { useLocation } from 'react-router-dom'
 
 export const useLocationKey = () => {
   const location = useLocation()
-  const locationKey = useMemo(
-    () => `${location.pathname}${location.search}${location.hash}`,
-    [location.pathname, location.search, location.hash]
+  const searchString = useMemo(
+    () => JSON.stringify(location.search ?? {}),
+    [location.search]
   )
+  const locationKey = useMemo(() => {
+    const hash =
+      typeof location.hash === 'string' ? location.hash : ''
+    return `${location.pathname}${searchString}${hash}`
+  }, [location.pathname, searchString, location.hash])
 
   return { location, locationKey }
 }

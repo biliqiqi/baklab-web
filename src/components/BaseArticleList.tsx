@@ -6,8 +6,9 @@ import React, {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
+import { Link, useNavigate, useSearch } from '@/lib/router'
+import { updateSearchParams, withSearchUpdater } from '@/lib/search'
 import { noop } from '@/lib/utils'
 
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
@@ -91,12 +92,12 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
   const loginWithDialog = useAuthedUserStore((state) => state.loginWithDialog)
   const checkIsLogined = useAuthedUserStore((state) => state.isLogined)
 
-  const [params, setParams] = useSearchParams()
+  const search = useSearch()
 
   const navigate = useNavigate()
   const { t } = useTranslation()
 
-  const sort = (params.get('sort') as ArticleListSort | null) || 'best'
+  const sort = (search.sort as ArticleListSort | null) || 'best'
 
   const submitPath = useMemo(() => {
     const targetPath = customSubmitPath || '/submit'
@@ -116,9 +117,10 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
   })
 
   const onSwitchTab = (tab: string) => {
-    setParams((prevParams) => {
-      prevParams.set('sort', tab)
-      return prevParams
+    navigate({
+      search: withSearchUpdater((prev) =>
+        updateSearchParams(prev, { sort: tab })
+      ),
     })
   }
 
@@ -127,7 +129,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
       e.preventDefault()
 
       if (checkIsLogined()) {
-        navigate(submitPath)
+        navigate({ to: submitPath })
         return
       }
 
@@ -135,7 +137,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
         const authData = await loginWithDialog()
         if (isLogined(authData)) {
           setTimeout(() => {
-            navigate(submitPath)
+            navigate({ to: submitPath })
           }, 0)
         }
       } catch (err) {
@@ -165,9 +167,9 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
 
     const load = async () => {
       try {
-        const page = Number(params.get('page')) || 1
-        const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
-        const sort = (params.get('sort') as ArticleListSort | null) || 'best'
+        const page = Number(search.page) || 1
+        const pageSize = Number(search.page_size) || DEFAULT_PAGE_SIZE
+        const sort = (search.sort as ArticleListSort | null) || 'best'
 
         setLoading(true)
         setIsLoading(true)
@@ -215,7 +217,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
     return () => {
       cancelled = true
     }
-  }, [params, categoryFrontId, siteFrontId, isFeedList, setLoading])
+  }, [search, categoryFrontId, siteFrontId, isFeedList, setLoading])
 
   return (
     <>

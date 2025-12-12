@@ -7,7 +7,13 @@ import {
 } from '@tanstack/react-table'
 import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useSearchParams } from 'react-router-dom'
+
+import { Link, useNavigate, useSearch } from '@/lib/router'
+import {
+  omitSearchParams,
+  updateSearchParams,
+  withSearchUpdater,
+} from '@/lib/search'
 
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
@@ -57,7 +63,8 @@ export default function BlockedUserListPage() {
   /* const [loading, setLoading] = useState(false) */
 
   const [list, setList] = useState<BlockedUser[]>([])
-  const [params, setParams] = useSearchParams()
+  const search = useSearch()
+  const navigate = useNavigate()
   const { locationKey } = useLocationKey()
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
@@ -78,7 +85,7 @@ export default function BlockedUserListPage() {
 
   const [searchData, setSearchData] = useState<SearchFields>({
     ...defaultSearchData,
-    keywords: params.get('keywords') || '',
+    keywords: search.keywords || '',
   })
 
   const columns: ColumnDef<BlockedUser>[] = [
@@ -161,24 +168,28 @@ export default function BlockedUserListPage() {
   )
 
   const resetParams = useCallback(() => {
-    setParams((params) => {
-      params.delete('page')
-      params.delete('pageSize')
-      params.delete('keywords')
-      /* params.delete('role_id') */
-      return params
+    navigate({
+      search: withSearchUpdater((prev) =>
+        omitSearchParams(prev, [
+          'page',
+          'page_size',
+          'pageSize',
+          'keywords',
+          'role_id',
+        ])
+      ),
     })
-  }, [setParams])
+  }, [navigate])
 
   const hasSearchParamsChanged = useCallback(() => {
-    const currentKeywords = params.get('keywords') || ''
-    const currentRoleId = params.get('role_id') || ''
+    const currentKeywords = search.keywords || ''
+    const currentRoleId = search.role_id || ''
 
     return (
       currentKeywords !== (searchData.keywords || '') ||
       currentRoleId !== (searchData.roleId || '')
     )
-  }, [params, searchData])
+  }, [search, searchData])
 
   const fetchUserList = toSync(
     useCallback(
@@ -189,10 +200,10 @@ export default function BlockedUserListPage() {
           if (showLoading) {
             setLoading(true)
           }
-          const page = Number(params.get('page')) || 1
-          const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
-          const keywords = params.get('keywords') || ''
-          /* const roleId = params.get('role_id') || '' */
+          const page = Number(search.page) || 1
+          const pageSize = Number(search.page_size) || DEFAULT_PAGE_SIZE
+          const keywords = search.keywords || ''
+          /* const roleId = search.role_id || '' */
 
           setSearchData((state) => ({ ...state, keywords }))
 
@@ -230,7 +241,7 @@ export default function BlockedUserListPage() {
           setLoading(false)
         }
       },
-      [params, siteFrontId, setLoading]
+      [search, siteFrontId, setLoading]
     )
   )
 
@@ -241,32 +252,22 @@ export default function BlockedUserListPage() {
 
   const onSearchClick = useCallback(() => {
     const changed = hasSearchParamsChanged()
-    resetParams()
-    setParams((params) => {
-      const { keywords, roleId } = searchData
-
-      /* console.log('on search role id: ', roleId) */
-
-      if (keywords) {
-        params.set('keywords', keywords)
-      }
-
-      if (roleId) {
-        params.set('role_id', roleId)
-      }
-
-      return params
+    navigate({
+      search: withSearchUpdater((prev) =>
+        updateSearchParams(
+          prev,
+          {
+            keywords: searchData.keywords || undefined,
+            role_id: searchData.roleId || undefined,
+          },
+          ['page', 'page_size', 'pageSize', 'keywords', 'role_id']
+        )
+      ),
     })
     if (!changed) {
       fetchUserList(true)
     }
-  }, [
-    searchData,
-    resetParams,
-    setParams,
-    fetchUserList,
-    hasSearchParamsChanged,
-  ])
+  }, [navigate, searchData, fetchUserList, hasSearchParamsChanged])
 
   const onUnblockSelectedClick = useCallback(
     async (e: MouseEvent<HTMLButtonElement>) => {

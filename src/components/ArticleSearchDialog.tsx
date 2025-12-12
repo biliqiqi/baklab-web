@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import sanitize from 'sanitize-html'
@@ -449,7 +456,9 @@ const ArticleSearchDialog = ({
                 resultRefs.current[index] = element
               }}
               onFocus={() => setActiveResultIndex(index)}
-              onKeyDown={(event) => handleResultKeyDown(event, index)}
+              onKeyDown={(event: ReactKeyboardEvent<HTMLAnchorElement>) =>
+                handleResultKeyDown(event, index)
+              }
               onClick={() => onOpenChange(false)}
             >
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">

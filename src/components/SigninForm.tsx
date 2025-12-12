@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   ChangeEvent,
+  MouseEvent,
   memo,
   useCallback,
   useEffect,
@@ -10,9 +11,9 @@ import {
 } from 'react'
 import { Control, Controller, Path, useForm } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
-import { Link, useSearchParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
+import { Link, useSearch } from '@/lib/router'
 import { noop } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
@@ -136,9 +137,9 @@ const SigninForm: React.FC<SigninFromProps> = ({
   const updateAuthState = useAuthedUserStore((state) => state.update)
 
   const { siteFrontId } = useSiteParams()
-  const [searchParams, _setSearchParams] = useSearchParams()
+  const search = useSearch()
   const { updateSignin, updateSignup } = useDialogStore()
-  const account = searchParams.get('account') || email
+  const account = search.account || email
 
   const siteStore = useSiteStore()
   const { t } = useTranslation()
@@ -615,7 +616,7 @@ const SigninForm: React.FC<SigninFromProps> = ({
                   <Link
                     to="/signup"
                     className="b-text-link"
-                    onClick={(e) => {
+                    onClick={(e: MouseEvent<HTMLAnchorElement>) => {
                       if (dialog) {
                         e.preventDefault()
                         updateSignin(false)

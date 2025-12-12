@@ -14,10 +14,10 @@ import {
 } from 'lucide-react'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useShallow } from 'zustand/react/shallow'
 
+import { Link } from '@/lib/router'
 import { cn, summaryText } from '@/lib/utils'
 
 import { logoutToken } from '@/api'
@@ -110,7 +110,6 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
 
     const { loading, setLoading } = useLoading()
     /* const authState = useAuthedUserStore() */
-    const navigate = useNavigate()
     const isMobile = useIsMobile()
 
     const alertConfirm = useAlertDialogStore((state) => state.confirm)
@@ -256,7 +255,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
         const data = await logoutToken()
         if (!data.code) {
           authLogout()
-          navigate(0)
+          window.location.reload()
         }
       } catch (e) {
         console.error('logout error: ', e)
@@ -264,7 +263,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
       } finally {
         setLoading(false)
       }
-    }, [loading, navigate, setLoading, authLogout, t, alertConfirm])
+    }, [loading, setLoading, authLogout, t, alertConfirm])
 
     const onUserUISettingClick = useCallback(() => {
       setSettingsType('user_ui')
@@ -308,7 +307,7 @@ const BNav = React.forwardRef<HTMLDivElement, NavProps>(
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate(-1)}
+              onClick={() => window.history.back()}
               className="flex-shrink-0 w-[36px] h-[36px] p-0 rounded-full mr-2"
             >
               <ChevronLeftIcon size={20} />

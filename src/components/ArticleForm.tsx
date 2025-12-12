@@ -11,10 +11,10 @@ import {
 } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { dayjs, timeAgo } from '@/lib/dayjs-custom'
+import { Link, useNavigate, useSearch } from '@/lib/router'
 import { cn } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
@@ -159,7 +159,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
   )
 
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
+  const search = useSearch()
   const notFound = useNotFoundStore()
 
   const { t } = useTranslation()
@@ -192,7 +192,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
     () => Boolean(article && article.replyToId != '0'),
     [article]
   )
-  const paramCateId = searchParams.get('category_id') || ''
+  const paramCateId = search.category_id || ''
 
   const draggingRef = useRef<DraggingInfo>({
     inputType: 'tiptap',
@@ -250,7 +250,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
           link: (initialCache?.link as string) || '',
           category:
             (initialCache?.category as string) ||
-            searchParams.get('category_id') ||
+            search.category_id ||
             '',
           content: (initialCache?.content as string) || '',
           contentFormId:

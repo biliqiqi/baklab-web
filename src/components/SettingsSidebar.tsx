@@ -1,7 +1,9 @@
+import { useLocation } from '@tanstack/react-router'
 import { KeyIcon, UserIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation } from 'react-router-dom'
+
+import { Link } from '@/lib/router'
 
 import { useContextStore } from '@/state/global'
 

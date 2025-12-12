@@ -39,7 +39,6 @@ import {
   useSiteStore,
   useUserUIStore,
 } from './state/global.ts'
-import { useRoutesStore } from './state/routes.ts'
 import { Article, SSE_EVENT, SettingsType } from './types/types.ts'
 
 const DESKTOP_FONT_SIZE = '16'
@@ -127,7 +126,6 @@ const connectEvents = () => {
     }
   )
 
-
   eventSource.onerror = (err) => {
     console.error('event source error: ', err)
   }
@@ -202,8 +200,6 @@ const App = () => {
       [updateBaseData, updateUserData]
     )
   )
-
-  const routes = useRoutesStore(useShallow((state) => state.routes))
 
   const reconnectEventSource = useCallback(() => {
     // Check if connection is still alive before reconnecting
@@ -293,7 +289,6 @@ const App = () => {
     void initializeApp()
   }, [
     authToken,
-    routes,
     fetchSiteList,
     fetchContext,
     forceUpdate,

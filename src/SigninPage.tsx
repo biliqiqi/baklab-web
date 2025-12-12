@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+
+import { Link, useNavigate, useSearch } from '@/lib/router'
 
 import SigninForm from './components/SigninForm'
 
@@ -11,9 +12,9 @@ import { isInnerURL } from './lib/utils'
 import { useAuthedUserStore } from './state/global'
 
 export default function SigninPage() {
-  const [searchParams, _setSearchParams] = useSearchParams()
-  const returnURL = searchParams.get('return')
-  const isPopup = searchParams.get('popup') === '1' || Boolean(window.opener)
+  const search = useSearch()
+  const returnURL = search.return
+  const isPopup = search.popup === '1' || Boolean(window.opener)
 
   const navigate = useNavigate()
   const isLogined = useAuthedUserStore((state) => state.isLogined())
@@ -57,7 +58,7 @@ export default function SigninPage() {
     if (returnURL && isInnerURL(returnURL)) {
       location.href = returnURL
     } else {
-      navigate('/', { replace: true })
+      navigate({ to: '/', replace: true })
     }
   }, [consumeSessionReturnUrl, isPopup, navigate, returnURL])
 
@@ -84,7 +85,7 @@ export default function SigninPage() {
       } else if (returnURL && isInnerURL(returnURL)) {
         location.href = returnURL
       } else {
-        navigate('/', { replace: true })
+        navigate({ to: '/', replace: true })
       }
     }
   }, [

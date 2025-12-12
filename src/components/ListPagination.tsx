@@ -1,5 +1,7 @@
 import { KeyboardEvent, useCallback, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+
+import { useNavigate, useSearch } from '@/lib/router'
+import { updateSearchParams, withSearchUpdater } from '@/lib/search'
 
 import { ListPageState } from '@/types/types'
 
@@ -24,15 +26,17 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
   pageState,
   autoScrollTop = false,
 }) => {
-  const [params, setParams] = useSearchParams()
+  const search = useSearch()
+  const navigate = useNavigate()
 
   const genParamStr = useCallback(
     (page: number) => {
-      const cloneParams = new URLSearchParams(params.toString())
-      cloneParams.set('page', page ? String(page) : '1')
-      return cloneParams.toString()
+      const newSearch = { ...search, page: page ? String(page) : '1' }
+      return new URLSearchParams(
+        Object.entries(newSearch).map(([k, v]) => [k, String(v)])
+      ).toString()
     },
-    [params]
+    [search]
   )
 
   const onPageEnter = useCallback(
@@ -43,10 +47,14 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
         if (page > pageState.totalPage || page < 1) {
           page = 1
         }
-        setParams((params) => ({ ...params, page: page }))
+        navigate({
+          search: withSearchUpdater((prev) =>
+            updateSearchParams(prev, { page: String(page) })
+          ),
+        })
       }
     },
-    [pageState, setParams]
+    [pageState, navigate]
   )
 
   useEffect(() => {

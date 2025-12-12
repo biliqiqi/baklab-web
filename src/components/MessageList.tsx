@@ -8,9 +8,9 @@ import {
   useState,
 } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { toSync } from '@/lib/fire-and-forget'
+import { Link, useNavigate, useSearch } from '@/lib/router'
 import { cn, genArticlePath } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
@@ -127,7 +127,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
 
     const { t } = useTranslation()
 
-    const [params] = useSearchParams()
+    const search = useSearch()
     const cateStore = useCategoryStore()
     const { location } = useLocationKey()
 
@@ -147,7 +147,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
     >({})
 
     const fetchNotifications = useCallback(async () => {
-      const page = Number(params.get('page')) || 1
+      const page = Number(search.page) || 1
       const resp = await getNotifications(
         page,
         pageSize,
@@ -204,7 +204,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
           })
         }
       }
-    }, [listType, pageSize, params])
+    }, [listType, pageSize, search])
 
     useImperativeHandle(ref, () => {
       return {
@@ -319,7 +319,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
           setAcceptedInvites((prev) => ({ ...prev, [item.id]: true }))
           await cateStore.fetchCategoryList(item.siteFrontId, true)
           if (item.targetPath && item.targetPath !== '#') {
-            navigate(item.targetPath)
+            navigate({ to: item.targetPath })
           }
         } catch (error) {
           console.error('accept category invite error', error)
@@ -612,7 +612,9 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
                 to={item.targetPath}
                 className="hover:no-underline"
                 key={item.id}
-                onClick={(e) => onMessageClick(e, item)}
+                onClick={(e: MouseEvent<HTMLAnchorElement>) =>
+                  onMessageClick(e, item)
+                }
               >
                 {content}
               </Link>

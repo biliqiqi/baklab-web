@@ -18,6 +18,7 @@
     "node": ">=20.16.0"
   },
   "dependencies": {
+    "@baklab/shared-web": "git+ssh://git@github.com/biliqiqi/baklab-shared-web.git#main",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-avatar": "^1.1.10",
@@ -35,7 +36,9 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-toast": "^1.2.15",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@tanstack/react-router": "^1.141.1",
     "@tanstack/react-table": "^8.21.3",
+    "@tanstack/router-devtools": "^1.141.1",
     "@tiptap/extension-bold": "^2.26.2",
     "@tiptap/extension-code-block": "^2.26.2",
     "@tiptap/extension-document": "^2.26.2",
@@ -60,7 +63,6 @@
     "i18next-browser-languagedetector": "^8.2.0",
     "idb": "^8.0.3",
     "ky": "^1.11.0",
-    "@baklab/shared-web": "git+ssh://git@github.com/biliqiqi/baklab-shared-web.git#main",
     "lucide-react": "^0.451.0",
     "markdown-it": "^14.1.0",
     "next-themes": "^0.4.6",
@@ -70,7 +72,6 @@
     "react-easy-crop": "^5.5.3",
     "react-hook-form": "^7.64.0",
     "react-i18next": "^15.7.4",
-    "react-router-dom": "^6.30.1",
     "remeda": "^2.32.0",
     "sanitize-html": "^2.17.0",
     "sonner": "^1.7.4",

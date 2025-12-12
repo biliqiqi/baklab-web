@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router-dom'
 
+import { useNavigate, useSearch } from '@/lib/router'
+import { updateSearchParams, withSearchUpdater } from '@/lib/search'
 import { cn, getArticleStatusName, md2text, summaryText } from '@/lib/utils'
 
 import { Badge } from './components/ui/badge'
@@ -185,7 +186,8 @@ export default function UserPage() {
   const { updateNotFound } = useNotFoundStore()
   const { t } = useTranslation()
 
-  const [params, setParams] = useSearchParams()
+  const search = useSearch()
+  const navigate = useNavigate()
   const { username, siteFrontId } = useSiteParams()
 
   const managePermitted = useMemo(() => {
@@ -198,8 +200,8 @@ export default function UserPage() {
     return false
   }, [user])
 
-  const tab = (params.get('tab') as UserTab | null) || 'all'
-  const actType = (params.get('act_type') as ActivityTab | null) || 'user'
+  const tab = (search.tab as UserTab | null) || 'all'
+  const actType = (search.act_type as ActivityTab | null) || 'user'
 
   const fetchUserData = toSync(
     useCallback(
@@ -235,9 +237,9 @@ export default function UserPage() {
   const fetchList = toSync(
     useCallback(async () => {
       try {
-        const page = Number(params.get('page')) || 1
-        const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
-        const sort = (params.get('sort') as ArticleListSort | null) || 'latest'
+        const page = Number(search.page) || 1
+        const pageSize = Number(search.page_size) || DEFAULT_PAGE_SIZE
+        const sort = (search.sort as ArticleListSort | null) || 'latest'
 
         setLoading(true)
 
@@ -340,22 +342,22 @@ export default function UserPage() {
       } finally {
         setLoading(false)
       }
-    }, [params, tab, username, siteFrontId, actType, setLoading])
+    }, [search, tab, username, siteFrontId, actType, setLoading])
   )
 
   const onTabChange = (tab: string) => {
-    setParams((prevParams) => {
-      prevParams.delete('page')
-      prevParams.set('tab', tab)
-      return prevParams
+    navigate({
+      search: withSearchUpdater((prev) =>
+        updateSearchParams(prev, { tab }, ['page'])
+      ),
     })
   }
 
   const onActTabChange = (tab: string) => {
-    setParams((prevParams) => {
-      prevParams.delete('page')
-      prevParams.set('act_type', tab)
-      return prevParams
+    navigate({
+      search: withSearchUpdater((prev) =>
+        updateSearchParams(prev, { act_type: tab }, ['page'])
+      ),
     })
   }
 
@@ -365,7 +367,7 @@ export default function UserPage() {
 
   useEffect(() => {
     fetchList()
-  }, [params])
+  }, [fetchList])
 
   useEffect(() => {
     if (

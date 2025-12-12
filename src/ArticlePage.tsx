@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
+
+import { useNavigate, useSearch } from '@/lib/router'
+import { updateSearchParams, withSearchUpdater } from '@/lib/search'
 
 import { Card } from './components/ui/card'
 import { Skeleton } from './components/ui/skeleton'
@@ -67,7 +69,7 @@ export default function ArticlePage() {
   const replyHandlerRef = useRef<((x: Article) => void) | null>(null)
   const editHandlerRef = useRef<((x: Article) => void) | null>(null)
 
-  const [params, setParams] = useSearchParams()
+  const search = useSearch()
   const { updateNotFound } = useNotFoundStore()
 
   const { setShowReplyBox, setReplyBoxState } = useReplyBoxStore(
@@ -85,7 +87,7 @@ export default function ArticlePage() {
   const { setCategoryFrontId } = useCurrentArticleStore()
   const hasReplyPermit = usePermit('article', 'reply')
 
-  const sort = (params.get('sort') as ArticleListSort | null) || 'oldest'
+  const sort = (search.sort as ArticleListSort | null) || 'oldest'
 
   const { siteFrontId, articleId } = useSiteParams()
 
@@ -98,8 +100,8 @@ export default function ArticlePage() {
           setLoading(true)
         }
 
-        const page = Number(params.get('page')) || 1
-        const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
+        const page = Number(search.page) || 1
+        const pageSize = Number(search.page_size) || DEFAULT_PAGE_SIZE
 
         if (!articleId) {
           updateNotFound(true)
@@ -182,7 +184,7 @@ export default function ArticlePage() {
       }
     },
     [
-      params,
+      search,
       siteFrontId,
       sort,
       updateNotFound,
@@ -194,11 +196,13 @@ export default function ArticlePage() {
   )
 
   const fetchArticleSync = toSync(fetchArticle)
+  const navigate = useNavigate()
 
   const onSwitchTab = (val: string) => {
-    setParams((prevParams) => {
-      prevParams.set('sort', val)
-      return prevParams
+    navigate({
+      search: withSearchUpdater((prev) =>
+        updateSearchParams(prev, { sort: val })
+      ),
     })
   }
 
@@ -242,7 +246,7 @@ export default function ArticlePage() {
 
     void fetchArticle(!initialized)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [articleId, params, forceState])
+  }, [articleId, search, forceState])
 
   useEffect(() => {
     if (replyHandlerRef.current) {

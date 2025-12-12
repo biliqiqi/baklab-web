@@ -7,8 +7,8 @@ import {
 } from 'lucide-react'
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, LinkProps } from 'react-router-dom'
 
+import { Link, type LinkProps } from '@/lib/router'
 import { cn } from '@/lib/utils'
 
 import { ButtonProps, buttonVariants } from '@/components/ui/button'

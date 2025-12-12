@@ -1,8 +1,9 @@
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
+
+import { useNavigate, useSearch } from '@/lib/router'
 
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
@@ -32,7 +33,7 @@ export default function InvitePage() {
   const lastClickTimeRef = useRef(0)
 
   const { inviteCode } = useSiteParams()
-  const [searchParams] = useSearchParams()
+  const search = useSearch()
 
   const navigate = useNavigate()
 
@@ -54,7 +55,7 @@ export default function InvitePage() {
     [inviteData]
   )
 
-  const accepted = useMemo(() => searchParams.get('accepted'), [searchParams])
+  const accepted = useMemo(() => search.accepted, [search])
 
   const fetchInvite = toSync(
     useCallback(async () => {
@@ -67,7 +68,7 @@ export default function InvitePage() {
       if (!code) {
         /* console.log('site: ', site) */
         if (site.currUserState?.isMember) {
-          navigate(buildRoutePath('/', site.frontId), { replace: true })
+          navigate({ to: buildRoutePath('/', site.frontId), replace: true })
         } else {
           setSite(() => site)
           setInviteData(() => invite)
@@ -83,7 +84,7 @@ export default function InvitePage() {
       }
 
       if (site && site.currUserState?.isMember) {
-        navigate(buildRoutePath('/', site.frontId), { replace: true })
+        navigate({ to: buildRoutePath('/', site.frontId), replace: true })
         return
       }
 
@@ -98,7 +99,7 @@ export default function InvitePage() {
       if (!code) {
         await fetchSiteList()
         showCategorySelectionModal(site.frontId)
-        navigate(buildRoutePath('/', site.frontId), { replace: true })
+        navigate({ to: buildRoutePath('/', site.frontId), replace: true })
       }
     } catch (err) {
       console.error('accept invite error: ', err)
@@ -131,7 +132,8 @@ export default function InvitePage() {
 
     if (!isLogined()) {
       document.cookie = `${SINGUP_RETURN_COOKIE_NAME}=${encodeURIComponent(currUrl.toString())};path=/`
-      navigate(`/signin?return=${encodeURIComponent(currUrl.toString())}`, {
+      navigate({
+        to: `/signin?return=${encodeURIComponent(currUrl.toString())}`,
         replace: true,
       })
       return
@@ -156,7 +158,7 @@ export default function InvitePage() {
       toSync(getInvite, ({ code, data: { invite, site } }) => {
         if (!code && invite && site && !acceptedRef.current) {
           if (site.currUserState?.isMember) {
-            navigate(`/z/${site.frontId}`, { replace: true })
+            navigate({ to: `/z/${site.frontId}`, replace: true })
           } else {
             toSync(acceptInvite)()
           }

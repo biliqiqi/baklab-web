@@ -8,10 +8,10 @@ import React, {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
 import { toSync } from '@/lib/fire-and-forget'
+import { Link, useNavigate, useSearch } from '@/lib/router'
 import { cn, isInnerURL, summaryText } from '@/lib/utils'
 
 import { getSiteList, joinSite } from '@/api/site'
@@ -111,7 +111,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
     const { signin, signup, updateSignin, updateSignup } = useDialogStore()
     const { showNotFound, updateNotFound } = useNotFoundStore()
     const { t } = useTranslation()
-    const [searchParams] = useSearchParams()
+    const search = useSearch()
 
     const userUIFormRef = useRef<UserUIFormRef | null>(null)
     const siteUIFormRef = useRef<SiteUIFormRef | null>(null)
@@ -492,7 +492,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         if (!code && data.list) {
           updateSiteList([...data.list])
           if (newSiteFrontId) {
-            navigate(buildRoutePath('/', newSiteFrontId))
+            navigate({ to: buildRoutePath('/', newSiteFrontId) })
           }
         }
 
@@ -599,7 +599,7 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
         if (isInnerURL(linkEl.href)) {
           e.preventDefault()
           const url = new URL(linkEl.href)
-          navigate(linkEl.href.replace(url.origin, ''))
+          navigate({ to: linkEl.href.replace(url.origin, '') })
         } else {
           linkEl.target = '_blank'
         }
@@ -660,12 +660,12 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     useEffect(() => {
       const tempToken = localStorage.getItem(SIGNUP_TEMP_TOKEN_KEY)
-      const signupStep = searchParams.get('signup_step')
+      const signupStep = search.signup_step
 
       if (tempToken && signupStep === 'complete' && !signup) {
         updateSignup(true)
       }
-    }, [searchParams, signup, updateSignup])
+    }, [search, signup, updateSignup])
 
     useEffect(() => {
       document.addEventListener('click', handleLinkClick)

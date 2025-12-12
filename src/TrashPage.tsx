@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { Link, useSearchParams } from 'react-router-dom'
+
+import { Link, useNavigate, useSearch } from '@/lib/router'
+import {
+  omitSearchParams,
+  updateSearchParams,
+  withSearchUpdater,
+} from '@/lib/search'
 
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
@@ -76,50 +82,48 @@ export default function TrashPage() {
 
   const { siteFrontId } = useSiteParams()
   const { locationKey } = useLocationKey()
-  const [params, setParams] = useSearchParams()
+  const search = useSearch()
+  const navigate = useNavigate()
   const [searchData, setSearchData] = useState<SearchFields>({
     ...defaultSearchData,
-    keywords: params.get('keywords') || '',
-    category: params.get('category') || '',
+    keywords: search.keywords || '',
+    category: search.category || '',
   })
 
   const resetParams = useCallback(() => {
-    setParams((params) => {
-      params.delete('page')
-      params.delete('pageSize')
-      params.delete('keywords')
-      params.delete('category')
-      return params
+    navigate({
+      search: withSearchUpdater((prev) =>
+        omitSearchParams(prev, ['page', 'pageSize', 'keywords', 'category'])
+      ),
     })
-  }, [setParams])
+  }, [navigate])
 
   const hasSearchParamsChanged = useCallback(() => {
-    const currentKeywords = params.get('keywords') || ''
-    const currentCategory = params.get('category') || ''
+    const currentKeywords = search.keywords || ''
+    const currentCategory = search.category || ''
 
     return (
       currentKeywords !== (searchData.keywords || '') ||
       currentCategory !== (searchData.category || '')
     )
-  }, [params, searchData])
+  }, [search, searchData])
 
   const cateStore = useCategoryStore()
   const alertDialog = useAlertDialogStore()
 
   const { t } = useTranslation()
 
-  const tab = (params.get('tab') as ArticleTab | null) || 'all'
+  const tab = (search.tab as ArticleTab | null) || 'all'
 
   const fetchList = toSync(
     useCallback(
       async (showLoading: boolean = false) => {
         try {
-          const page = Number(params.get('page')) || 1
-          const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
-          const sort =
-            (params.get('sort') as ArticleListSort | null) || 'latest'
-          const keywords = params.get('keywords') || ''
-          const category = params.get('category') || ''
+          const page = Number(search.page) || 1
+          const pageSize = Number(search.page_size) || DEFAULT_PAGE_SIZE
+          const sort = (search.sort as ArticleListSort | null) || 'latest'
+          const keywords = search.keywords || ''
+          const category = search.category || ''
 
           let currTab = tab
           if (!defaultTabs.includes(tab)) {
@@ -167,7 +171,7 @@ export default function TrashPage() {
           setLoading(false)
         }
       },
-      [params, siteFrontId, tab, setLoading]
+      [search, siteFrontId, tab, setLoading]
     )
   )
 
@@ -178,23 +182,22 @@ export default function TrashPage() {
 
   const onSearchClick = useCallback(() => {
     const changed = hasSearchParamsChanged()
-    resetParams()
-    setParams((params) => {
-      const { keywords, category } = searchData
-      if (keywords) {
-        params.set('keywords', keywords)
-      }
-
-      if (category) {
-        params.set('category', category)
-      }
-
-      return params
+    navigate({
+      search: withSearchUpdater((prev) =>
+        updateSearchParams(
+          prev,
+          {
+            keywords: searchData.keywords || undefined,
+            category: searchData.category || undefined,
+          },
+          ['page', 'pageSize', 'keywords', 'category']
+        )
+      ),
     })
     if (!changed) {
       fetchList(true)
     }
-  }, [resetParams, setParams, searchData, fetchList, hasSearchParamsChanged])
+  }, [navigate, searchData, fetchList, hasSearchParamsChanged])
 
   const onRecoverClick = useCallback(
     async (id: string, title: string, siteFrontId: string) => {
@@ -220,10 +223,10 @@ export default function TrashPage() {
   )
 
   const onTabChange = (tab: string) => {
-    setParams((prevParams) => {
-      prevParams.delete('page')
-      prevParams.set('tab', tab)
-      return prevParams
+    navigate({
+      search: withSearchUpdater((prev) =>
+        updateSearchParams(prev, { tab }, ['page'])
+      ),
     })
   }
 

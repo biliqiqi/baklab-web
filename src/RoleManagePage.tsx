@@ -8,8 +8,8 @@ import {
 import { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { Link, useSearchParams } from 'react-router-dom'
 
+import { Link, useSearch } from '@/lib/router'
 import { z } from '@/lib/zod-custom'
 
 import { Badge } from './components/ui/badge'
@@ -104,7 +104,7 @@ export default function RoleManagePage() {
     role: undefined,
   })
 
-  const [params] = useSearchParams()
+  const search = useSearch()
 
   const alertDialog = useAlertDialogStore()
 
@@ -224,7 +224,7 @@ export default function RoleManagePage() {
     useCallback(
       async (keywords?: string) => {
         setLoading(true)
-        const page = parseInt(params.get('page') || '', 10) || 1
+        const page = parseInt((search.page as string) || '', 10) || 1
 
         const { code, data } = await getRoles(
           page,
@@ -247,7 +247,7 @@ export default function RoleManagePage() {
         }
         setLoading(false)
       },
-      [params, siteFrontId, setLoading]
+      [search, siteFrontId, setLoading]
     )
   )
 
@@ -350,7 +350,7 @@ export default function RoleManagePage() {
 
   useEffect(() => {
     fetchRoleList()
-  }, [params])
+  }, [fetchRoleList, search])
 
   useEffect(() => {
     if (siteFrontId) {

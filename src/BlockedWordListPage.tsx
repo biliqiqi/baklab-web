@@ -7,8 +7,14 @@ import {
 } from '@tanstack/react-table'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
+
+import { useNavigate, useSearch } from '@/lib/router'
+import {
+  omitSearchParams,
+  updateSearchParams,
+  withSearchUpdater,
+} from '@/lib/search'
 
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
@@ -77,7 +83,8 @@ export default function BlockedWordListPage() {
 
   const { setLoading } = useLoading()
 
-  const [params, setParams] = useSearchParams()
+  const search = useSearch()
+  const navigate = useNavigate()
   const { locationKey } = useLocationKey()
   const dialogConfirm = useAlertDialogStore((state) => state.confirm)
 
@@ -103,9 +110,9 @@ export default function BlockedWordListPage() {
             setLoading(true)
           }
 
-          const page = Number(params.get('page')) || 1
-          const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
-          const keywords = params.get('keywords') || ''
+          const page = Number(search.page) || 1
+          const pageSize = Number(search.page_size) || DEFAULT_PAGE_SIZE
+          const keywords = search.keywords || ''
 
           setSearchData((state) => ({ ...state, keywords }))
 
@@ -142,13 +149,13 @@ export default function BlockedWordListPage() {
           setLoading(false)
         }
       },
-      [params, siteFrontId, setLoading]
+      [search, siteFrontId, setLoading]
     )
   )
 
   const [searchData, setSearchData] = useState<SearchFields>({
     ...defaultSearchData,
-    keywords: params.get('keywords') || '',
+    keywords: search.keywords || '',
   })
 
   const columns: ColumnDef<SiteBlockedWord>[] = [
@@ -268,18 +275,17 @@ export default function BlockedWordListPage() {
   }, [siteFrontId, alertDialog, fetchBlockedWordList, selectedRows, t])
 
   const resetParams = useCallback(() => {
-    setParams((params) => {
-      params.delete('page')
-      params.delete('page_size')
-      params.delete('keywords')
-      return params
+    navigate({
+      search: withSearchUpdater((prev) =>
+        omitSearchParams(prev, ['page', 'page_size', 'keywords'])
+      ),
     })
-  }, [setParams])
+  }, [navigate])
 
   const hasSearchParamsChanged = useCallback(() => {
-    const currentKeywords = params.get('keywords') || ''
+    const currentKeywords = search.keywords || ''
     return currentKeywords !== (searchData.keywords || '')
-  }, [params, searchData])
+  }, [search, searchData])
 
   const onResetClick = useCallback(() => {
     setSearchData({ ...defaultSearchData })
@@ -288,25 +294,19 @@ export default function BlockedWordListPage() {
 
   const onSearchClick = useCallback(() => {
     const changed = hasSearchParamsChanged()
-    resetParams()
-    setParams((params) => {
-      const { keywords } = searchData
-
-      if (keywords) {
-        params.set('keywords', keywords)
-      }
-      return params
+    navigate({
+      search: withSearchUpdater((prev) =>
+        updateSearchParams(
+          prev,
+          { keywords: searchData.keywords || undefined },
+          ['page', 'page_size', 'keywords']
+        )
+      ),
     })
     if (!changed) {
       fetchBlockedWordList(true)
     }
-  }, [
-    setParams,
-    searchData,
-    resetParams,
-    fetchBlockedWordList,
-    hasSearchParamsChanged,
-  ])
+  }, [navigate, searchData, fetchBlockedWordList, hasSearchParamsChanged])
 
   const onWordFormClose = useCallback(async () => {
     if (wordFormDirty) {

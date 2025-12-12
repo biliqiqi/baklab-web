@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
+
+import { Link, useNavigate, useSearch } from '@/lib/router'
 
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
@@ -21,7 +22,7 @@ import { useAuthedUserStore, useLoading } from './state/global'
 import { OAuthAuthorizeResponse } from './types/oauth'
 
 export default function OAuthAuthorizePage() {
-  const [searchParams] = useSearchParams()
+  const search = useSearch()
   const [authData, setAuthData] = useState<OAuthAuthorizeResponse | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string>('')
@@ -36,11 +37,11 @@ export default function OAuthAuthorizePage() {
     useShallow(({ username }) => ({ currUsername: username }))
   )
 
-  const responseType = searchParams.get('response_type')
-  const clientId = searchParams.get('client_id')
-  const redirectUri = searchParams.get('redirect_uri')
-  const scope = searchParams.get('scope')
-  const state = searchParams.get('state')
+  const responseType = search.response_type
+  const clientId = search.client_id
+  const redirectUri = search.redirect_uri
+  const scope = search.scope
+  const state = search.state
 
   useDocumentTitle(t('oauthAuthorization'))
 
@@ -214,7 +215,7 @@ export default function OAuthAuthorizePage() {
                   variant="outline"
                   onClick={() => {
                     mountedRef.current = false
-                    navigate('/')
+                    navigate({ to: '/' })
                   }}
                 >
                   {t('backToHome')}
@@ -267,7 +268,7 @@ export default function OAuthAuthorizePage() {
                   variant="outline"
                   onClick={() => {
                     mountedRef.current = false
-                    navigate('/')
+                    navigate({ to: '/' })
                   }}
                 >
                   {t('backToHome')}

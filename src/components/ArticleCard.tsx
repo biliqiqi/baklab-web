@@ -20,10 +20,10 @@ import {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
 import { createPhotoSwipeLightbox } from '@/lib/photoswipe-utils'
+import { Link } from '@/lib/router'
 import {
   buildThumbnailUrl,
   calculateThumbnailDimensions,

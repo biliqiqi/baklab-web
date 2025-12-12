@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
+
+import { useNavigate, useSearch } from '@/lib/router'
+import {
+  omitSearchParams,
+  updateSearchParams,
+  withSearchUpdater,
+} from '@/lib/search'
 
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
@@ -61,7 +67,8 @@ export default function ActivityPage() {
   const { setLoading } = useLoading()
 
   const { siteFrontId } = useSiteParams()
-  const [params, setParams] = useSearchParams()
+  const search = useSearch()
+  const navigate = useNavigate()
   const { locationKey } = useLocationKey()
 
   const { checkPermit } = useAuthedUserStore(
@@ -70,44 +77,49 @@ export default function ActivityPage() {
 
   const [searchData, setSearchData] = useState<SearchFields>({
     ...defaultSearchData,
-    username: params.get('username') || '',
-    actType: (params.get('actType') as ActivityActionType) || '',
-    action: params.get('action') || '',
+    username: search.username || '',
+    actType: (search.act_type as ActivityActionType) || '',
+    action: search.action || '',
   })
 
   const resetParams = useCallback(() => {
-    setParams((params) => {
-      params.delete('page')
-      params.delete('pageSize')
-      params.delete('username')
-      params.delete('act_type')
-      params.delete('action')
-      return params
+    navigate({
+      search: withSearchUpdater((prev) =>
+        omitSearchParams(prev, [
+          'page',
+          'page_size',
+          'pageSize',
+          'username',
+          'act_type',
+          'actType',
+          'action',
+        ])
+      ),
     })
-  }, [setParams])
+  }, [navigate])
 
   const hasSearchParamsChanged = useCallback(() => {
-    const currentUsername = params.get('username') || ''
-    const currentActType = params.get('act_type') || ''
-    const currentAction = params.get('action') || ''
+    const currentUsername = search.username || ''
+    const currentActType = search.act_type || ''
+    const currentAction = search.action || ''
 
     return (
       currentUsername !== (searchData.username || '') ||
       currentActType !== (searchData.actType || '') ||
       currentAction !== (searchData.action || '')
     )
-  }, [params, searchData])
+  }, [search, searchData])
 
   const fetchList = toSync(
     useCallback(
       async (showLoading: boolean = false) => {
         try {
-          const page = Number(params.get('page')) || 1
-          const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
-          const username = params.get('username') || ''
+          const page = Number(search.page) || 1
+          const pageSize = Number(search.page_size) || DEFAULT_PAGE_SIZE
+          const username = search.username || ''
           let actType =
-            (params.get('act_type') as ActivityActionType | null) || undefined
-          const action = params.get('action') || ''
+            (search.act_type as ActivityActionType | null) || undefined
+          const action = search.action || ''
 
           if (!checkPermit('activity', 'manage_platform')) {
             actType = 'manage'
@@ -153,7 +165,7 @@ export default function ActivityPage() {
           setLoading(false)
         }
       },
-      [params, siteFrontId, checkPermit, setLoading]
+      [search, siteFrontId, checkPermit, setLoading]
     )
   )
 
@@ -164,26 +176,31 @@ export default function ActivityPage() {
 
   const onSearchClick = useCallback(() => {
     const changed = hasSearchParamsChanged()
-    resetParams()
-    setParams((params) => {
-      const { username, actType, action } = searchData
-      if (username) {
-        params.set('username', username)
-      }
-
-      if (actType) {
-        params.set('act_type', actType)
-      }
-
-      if (action) {
-        params.set('action', action)
-      }
-      return params
+    navigate({
+      search: withSearchUpdater((prev) =>
+        updateSearchParams(
+          prev,
+          {
+            username: searchData.username || undefined,
+            act_type: searchData.actType || undefined,
+            action: searchData.action || undefined,
+          },
+          [
+            'page',
+            'page_size',
+            'pageSize',
+            'username',
+            'act_type',
+            'actType',
+            'action',
+          ]
+        )
+      ),
     })
     if (!changed) {
       fetchList(true)
     }
-  }, [resetParams, setParams, searchData, hasSearchParamsChanged, fetchList])
+  }, [navigate, searchData, hasSearchParamsChanged, fetchList])
 
   useEffect(() => {
     fetchList(true)

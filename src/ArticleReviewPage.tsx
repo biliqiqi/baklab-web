@@ -7,7 +7,13 @@ import {
   useState,
 } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { Link, useSearchParams } from 'react-router-dom'
+
+import { Link, useNavigate, useSearch } from '@/lib/router'
+import {
+  omitSearchParams,
+  updateSearchParams,
+  withSearchUpdater,
+} from '@/lib/search'
 
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
@@ -306,13 +312,14 @@ export function ArticleReviewPage() {
 
   const [updates, setUpdates] = useState<ArticleLog[]>([])
   const usernameRef = useRef<HTMLInputElement | null>(null)
-  const [params, setParams] = useSearchParams()
+  const search = useSearch()
+  const navigate = useNavigate()
 
   const { setLoading } = useLoading()
 
   const [searchData, setSearchData] = useState<SearchFields>({
     ...defaultSearchData,
-    username: params.get('username') || '',
+    username: search.username || '',
   })
 
   const fetchSiteUpdates = useCallback(async () => {
@@ -321,7 +328,7 @@ export function ArticleReviewPage() {
     try {
       setLoading(true)
 
-      const username = params.get('username') || ''
+      const username = search.username || ''
       const {
         code,
         data: { list, currPage, pageSize, total, totalPage },
@@ -350,21 +357,20 @@ export function ArticleReviewPage() {
     } finally {
       setLoading(false)
     }
-  }, [siteFrontId, params, setLoading])
+  }, [siteFrontId, search, setLoading])
 
   const resetParams = useCallback(() => {
-    setParams((params) => {
-      params.delete('page')
-      params.delete('pageSize')
-      params.delete('username')
-      return params
+    navigate({
+      search: withSearchUpdater((prev) =>
+        omitSearchParams(prev, ['page', 'pageSize', 'username'])
+      ),
     })
-  }, [setParams])
+  }, [navigate])
 
   const hasSearchParamsChanged = useCallback(() => {
-    const currentUsername = params.get('username') || ''
+    const currentUsername = search.username || ''
     return currentUsername !== (searchData.username || '')
-  }, [params, searchData])
+  }, [search, searchData])
 
   const onResetClick = useCallback(() => {
     setSearchData({ ...defaultSearchData })
@@ -373,24 +379,19 @@ export function ArticleReviewPage() {
 
   const onSearchClick = useCallback(() => {
     const changed = hasSearchParamsChanged()
-    resetParams()
-    setParams((params) => {
-      const { username } = searchData
-      if (username) {
-        params.set('username', username)
-      }
-      return params
+    navigate({
+      search: withSearchUpdater((prev) =>
+        updateSearchParams(
+          prev,
+          { username: searchData.username || undefined },
+          ['page', 'pageSize', 'username']
+        )
+      ),
     })
     if (!changed) {
       toSync(fetchSiteUpdates)()
     }
-  }, [
-    searchData,
-    resetParams,
-    setParams,
-    fetchSiteUpdates,
-    hasSearchParamsChanged,
-  ])
+  }, [searchData, navigate, fetchSiteUpdates, hasSearchParamsChanged])
 
   const onReviewConfirmClick = useCallback(
     async (history: ArticleLog, action: ReviewAction, content: string) => {

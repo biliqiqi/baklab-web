@@ -9,8 +9,13 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { Link, useSearchParams } from 'react-router-dom'
 
+import { Link, useNavigate, useSearch } from '@/lib/router'
+import {
+  omitSearchParams,
+  updateSearchParams,
+  withSearchUpdater,
+} from '@/lib/search'
 import { z } from '@/lib/zod-custom'
 
 import { Badge } from './components/ui/badge'
@@ -136,11 +141,12 @@ export default function SiteListPage() {
   })
 
   const [list, setList] = useState<Site[]>([])
-  const [params, setParams] = useSearchParams()
+  const search = useSearch()
+  const navigate = useNavigate()
   const [searchData, setSearchData] = useState<SearchFields>({
     ...defaultSearchData,
-    keywords: params.get('keywords') || '',
-    creatorName: params.get('creator_name') || '',
+    keywords: search.keywords || '',
+    creatorName: search.creator_name || '',
   })
 
   const { setLoading } = useLoading()
@@ -183,7 +189,7 @@ export default function SiteListPage() {
 
   const alertDialog = useAlertDialogStore()
 
-  const tab = params.get('status') || String(defaultStatus)
+  const tab = search.status || String(defaultStatus)
 
   const fetchSiteList = toSync(
     useCallback(
@@ -192,12 +198,12 @@ export default function SiteListPage() {
           if (showLoading) {
             setLoading(true)
           }
-          const page = Number(params.get('page')) || 1
-          const pageSize = Number(params.get('page_size')) || DEFAULT_PAGE_SIZE
-          const keywords = params.get('keywords') || ''
-          const creatorName = params.get('creator_name') || ''
-          const statusStr = params.get('status') || String(defaultStatus)
-          const deletedStr = params.get('deleted')
+          const page = Number(search.page) || 1
+          const pageSize = Number(search.page_size) || DEFAULT_PAGE_SIZE
+          const keywords = search.keywords || ''
+          const creatorName = search.creator_name || ''
+          const statusStr = search.status || String(defaultStatus)
+          const deletedStr = search.deleted
 
           let status: SiteStatus | undefined = Number(statusStr) as SiteStatus
           if (!Object.values(SITE_STATUS).includes(status)) {
@@ -249,7 +255,7 @@ export default function SiteListPage() {
           setLoading(false)
         }
       },
-      [params, setLoading]
+      [search, setLoading]
     )
   )
 
@@ -445,24 +451,27 @@ export default function SiteListPage() {
   })
 
   const resetParams = useCallback(() => {
-    setParams((params) => {
-      params.delete('page')
-      params.delete('page_size')
-      params.delete('keywords')
-      params.delete('creator_name')
-      return params
+    navigate({
+      search: withSearchUpdater((prev) =>
+        omitSearchParams(prev, [
+          'page',
+          'page_size',
+          'keywords',
+          'creator_name',
+        ])
+      ),
     })
-  }, [setParams])
+  }, [navigate])
 
   const hasSearchParamsChanged = useCallback(() => {
-    const currentKeywords = params.get('keywords') || ''
-    const currentCreatorName = params.get('creator_name') || ''
+    const currentKeywords = search.keywords || ''
+    const currentCreatorName = search.creator_name || ''
 
     return (
       currentKeywords !== (searchData.keywords || '') ||
       currentCreatorName !== (searchData.creatorName || '')
     )
-  }, [params, searchData])
+  }, [search, searchData])
 
   const onResetClick = useCallback(() => {
     setSearchData({ ...defaultSearchData })
@@ -471,30 +480,22 @@ export default function SiteListPage() {
 
   const onSearchClick = useCallback(() => {
     const changed = hasSearchParamsChanged()
-    resetParams()
-    setParams((params) => {
-      const { keywords, creatorName } = searchData
-
-      if (keywords) {
-        params.set('keywords', keywords)
-      }
-
-      if (creatorName) {
-        params.set('creator_name', creatorName)
-      }
-
-      return params
+    navigate({
+      search: withSearchUpdater((prev) =>
+        updateSearchParams(
+          prev,
+          {
+            keywords: searchData.keywords || undefined,
+            creator_name: searchData.creatorName || undefined,
+          },
+          ['page', 'page_size', 'keywords', 'creator_name']
+        )
+      ),
     })
     if (!changed) {
       fetchSiteList(true)
     }
-  }, [
-    setParams,
-    resetParams,
-    searchData,
-    fetchSiteList,
-    hasSearchParamsChanged,
-  ])
+  }, [navigate, searchData, fetchSiteList, hasSearchParamsChanged])
 
   const onPassSiteClick = useCallback(
     async (site: Site) => {
@@ -755,15 +756,17 @@ export default function SiteListPage() {
   const selectedRows = table.getSelectedRowModel().rows
 
   const onTabChange = (tab: string) => {
-    setParams((prevParams) => {
-      prevParams.delete('page')
-      prevParams.set('status', tab)
-      if (tab == 'deleted') {
-        prevParams.set('deleted', '1')
-      } else {
-        prevParams.delete('deleted')
-      }
-      return prevParams
+    navigate({
+      search: withSearchUpdater((prev) =>
+        updateSearchParams(
+          prev,
+          {
+            status: tab,
+            deleted: tab === 'deleted' ? '1' : undefined,
+          },
+          ['page']
+        )
+      ),
     })
   }
 

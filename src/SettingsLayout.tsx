@@ -1,9 +1,10 @@
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
+import { Outlet, useLocation } from '@tanstack/react-router'
 import { KeyIcon, UserIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
+import { Link, useNavigate } from '@/lib/router'
 import { cn } from '@/lib/utils'
 
 import { Dialog, DialogContent, DialogTitle } from './components/ui/dialog'
@@ -85,9 +86,9 @@ export default function SettingsLayout() {
 
       if (state?.backgroundLocation) {
         const { pathname, search, hash } = state.backgroundLocation
-        navigate(`${pathname}${search || ''}${hash || ''}`)
+        navigate({ to: `${pathname}${search || ''}${hash || ''}` })
       } else {
-        navigate(-1)
+        window.history.back()
       }
     },
     [navigate, state]

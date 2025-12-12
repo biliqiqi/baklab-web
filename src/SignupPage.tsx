@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+
+import { Link, useNavigate, useSearch } from '@/lib/router'
 
 import SignupForm from './components/SignupForm'
 
@@ -14,11 +15,11 @@ import useDocumentTitle from './hooks/use-page-title'
 import { deleteCookie, getCookie, isInnerURL } from './lib/utils'
 
 export default function SignupPage() {
-  const [searchParams] = useSearchParams()
+  const search = useSearch()
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const returnURL = searchParams.get('return')
-  const isPopup = searchParams.get('popup') === '1' || Boolean(window.opener)
+  const returnURL = search.return
+  const isPopup = search.popup === '1' || Boolean(window.opener)
 
   useDocumentTitle(t('signup'))
 
@@ -52,7 +53,7 @@ export default function SignupPage() {
       location.href = returnUrl
       deleteCookie(SINGUP_RETURN_COOKIE_NAME)
     } else {
-      navigate('/')
+      navigate({ to: '/' })
     }
   }, [isPopup, navigate])
 

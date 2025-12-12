@@ -23,10 +23,10 @@ import {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { timeAgo, timeFmt } from '@/lib/dayjs-custom'
+import { Link } from '@/lib/router'
 import { cn, genArticlePath, noop } from '@/lib/utils'
 
 import {

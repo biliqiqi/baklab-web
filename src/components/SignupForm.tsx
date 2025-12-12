@@ -1,10 +1,22 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  ChangeEvent,
+  MouseEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useForm } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { Link, useNavigate, useSearch } from '@/lib/router'
+import {
+  omitSearchParams,
+  updateSearchParams,
+  withSearchUpdater,
+} from '@/lib/search'
 import { noop } from '@/lib/utils'
 import { z } from '@/lib/zod-custom'
 
@@ -83,7 +95,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
   const autheState = useAuthedUserStore()
   const navigate = useNavigate()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const search = useSearch()
 
   const { t } = useTranslation()
   const countryCode = useContextStore((state) => state.countryCode)
@@ -95,13 +107,13 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
   useEffect(() => {
     const tokenInStorage = localStorage.getItem(SIGNUP_TEMP_TOKEN_KEY)
-    const signupStep = searchParams.get('signup_step')
+    const signupStep = search.signup_step
 
     if (tokenInStorage && signupStep === 'complete') {
       setTempToken(tokenInStorage)
       setCodeVerified(true)
     }
-  }, [searchParams])
+  }, [search])
 
   const handleTabChange = (value: SignupType) => {
     setCurrTab(value)
@@ -113,8 +125,12 @@ const SignupForm: React.FC<SignupFormProps> = ({
     contact.current = ''
     localStorage.removeItem(SIGNUP_TEMP_TOKEN_KEY)
 
-    searchParams.delete('signup_step')
-    setSearchParams(searchParams)
+    navigate({
+      search: withSearchUpdater((prev) =>
+        omitSearchParams(prev, ['signup_step'])
+      ),
+      replace: true,
+    })
   }
 
   const reset = () => {
@@ -276,8 +292,12 @@ const SignupForm: React.FC<SignupFormProps> = ({
           setTempToken(verifyData.token)
           localStorage.setItem(SIGNUP_TEMP_TOKEN_KEY, verifyData.token)
 
-          searchParams.set('signup_step', 'complete')
-          setSearchParams(searchParams)
+          navigate({
+            search: withSearchUpdater((prev) =>
+              updateSearchParams(prev, { signup_step: 'complete' })
+            ),
+            replace: true,
+          })
         } else {
           const { token, username, userID, user } = verifyData
           autheState.update(token, username, userID, user)
@@ -298,7 +318,9 @@ const SignupForm: React.FC<SignupFormProps> = ({
             updateSignin(true)
             setEmail(contact.current)
           } else {
-            navigate(`/signin?account=${contact.current}`)
+            navigate({
+              to: `/signin?account=${contact.current}`,
+            })
           }
         }
       }
@@ -343,8 +365,12 @@ const SignupForm: React.FC<SignupFormProps> = ({
         setVerifyResult(null)
         setTempToken('')
 
-        searchParams.delete('signup_step')
-        setSearchParams(searchParams)
+        navigate({
+          search: withSearchUpdater((prev) =>
+            omitSearchParams(prev, ['signup_step'])
+          ),
+          replace: true,
+        })
 
         if (onSuccess && typeof onSuccess == 'function') {
           onSuccess()
@@ -534,7 +560,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
                       <Link
                         to="/signin"
                         className="b-text-link"
-                        onClick={(e) => {
+                        onClick={(e: MouseEvent<HTMLAnchorElement>) => {
                           if (dialog) {
                             e.preventDefault()
                             updateSignup(false)

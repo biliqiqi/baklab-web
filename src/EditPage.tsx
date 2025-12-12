@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+
+import { useNavigate } from '@/lib/router'
 
 import BContainer from './components/base/BContainer'
 
@@ -57,12 +58,12 @@ export default function EditPage() {
             if (authState.isMySelf(article.authorId)) {
               if (!authState.permit('article', 'edit_mine')) {
                 toast.error(t('forbidden'))
-                navigate('/', { replace: true, flushSync: true })
+                navigate({ to: '/', replace: true })
               }
             } else {
               if (!authState.permit('article', 'edit_others')) {
                 toast.error(t('forbidden'))
-                navigate('/', { replace: true, flushSync: true })
+                navigate({ to: '/', replace: true })
               }
             }
 

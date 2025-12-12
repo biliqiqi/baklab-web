@@ -1,7 +1,7 @@
 import { Trans, useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 
 import { timeAgo } from '@/lib/dayjs-custom'
+import { Link } from '@/lib/router'
 
 import { buildRoutePath } from '@/hooks/use-route-match'
 import i18n from '@/i18n'

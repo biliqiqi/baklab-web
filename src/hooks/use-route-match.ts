@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom'
+import { useLocation } from '@tanstack/react-router'
 
 import { useSiteFrontId } from '@/hooks/use-site-front-id'
 import { useContextStore } from '@/state/global'

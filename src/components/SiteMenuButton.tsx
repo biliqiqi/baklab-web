@@ -7,9 +7,9 @@ import React, {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
+import { useNavigate } from '@/lib/router'
 import { cn } from '@/lib/utils'
 
 import {
@@ -196,7 +196,7 @@ const SiteMenuButton: React.FC<SiteMenuButtonProps> = ({
       if (!code) {
         if (currSite && !currSite.visible) {
           updateCurrSite(null)
-          navigate('/', { replace: true })
+          navigate({ to: '/', replace: true })
         }
         await Promise.all([
           fetchSiteData(siteFrontId),

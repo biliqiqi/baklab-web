@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom'
+import { useParams } from '@/lib/router'
 
 import { useSiteFrontId } from '@/hooks/use-site-front-id'
 
@@ -8,7 +8,7 @@ export const useSiteParams = <
     string | undefined
   >,
 >(): T & { siteFrontId?: string } => {
-  const params = useParams<T>() as T & { siteFrontId?: string }
+  const params = (useParams() as T & { siteFrontId?: string }) || {}
   const fallbackSiteFrontId = useSiteFrontId()
 
   return {

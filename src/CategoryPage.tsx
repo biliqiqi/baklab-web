@@ -1,6 +1,8 @@
+import { useLocation } from '@tanstack/react-router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation, useSearchParams } from 'react-router-dom'
+
+import { useSearch } from '@/lib/router'
 
 import BContainer from './components/base/BContainer'
 
@@ -19,20 +21,34 @@ import { toSync } from './lib/fire-and-forget'
 import { useSiteUIStore, useUserUIStore } from './state/global'
 import { Category } from './types/types'
 
-export default function CategoryPage() {
-  const [serverCate, setServerCate] = useState<Category | null>(null)
-  const [initialized, setInitialized] = useState(false)
-  const [listLength, setListLength] = useState(0)
-
-  const { state, pathname } = useLocation() as {
-    state: Category | undefined
-    pathname: string
+const isCategoryState = (value: unknown): value is Category => {
+  if (!value || typeof value !== 'object') {
+    return false
   }
 
-  const currCate = useMemo(() => state || serverCate, [state, serverCate])
+  return 'frontId' in value
+}
+
+export default function CategoryPage() {
+  const [serverCate, setServerCate] = useState<Category | null>(null)
+  const [listLength, setListLength] = useState(0)
+
+  const location = useLocation()
+  const { pathname } = location
+  const locationState = location.state
+
+  const locationCategory = useMemo(
+    () => (isCategoryState(locationState) ? locationState : undefined),
+    [locationState]
+  )
+
+  const currCate = useMemo(
+    () => locationCategory || serverCate,
+    [locationCategory, serverCate]
+  )
   const { siteFrontId, categoryFrontId } = useSiteParams()
   const { t } = useTranslation()
-  const [params] = useSearchParams()
+  const search = useSearch()
 
   const userArticleListMode = useUserUIStore((state) => state.articleListMode)
   const siteArticleListMode = useSiteUIStore((state) => state.articleListMode)
@@ -70,11 +86,8 @@ export default function CategoryPage() {
       toSync(getCategoryWithFrontId, (data) => {
         if (!data.code) {
           setServerCate(data.data)
-          setInitialized(true)
         }
       })(categoryFrontId, { siteFrontId })
-    } else {
-      setInitialized(true)
     }
   }, [currCate, categoryFrontId, siteFrontId])
 
@@ -83,7 +96,7 @@ export default function CategoryPage() {
       fetchParams: FetchArticlesParams
     ): Promise<FetchArticlesResponse> => {
       if (isFeedPage) {
-        const keywords = params.get('keywords') || ''
+        const keywords = search.keywords || ''
         const resp = await getFeedList(
           fetchParams.page,
           fetchParams.pageSize,
@@ -139,7 +152,7 @@ export default function CategoryPage() {
         }
       }
     },
-    [isFeedPage, siteFrontId, categoryFrontId, params]
+    [isFeedPage, siteFrontId, categoryFrontId, search]
   )
 
   const submitPath = useMemo(

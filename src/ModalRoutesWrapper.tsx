@@ -1,8 +1,6 @@
-import { RouterProvider, createBrowserRouter } from 'react-router-dom'
+import { RouterProvider } from '@tanstack/react-router'
 
-import { routes } from './routes'
-
-const router = createBrowserRouter(routes)
+import { router } from './router'
 
 export default function ModalRoutesWrapper() {
   return <RouterProvider router={router} />

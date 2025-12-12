@@ -1,33 +1,46 @@
 import { useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+
+import { useSearch } from '@/lib/router'
+
+const hasPostMessage = (
+  target: unknown
+): target is Window & { postMessage: typeof window.postMessage } => {
+  if (!target || typeof target !== 'object') {
+    return false
+  }
+
+  return (
+    'postMessage' in target &&
+    typeof (target as Window).postMessage === 'function'
+  )
+}
 
 const OAuthCallback: React.FC = () => {
-  const [searchParams] = useSearchParams()
+  const search = useSearch()
 
   useEffect(() => {
-    const code = searchParams.get('code')
-    const error = searchParams.get('error')
-    const errorDescription = searchParams.get('error_description')
+    const code = search.code
+    const error = search.error
+    const errorDescription = search.error_description
 
     console.log('OAuth callback:', { hasCode: !!code, error })
 
     // Send message to parent window
-    if (window.opener && 'postMessage' in window.opener) {
+    if (hasPostMessage(window.opener)) {
       const message = {
         type: 'oauth_callback',
         code,
         error: error || errorDescription,
       }
 
-      const opener = window.opener as Window
-      opener.postMessage(message, window.location.origin)
+      window.opener.postMessage(message, window.location.origin)
       window.close()
     } else {
       // Fallback if not in popup
       console.error('OAuth callback: No parent window found')
       window.location.href = '/'
     }
-  }, [searchParams])
+  }, [search])
 
   return (
     <div className="flex items-center justify-center min-h-screen">

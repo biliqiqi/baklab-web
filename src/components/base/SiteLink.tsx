@@ -1,15 +1,17 @@
-import { forwardRef, useCallback } from 'react'
-import { Link, type LinkProps } from 'react-router-dom'
+import { type MouseEventHandler, forwardRef, useCallback } from 'react'
+
+import { Link, type LinkProps } from '@/lib/router'
 
 import { buildRoutePath } from '@/hooks/use-route-match'
 import { useSiteFrontId } from '@/hooks/use-site-front-id'
 import { useSidebarStore } from '@/state/global'
 
-export type SiteLinkProps = Omit<LinkProps, 'to'> & {
+export type SiteLinkProps = Omit<LinkProps, 'to' | 'onClick'> & {
   to: string
   siteFrontId?: string | null
   useFallbackSiteFrontId?: boolean
   closeSidebarOnClick?: boolean
+  onClick?: MouseEventHandler<HTMLAnchorElement>
 }
 
 const SiteLink = forwardRef<HTMLAnchorElement, SiteLinkProps>(

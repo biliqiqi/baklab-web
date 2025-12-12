@@ -1372,7 +1372,10 @@ export const useContextStore = create(
           if (data.site?.categories && data.site.categories.length > 0) {
             const categoryStore = useCategoryStore.getState()
             // Update categories with siteFrontId
-            categoryStore.updateCategories(data.site.categories, data.site.frontId)
+            categoryStore.updateCategories(
+              data.site.categories,
+              data.site.frontId
+            )
           }
         } else {
           set(() => ({ hasFetchedContext: true }))

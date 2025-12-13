@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import {
   ColumnDef,
   RowSelectionState,
@@ -43,18 +44,12 @@ import BlockedWordForm from './components/BlockedWordForm'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 
-import { useLocationKey } from '@/hooks/use-location-key'
 import { useSiteParams } from '@/hooks/use-site-params'
 
 import { getSiteBlockedWords, removeSiteBlockedWords } from './api/site'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
-import { toSync } from './lib/fire-and-forget'
-import {
-  useAlertDialogStore,
-  useAuthedUserStore,
-  useLoading,
-} from './state/global'
+import { useAlertDialogStore, useAuthedUserStore } from './state/global'
 import { ListPageState, SiteBlockedWord } from './types/types'
 
 interface SearchFields {
@@ -66,7 +61,6 @@ const defaultSearchData: SearchFields = {
 }
 
 export default function BlockedWordListPage() {
-  /* const [loading, setLoading] = useState(false) */
   const [showBlockedWordForm, setShowBlockedWordForm] = useState(false)
   const [wordFormDirty, setWordFormDirty] = useState(false)
 
@@ -81,11 +75,8 @@ export default function BlockedWordListPage() {
 
   const { t } = useTranslation()
 
-  const { setLoading } = useLoading()
-
   const search = useSearch()
   const navigate = useNavigate()
-  const { locationKey } = useLocationKey()
   const dialogConfirm = useAlertDialogStore((state) => state.confirm)
 
   const { siteFrontId } = useSiteParams()
@@ -100,63 +91,63 @@ export default function BlockedWordListPage() {
     }))
   )
 
-  const fetchBlockedWordList = toSync(
-    useCallback(
-      async (showLoading = false) => {
-        try {
-          if (!siteFrontId) return
+  const page = Number(search.page) || 1
+  const pageSize = Number(search.page_size) || DEFAULT_PAGE_SIZE
+  const keywords = search.keywords || ''
 
-          if (showLoading) {
-            setLoading(true)
-          }
+  const { data: blockedWordsData, refetch: refetchBlockedWords } = useQuery({
+    queryKey: ['blockedWords', siteFrontId, page, pageSize, keywords],
+    queryFn: async () => {
+      if (!siteFrontId) return null
 
-          const page = Number(search.page) || 1
-          const pageSize = Number(search.page_size) || DEFAULT_PAGE_SIZE
-          const keywords = search.keywords || ''
+      const { code, data } = await getSiteBlockedWords(
+        siteFrontId,
+        keywords,
+        page,
+        pageSize
+      )
 
-          setSearchData((state) => ({ ...state, keywords }))
-
-          const { code, data } = await getSiteBlockedWords(
-            siteFrontId,
-            keywords,
-            page,
-            pageSize
-          )
-
-          /* console.log('list: ', data) */
-
-          if (!code && data.list) {
-            setList([...data.list])
-            setPageState({
-              currPage: data.currPage,
-              pageSize: data.pageSize,
-              total: data.total,
-              totalPage: data.totalPage,
-            })
-          } else {
-            setList([])
-            setPageState({
-              currPage: 1,
-              pageSize: data.pageSize,
-              total: 0,
-              totalPage: 0,
-            })
-          }
-          setRowSelection({})
-        } catch (err) {
-          console.error('get user list error: ', err)
-        } finally {
-          setLoading(false)
+      if (!code && data.list) {
+        return {
+          list: data.list,
+          currPage: data.currPage,
+          pageSize: data.pageSize,
+          total: data.total,
+          totalPage: data.totalPage,
         }
-      },
-      [search, siteFrontId, setLoading]
-    )
-  )
+      } else {
+        return {
+          list: [],
+          currPage: 1,
+          pageSize: data.pageSize,
+          total: 0,
+          totalPage: 0,
+        }
+      }
+    },
+  })
+
+  useEffect(() => {
+    if (blockedWordsData) {
+      setList(blockedWordsData.list || [])
+      setPageState({
+        currPage: blockedWordsData.currPage,
+        pageSize: blockedWordsData.pageSize,
+        total: blockedWordsData.total,
+        totalPage: blockedWordsData.totalPage,
+      })
+      setRowSelection({})
+    }
+  }, [blockedWordsData])
 
   const [searchData, setSearchData] = useState<SearchFields>({
     ...defaultSearchData,
     keywords: search.keywords || '',
   })
+
+  useEffect(() => {
+    setSearchData((state) => ({ ...state, keywords }))
+  }, [keywords])
 
   const columns: ColumnDef<SiteBlockedWord>[] = [
     {
@@ -247,10 +238,10 @@ export default function BlockedWordListPage() {
 
       const { code } = await removeSiteBlockedWords(siteFrontId, [word.word.id])
       if (!code) {
-        fetchBlockedWordList()
+        void refetchBlockedWords()
       }
     },
-    [siteFrontId, alertDialog, fetchBlockedWordList, t]
+    [siteFrontId, alertDialog, refetchBlockedWords, t]
   )
 
   const onRemoveSelectedClick = useCallback(async () => {
@@ -270,9 +261,9 @@ export default function BlockedWordListPage() {
 
     const { code } = await removeSiteBlockedWords(siteFrontId, wordIdList)
     if (!code) {
-      fetchBlockedWordList()
+      void refetchBlockedWords()
     }
-  }, [siteFrontId, alertDialog, fetchBlockedWordList, selectedRows, t])
+  }, [siteFrontId, alertDialog, refetchBlockedWords, selectedRows, t])
 
   const resetParams = useCallback(() => {
     navigate({
@@ -304,9 +295,9 @@ export default function BlockedWordListPage() {
       ),
     })
     if (!changed) {
-      fetchBlockedWordList(true)
+      void refetchBlockedWords()
     }
-  }, [navigate, searchData, fetchBlockedWordList, hasSearchParamsChanged])
+  }, [navigate, searchData, refetchBlockedWords, hasSearchParamsChanged])
 
   const onWordFormClose = useCallback(async () => {
     if (wordFormDirty) {
@@ -329,13 +320,9 @@ export default function BlockedWordListPage() {
   }, [wordFormDirty, dialogConfirm, t])
 
   const onAddWordsSuccess = useCallback(() => {
-    fetchBlockedWordList()
+    void refetchBlockedWords()
     setShowBlockedWordForm(false)
-  }, [fetchBlockedWordList])
-
-  useEffect(() => {
-    fetchBlockedWordList(true)
-  }, [locationKey])
+  }, [refetchBlockedWords])
 
   return (
     <BContainer

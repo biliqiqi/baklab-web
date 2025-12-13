@@ -366,17 +366,21 @@ const BSidebar: React.FC<BSidebarProps> = ({
     }, 500)
   }, [categoryFormDirty, editCategory, alertDialog, t])
 
-  const onCategoryCreated = useCallback(async () => {
-    setShowCategoryForm(false)
-    setTimeout(() => {
-      setEditCategory(() => ({
-        editting: false,
-        data: undefined,
-      }))
-    }, 500)
-    if (!siteFrontId) return
-    await fetchCategoryList(siteFrontId, true)
-  }, [siteFrontId, fetchCategoryList])
+  const onCategoryCreated = useCallback(
+    async () => {
+      setShowCategoryForm(false)
+      setTimeout(() => {
+        setEditCategory(() => ({
+          editting: false,
+          data: undefined,
+        }))
+      }, 500)
+      if (!siteFrontId) return
+      await fetchCategoryList(siteFrontId, true)
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [siteFrontId]
+  )
 
   return (
     <>

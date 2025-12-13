@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import {
   type KeyboardEvent as ReactKeyboardEvent,
   useCallback,
@@ -137,38 +138,47 @@ const ArticleSearchDialog = ({
     return matchedOption
   }, [selectedSite, siteOptions, fallbackSites])
 
+  const trimmedKeywords = keywords.trim()
+  const shouldSearch = trimmedKeywords.length >= MIN_KEYWORD_LENGTH
+
+  const { refetch: fetchArticles } = useQuery({
+    queryKey: ['searchArticles', trimmedKeywords, resolvedSiteFilter],
+    queryFn: async () => {
+      if (trimmedKeywords.length < MIN_KEYWORD_LENGTH) {
+        setArticles([])
+        setSearchState('idle')
+        return null
+      }
+
+      setSearchState('loading')
+      try {
+        const resp = await searchArticles(
+          trimmedKeywords,
+          1,
+          8,
+          resolvedSiteFilter
+        )
+        setArticles(resp.data.articles ?? [])
+        setSearchState('success')
+        return resp.data.articles ?? []
+      } catch (err) {
+        console.error('search articles failed: ', err)
+        setArticles([])
+        setSearchState('error')
+        return null
+      }
+    },
+    enabled: shouldSearch && open,
+  })
+
+  const debouncedSearch = useDebouncedCallback(() => {
+    void fetchArticles()
+  }, 400)
+
   const showDropdown = useMemo(
     () =>
       keywords.trim().length >= MIN_KEYWORD_LENGTH || searchState === 'loading',
     [keywords, searchState]
-  )
-
-  const fetchArticles = useCallback(async (value: string, siteId?: string) => {
-    const trimmedValue = value.trim()
-
-    if (trimmedValue.length < MIN_KEYWORD_LENGTH) {
-      setArticles([])
-      setSearchState('idle')
-      return
-    }
-
-    setSearchState('loading')
-    try {
-      const resp = await searchArticles(trimmedValue, 1, 8, siteId)
-      setArticles(resp.data.articles ?? [])
-      setSearchState('success')
-    } catch (err) {
-      console.error('search articles failed: ', err)
-      setArticles([])
-      setSearchState('error')
-    }
-  }, [])
-
-  const debouncedSearch = useDebouncedCallback(
-    (value: string, siteId?: string) => {
-      void fetchArticles(value, siteId)
-    },
-    400
   )
 
   const focusResultItem = useCallback(
@@ -267,15 +277,14 @@ const ArticleSearchDialog = ({
   useEffect(() => {
     if (!open) return
 
-    const trimmedValue = keywords.trim()
-    if (trimmedValue.length >= MIN_KEYWORD_LENGTH) {
-      debouncedSearch(trimmedValue, resolvedSiteFilter)
+    if (trimmedKeywords.length >= MIN_KEYWORD_LENGTH) {
+      debouncedSearch()
     } else {
       debouncedSearch.cancel()
       setArticles([])
       setSearchState('idle')
     }
-  }, [keywords, open, debouncedSearch, resolvedSiteFilter])
+  }, [keywords, open, debouncedSearch, trimmedKeywords])
 
   useEffect(() => {
     return () => {
@@ -287,7 +296,8 @@ const ArticleSearchDialog = ({
     if (siteList === null) {
       void fetchSiteList()
     }
-  }, [siteList, fetchSiteList])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [siteList])
 
   useEffect(() => {
     if (!open) return

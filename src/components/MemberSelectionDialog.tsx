@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import { XIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -66,7 +67,7 @@ export default function MemberSelectionDialog({
   const [searchInput, setSearchInput] = useState('')
   const [appliedKeyword, setAppliedKeyword] = useState('')
   const [selectedRoleId, setSelectedRoleId] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
   const [selection, setSelection] = useState<Record<string, UserData>>({})
   const selectedRoleIdRef = useRef(selectedRoleId)
   const suppressRoleChangeRef = useRef(false)
@@ -84,18 +85,25 @@ export default function MemberSelectionDialog({
     return set
   }, [normalizedExcludedUserIds])
 
-  const fetchMembers = useCallback(
-    async (page: number, keyword: string, roleId: string) => {
-      if (!siteFrontId) return
-      let targetPage = Math.max(1, page)
-      setLoading(true)
+  const { refetch: fetchMembers, isLoading: loading } = useQuery({
+    queryKey: [
+      'memberSelection',
+      siteFrontId,
+      currentPage,
+      appliedKeyword,
+      selectedRoleId,
+      normalizedExcludedUserIds,
+    ],
+    queryFn: async () => {
+      if (!siteFrontId) return null
+      let targetPage = Math.max(1, currentPage)
       try {
         while (targetPage > 0) {
           const resp = await getUserList(
             targetPage,
             MEMBER_PAGE_SIZE,
-            keyword || undefined,
-            roleId || undefined,
+            appliedKeyword || undefined,
+            selectedRoleId || undefined,
             undefined,
             undefined,
             undefined,
@@ -138,12 +146,11 @@ export default function MemberSelectionDialog({
         }
       } catch (error) {
         console.error('fetch site members error: ', error)
-      } finally {
-        setLoading(false)
       }
+      return null
     },
-    [siteFrontId, excludeIdSet, normalizedExcludedUserIds]
-  )
+    enabled: !!siteFrontId && open,
+  })
 
   useEffect(() => {
     selectedRoleIdRef.current = selectedRoleId
@@ -152,9 +159,11 @@ export default function MemberSelectionDialog({
   const searchMembers = useCallback(
     (keyword: string) => {
       setAppliedKeyword(keyword)
-      void fetchMembers(1, keyword, selectedRoleIdRef.current)
+      setCurrentPage(1)
+      selectedRoleIdRef.current = selectedRoleId
+      void fetchMembers()
     },
-    [fetchMembers]
+    [fetchMembers, selectedRoleId]
   )
   const debouncedSearchMembers = useDebouncedCallback(searchMembers, 500)
 
@@ -170,6 +179,7 @@ export default function MemberSelectionDialog({
     debouncedSearchMembers.cancel()
     setSearchInput('')
     setAppliedKeyword('')
+    setCurrentPage(1)
     setSelection(
       selectedMembers.reduce<Record<string, UserData>>((acc, member) => {
         if (!excludeIdSet.has(String(member.id))) {
@@ -179,22 +189,11 @@ export default function MemberSelectionDialog({
       }, {})
     )
     setPageState({ ...defaultPageState })
-    void fetchMembers(1, '', selectedRoleIdRef.current)
-  }, [
-    open,
-    siteFrontId,
-    selectedMembers,
-    fetchMembers,
-    excludeIdSet,
-    debouncedSearchMembers,
-  ])
+  }, [open, siteFrontId, selectedMembers, excludeIdSet, debouncedSearchMembers])
 
-  const handlePageChange = useCallback(
-    (page: number) => {
-      void fetchMembers(page, appliedKeyword, selectedRoleIdRef.current)
-    },
-    [appliedKeyword, fetchMembers]
-  )
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
 
   const onSearchInputChange = useCallback(
     (value: string) => {
@@ -284,10 +283,10 @@ export default function MemberSelectionDialog({
       debouncedSearchMembers.cancel()
       setSelectedRoleId(roleId)
       setAppliedKeyword(trimmed)
+      setCurrentPage(1)
       setPageState({ ...defaultPageState })
-      void fetchMembers(1, trimmed, roleId)
     },
-    [fetchMembers, searchInput, debouncedSearchMembers, selectedRoleId]
+    [searchInput, debouncedSearchMembers, selectedRoleId]
   )
 
   return (
@@ -337,8 +336,8 @@ export default function MemberSelectionDialog({
               setSearchInput('')
               clearSelectedRole()
               setAppliedKeyword('')
+              setCurrentPage(1)
               setPageState({ ...defaultPageState })
-              void fetchMembers(1, '', '')
             }}
           >
             {t('reset')}

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useNavigate, useSearch } from '@/lib/router'
@@ -28,7 +29,6 @@ import { ARTICLE_STATUS_COLOR_MAP } from './constants/maps'
 import i18n from './i18n'
 import { updateArticleState } from './lib/article-utils'
 import { timeFmt } from './lib/dayjs-custom'
-import { toSync } from './lib/fire-and-forget'
 import { genArticlePath, noop } from './lib/utils'
 import {
   useAuthedUserStore,
@@ -45,7 +45,6 @@ import {
   ArticleListType,
   FrontCategory,
   ResponseData,
-  UserData,
 } from './types/types'
 
 type UserTab = Exclude<ArticleListType, 'deleted'> | 'activity' | 'violation'
@@ -161,11 +160,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
 }
 
 export default function UserPage() {
-  /* const [loading, setLoading] = useState(true) */
-  /* const [loadingList, setLoadingList] = useState(true) */
-  const [user, setUser] = useState<UserData | null>(null)
   const [tabs, setTabs] = useState<UserTab[]>([...defaultTabs])
-  /* const [tab, setTab] = useState<UserTab>('activity') */
   const [list, updateList] = useState<Article[]>([])
   const [actList, updateActList] = useState<Activity[]>([])
   const [pageState, setPageState] = useState<ArticleListState>({
@@ -190,6 +185,39 @@ export default function UserPage() {
   const navigate = useNavigate()
   const { username, siteFrontId } = useSiteParams()
 
+  const tab = (search.tab as UserTab | null) || 'all'
+  const actType = (search.act_type as ActivityTab | null) || 'user'
+
+  const { data: user, refetch: refetchUser } = useQuery({
+    queryKey: ['user', username, siteFrontId],
+    queryFn: async () => {
+      if (!username) {
+        updateNotFound(true)
+        return null
+      }
+
+      setLoading(true)
+      try {
+        const resp = await getUser(
+          username,
+          {},
+          { showNotFound: true, siteFrontId }
+        )
+
+        if (!resp.code) {
+          return resp.data
+        }
+        return null
+      } catch (err) {
+        console.error('fetch user data error:', err)
+        return null
+      } finally {
+        setLoading(false)
+      }
+    },
+    enabled: !!username,
+  })
+
   const managePermitted = useMemo(() => {
     if (user) {
       return (
@@ -200,49 +228,24 @@ export default function UserPage() {
     return false
   }, [user])
 
-  const tab = (search.tab as UserTab | null) || 'all'
-  const actType = (search.act_type as ActivityTab | null) || 'user'
+  const page = Number(search.page) || 1
+  const pageSize = Number(search.page_size) || DEFAULT_PAGE_SIZE
+  const sort = (search.sort as ArticleListSort | null) || 'latest'
 
-  const fetchUserData = toSync(
-    useCallback(
-      async (showLoading: boolean) => {
-        try {
-          if (!username) {
-            /* redirect('/404') */
-            updateNotFound(true)
-            return
-          }
-
-          if (showLoading) setLoading(true)
-          const resp = await getUser(
-            username,
-            {},
-            { showNotFound: true, siteFrontId }
-          )
-
-          if (!resp.code) {
-            /* console.log('user data: ', resp.data) */
-            setUser(resp.data)
-          }
-        } catch (err) {
-          console.error('fetch user data error:', err)
-        } finally {
-          setLoading(false)
-        }
-      },
-      [username, siteFrontId, updateNotFound, setLoading]
-    )
-  )
-
-  const fetchList = toSync(
-    useCallback(async () => {
+  useQuery({
+    queryKey: [
+      'userList',
+      username,
+      siteFrontId,
+      tab,
+      actType,
+      page,
+      pageSize,
+      sort,
+    ],
+    queryFn: async () => {
+      setLoading(true)
       try {
-        const page = Number(search.page) || 1
-        const pageSize = Number(search.page_size) || DEFAULT_PAGE_SIZE
-        const sort = (search.sort as ArticleListSort | null) || 'latest'
-
-        setLoading(true)
-
         if (tab != 'activity' && tab != 'violation') {
           const resp = await getArticleList(
             page,
@@ -258,7 +261,6 @@ export default function UserPage() {
           )
 
           if (!resp.code) {
-            /* console.log('article list: ', resp.data) */
             const { data } = resp
             let category: FrontCategory | undefined
             if (data.category) {
@@ -287,7 +289,7 @@ export default function UserPage() {
             }
           }
         } else {
-          if (!username) return
+          if (!username) return null
 
           let resp: ResponseData<ActivityListResponse> | undefined
 
@@ -328,6 +330,7 @@ export default function UserPage() {
             }
           }
         }
+        return null
       } catch (e) {
         console.error('get list error: ', e)
         updateList([])
@@ -339,11 +342,13 @@ export default function UserPage() {
           totalPage: 0,
           category: undefined,
         })
+        return null
       } finally {
         setLoading(false)
       }
-    }, [search, tab, username, siteFrontId, actType, setLoading])
-  )
+    },
+    enabled: !!username,
+  })
 
   const onTabChange = (tab: string) => {
     navigate({
@@ -360,14 +365,6 @@ export default function UserPage() {
       ),
     })
   }
-
-  useEffect(() => {
-    fetchUserData(true)
-  }, [username])
-
-  useEffect(() => {
-    fetchList()
-  }, [fetchList])
 
   useEffect(() => {
     if (
@@ -401,7 +398,7 @@ export default function UserPage() {
             {authStore.permit('user', 'manage') && (
               <UserDetailCard
                 user={user}
-                onSuccess={() => fetchUserData(false)}
+                onSuccess={() => void refetchUser()}
               />
             )}
             <Card className="p-3 mb-4">

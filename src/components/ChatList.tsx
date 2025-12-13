@@ -688,6 +688,7 @@ const ChatList: React.FC<ChatListProps> = ({
 
       setTimeout(tryScrollToMessage, 0)
     })(false, true, false, true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [siteFrontId, categoryFrontId, locationKey, locationHash, currCate])
 
   useEffect(() => {
@@ -743,6 +744,7 @@ const ChatList: React.FC<ChatListProps> = ({
     setTimeout(() => {
       getLocalChatList(siteFrontId, categoryFrontId)
     }, 0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [siteFrontId, categoryFrontId, currCate])
 
   return (

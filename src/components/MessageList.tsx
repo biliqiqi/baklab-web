@@ -1,9 +1,9 @@
+import { useQuery } from '@tanstack/react-query'
 import { CheckIcon, EllipsisVerticalIcon } from 'lucide-react'
 import {
   MouseEvent,
   forwardRef,
   useCallback,
-  useEffect,
   useImperativeHandle,
   useState,
 } from 'react'
@@ -35,7 +35,6 @@ import {
   readMessage,
 } from '@/api/message'
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
-import { useLocationKey } from '@/hooks/use-location-key'
 import { buildRoutePath } from '@/hooks/use-route-match'
 import {
   useAlertDialogStore,
@@ -117,7 +116,6 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
     const [loading, setLoading] = useState(false)
 
     const [notiList, setNotiList] = useState<MessageFront[]>([])
-    /* const [notiTotal, setNotiTotal] = useState(0) */
     const [pageState, setPageState] = useState<ListPageState>({
       currPage: 1,
       pageSize: DEFAULT_PAGE_SIZE,
@@ -129,7 +127,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
 
     const search = useSearch()
     const cateStore = useCategoryStore()
-    const { location } = useLocationKey()
+    const location = window.location
 
     const authState = useAuthedUserStore()
     const alertDialog = useAlertDialogStore()
@@ -146,71 +144,78 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
       Record<string, boolean>
     >({})
 
-    const fetchNotifications = useCallback(async () => {
-      const page = Number(search.page) || 1
-      const resp = await getNotifications(
-        page,
-        pageSize,
-        listType == 'default' ? 'unread' : undefined
-      )
-      if (!resp.code) {
-        const { data } = resp
+    const page = Number(search.page) || 1
 
-        if (data.list) {
-          const list: MessageFront[] = data.list.map((item) => {
-            const metadata = parseCategoryInviteMetadata(
-              (item.metadata as Record<string, unknown> | null) ?? null
-            )
+    const { refetch: fetchNotifications } = useQuery({
+      queryKey: ['notifications', page, pageSize, listType],
+      queryFn: async () => {
+        const resp = await getNotifications(
+          page,
+          pageSize,
+          listType == 'default' ? 'unread' : undefined
+        )
+        if (!resp.code) {
+          const { data } = resp
 
-            const messageItem: MessageFront = {
-              ...item,
-              targetPath: '#',
-              targetCategory: null,
-              inviteMetadata: metadata,
-            }
-
-            if (item.targetModel === 'category') {
-              const categoryTarget =
-                (item.targetData as unknown as MessageTargetCategory) || null
-              messageItem.targetCategory = categoryTarget
-              messageItem.targetPath = buildCategoryTargetPath(
-                categoryTarget,
-                item.siteFrontId
+          if (data.list) {
+            const list: MessageFront[] = data.list.map((item) => {
+              const metadata = parseCategoryInviteMetadata(
+                (item.metadata as Record<string, unknown> | null) ?? null
               )
-            } else if (item.contentArticle) {
-              messageItem.targetPath = buildRoutePath(
-                genArticlePath(item.contentArticle),
-                item.contentArticle.siteFrontId
-              )
-            }
 
-            return messageItem
-          })
+              const messageItem: MessageFront = {
+                ...item,
+                targetPath: '#',
+                targetCategory: null,
+                inviteMetadata: metadata,
+              }
 
-          setNotiList([...list])
-          setPageState({
-            currPage: data.page,
-            pageSize: data.pageSize,
-            total: data.total,
-            totalPage: data.totalPage,
-          })
-        } else {
-          setNotiList([])
-          setPageState({
-            currPage: 1,
-            pageSize: DEFAULT_PAGE_SIZE,
-            total: 0,
-            totalPage: 0,
-          })
+              if (item.targetModel === 'category') {
+                const categoryTarget =
+                  (item.targetData as unknown as MessageTargetCategory) || null
+                messageItem.targetCategory = categoryTarget
+                messageItem.targetPath = buildCategoryTargetPath(
+                  categoryTarget,
+                  item.siteFrontId
+                )
+              } else if (item.contentArticle) {
+                messageItem.targetPath = buildRoutePath(
+                  genArticlePath(item.contentArticle),
+                  item.contentArticle.siteFrontId
+                )
+              }
+
+              return messageItem
+            })
+
+            setNotiList([...list])
+            setPageState({
+              currPage: data.page,
+              pageSize: data.pageSize,
+              total: data.total,
+              totalPage: data.totalPage,
+            })
+          } else {
+            setNotiList([])
+            setPageState({
+              currPage: 1,
+              pageSize: DEFAULT_PAGE_SIZE,
+              total: 0,
+              totalPage: 0,
+            })
+          }
         }
-      }
-    }, [listType, pageSize, search])
+        return null
+      },
+    })
 
     useImperativeHandle(ref, () => {
       return {
         list: notiList,
         pageState,
-        fetchList: fetchNotifications,
+        fetchList: async () => {
+          await fetchNotifications()
+        },
       }
     }, [notiList, pageState, fetchNotifications])
 
@@ -269,7 +274,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
           if (!item.isRead) {
             setTimeout(() => {
               toSync(readMessage)(item.id)
-              toSync(fetchNotifications)()
+              void fetchNotifications()
               toSync(notiStore.fetchUnread)()
             }, 0)
           }
@@ -283,7 +288,7 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
           if (item.contentArticle?.id) {
             setTimeout(() => {
               toSync(readArticle)(item.contentArticle.id)
-              toSync(fetchNotifications)()
+              void fetchNotifications()
               toSync(notiStore.fetchUnread)()
             }, 0)
           }
@@ -329,10 +334,6 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>(
       },
       [cateStore, categoryAcceptingId, fetchNotifications, navigate, notiStore]
     )
-
-    useEffect(() => {
-      toSync(fetchNotifications)()
-    }, [fetchNotifications])
 
     const hasJoinedCategory = useCallback(
       (siteFrontId?: string, categoryFrontId?: string | null) => {

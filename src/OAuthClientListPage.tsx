@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import {
   ColumnDef,
   flexRender,
@@ -50,8 +51,6 @@ import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 import OAuthClientForm from './components/OAuthClientForm'
 
-import { useLocationKey } from '@/hooks/use-location-key'
-
 import {
   deleteOAuthClient,
   listOAuthClients,
@@ -60,12 +59,7 @@ import {
 } from './api/oauth'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
-import { toSync } from './lib/fire-and-forget'
-import {
-  useAlertDialogStore,
-  useAuthedUserStore,
-  useLoading,
-} from './state/global'
+import { useAlertDialogStore, useAuthedUserStore } from './state/global'
 import { OAuthClient, OAuthClientResponse } from './types/oauth'
 import { ListPageState } from './types/types'
 
@@ -91,9 +85,7 @@ export default function OAuthClientListPage() {
     keywords: search.keywords || '',
   })
 
-  const { setLoading } = useLoading()
   const { t } = useTranslation()
-  const { locationKey } = useLocationKey()
   const alertDialog = useAlertDialogStore()
 
   const { checkPermit } = useAuthedUserStore(
@@ -107,56 +99,55 @@ export default function OAuthClientListPage() {
     totalPage: 0,
   })
 
-  const fetchClientList = toSync(
-    useCallback(
-      async (showLoading = false) => {
-        if (!checkPermit('oauth', 'manage')) return
+  const page = Number(search.page) || 1
+  const pageSize = Number(search.page_size) || DEFAULT_PAGE_SIZE
+  const keywords = search.keywords || ''
 
-        try {
-          if (showLoading) {
-            setLoading(true)
+  const { data: clientsData, refetch: refetchClients } = useQuery({
+    queryKey: ['oauthClients', page, pageSize, keywords],
+    queryFn: async () => {
+      if (!checkPermit('oauth', 'manage')) return null
+
+      const resp = await listOAuthClients(page, pageSize, undefined, keywords)
+      if (!resp.code) {
+        const { data } = resp
+        if (data.list) {
+          return {
+            list: data.list,
+            currPage: data.currPage,
+            pageSize: data.pageSize,
+            total: data.total,
+            totalPage: data.totalPage,
           }
-          const page = Number(search.page) || 1
-          const pageSize = Number(search.page_size) || DEFAULT_PAGE_SIZE
-          const keywords = search.keywords || ''
-
-          setSearchData((state) => ({ ...state, keywords }))
-
-          const resp = await listOAuthClients(
-            page,
-            pageSize,
-            undefined,
-            keywords
-          )
-          if (!resp.code) {
-            const { data } = resp
-            if (data.list) {
-              setList([...data.list])
-              setPageState({
-                currPage: data.currPage,
-                pageSize: data.pageSize,
-                total: data.total,
-                totalPage: data.totalPage,
-              })
-            } else {
-              setList([])
-              setPageState({
-                currPage: 1,
-                pageSize: data.pageSize,
-                total: 0,
-                totalPage: 0,
-              })
-            }
+        } else {
+          return {
+            list: [],
+            currPage: 1,
+            pageSize: data.pageSize,
+            total: 0,
+            totalPage: 0,
           }
-        } catch (err) {
-          console.error('get oauth client list error: ', err)
-        } finally {
-          setLoading(false)
         }
-      },
-      [search, checkPermit, setLoading]
-    )
-  )
+      }
+      return null
+    },
+  })
+
+  useEffect(() => {
+    if (clientsData) {
+      setList(clientsData.list || [])
+      setPageState({
+        currPage: clientsData.currPage,
+        pageSize: clientsData.pageSize,
+        total: clientsData.total,
+        totalPage: clientsData.totalPage,
+      })
+    }
+  }, [clientsData])
+
+  useEffect(() => {
+    setSearchData((state) => ({ ...state, keywords }))
+  }, [keywords])
 
   const onDeleteClick = useCallback(
     async (client: OAuthClient) => {
@@ -169,10 +160,10 @@ export default function OAuthClientListPage() {
 
       const { code } = await deleteOAuthClient(client.clientID)
       if (!code) {
-        fetchClientList(false)
+        void refetchClients()
       }
     },
-    [alertDialog, fetchClientList, t]
+    [alertDialog, t, refetchClients]
   )
 
   const onToggleActiveClick = useCallback(
@@ -188,10 +179,10 @@ export default function OAuthClientListPage() {
         isActive: !client.isActive,
       })
       if (!code) {
-        fetchClientList(false)
+        void refetchClients()
       }
     },
-    [alertDialog, fetchClientList, t]
+    [alertDialog, t, refetchClients]
   )
 
   const onRegenerateSecretClick = useCallback(
@@ -216,7 +207,7 @@ export default function OAuthClientListPage() {
     (client?: OAuthClientResponse, isNewClient?: boolean) => {
       setShowForm(false)
       setEditingClient(null)
-      fetchClientList(false)
+      void refetchClients()
 
       // If new client with secret, show secret
       if (isNewClient && client?.clientSecret) {
@@ -224,7 +215,7 @@ export default function OAuthClientListPage() {
         setShowSecret(client.clientSecret)
       }
     },
-    [fetchClientList]
+    [refetchClients]
   )
 
   const resetParams = useCallback(() => {
@@ -257,9 +248,9 @@ export default function OAuthClientListPage() {
       ),
     })
     if (!changed) {
-      fetchClientList(true)
+      void refetchClients()
     }
-  }, [navigate, searchData, fetchClientList, hasSearchParamsChanged])
+  }, [navigate, searchData, hasSearchParamsChanged, refetchClients])
 
   const columns: ColumnDef<OAuthClient>[] = [
     {
@@ -363,10 +354,6 @@ export default function OAuthClientListPage() {
     getCoreRowModel: getCoreRowModel(),
     getRowId: (row) => row.clientID,
   })
-
-  useEffect(() => {
-    fetchClientList(true)
-  }, [locationKey])
 
   if (!checkPermit('oauth', 'manage')) {
     return (

@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import {
   ChangeEvent,
   useCallback,
@@ -32,15 +33,12 @@ import SiteLink from './components/base/SiteLink'
 import { Empty } from './components/Empty'
 import ModerationForm, { ReasonSchema } from './components/ModerationForm'
 
-import { useLocationKey } from '@/hooks/use-location-key'
 import { useSiteParams } from '@/hooks/use-site-params'
 
 import { getSiteUpdates, reviewSiteUpdates } from './api/main'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeAgo } from './lib/dayjs-custom'
-import { toSync } from './lib/fire-and-forget'
 import { noop } from './lib/utils'
-import { useLoading } from './state/global'
 import { ArticleLog, ArticleStatus, ListPageState } from './types/types'
 
 interface SearchFields {
@@ -298,9 +296,7 @@ const ArticleUpdateItem: React.FC<ArticleUpdateItemProps> = ({
 
 export function ArticleReviewPage() {
   const { siteFrontId } = useSiteParams()
-  /* const [loading, setLoading] = useState(false) */
 
-  const { locationKey } = useLocationKey()
   const [pageState, setPageState] = useState<ListPageState>({
     currPage: 1,
     pageSize: DEFAULT_PAGE_SIZE,
@@ -315,49 +311,56 @@ export function ArticleReviewPage() {
   const search = useSearch()
   const navigate = useNavigate()
 
-  const { setLoading } = useLoading()
-
   const [searchData, setSearchData] = useState<SearchFields>({
     ...defaultSearchData,
     username: search.username || '',
   })
 
-  const fetchSiteUpdates = useCallback(async () => {
-    if (!siteFrontId) return
+  const username = search.username || ''
 
-    try {
-      setLoading(true)
+  const { data: updatesData, refetch: refetchUpdates } = useQuery({
+    queryKey: ['siteUpdates', siteFrontId, username],
+    queryFn: async () => {
+      if (!siteFrontId) return null
 
-      const username = search.username || ''
       const {
         code,
         data: { list, currPage, pageSize, total, totalPage },
-      } = await getSiteUpdates(1, DEFAULT_PAGE_SIZE, username, { siteFrontId })
+      } = await getSiteUpdates(1, DEFAULT_PAGE_SIZE, username, {
+        siteFrontId,
+      })
 
       if (!code && list) {
-        /* console.log('updates: ', list) */
-        setUpdates(() => [...list])
-        setPageState({
+        return {
+          list,
           currPage,
           pageSize,
           total,
           totalPage,
-        })
+        }
       } else {
-        setUpdates(() => [])
-        setPageState({
+        return {
+          list: [],
           currPage: 1,
           pageSize: DEFAULT_PAGE_SIZE,
           total: 0,
           totalPage: 0,
-        })
+        }
       }
-    } catch (err) {
-      console.error('fetch updates error: ', err)
-    } finally {
-      setLoading(false)
+    },
+  })
+
+  useEffect(() => {
+    if (updatesData) {
+      setUpdates(updatesData.list || [])
+      setPageState({
+        currPage: updatesData.currPage,
+        pageSize: updatesData.pageSize,
+        total: updatesData.total,
+        totalPage: updatesData.totalPage,
+      })
     }
-  }, [siteFrontId, search, setLoading])
+  }, [updatesData])
 
   const resetParams = useCallback(() => {
     navigate({
@@ -389,9 +392,9 @@ export function ArticleReviewPage() {
       ),
     })
     if (!changed) {
-      toSync(fetchSiteUpdates)()
+      void refetchUpdates()
     }
-  }, [searchData, navigate, fetchSiteUpdates, hasSearchParamsChanged])
+  }, [searchData, navigate, refetchUpdates, hasSearchParamsChanged])
 
   const onReviewConfirmClick = useCallback(
     async (history: ArticleLog, action: ReviewAction, content: string) => {
@@ -420,15 +423,11 @@ export function ArticleReviewPage() {
         }
       )
       if (!code) {
-        toSync(fetchSiteUpdates)()
+        void refetchUpdates()
       }
     },
-    [siteFrontId, fetchSiteUpdates]
+    [siteFrontId, refetchUpdates]
   )
-
-  useEffect(() => {
-    toSync(fetchSiteUpdates)()
-  }, [locationKey, fetchSiteUpdates])
 
   return (
     <BContainer

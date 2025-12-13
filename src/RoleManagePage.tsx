@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQuery } from '@tanstack/react-query'
 import {
   ColumnDef,
   flexRender,
@@ -45,8 +46,7 @@ import roleAPI, { getDefaultRole, getDefaultRoles, getRoles } from './api/role'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { defaultPageState } from './constants/defaults'
 import i18n from './i18n'
-import { toSync } from './lib/fire-and-forget'
-import { useAlertDialogStore, useLoading } from './state/global'
+import { useAlertDialogStore } from './state/global'
 import { DefaultRoles, ListPageState, Role } from './types/types'
 
 const defaultRoleSchema = z.object({
@@ -85,8 +85,6 @@ export default function RoleManagePage() {
   const [roleFormType, setRoleFormType] = useState<RoleFormType>('create')
 
   const [defaultRoles, setDefaultRoles] = useState<DefaultRoles | null>(null)
-
-  const { setLoading } = useLoading()
 
   const { siteFrontId } = useSiteParams()
 
@@ -220,55 +218,65 @@ export default function RoleManagePage() {
     getCoreRowModel: getCoreRowModel(),
   })
 
-  const fetchRoleList = toSync(
-    useCallback(
-      async (keywords?: string) => {
-        setLoading(true)
-        const page = parseInt((search.page as string) || '', 10) || 1
+  const page = parseInt((search.page as string) || '', 10) || 1
 
-        const { code, data } = await getRoles(
-          page,
-          DEFAULT_PAGE_SIZE,
-          keywords,
-          { siteFrontId }
-        )
-        if (!code && data.list) {
-          /* console.log('role list: ', data) */
-          setRoleList([...data.list])
-          setPageState({
-            currPage: data.currPage,
-            pageSize: data.pageSize,
-            total: data.total,
-            totalPage: data.totalPage,
-          })
-        } else {
-          setRoleList([])
-          setPageState({ ...defaultPageState })
+  const { data: rolesData, refetch: refetchRoles } = useQuery({
+    queryKey: ['roles', page, siteFrontId],
+    queryFn: async () => {
+      const { code, data } = await getRoles(page, DEFAULT_PAGE_SIZE, undefined, {
+        siteFrontId,
+      })
+      if (!code && data.list) {
+        return {
+          list: data.list,
+          currPage: data.currPage,
+          pageSize: data.pageSize,
+          total: data.total,
+          totalPage: data.totalPage,
         }
-        setLoading(false)
-      },
-      [search, siteFrontId, setLoading]
-    )
-  )
-
-  const fetchDefaultRoles = toSync(async () => {
-    const { code, data } = await getDefaultRoles()
-    /* console.log('default role: ', data) */
-    if (!code) {
-      setDefaultRoles({ ...data })
-    }
+      }
+      return {
+        list: [],
+        ...defaultPageState,
+      }
+    },
   })
 
-  const fetchSiteDefaultRole = toSync(
-    useCallback(async () => {
-      const { code, data } = await getDefaultRole({ siteFrontId })
-      /* console.log('default role: ', data) */
-      if (!code) {
-        /* setDefaultRoles({ ...data }) */
-        setDefaultRoles({ site: data })
+  useEffect(() => {
+    if (rolesData) {
+      setRoleList(rolesData.list || [])
+      setPageState({
+        currPage: rolesData.currPage,
+        pageSize: rolesData.pageSize,
+        total: rolesData.total,
+        totalPage: rolesData.totalPage,
+      })
+    }
+  }, [rolesData])
+
+  const { data: defaultRolesData, refetch: refetchDefaultRoles } = useQuery({
+    queryKey: ['defaultRoles', siteFrontId],
+    queryFn: async () => {
+      if (siteFrontId) {
+        const { code, data } = await getDefaultRole({ siteFrontId })
+        if (!code) {
+          return { site: data }
+        }
+      } else {
+        const { code, data } = await getDefaultRoles()
+        if (!code) {
+          return data
+        }
       }
-    }, [siteFrontId])
-  )
+      return null
+    },
+  })
+
+  useEffect(() => {
+    if (defaultRolesData) {
+      setDefaultRoles(defaultRolesData)
+    }
+  }, [defaultRolesData])
 
   const onRoleFormClose = useCallback(async () => {
     if (roleFormDirty) {
@@ -301,12 +309,12 @@ export default function RoleManagePage() {
 
       const { code } = await roleAPI.setDefaultRole(roleId, false)
       if (!code) {
-        fetchDefaultRoles()
+        void refetchDefaultRoles()
         setEditDefaultRole(false)
         defaultRoleForm.reset({ roleId: '' })
       }
     },
-    [defaultRoleForm, fetchDefaultRoles]
+    [defaultRoleForm, refetchDefaultRoles]
   )
 
   const onSiteDefaultRoleSubmit = useCallback(
@@ -318,16 +326,12 @@ export default function RoleManagePage() {
         siteFrontId,
       })
       if (!code) {
-        if (siteFrontId) {
-          fetchSiteDefaultRole()
-        } else {
-          fetchDefaultRoles()
-        }
+        void refetchDefaultRoles()
         setEditSiteDefaultRole(false)
         siteDefaultRoleForm.reset({ roleId: '' })
       }
     },
-    [siteDefaultRoleForm, siteFrontId, fetchDefaultRoles, fetchSiteDefaultRole]
+    [siteDefaultRoleForm, siteFrontId, refetchDefaultRoles]
   )
 
   const onCancelEditDefaultRole = useCallback(
@@ -347,18 +351,6 @@ export default function RoleManagePage() {
     },
     [defaultRoleForm]
   )
-
-  useEffect(() => {
-    fetchRoleList()
-  }, [fetchRoleList, search])
-
-  useEffect(() => {
-    if (siteFrontId) {
-      fetchSiteDefaultRole()
-    } else {
-      fetchDefaultRoles()
-    }
-  }, [siteFrontId])
 
   return (
     <BContainer
@@ -618,7 +610,7 @@ export default function RoleManagePage() {
             onCancel={onRoleFormClose}
             onSuccess={() => {
               setShowRoleForm(false)
-              fetchRoleList()
+              void refetchRoles()
             }}
             onChange={setRoleFormDirty}
             onFormTypeChange={setRoleFormType}

@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import {
   ColumnDef,
   flexRender,
@@ -44,7 +45,7 @@ import {
 } from './api/oauth'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
-import { useAlertDialogStore, useLoading } from './state/global'
+import { useAlertDialogStore } from './state/global'
 import { UserOAuthAuthorization } from './types/oauth'
 import { ListPageState } from './types/types'
 
@@ -114,7 +115,6 @@ export default function OAuthAuthorizationManagePage() {
   const [list, setList] = useState<UserOAuthAuthorization[]>([])
   const [showRevokeAllDialog, setShowRevokeAllDialog] = useState(false)
 
-  const { setLoading } = useLoading()
   const { t } = useTranslation()
   const alertDialog = useAlertDialogStore()
 
@@ -125,43 +125,52 @@ export default function OAuthAuthorizationManagePage() {
     totalPage: 0,
   })
 
-  const fetchAuthorizationList = useCallback(
-    async (showLoading = false, page = 1, size = DEFAULT_PAGE_SIZE) => {
-      try {
-        if (showLoading) {
-          setLoading(true)
-        }
+  const page = 1
+  const size = DEFAULT_PAGE_SIZE
 
-        const resp = await getUserAuthorizations(page, size, true)
+  const {
+    data: authorizationsData,
+    refetch: refetchAuthorizations,
+  } = useQuery({
+    queryKey: ['oauthAuthorizations', page, size],
+    queryFn: async () => {
+      const resp = await getUserAuthorizations(page, size, true)
 
-        if (!resp.code) {
-          const { data } = resp
-          if (data.list) {
-            setList([...data.list])
-            setPageState({
-              currPage: data.currPage,
-              pageSize: data.pageSize,
-              total: data.total,
-              totalPage: data.totalPage,
-            })
-          } else {
-            setList([])
-            setPageState({
-              currPage: 1,
-              pageSize: size,
-              total: 0,
-              totalPage: 0,
-            })
+      if (!resp.code) {
+        const { data } = resp
+        if (data.list) {
+          return {
+            list: data.list,
+            currPage: data.currPage,
+            pageSize: data.pageSize,
+            total: data.total,
+            totalPage: data.totalPage,
+          }
+        } else {
+          return {
+            list: [],
+            currPage: 1,
+            pageSize: size,
+            total: 0,
+            totalPage: 0,
           }
         }
-      } catch (err) {
-        console.error('get oauth authorization list error: ', err)
-      } finally {
-        setLoading(false)
       }
+      return null
     },
-    [setLoading]
-  )
+  })
+
+  useEffect(() => {
+    if (authorizationsData) {
+      setList(authorizationsData.list || [])
+      setPageState({
+        currPage: authorizationsData.currPage,
+        pageSize: authorizationsData.pageSize,
+        total: authorizationsData.total,
+        totalPage: authorizationsData.totalPage,
+      })
+    }
+  }, [authorizationsData])
 
   const onRevokeClick = useCallback(
     async (authorization: UserOAuthAuthorization) => {
@@ -176,20 +185,23 @@ export default function OAuthAuthorizationManagePage() {
 
       const { code } = await revokeUserAuthorization(authorization.clientID)
       if (!code) {
-        await fetchAuthorizationList(false)
+        void refetchAuthorizations()
       }
     },
-    [alertDialog, fetchAuthorizationList, t]
+    [alertDialog, t, refetchAuthorizations]
   )
 
-  const onRevokeAllClick = useCallback(async () => {
-    setShowRevokeAllDialog(false)
+  const onRevokeAllClick = useCallback(
+    async () => {
+      setShowRevokeAllDialog(false)
 
-    const { code } = await revokeAllUserAuthorizations()
-    if (!code) {
-      await fetchAuthorizationList(false)
-    }
-  }, [fetchAuthorizationList])
+      const { code } = await revokeAllUserAuthorizations()
+      if (!code) {
+        void refetchAuthorizations()
+      }
+    },
+    [refetchAuthorizations]
+  )
 
   const columns: ColumnDef<UserOAuthAuthorization>[] = [
     {
@@ -273,10 +285,6 @@ export default function OAuthAuthorizationManagePage() {
     getCoreRowModel: getCoreRowModel(),
     getRowId: (row) => `${row.clientID}-${row.id}`,
   })
-
-  useEffect(() => {
-    void fetchAuthorizationList(true)
-  }, [fetchAuthorizationList])
 
   return (
     <>

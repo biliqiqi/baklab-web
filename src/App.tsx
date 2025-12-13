@@ -361,6 +361,7 @@ const App = () => {
         position="top-center"
         visibleToasts={1}
         closeButton
+        duration={5000}
         toastOptions={{
           classNames: {
             error: 'bg-red-400 dark:bg-red-900',

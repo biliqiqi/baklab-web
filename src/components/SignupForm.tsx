@@ -468,7 +468,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
               value={isChinaMobile ? SignupType.phone : currTab}
               onValueChange={(value) => handleTabChange(value as SignupType)}
             >
-              {isChina && !isChinaMobile ? (
+              {!isChinaMobile ? (
                 <TabsList className="grid w-full grid-cols-2 mb-8">
                   <TabsTrigger value={SignupType.email}>
                     {t('emailSignup')}
@@ -518,38 +518,35 @@ const SignupForm: React.FC<SignupFormProps> = ({
                   </Form>
                 </TabsContent>
               )}
-              {isChina && (
-                <TabsContent value={SignupType.phone}>
-                  <Form {...phoneForm}>
-                    <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)}>
-                      <FormField
-                        control={phoneForm.control}
-                        name="phone"
-                        render={({ field, fieldState }) => (
-                          <FormItem className="mb-8">
-                            <FormControl>
-                              <Input
-                                placeholder={t('inputTip', {
-                                  field: t('phoneNumber'),
-                                })}
-                                autoComplete="off"
-                                {...field}
-                                state={
-                                  fieldState.invalid ? 'invalid' : 'default'
-                                }
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button type="submit" className="w-full text-center">
-                        {t('nextStep')}
-                      </Button>
-                    </form>
-                  </Form>
-                </TabsContent>
-              )}
+
+              <TabsContent value={SignupType.phone}>
+                <Form {...phoneForm}>
+                  <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)}>
+                    <FormField
+                      control={phoneForm.control}
+                      name="phone"
+                      render={({ field, fieldState }) => (
+                        <FormItem className="mb-8">
+                          <FormControl>
+                            <Input
+                              placeholder={t('inputTip', {
+                                field: t('phoneNumber'),
+                              })}
+                              autoComplete="off"
+                              {...field}
+                              state={fieldState.invalid ? 'invalid' : 'default'}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" className="w-full text-center">
+                      {t('nextStep')}
+                    </Button>
+                  </form>
+                </Form>
+              </TabsContent>
             </Tabs>
             {!isChinaMobile && (
               <div className="text-sm mt-8">

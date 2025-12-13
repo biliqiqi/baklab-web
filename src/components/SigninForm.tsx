@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { Control, Controller, Path, useForm } from 'react-hook-form'
+import { Control, Path, useForm } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
 
 import { toSync } from '@/lib/fire-and-forget'
@@ -44,9 +44,8 @@ import { Input } from './ui/input'
 import { Spinner } from './ui/spinner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
 
-const accountRule = z.string().min(1)
 const signinSchema = z.object({
-  account: accountRule,
+  account: z.string(),
   password: z.string(),
 })
 const phoneSchema = z.object({
@@ -86,7 +85,7 @@ const FormInput = memo(
     type = 'text',
     placeholder,
   }: FormInputProps<T>) => (
-    <Controller
+    <FormField
       control={control}
       name={name}
       render={({ field, fieldState }) => (
@@ -100,6 +99,7 @@ const FormInput = memo(
               {...field}
             />
           </FormControl>
+          <FormMessage />
         </FormItem>
       )}
     />
@@ -176,20 +176,45 @@ const SigninForm: React.FC<SigninFromProps> = ({
     [t]
   )
 
-  const signinForm = useForm<SigninSchema>({
-    resolver: zodResolver(
+  const accountRule = useMemo(() => {
+    const baseSchema = z
+      .string()
+      .trim()
+      .min(1, t('inputTip', { field: t('usernameOrEmail') }))
+    return baseSchema.pipe(
+      z.union([
+        z.string().email(t('formatError', { field: t('email') })),
+        usernameRule,
+      ])
+    )
+  }, [t, usernameRule])
+
+  const passwordRule = useMemo(
+    () =>
+      z
+        .string()
+        .min(12, t('charMinimum', { field: t('password'), num: 12 }))
+        .max(18, t('charMaximum', { field: t('password'), num: 18 }))
+        .regex(/[a-z]/, t('passRule1'))
+        .regex(/[A-Z]/, t('passRule2'))
+        .regex(/\d/, t('passRule3'))
+        /* eslint-disable-next-line */
+        .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/, t('passRule4')),
+    [t]
+  )
+
+  const signinSchemaWithRules = useMemo(
+    () =>
       signinSchema.extend({
-        password: z
-          .string()
-          .min(12, t('charMinimum', { field: t('password'), num: 12 }))
-          .max(18, t('charMaximum', { field: t('password'), num: 18 }))
-          .regex(/[a-z]/, t('passRule1'))
-          .regex(/[A-Z]/, t('passRule2'))
-          .regex(/\d/, t('passRule3'))
-          /* eslint-disable-next-line */
-          .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/, t('passRule4')),
-      })
-    ),
+        account: accountRule,
+        password: passwordRule,
+      }),
+    [accountRule, passwordRule]
+  )
+
+  const signinForm = useForm<SigninSchema>({
+    resolver: zodResolver(signinSchemaWithRules),
+    mode: 'onBlur',
     defaultValues: {
       account: account || '',
       password: '',

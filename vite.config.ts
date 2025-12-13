@@ -124,6 +124,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: '0.0.0.0',
+      port: Number(env.VITE_FRONTEND_HOST.split(':')[2]) || 5173,
       allowedHosts: ['local.dizkaz.com'],
     },
     test: {

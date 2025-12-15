@@ -37,18 +37,21 @@ export default function CategoryPage() {
   const { pathname } = location
   const locationState = location.state
 
+  const { siteFrontId, categoryFrontId } = useSiteParams()
+  const { t } = useTranslation()
+  const search = useSearch()
+
   const locationCategory = useMemo(
     () => (isCategoryState(locationState) ? locationState : undefined),
     [locationState]
   )
 
-  const currCate = useMemo(
-    () => locationCategory || serverCate,
-    [locationCategory, serverCate]
-  )
-  const { siteFrontId, categoryFrontId } = useSiteParams()
-  const { t } = useTranslation()
-  const search = useSearch()
+  const currCate = useMemo(() => {
+    if (!categoryFrontId) {
+      return null
+    }
+    return locationCategory || serverCate
+  }, [locationCategory, serverCate, categoryFrontId])
 
   const userArticleListMode = useUserUIStore((state) => state.articleListMode)
   const siteArticleListMode = useSiteUIStore((state) => state.articleListMode)

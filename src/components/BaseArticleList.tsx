@@ -114,11 +114,15 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
     prevCategoryFrontIdRef.current = categoryFrontId
   }, [siteFrontId, categoryFrontId])
 
+  const backgroundFetchDoneRef = useRef(false)
+  const currentQueryKeyRef = useRef('')
+
   const {
     data: queryData,
     isLoading,
     isFetching,
     isPlaceholderData,
+    dataUpdatedAt,
   } = useQuery({
     queryKey: [
       'articles',
@@ -139,8 +143,81 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
   const list = queryData?.data.articles || []
   const showSkeleton = isLoading && !isPlaceholderData
 
+  const currentArticleIds = useMemo(
+    () => new Set(list.map((a) => a.id)),
+    [list]
+  )
+
   const queryClient = useQueryClient()
-  const { getNewArticles, clearNewArticles } = useNewArticlesStore()
+  const { addNewArticle, getNewArticles, clearNewArticles } =
+    useNewArticlesStore()
+
+  const queryKey = useMemo(
+    () =>
+      `${categoryFrontId || 'null'}-${siteFrontId || 'null'}-${isFeedList}-${page}-${sort}`,
+    [categoryFrontId, siteFrontId, isFeedList, page, sort]
+  )
+
+  useEffect(() => {
+    if (queryKey !== currentQueryKeyRef.current) {
+      backgroundFetchDoneRef.current = false
+      currentQueryKeyRef.current = queryKey
+    }
+  }, [queryKey])
+
+  const hasData = !!queryData?.data.articles?.length
+
+  useEffect(() => {
+    if (page !== 1 || isFetching || !hasData) {
+      return
+    }
+
+    if (backgroundFetchDoneRef.current) {
+      return
+    }
+
+    const isDataFresh = Date.now() - dataUpdatedAt < 2000
+    if (isDataFresh) {
+      backgroundFetchDoneRef.current = true
+      return
+    }
+
+    backgroundFetchDoneRef.current = true
+
+    const cacheKey = [
+      'articles',
+      categoryFrontId,
+      siteFrontId,
+      isFeedList,
+      1,
+      pageSize,
+      sort,
+    ]
+
+    fetchArticles({ page: 1, pageSize, sort })
+      .then((res) => {
+        if (res.code !== 0 || !res.data.articles) {
+          return
+        }
+
+        const cachedData =
+          queryClient.getQueryData<FetchArticlesResponse>(cacheKey)
+        const cachedArticles = cachedData?.data.articles || []
+        const cachedArticleIds = new Set(cachedArticles.map((a) => a.id))
+
+        const newArticles = res.data.articles.filter(
+          (article) => !cachedArticleIds.has(article.id)
+        )
+
+        newArticles.forEach((article) => {
+          addNewArticle(article)
+        })
+      })
+      .catch((err) => {
+        console.error('background fetch articles error:', err)
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, isFetching, hasData, dataUpdatedAt])
 
   const handleLoadNewArticles = useCallback(() => {
     if (page !== 1) {
@@ -389,6 +466,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
           <NewArticlesNotification
             siteFrontId={siteFrontId ?? null}
             categoryFrontId={categoryFrontId ?? null}
+            currentArticleIds={currentArticleIds}
             onLoadNewArticles={handleLoadNewArticles}
           />
         )}

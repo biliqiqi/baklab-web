@@ -3,6 +3,7 @@ import { create } from 'zustand'
 import type { Article } from '@/types/types'
 
 const MAX_ARTICLES_PER_CATEGORY = 50
+const EMPTY_ARRAY: Article[] = []
 
 interface NewArticlesState {
   newArticlesMap: Map<string, Article[]>
@@ -57,7 +58,7 @@ export const useNewArticlesStore = create<NewArticlesState>((set, get) => ({
 
   getNewArticles: (siteFrontId, categoryFrontId) => {
     const key = getKey(siteFrontId, categoryFrontId)
-    return get().newArticlesMap.get(key) || []
+    return get().newArticlesMap.get(key) || EMPTY_ARRAY
   },
 
   getNewArticlesCount: (siteFrontId, categoryFrontId) => {

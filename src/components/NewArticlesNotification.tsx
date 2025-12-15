@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useNewArticlesStore } from '@/state/new-articles'
@@ -7,18 +8,27 @@ import { Button } from './ui/button'
 interface NewArticlesNotificationProps {
   siteFrontId: string | null
   categoryFrontId: string | null
+  currentArticleIds?: Set<string>
   onLoadNewArticles: () => void
 }
 
 export function NewArticlesNotification({
   siteFrontId,
   categoryFrontId,
+  currentArticleIds,
   onLoadNewArticles,
 }: NewArticlesNotificationProps) {
   const { t } = useTranslation()
-  const count = useNewArticlesStore((state) =>
-    state.getNewArticlesCount(siteFrontId, categoryFrontId)
+  const newArticles = useNewArticlesStore((state) =>
+    state.getNewArticles(siteFrontId, categoryFrontId)
   )
+
+  const count = useMemo(() => {
+    if (!currentArticleIds || currentArticleIds.size === 0) {
+      return newArticles.length
+    }
+    return newArticles.filter((a) => !currentArticleIds.has(a.id)).length
+  }, [newArticles, currentArticleIds])
 
   if (count === 0) {
     return null

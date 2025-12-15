@@ -1,4 +1,4 @@
-import { startTransition, useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 
 import { Toaster } from './components/ui/sonner.tsx'
@@ -7,13 +7,8 @@ import BLoader from './components/base/BLoader.tsx'
 
 import { useTheme } from './components/theme-provider.ts'
 
-import '@/state/chat-db.ts'
-import { deleteIDBMessage, saveIDBMessage } from '@/state/chat-db.ts'
-
 import ModalRoutesWrapper from './ModalRoutesWrapper'
 import {
-  API_HOST,
-  API_PATH_PREFIX,
   DEFAULT_THEME,
   LEFT_SIDEBAR_DEFAULT_OPEN,
   LEFT_SIDEBAR_STATE_KEY,
@@ -24,14 +19,13 @@ import { useIsMobile } from './hooks/use-mobile.tsx'
 import './i18n'
 import { setFaviconBadge } from './lib/favicon.ts'
 import { toSync } from './lib/fire-and-forget.ts'
-import { refreshAuthState, refreshToken } from './lib/request.ts'
+import { refreshToken } from './lib/request.ts'
 import { setRootFontSize } from './lib/utils.ts'
 import {
   getLocalUserUISettings,
   useAuthedUserStore,
   useContextStore,
   useDefaultFontSizeStore,
-  useEventSourceStore,
   useForceUpdate,
   useNotificationStore,
   useRightSidebarStore,
@@ -39,7 +33,7 @@ import {
   useSiteStore,
   useUserUIStore,
 } from './state/global.ts'
-import { Article, SSE_EVENT, SettingsType } from './types/types.ts'
+import { SettingsType } from './types/types.ts'
 
 const DESKTOP_FONT_SIZE = '16'
 const MOBILE_FONT_SIZE = '14'
@@ -53,111 +47,17 @@ const fetchNotiCount = toSync(async () => {
   }
 })
 
-const EVENT_URL = `${API_HOST}${API_PATH_PREFIX}events`
-
-const connectEvents = () => {
-  const eventSource = new EventSource(EVENT_URL, {
-    withCredentials: true,
-  })
-
-  eventSource.addEventListener(
-    SSE_EVENT.Ping,
-    (_event: MessageEvent<string>) => {
-      try {
-        /* const data = JSON.parse(event.data) as PingData */
-        /* console.log('event data: ', data) */
-      } catch (err) {
-        console.error('parse event data error: ', err)
-      }
-    }
-  )
-
-  eventSource.addEventListener(
-    SSE_EVENT.UpdateRole,
-    (_event: MessageEvent<string>) => {
-      toSync(refreshAuthState)(true)
-      const siteState = useSiteStore.getState()
-      if (siteState.site) {
-        toSync(siteState.fetchSiteData)(siteState.site.frontId)
-      }
-    }
-  )
-
-  eventSource.addEventListener(SSE_EVENT.UpdateNoties, (_ev) => {
-    /* console.log('updatenoties:', ev) */
-    fetchNotiCount()
-  })
-
-  eventSource.addEventListener(SSE_EVENT.Close, (_ev) => {
-    /* console.log('close:', ev) */
-    eventSource.close()
-  })
-
-  eventSource.addEventListener(
-    SSE_EVENT.NewMessage,
-    (ev: MessageEvent<string>) => {
-      try {
-        if (!ev.data || ev.data === 'undefined') {
-          return
-        }
-        /* console.log('new message data str: ', ev.data) */
-        const item = JSON.parse(ev.data) as Article
-        /* console.log('new message data: ', item) */
-        if (item) {
-          toSync(saveIDBMessage)(item.siteFrontId, item.categoryFrontId, item)
-        }
-      } catch (err) {
-        console.error('parse event data error in newmessage event: ', err)
-      }
-    }
-  )
-
-  eventSource.addEventListener(
-    SSE_EVENT.DeleteMessage,
-    (ev: MessageEvent<string>) => {
-      try {
-        /* console.log('delete message data str: ', ev.data) */
-        if (ev.data) {
-          toSync(deleteIDBMessage)(ev.data)
-        }
-      } catch (err) {
-        console.error('parse event data error in deletemessage event: ', err)
-      }
-    }
-  )
-
-  eventSource.onerror = (err) => {
-    console.error('event source error: ', err)
-  }
-
-  return eventSource
-}
-
 const App = () => {
   const [initialized, setInitialized] = useState(false)
 
   /* const updateToastState = useToastStore((state) => state.update) */
-  const { currUsername, authToken, updateBaseData, updateUserData } =
-    useAuthedUserStore(
-      useShallow(
-        ({
-          username,
-          authToken,
-          isLogined,
-          updateBaseData,
-          updateUserData,
-        }) => ({
-          currUsername: username,
-          authToken,
-          isLogined,
-          updateBaseData,
-          updateUserData,
-        })
-      )
-    )
-
-  const setEventSource = useEventSourceStore((state) => state.setEventSource)
-  const eventSource = useEventSourceStore((state) => state.eventSource)
+  const { authToken, updateBaseData, updateUserData } = useAuthedUserStore(
+    useShallow(({ authToken, updateBaseData, updateUserData }) => ({
+      authToken,
+      updateBaseData,
+      updateUserData,
+    }))
+  )
 
   const { fetchSiteList } = useSiteStore(
     useShallow(({ fetchSiteList }) => ({
@@ -181,73 +81,6 @@ const App = () => {
   const { forceState, forceUpdate } = useForceUpdate(
     useShallow(({ forceState, forceUpdate }) => ({ forceState, forceUpdate }))
   )
-
-  const refreshTokenSync = toSync(
-    useCallback(
-      async (refreshUser: boolean) => {
-        const {
-          data: { token, username, userID, user },
-          code,
-        } = await refreshToken(refreshUser)
-
-        if (!code) {
-          updateBaseData(token, username, userID)
-          if (refreshUser) {
-            updateUserData(user)
-          }
-        }
-      },
-      [updateBaseData, updateUserData]
-    )
-  )
-
-  const reconnectEventSource = useCallback(() => {
-    // Check if connection is still alive before reconnecting
-    if (eventSource && eventSource.readyState === EventSource.OPEN) {
-      return
-    }
-
-    if (eventSource) {
-      eventSource.close()
-      setEventSource(null)
-    }
-
-    const ev = connectEvents()
-    setEventSource(ev)
-  }, [eventSource, setEventSource])
-
-  useEffect(() => {
-    const ev = connectEvents()
-    setEventSource(ev)
-
-    return () => {
-      setEventSource(null)
-      ev.close()
-    }
-  }, [currUsername, setEventSource])
-
-  useEffect(() => {
-    let debounceTimer: NodeJS.Timeout
-
-    window.onfocus = () => {
-      // Debounce to avoid frequent reconnections
-      clearTimeout(debounceTimer)
-      debounceTimer = setTimeout(() => {
-        // Use startTransition to mark these updates as low priority
-        // This prevents them from interrupting route navigation
-        startTransition(() => {
-          reconnectEventSource()
-          refreshTokenSync(true)
-          fetchNotiCount()
-        })
-      }, 1000) // 1 second debounce
-    }
-
-    return () => {
-      window.onfocus = null
-      clearTimeout(debounceTimer)
-    }
-  }, [refreshTokenSync, reconnectEventSource])
 
   const fetchContext = useContextStore((state) => state.fetchContext)
 

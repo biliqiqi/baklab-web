@@ -1,4 +1,5 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient } from '@tanstack/react-query'
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import 'sonner/dist/styles.css'
@@ -12,6 +13,7 @@ import {
   THUMBNAIL_MAX_WIDTH_DESKTOP,
 } from './constants/constants'
 import './index.css'
+import { createIDBPersister, shouldPersistQuery } from './state/query-db'
 
 // Polyfill to prevent React crashes when Google Translate modifies the DOM.
 // Google Translate wraps text nodes in <font> elements, which breaks React's
@@ -78,12 +80,14 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5,
-      gcTime: 1000 * 60 * 10,
+      gcTime: 1000 * 60 * 60 * 24,
       refetchOnWindowFocus: false,
       retry: 1,
     },
   },
 })
+
+const persister = createIDBPersister()
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -104,10 +108,19 @@ if ('serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister,
+        maxAge: 1000 * 60 * 60 * 24,
+        dehydrateOptions: {
+          shouldDehydrateQuery: shouldPersistQuery,
+        },
+      }}
+    >
       <ThemeProvider defaultTheme="system">
         <App />
       </ThemeProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   </StrictMode>
 )

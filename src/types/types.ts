@@ -802,8 +802,8 @@ export const SSE_EVENT = Object.freeze({
   UpdateRole: 'updaterole',
   UpdateNoties: 'updatenoties',
   Close: 'close',
-  NewMessage: 'newmessage',
   DeleteMessage: 'deletemessage',
+  NewArticle: 'newarticle',
 } as const)
 
 export type SseEvent = ValuesToUnion<typeof SSE_EVENT>

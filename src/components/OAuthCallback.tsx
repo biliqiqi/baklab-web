@@ -23,8 +23,6 @@ const OAuthCallback: React.FC = () => {
     const error = search.error
     const errorDescription = search.error_description
 
-    console.log('OAuth callback:', { hasCode: !!code, error })
-
     // Send message to parent window
     if (hasPostMessage(window.opener)) {
       const message = {

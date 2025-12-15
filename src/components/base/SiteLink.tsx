@@ -1,3 +1,5 @@
+import { useQueryClient } from '@tanstack/react-query'
+import { useLocation } from '@tanstack/react-router'
 import { type MouseEventHandler, forwardRef, useCallback } from 'react'
 
 import { Link, type LinkProps } from '@/lib/router'
@@ -36,15 +38,68 @@ const SiteLink = forwardRef<HTMLAnchorElement, SiteLinkProps>(
     const closeMobileSidebar = useSidebarStore(
       (state) => state.closeMobileSidebar
     )
+    const location = useLocation()
+    const queryClient = useQueryClient()
 
     const handleClick: React.MouseEventHandler<HTMLAnchorElement> = useCallback(
       (event) => {
+        const currentPath = location.pathname
+        const currentSearch = location.search
+
+        const targetUrl = new URL(resolvedTo, window.location.origin)
+        const targetPath = targetUrl.pathname
+        const targetSearch = targetUrl.search
+
+        const normalizeSearch = (search: string | Record<string, unknown>) => {
+          if (typeof search === 'string') {
+            return search
+          }
+          if (typeof search === 'object' && Object.keys(search).length === 0) {
+            return ''
+          }
+          return new URLSearchParams(
+            search as Record<string, string>
+          ).toString()
+        }
+
+        const normalizedCurrentSearch = normalizeSearch(currentSearch)
+        const normalizedTargetSearch = normalizeSearch(targetSearch)
+
+        const isCurrentPage =
+          currentPath === targetPath &&
+          normalizedCurrentSearch === normalizedTargetSearch
+
+        if (isCurrentPage) {
+          event.preventDefault()
+
+          const scrollKeys = Object.keys(sessionStorage).filter((key) =>
+            key.startsWith('scroll-')
+          )
+          scrollKeys.forEach((key) => sessionStorage.removeItem(key))
+
+          void queryClient.refetchQueries({
+            queryKey: ['articles'],
+            type: 'active',
+          })
+
+          requestAnimationFrame(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          })
+        }
+
         if (closeSidebarOnClick) {
           closeMobileSidebar()
         }
         onClick?.(event)
       },
-      [closeSidebarOnClick, closeMobileSidebar, onClick]
+      [
+        closeSidebarOnClick,
+        closeMobileSidebar,
+        onClick,
+        location,
+        resolvedTo,
+        queryClient,
+      ]
     )
 
     return <Link ref={ref} to={resolvedTo} onClick={handleClick} {...rest} />

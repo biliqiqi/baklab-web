@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocation } from '@tanstack/react-router'
 import React, {
   MouseEvent,
@@ -17,6 +17,7 @@ import { noop } from '@/lib/utils'
 import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 import { buildRoutePath } from '@/hooks/use-route-match'
 import { isLogined, useAuthedUserStore, useLoading } from '@/state/global'
+import { useNewArticlesStore } from '@/state/new-articles'
 import {
   ARTICLE_LIST_MODE,
   Article,
@@ -30,6 +31,7 @@ import { ArticleListItemSkeleton } from './ArticleList'
 import ArticleListItem from './ArticleListItem'
 import { Empty } from './Empty'
 import { ListPagination } from './ListPagination'
+import { NewArticlesNotification } from './NewArticlesNotification'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs'
@@ -137,6 +139,77 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
   const list = queryData?.data.articles || []
   const showSkeleton = isLoading && !isPlaceholderData
 
+  const queryClient = useQueryClient()
+  const { getNewArticles, clearNewArticles } = useNewArticlesStore()
+
+  const handleLoadNewArticles = useCallback(() => {
+    if (page !== 1) {
+      return
+    }
+
+    const newArticles = getNewArticles(
+      siteFrontId ?? null,
+      categoryFrontId ?? null
+    )
+
+    if (newArticles.length === 0) {
+      return
+    }
+
+    const deduplicateArticles = (articles: Article[]) => {
+      const seen = new Set<string>()
+      return articles.filter((article) => {
+        if (seen.has(article.id)) return false
+        seen.add(article.id)
+        return true
+      })
+    }
+
+    const currentKey = [
+      'articles',
+      categoryFrontId,
+      siteFrontId,
+      isFeedList,
+      page,
+      pageSize,
+      sort,
+    ]
+
+    queryClient.setQueryData(currentKey, (old: unknown) => {
+      if (!old || typeof old !== 'object' || !('data' in old)) return old
+      const oldData = old.data as FetchArticlesData
+      if (!oldData.articles) return old
+
+      const mergedArticles = deduplicateArticles([
+        ...newArticles,
+        ...oldData.articles,
+      ])
+
+      return {
+        ...old,
+        data: {
+          ...oldData,
+          articles: mergedArticles,
+          articleTotal: oldData.articleTotal + newArticles.length,
+        },
+      }
+    })
+
+    clearNewArticles(siteFrontId ?? null, categoryFrontId ?? null)
+
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [
+    page,
+    siteFrontId,
+    categoryFrontId,
+    isFeedList,
+    pageSize,
+    sort,
+    getNewArticles,
+    clearNewArticles,
+    queryClient,
+  ])
+
   const location = useLocation()
   const scrollRestoredRef = useRef(false)
   const prevScrollKeyRef = useRef('')
@@ -205,7 +278,6 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
     return (updatedArticle: Article) => {
       // Note: With TanStack Query, direct list updates are handled differently
       // Consider using query invalidation or optimistic updates
-      console.log('Article update:', articleId, updatedArticle)
     }
   }, [])
 
@@ -313,6 +385,13 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
         </div>
       </div>
       <div className="mt-4">
+        {page === 1 && (
+          <NewArticlesNotification
+            siteFrontId={siteFrontId ?? null}
+            categoryFrontId={categoryFrontId ?? null}
+            onLoadNewArticles={handleLoadNewArticles}
+          />
+        )}
         {showSkeleton ? (
           mode == ARTICLE_LIST_MODE.Compact ? (
             <Card>

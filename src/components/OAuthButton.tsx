@@ -119,7 +119,6 @@ export const OAuthButton: React.FC<OAuthButtonProps> = ({
         }
 
         if (type === 'oauth_callback') {
-          console.log('OAuth callback received:', { hasCode: !!code, error })
           oauthCompleted = true // Mark as completed
           popup.close()
           window.removeEventListener('message', handleMessage)

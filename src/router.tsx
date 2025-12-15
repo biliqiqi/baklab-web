@@ -16,9 +16,9 @@ import {
 } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 
-import BLoader from './components/base/BLoader'
-import { ScrollRestoration } from './components/ScrollRestoration'
 import { Toaster } from './components/ui/sonner'
+
+import BLoader from './components/base/BLoader'
 
 // Page imports
 import OAuthCallback from './components/OAuthCallback'
@@ -26,6 +26,7 @@ import { useTheme } from './components/theme-provider'
 
 import '@/state/chat-db'
 import { deleteIDBMessage, saveIDBMessage } from '@/state/chat-db'
+import { useNewArticlesStore } from '@/state/new-articles'
 
 import AboutPage from './AboutPage'
 import ActivityPage from './ActivityPage'
@@ -133,23 +134,6 @@ const connectEvents = () => {
   })
 
   eventSource.addEventListener(
-    SSE_EVENT.NewMessage,
-    (ev: MessageEvent<string>) => {
-      try {
-        if (!ev.data || ev.data === 'undefined') {
-          return
-        }
-        const item = JSON.parse(ev.data) as Article
-        if (item) {
-          toSync(saveIDBMessage)(item.siteFrontId, item.categoryFrontId, item)
-        }
-      } catch (err) {
-        console.error('parse event data error in newmessage event: ', err)
-      }
-    }
-  )
-
-  eventSource.addEventListener(
     SSE_EVENT.DeleteMessage,
     (ev: MessageEvent<string>) => {
       try {
@@ -158,6 +142,31 @@ const connectEvents = () => {
         }
       } catch (err) {
         console.error('parse event data error in deletemessage event: ', err)
+      }
+    }
+  )
+
+  eventSource.addEventListener(
+    SSE_EVENT.NewArticle,
+    (ev: MessageEvent<string>) => {
+      try {
+        if (!ev.data || ev.data === 'undefined') {
+          return
+        }
+        const article = JSON.parse(ev.data) as Article
+        if (article) {
+          if (article.category?.contentForm?.frontId === 'chat') {
+            toSync(saveIDBMessage)(
+              article.siteFrontId,
+              article.categoryFrontId,
+              article
+            )
+          } else {
+            useNewArticlesStore.getState().addNewArticle(article)
+          }
+        }
+      } catch (err) {
+        console.error('parse event data error in newarticle event: ', err)
       }
     }
   )
@@ -430,7 +439,6 @@ function RootComponent() {
 
   return (
     <>
-      <ScrollRestoration />
       {initialized ? (
         <>
           <Outlet key={forceState} />

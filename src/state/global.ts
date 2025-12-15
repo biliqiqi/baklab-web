@@ -777,6 +777,17 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
   },
 }))
 
+useAuthedUserStore.subscribe(
+  (state) => state.authToken,
+  (authToken, prevAuthToken) => {
+    const wasLoggedIn = Boolean(prevAuthToken)
+    const isLoggedIn = Boolean(authToken)
+    if (wasLoggedIn !== isLoggedIn) {
+      useCategoryStore.getState().clearCategories()
+    }
+  }
+)
+
 export interface NotificationState {
   unreadCount: number
   setUnreadCount: (count: number) => void

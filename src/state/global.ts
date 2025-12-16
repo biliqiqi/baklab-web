@@ -2,6 +2,7 @@ import { clone } from 'remeda'
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 
+import { queryClient } from '@/lib/query-client'
 import { refreshAuthState } from '@/lib/request'
 import { noop, setRootFontSize } from '@/lib/utils'
 
@@ -21,7 +22,6 @@ import {
 } from '@/constants/constants'
 import { PermitFn, PermitUnderSiteFn } from '@/constants/types'
 import i18n from '@/i18n'
-import { queryClient } from '@/lib/query-client'
 import {
   ARTICLE_LIST_MODE,
   Article,

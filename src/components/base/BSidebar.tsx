@@ -37,7 +37,12 @@ import {
   useSiteStore,
   useSiteUIStore,
 } from '@/state/global'
-import { Category, FrontCategory, SITE_STATUS } from '@/types/types'
+import { useNewArticlesStore } from '@/state/new-articles'
+import {
+  Category,
+  FrontCategory,
+  SITE_STATUS,
+} from '@/types/types'
 
 import CategoryForm from '../CategoryForm'
 import SiteMenuButton from '../SiteMenuButton'
@@ -68,6 +73,7 @@ import {
 import BIconColorChar from './BIconColorChar'
 import BSiteListDock from './BSiteListDock'
 import SiteLink from './SiteLink'
+import { Badge } from '../ui/badge'
 
 interface EditCategoryData {
   editting: boolean
@@ -163,6 +169,10 @@ const platformSidebarMenus: () => (
     icon: <TrashIcon size={18} />,
   },
 ]
+
+const getKey = (siteFrontId: string | null, categoryFrontId: string | null) => {
+  return `${siteFrontId || 'null'}-${categoryFrontId || 'null'}`
+}
 
 const BSidebar: React.FC<BSidebarProps> = ({
   category: _,
@@ -275,6 +285,58 @@ const BSidebar: React.FC<BSidebarProps> = ({
     }))
   )
 
+  const { newArticlesMap } = useNewArticlesStore(
+    useShallow((state) => ({
+      newArticlesMap: state.newArticlesMap,
+    }))
+  )
+
+  const getNewArticlesCount = useCallback(
+    (categoryFrontId: string | null, isFeed: boolean) => {
+      const key = getKey(siteFrontId ?? null, categoryFrontId)
+      const articles = newArticlesMap.get(key) || []
+
+      if (!isFeed) {
+        return articles.length
+      }
+
+      // Logic for Feed (subscribed only)
+      const filtered = articles.filter((article) => {
+        // First check article itself
+        if (article?.category?.userState?.subscribed === true) {
+          return true
+        }
+
+        const catId = article.categoryFrontId
+        const siteId = article.siteFrontId
+
+        // Then check cateList (if matching current site context)
+        const cat = cateList.find(
+          (c) => c.frontId === catId && c.siteFrontId === siteId
+        )
+        if (cat?.userState?.subscribed !== undefined) {
+          return cat.userState.subscribed
+        }
+
+        // Then check siteList
+        if (siteList) {
+          const site = siteList.find((s) => s.frontId === siteId)
+          if (site?.categories) {
+            const siteCat = site.categories.find((c) => c.frontId === catId)
+            if (siteCat?.userState?.subscribed !== undefined) {
+              return siteCat.userState.subscribed
+            }
+          }
+        }
+
+        return false
+      })
+
+      return filtered.length
+    },
+    [newArticlesMap, siteFrontId, cateList, siteList]
+  )
+
   const isCategoryListActive = useRouteMatch('/bankuai')
   const isAllPageActive = useRouteMatch('/all')
   const isHomePageActive = useRouteMatch('/')
@@ -382,6 +444,9 @@ const BSidebar: React.FC<BSidebarProps> = ({
     [siteFrontId]
   )
 
+  const feedCount = getNewArticlesCount(null, true)
+  const allCount = getNewArticlesCount(null, false)
+
   return (
     <>
       <Sidebar
@@ -473,6 +538,14 @@ const BSidebar: React.FC<BSidebarProps> = ({
                               <PackageIcon size={18} />
                             </BIconCircle>
                             {t('feed')}
+                            {feedCount > 0 && (
+                              <Badge
+                                variant="secondary"
+                                className="ml-auto flex h-5 min-w-5 items-center justify-center px-1.5 font-normal text-current bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20"
+                              >
+                                {feedCount > 99 ? '99+' : feedCount}
+                              </Badge>
+                            )}
                           </SiteLink>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -493,6 +566,14 @@ const BSidebar: React.FC<BSidebarProps> = ({
                             <GlobeIcon size={18} />
                           </BIconCircle>
                           {t('allPosts')}
+                          {allCount > 0 && (
+                            <Badge
+                              variant="secondary"
+                              className="ml-auto flex h-5 min-w-5 items-center justify-center px-1.5 font-normal text-current bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20"
+                            >
+                              {allCount > 99 ? '99+' : allCount}
+                            </Badge>
+                          )}
                         </SiteLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -659,7 +740,7 @@ const BSidebar: React.FC<BSidebarProps> = ({
                                 location.pathname.includes(
                                   buildRoutePath('/articles/', siteFrontId)
                                 ))
-
+                            const count = getNewArticlesCount(item.frontId, false)
                             return (
                               <SidebarMenuItem key={item.frontId}>
                                 <SidebarMenuButton asChild isActive={isActive}>
@@ -703,6 +784,14 @@ const BSidebar: React.FC<BSidebarProps> = ({
                                           className="text-current"
                                         />
                                       </span>
+                                    )}
+                                    {count > 0 && (
+                                      <Badge
+                                        variant="secondary"
+                                        className="ml-auto flex h-5 min-w-5 items-center justify-center px-1.5 font-normal text-current bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20"
+                                      >
+                                        {count > 99 ? '99+' : count}
+                                      </Badge>
                                     )}
                                   </SiteLink>
                                 </SidebarMenuButton>

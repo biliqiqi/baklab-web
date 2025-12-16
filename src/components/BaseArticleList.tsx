@@ -262,7 +262,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
 
   const queryClient = useQueryClient()
 
-  const { getNewArticles, clearNewArticles } = useNewArticlesStore()
+  const { getNewArticles, removeArticles } = useNewArticlesStore()
 
   const newArticlesFromStore = useNewArticlesStore((state) =>
     state.getNewArticles(siteFrontId ?? null, categoryFrontId ?? null)
@@ -296,7 +296,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
         sort,
       ]
       updateArticleCache(queryClient, newArticlesFromStore, cacheKey)
-      clearNewArticles(siteFrontId ?? null, categoryFrontId ?? null)
+      removeArticles(newArticlesFromStore.map((a) => a.id))
     }
   }, [
     newArticlesFromStore,
@@ -307,7 +307,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
     isFeedList,
     pageSize,
     sort,
-    clearNewArticles,
+    removeArticles,
   ])
 
   const hasData = !!queryData?.data.articles?.length
@@ -390,7 +390,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
 
     updateArticleCache(queryClient, newArticles, currentKey)
 
-    clearNewArticles(siteFrontId ?? null, categoryFrontId ?? null)
+    removeArticles(newArticles.map((a) => a.id))
 
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [
@@ -401,7 +401,7 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
     pageSize,
     sort,
     getNewArticles,
-    clearNewArticles,
+    removeArticles,
     queryClient,
   ])
 

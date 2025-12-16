@@ -20,6 +20,7 @@ interface NewArticlesState {
     siteFrontId: string | null,
     categoryFrontId: string | null
   ) => void
+  removeArticles: (articleIds: string[]) => void
 }
 
 const getKey = (siteFrontId: string | null, categoryFrontId: string | null) => {
@@ -71,6 +72,26 @@ export const useNewArticlesStore = create<NewArticlesState>((set, get) => ({
       const newMap = new Map(state.newArticlesMap)
       const key = getKey(siteFrontId, categoryFrontId)
       newMap.delete(key)
+      return { newArticlesMap: newMap }
+    })
+  },
+
+  removeArticles: (articleIds: string[]) => {
+    if (articleIds.length === 0) return
+    const idsSet = new Set(articleIds)
+
+    set((state) => {
+      const newMap = new Map(state.newArticlesMap)
+      for (const [key, articles] of newMap.entries()) {
+        const filtered = articles.filter((a) => !idsSet.has(a.id))
+        if (filtered.length !== articles.length) {
+          if (filtered.length === 0) {
+            newMap.delete(key)
+          } else {
+            newMap.set(key, filtered)
+          }
+        }
+      }
       return { newArticlesMap: newMap }
     })
   },

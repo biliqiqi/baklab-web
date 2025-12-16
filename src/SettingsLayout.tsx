@@ -1,13 +1,7 @@
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { Outlet, useLocation } from '@tanstack/react-router'
 import { KeyIcon, UserIcon } from 'lucide-react'
-import {
-  ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-} from 'react'
+import { ReactNode, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Link, useNavigate } from '@/lib/router'
@@ -185,9 +179,7 @@ export default function SettingsLayout({
 
             return (
               <Link key={item.key} to={item.path} className={className}>
-                <BIconCircle size={isMobile ? 28 : 32}>
-                  {item.icon}
-                </BIconCircle>
+                <BIconCircle size={isMobile ? 28 : 32}>{item.icon}</BIconCircle>
                 <span className="truncate">{item.label}</span>
               </Link>
             )

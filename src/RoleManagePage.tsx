@@ -223,9 +223,14 @@ export default function RoleManagePage() {
   const { data: rolesData, refetch: refetchRoles } = useQuery({
     queryKey: ['roles', page, siteFrontId],
     queryFn: async () => {
-      const { code, data } = await getRoles(page, DEFAULT_PAGE_SIZE, undefined, {
-        siteFrontId,
-      })
+      const { code, data } = await getRoles(
+        page,
+        DEFAULT_PAGE_SIZE,
+        undefined,
+        {
+          siteFrontId,
+        }
+      )
       if (!code && data.list) {
         return {
           list: data.list,

@@ -128,37 +128,36 @@ export default function OAuthAuthorizationManagePage() {
   const page = 1
   const size = DEFAULT_PAGE_SIZE
 
-  const {
-    data: authorizationsData,
-    refetch: refetchAuthorizations,
-  } = useQuery({
-    queryKey: ['oauthAuthorizations', page, size],
-    queryFn: async () => {
-      const resp = await getUserAuthorizations(page, size, true)
+  const { data: authorizationsData, refetch: refetchAuthorizations } = useQuery(
+    {
+      queryKey: ['oauthAuthorizations', page, size],
+      queryFn: async () => {
+        const resp = await getUserAuthorizations(page, size, true)
 
-      if (!resp.code) {
-        const { data } = resp
-        if (data.list) {
-          return {
-            list: data.list,
-            currPage: data.currPage,
-            pageSize: data.pageSize,
-            total: data.total,
-            totalPage: data.totalPage,
-          }
-        } else {
-          return {
-            list: [],
-            currPage: 1,
-            pageSize: size,
-            total: 0,
-            totalPage: 0,
+        if (!resp.code) {
+          const { data } = resp
+          if (data.list) {
+            return {
+              list: data.list,
+              currPage: data.currPage,
+              pageSize: data.pageSize,
+              total: data.total,
+              totalPage: data.totalPage,
+            }
+          } else {
+            return {
+              list: [],
+              currPage: 1,
+              pageSize: size,
+              total: 0,
+              totalPage: 0,
+            }
           }
         }
-      }
-      return null
-    },
-  })
+        return null
+      },
+    }
+  )
 
   useEffect(() => {
     if (authorizationsData) {
@@ -191,17 +190,14 @@ export default function OAuthAuthorizationManagePage() {
     [alertDialog, t, refetchAuthorizations]
   )
 
-  const onRevokeAllClick = useCallback(
-    async () => {
-      setShowRevokeAllDialog(false)
+  const onRevokeAllClick = useCallback(async () => {
+    setShowRevokeAllDialog(false)
 
-      const { code } = await revokeAllUserAuthorizations()
-      if (!code) {
-        void refetchAuthorizations()
-      }
-    },
-    [refetchAuthorizations]
-  )
+    const { code } = await revokeAllUserAuthorizations()
+    if (!code) {
+      void refetchAuthorizations()
+    }
+  }, [refetchAuthorizations])
 
   const columns: ColumnDef<UserOAuthAuthorization>[] = [
     {

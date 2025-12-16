@@ -8,8 +8,7 @@ export const useLocationKey = () => {
     [location.search]
   )
   const locationKey = useMemo(() => {
-    const hash =
-      typeof location.hash === 'string' ? location.hash : ''
+    const hash = typeof location.hash === 'string' ? location.hash : ''
     return `${location.pathname}${searchString}${hash}`
   }, [location.pathname, searchString, location.hash])
 

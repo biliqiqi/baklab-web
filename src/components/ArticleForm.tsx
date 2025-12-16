@@ -249,9 +249,7 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
           title: (initialCache?.title as string) || '',
           link: (initialCache?.link as string) || '',
           category:
-            (initialCache?.category as string) ||
-            search.category_id ||
-            '',
+            (initialCache?.category as string) || search.category_id || '',
           content: (initialCache?.content as string) || '',
           contentFormId:
             (initialCache?.contentFormId as string) ||

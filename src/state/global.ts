@@ -21,6 +21,7 @@ import {
 } from '@/constants/constants'
 import { PermitFn, PermitUnderSiteFn } from '@/constants/types'
 import i18n from '@/i18n'
+import { queryClient } from '@/lib/query-client'
 import {
   ARTICLE_LIST_MODE,
   Article,
@@ -130,6 +131,7 @@ export const useAuthedUserStore = create(
         user: clone(user),
       }
       set((state) => ({ ...state, ...newState }))
+      void queryClient.invalidateQueries()
     },
     updateBaseData(token, username, userID) {
       set((state) => ({
@@ -784,6 +786,10 @@ useAuthedUserStore.subscribe(
     const isLoggedIn = Boolean(authToken)
     if (wasLoggedIn !== isLoggedIn) {
       useCategoryStore.getState().clearCategories()
+      const siteFrontId = useSiteStore.getState().site?.frontId
+      if (siteFrontId) {
+        void useCategoryStore.getState().fetchCategoryList(siteFrontId, true)
+      }
     }
   }
 )

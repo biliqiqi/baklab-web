@@ -1,4 +1,3 @@
-import { QueryClient } from '@tanstack/react-query'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -13,6 +12,7 @@ import {
   THUMBNAIL_MAX_WIDTH_DESKTOP,
 } from './constants/constants'
 import './index.css'
+import { queryClient } from './lib/query-client'
 import { createIDBPersister, shouldPersistQuery } from './state/query-db'
 
 // Polyfill to prevent React crashes when Google Translate modifies the DOM.
@@ -75,17 +75,6 @@ function initImageMaxSize() {
 initImageMaxSize()
 
 window.addEventListener('resize', initImageMaxSize)
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5,
-      gcTime: 1000 * 60 * 60 * 24,
-      refetchOnWindowFocus: false,
-      retry: 1,
-    },
-  },
-})
 
 const persister = createIDBPersister()
 

@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react'
 import { useRouterState } from '@tanstack/react-router'
+import { useEffect, useRef } from 'react'
 
 const STORAGE_PREFIX = '__scroll_position__'
 const RESTORE_TIMEOUT = 10000
@@ -8,10 +8,14 @@ const getLocationKey = (location: {
   pathname: string
   searchStr: string
   hash: string
-}) => `${STORAGE_PREFIX}:${location.pathname}${location.searchStr}${location.hash}`
+}) =>
+  `${STORAGE_PREFIX}:${location.pathname}${location.searchStr}${location.hash}`
 
 const getScrollPosition = () =>
-  window.scrollY ?? window.pageYOffset ?? document.documentElement.scrollTop ?? 0
+  window.scrollY ??
+  window.pageYOffset ??
+  document.documentElement.scrollTop ??
+  0
 
 const getMaxScrollable = () => {
   const doc = document.documentElement
@@ -69,10 +73,7 @@ export const ScrollRestoration = () => {
 
   useEffect(() => {
     const persistScrollPosition = () => {
-      sessionStorage.setItem(
-        currentKeyRef.current,
-        String(getScrollPosition())
-      )
+      sessionStorage.setItem(currentKeyRef.current, String(getScrollPosition()))
     }
 
     window.addEventListener('beforeunload', persistScrollPosition)
@@ -110,9 +111,7 @@ export const ScrollRestoration = () => {
       }
 
       const finalTarget =
-        maxScrollable > 0
-          ? Math.min(normalizedTarget, maxScrollable)
-          : 0
+        maxScrollable > 0 ? Math.min(normalizedTarget, maxScrollable) : 0
 
       window.scrollTo({
         top: finalTarget,

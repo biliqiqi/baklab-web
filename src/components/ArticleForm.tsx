@@ -673,8 +673,14 @@ const ArticleForm = ({ article }: ArticleFormProps) => {
   }, [siteFrontId, tagsEnabled])
 
   useEffect(() => {
-    if (isEdit && article && article.pinnedScope) {
-      setIsPinned(true)
+    if (isEdit && article) {
+      if (article.pinnedScope) {
+        setIsPinned(true)
+      }
+
+      if (article.link) {
+        setShowLinkField(true)
+      }
     }
   }, [isEdit, article])
 

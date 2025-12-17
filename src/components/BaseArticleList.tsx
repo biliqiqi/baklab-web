@@ -477,6 +477,9 @@ const BaseArticleList: React.FC<BaseArticleListProps> = ({
 
   useEffect(() => {
     setLoading(isFetching)
+    return () => {
+      setLoading(false)
+    }
   }, [isFetching, setLoading])
 
   useEffect(() => {

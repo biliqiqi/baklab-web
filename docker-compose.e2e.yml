@@ -4,10 +4,10 @@ services:
   static:
     image: node:20-alpine
     container_name: baklab-web-e2e-static
-    working_dir: /workspace/packages/baklab-web
-    command: ["node", "./scripts/e2e-static-server.mjs"]
+    working_dir: /app
+    command: ["node", "server.mjs"]
     volumes:
-      - ../..:/workspace
+      - ./scripts/e2e-static-server.mjs:/app/server.mjs:ro
     environment:
       E2E_STATIC_PORT: ${E2E_STATIC_PORT:-8789}
       E2E_STATIC_HOST: ${E2E_STATIC_HOST:-localhost}

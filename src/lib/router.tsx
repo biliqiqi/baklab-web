@@ -4,7 +4,11 @@ import {
   useParams as baseUseParams,
   useSearch as baseUseSearch,
 } from '@tanstack/react-router'
-import React, { type ComponentPropsWithoutRef, forwardRef } from 'react'
+import React, {
+  type ComponentPropsWithoutRef,
+  forwardRef,
+  useCallback,
+} from 'react'
 
 import { ensureSearchState } from './search'
 
@@ -63,30 +67,34 @@ type LooseNavigateOptions = {
 
 export const useNavigate = () => {
   const navigate = baseUseNavigate()
-  const safeNavigate = navigate as unknown as (
-    opts: LooseNavigateOptions
-  ) => Promise<void>
 
-  const runNavigate = (opts: LooseNavigateOptions) => {
-    void safeNavigate(opts)
-  }
+  return useCallback(
+    (
+      to: string | number | LooseNavigateOptions,
+      options?: LooseNavigateOptions
+    ) => {
+      const safeNavigate = navigate as unknown as (
+        opts: LooseNavigateOptions
+      ) => Promise<void>
 
-  return (
-    to: string | number | LooseNavigateOptions,
-    options?: LooseNavigateOptions
-  ) => {
-    if (typeof to === 'number') {
-      window.history.go(to)
-      return
-    }
+      const runNavigate = (opts: LooseNavigateOptions) => {
+        void safeNavigate(opts)
+      }
 
-    if (typeof to === 'string') {
-      runNavigate({ ...(options ?? {}), to })
-      return
-    }
+      if (typeof to === 'number') {
+        window.history.go(to)
+        return
+      }
 
-    runNavigate(to)
-  }
+      if (typeof to === 'string') {
+        runNavigate({ ...(options ?? {}), to })
+        return
+      }
+
+      runNavigate(to)
+    },
+    [navigate]
+  )
 }
 
 export const useSearch = (): SearchState =>

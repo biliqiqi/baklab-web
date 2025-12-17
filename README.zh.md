@@ -93,6 +93,12 @@ Playwright 用于 e2e 覆盖。`docker-compose.e2e.yml` 会启动一个一次性
 
 也可以通过 `npm run test:e2e:ci` 在一条命令里完成「启动 → 测试 → 清理」的完整流程，适合在 CI 场景下使用。（需要更换环境文件时，可设置 `E2E_ENV_FILE`。）
 
+### 测试场景下的静态资源上传
+
+创建站点需要上传 LOGO。e2e 的 docker-compose 栈内置了一个轻量级静态资源服务（在 `docker-compose.e2e.yml` 中定义，最终执行 `npm run test:e2e:static`），默认监听 `http://localhost:8789`，在 `VITE_STATIC_HOST`（默认 `http://localhost:8789/upload`）接收上传，并从 `/uploads/*` 返回资源。测试用示例图片位于 `e2e/image-samples`。
+
+上传内容会被存储在 `.e2e-static/` 目录下，并在每次运行前自动清空，无需额外清理。
+
 ## Docker 部署
 
 Docker 部署说明请参考 [DOCKER_USAGE.zh.md](DOCKER_USAGE.zh.md)。

@@ -8,7 +8,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const envFile = process.env.E2E_ENV_FILE ?? '.env.backend.e2e'
-dotenv.config({ path: path.resolve(__dirname, envFile) })
+dotenv.config({ path: path.resolve(__dirname, envFile), quiet: true })
 
 const BASE_URL = process.env.E2E_BASE_URL
 
@@ -37,9 +37,9 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'npm run dev -- --mode test',
+    command: `bash -c "set -a && source ${envFile} && set +a && npm run dev:test"`,
     url: BASE_URL,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 120 * 1000,
   },
 })

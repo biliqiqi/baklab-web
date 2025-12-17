@@ -93,6 +93,12 @@ Playwright is used for e2e coverage. A disposable backend stack (PostgreSQL + Va
 
 You can execute the full cycle (setup → tests → cleanup) with one command via `npm run test:e2e:ci`. (Set `E2E_ENV_FILE` if you need Playwright to load a different env file.)
 
+### Static asset uploads in tests
+
+Site creation flows require uploading a logo. The e2e docker-compose stack now includes a lightweight static service (defined in `docker-compose.e2e.yml`) that runs `npm run test:e2e:static`, listens on `http://localhost:8789`, accepts uploads at `VITE_STATIC_HOST` (defaults to `http://localhost:8789/upload`), and serves files from `/uploads/*`. Sample images for tests live in `e2e/image-samples`.
+
+Uploaded files are stored in `.e2e-static/` and the directory is wiped on every run, so no additional cleanup is needed.
+
 ## Docker Deployment
 
 For Docker deployment instructions, see [DOCKER_USAGE.md](DOCKER_USAGE.md).

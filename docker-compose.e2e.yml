@@ -1,6 +1,31 @@
 name: baklab-web-e2e
 
 services:
+  static:
+    image: node:20-alpine
+    container_name: baklab-web-e2e-static
+    working_dir: /workspace/packages/baklab-web
+    command: ["npm", "run", "test:e2e:static"]
+    volumes:
+      - ../..:/workspace
+    environment:
+      E2E_STATIC_PORT: ${E2E_STATIC_PORT:-8789}
+      E2E_STATIC_HOST: ${E2E_STATIC_HOST:-localhost}
+      E2E_STATIC_PROTOCOL: ${E2E_STATIC_PROTOCOL:-http}
+    ports:
+      - "${E2E_STATIC_PORT:-8789}:8789"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:8789/healthz').then(r=>{if(!r.ok)process.exit(1);process.exit(0);}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   db:
     build:
       context: .

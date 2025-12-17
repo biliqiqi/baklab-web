@@ -1,5 +1,3 @@
-import Busboy from 'busboy'
-import mime from 'mime-types'
 import { randomUUID } from 'node:crypto'
 import { createReadStream } from 'node:fs'
 import { mkdir, rm, writeFile } from 'node:fs/promises'
@@ -74,29 +72,96 @@ function serveFile(res, filepath) {
   stream.pipe(res)
 }
 
+const MIME_EXTENSION_MAP = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+  'image/avif': 'avif',
+  'image/bmp': 'bmp',
+  'image/svg+xml': 'svg',
+}
+
+function extractBoundary(headers) {
+  const contentType = headers['content-type']
+  if (!contentType) {
+    return null
+  }
+  const match = contentType.match(/boundary=(.+)$/)
+  if (!match) {
+    return null
+  }
+  return match[1]
+}
+
+function parseMultipartBody(buffer, boundary) {
+  const delimiter = Buffer.from(`--${boundary}`)
+  const closeDelimiter = Buffer.from(`--${boundary}--`)
+  const doubleCrlf = Buffer.from('\r\n\r\n')
+
+  let start = buffer.indexOf(delimiter)
+  if (start === -1) {
+    return null
+  }
+  start += delimiter.length + 2 // skip delimiter + CRLF
+
+  let end = buffer.indexOf(delimiter, start)
+  if (end === -1) {
+    end = buffer.indexOf(closeDelimiter, start)
+  }
+  if (end === -1) {
+    return null
+  }
+
+  // Trim trailing CRLF before the next boundary
+  const part = buffer.subarray(start, end - 2)
+  const headerEnd = part.indexOf(doubleCrlf)
+  if (headerEnd === -1) {
+    return null
+  }
+  const headerRaw = part.subarray(0, headerEnd).toString('utf8')
+  const body = part.subarray(headerEnd + doubleCrlf.length)
+
+  const mimeMatch = headerRaw
+    .split(/\r?\n/)
+    .map((line) => line.toLowerCase())
+    .find((line) => line.startsWith('content-type'))
+  const mimeType = mimeMatch?.split(':')[1]?.trim() || 'application/octet-stream'
+
+  return { buffer: body, mimeType }
+}
+
 async function handleUpload(req, res) {
-  const busboy = Busboy({ headers: req.headers })
+  const boundary = extractBoundary(req.headers)
+  if (!boundary) {
+    sendJSON(res, 400, {
+      success: false,
+      error: 'missing multipart boundary',
+    })
+    return
+  }
+
   const chunks = []
-  let mimeType = ''
-
-  busboy.on('file', (_name, file, info) => {
-    mimeType = info.mimeType || 'application/octet-stream'
-    file.on('data', (data) => chunks.push(data))
-  })
-
-  busboy.on('finish', async () => {
+  req.on('data', (chunk) => chunks.push(chunk))
+  req.on('end', async () => {
     if (!chunks.length) {
       sendJSON(res, 400, { success: false, error: 'file missing' })
       return
     }
+
     const buffer = Buffer.concat(chunks)
-    const ext = mime.extension(mimeType) || 'bin'
-    const { relativePath } = await saveFile(buffer, ext)
+    const parsed = parseMultipartBody(buffer, boundary)
+    if (!parsed) {
+      sendJSON(res, 400, { success: false, error: 'invalid payload' })
+      return
+    }
+
+    const ext =
+      MIME_EXTENSION_MAP[parsed.mimeType] || parsed.mimeType.split('/')[1] || 'bin'
+    const { relativePath } = await saveFile(parsed.buffer, ext)
     const customUrl = `${BASE_URL}/uploads/${relativePath}`
     sendJSON(res, 200, { success: true, data: { customUrl } })
   })
-
-  req.pipe(busboy)
 }
 
 async function start() {

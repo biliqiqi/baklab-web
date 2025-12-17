@@ -55,10 +55,27 @@ async function saveFile(buffer, ext) {
   return { filePath, relativePath: relative }
 }
 
+const EXT_MIME_MAP = {
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.svg': 'image/svg+xml',
+  '.bmp': 'image/bmp',
+  '.ico': 'image/x-icon',
+  '.json': 'application/json',
+}
+
+function getMimeType(filepath) {
+  const ext = path.extname(filepath).toLowerCase()
+  return EXT_MIME_MAP[ext] || 'application/octet-stream'
+}
+
 function serveFile(res, filepath) {
   const stream = createReadStream(filepath)
   stream.on('open', () => {
-    const type = mime.lookup(filepath) || 'application/octet-stream'
+    const type = getMimeType(filepath)
     res.writeHead(200, {
       'Content-Type': type,
       'Cache-Control': 'public, max-age=31536000, immutable',

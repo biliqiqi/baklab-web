@@ -5,7 +5,7 @@ services:
     image: node:20-alpine
     container_name: baklab-web-e2e-static
     working_dir: /workspace/packages/baklab-web
-    command: ["npm", "run", "test:e2e:static"]
+    command: ["node", "./scripts/e2e-static-server.mjs"]
     volumes:
       - ../..:/workspace
     environment:

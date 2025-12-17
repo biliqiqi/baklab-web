@@ -82,6 +82,17 @@ npm run build
 
 构建文件将输出到 `dist/` 目录。
 
+## 端到端测试
+
+Playwright 用于 e2e 覆盖。`docker-compose.e2e.yml` 会启动一个一次性的后端栈（PostgreSQL + Valkey + `ghcr.io/biliqiqi/baklab:latest`），因此不需要手动运行 Go 服务。相关测试文件（包括密钥）全部放在 `frontend/packages/baklab-web` 下，前端仓库可以独立运行。
+
+1. 首次运行时可以让脚本自动使用 `.env.backend.e2e.example` 复制出 `.env.backend.e2e`，之后按需修改；该文件同时提供 Docker Compose 与 Playwright 所需变量，所以请将 `VITE_API_HOST` 设置为 `http://localhost:3300`（或你自定义的 `E2E_BACKEND_PORT`），并让 `E2E_BASE_URL` 与前端 Dev Server 地址保持一致。
+2. 启动后端环境：`npm run test:e2e:setup`
+3. 执行 e2e 用例：`npm run test:e2e`
+4. 清理环境：`npm run test:e2e:clean`
+
+也可以通过 `npm run test:e2e:ci` 在一条命令里完成「启动 → 测试 → 清理」的完整流程，适合在 CI 场景下使用。（需要更换环境文件时，可设置 `E2E_ENV_FILE`。）
+
 ## Docker 部署
 
 Docker 部署说明请参考 [DOCKER_USAGE.zh.md](DOCKER_USAGE.zh.md)。

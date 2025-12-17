@@ -82,6 +82,17 @@ npm run build
 
 The built files will be in the `dist/` directory.
 
+## End-to-End Testing
+
+Playwright is used for e2e coverage. A disposable backend stack (PostgreSQL + Valkey + `ghcr.io/biliqiqi/baklab:latest`) is bundled via `docker-compose.e2e.yml` so you no longer need to run the Go server manually. Everything lives under `frontend/packages/baklab-web` (including test keys), so the frontend repo remains self-contained.
+
+1. Create `.env.backend.e2e` (the setup script will copy `.env.backend.e2e.example` on first run) and update values if necessary. This single file now feeds both Docker Compose and Playwright—set `VITE_API_HOST` to `http://localhost:3300` (or whatever `E2E_BACKEND_PORT` you pick) and keep `E2E_BASE_URL` aligned with your dev server host.
+2. Boot the backend stack: `npm run test:e2e:setup`
+3. Run the e2e suite: `npm run test:e2e`
+4. Shut everything down: `npm run test:e2e:clean`
+
+You can execute the full cycle (setup → tests → cleanup) with one command via `npm run test:e2e:ci`. (Set `E2E_ENV_FILE` if you need Playwright to load a different env file.)
+
 ## Docker Deployment
 
 For Docker deployment instructions, see [DOCKER_USAGE.md](DOCKER_USAGE.md).

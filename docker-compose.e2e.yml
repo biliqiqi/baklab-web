@@ -1,0 +1,73 @@
+name: baklab-web-e2e
+
+services:
+  db:
+    build:
+      context: .
+      dockerfile: ./e2e/backend-config/Dockerfile.pg
+    container_name: baklab-web-e2e-db
+    environment:
+      POSTGRES_USER: ${PG_USER:-baklab_admin}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-baklab_admin}
+      POSTGRES_DB: postgres
+      APP_DB_NAME: ${APP_DB_NAME:-baklab_e2e}
+      APP_DB_USER: ${APP_DB_USER:-baklab_user}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:-baklab_user}
+      PGTZ: UTC
+    volumes:
+      - e2e-db-data:/var/lib/postgresql/data
+      - ./e2e/backend-config/db/initdb:/docker-entrypoint-initdb.d:ro
+      - ./e2e/backend-config/db/postgresql.test.conf:/etc/postgresql/postgresql.conf:ro
+    command:
+      - postgres
+      - -c
+      - config_file=/etc/postgresql/postgresql.conf
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-baklab_admin} -d ${APP_DB_NAME:-baklab_e2e}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: valkey/valkey:7.2-alpine
+    container_name: baklab-web-e2e-redis
+    command: valkey-server --save "" --appendonly no
+    volumes:
+      - e2e-redis-data:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: ghcr.io/biliqiqi/baklab:latest
+    container_name: baklab-web-e2e-backend
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ./.env.backend.e2e
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      USE_HTTPS: "false"
+    command: ["sh", "-c", "./baklab migrate && ./docker-entrypoint.sh"]
+    ports:
+      - "${E2E_BACKEND_PORT:-3300}:3000"
+    volumes:
+      - ./e2e/test-keys/jwt-ed25519.pem:/app/keys/jwt-ed25519.pem:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  e2e-db-data:
+  e2e-redis-data:

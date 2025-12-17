@@ -15,6 +15,9 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
+    "test:e2e:setup": "bash ./scripts/e2e-backend.sh setup",
+    "test:e2e:clean": "bash ./scripts/e2e-backend.sh clean",
+    "test:e2e:ci": "bash -c 'npm run test:e2e:setup && npm run test:e2e; status=$?; npm run test:e2e:clean; exit $status'",
     "extract": "node scripts/extract_lang.js -f 'src/**/*.{ts,tsx}' -c 'src/i18n/zh-Hans.json' -o src/i18n/lang_text.js",
     "ts-analysis": "tsc -p tsconfig.app.json --generateTrace ts_tracing_output && analyze-trace --force-millis 200 ts_tracing_output"
   },

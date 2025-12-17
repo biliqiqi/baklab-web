@@ -7,7 +7,8 @@ import { fileURLToPath } from 'url'
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-dotenv.config({ path: path.resolve(__dirname, '.env.test') })
+const envFile = process.env.E2E_ENV_FILE ?? '.env.backend.e2e'
+dotenv.config({ path: path.resolve(__dirname, envFile) })
 
 const BASE_URL = process.env.E2E_BASE_URL
 

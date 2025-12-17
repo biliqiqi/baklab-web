@@ -1,0 +1,8 @@
+FROM postgres:16.6
+
+RUN mkdir -p /docker-entrypoint-initdb.d \
+    && apt-get update \
+    && apt-get install -y postgresql-16-cron \
+    && rm -rf /var/lib/apt/lists/*
+
+EXPOSE 5432

@@ -12,6 +12,7 @@ services:
       E2E_STATIC_PORT: ${E2E_STATIC_PORT:-8789}
       E2E_STATIC_HOST: ${E2E_STATIC_HOST:-localhost}
       E2E_STATIC_PROTOCOL: ${E2E_STATIC_PROTOCOL:-http}
+      E2E_STATIC_STORAGE_DIR: /tmp/e2e-static
     ports:
       - "${E2E_STATIC_PORT:-8789}:8789"
     healthcheck:

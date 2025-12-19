@@ -171,11 +171,26 @@ const updateArticleCache = (
 
       if (uniqueToAdd.length === 0) return old
 
+      const existingArticles = old.data.articles
+      const firstUnpinnedIndex = existingArticles.findIndex((a) => !a.pinned)
+
+      let newArticleList: Article[]
+
+      if (firstUnpinnedIndex === -1) {
+        newArticleList = [...existingArticles, ...uniqueToAdd]
+      } else {
+        newArticleList = [
+          ...existingArticles.slice(0, firstUnpinnedIndex),
+          ...uniqueToAdd,
+          ...existingArticles.slice(firstUnpinnedIndex),
+        ]
+      }
+
       return {
         ...old,
         data: {
           ...old.data,
-          articles: [...uniqueToAdd, ...old.data.articles],
+          articles: newArticleList,
           articleTotal: old.data.articleTotal + uniqueToAdd.length,
         },
       }

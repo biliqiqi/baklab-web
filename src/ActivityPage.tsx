@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
@@ -24,20 +25,13 @@ import BContainer from './components/base/BContainer'
 
 import { ActivityList } from './components/ActivityList'
 
-import { useLocationKey } from '@/hooks/use-location-key'
 import { useSiteParams } from '@/hooks/use-site-params'
 
 import { getActivityList } from './api'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
-import { toSync } from './lib/fire-and-forget'
 import { cn } from './lib/utils'
-import { useAuthedUserStore, useLoading } from './state/global'
-import {
-  Activity,
-  ActivityActionType,
-  ListPageState,
-  OptionItem,
-} from './types/types'
+import { useAuthedUserStore } from './state/global'
+import { ActivityActionType, OptionItem } from './types/types'
 
 interface SearchFields {
   username?: string
@@ -52,37 +46,93 @@ const defaultSearchData: SearchFields = {
 }
 
 export default function ActivityPage() {
-  /* const [loading, setLoading] = useState(false) */
-  const [list, updateActList] = useState<Activity[]>([])
   const [actionList, setActionList] = useState<OptionItem[]>([])
-  const [pageState, setPageState] = useState<ListPageState>({
-    currPage: 1,
-    pageSize: DEFAULT_PAGE_SIZE,
-    total: 0,
-    totalPage: 0,
-  })
   const usernameRef = useRef<HTMLInputElement | null>(null)
 
   const { t } = useTranslation()
-  const { setLoading } = useLoading()
 
   const { siteFrontId } = useSiteParams()
   const search = useSearch()
   const navigate = useNavigate()
-  const { locationKey } = useLocationKey()
 
   const { checkPermit } = useAuthedUserStore(
     useShallow(({ permit }) => ({ checkPermit: permit }))
   )
 
-  const [searchData, setSearchData] = useState<SearchFields>({
-    ...defaultSearchData,
-    username: search.username || '',
-    actType: (search.act_type as ActivityActionType) || '',
-    action: search.action || '',
+  const page = Number(search.page) || 1
+  const pageSize = Number(search.page_size) || DEFAULT_PAGE_SIZE
+  const username = search.username || ''
+  let actType = (search.act_type as ActivityActionType | null) || undefined
+  const action = search.action || ''
+
+  if (!checkPermit('activity', 'manage_platform')) {
+    actType = 'manage'
+  }
+
+  const { data: activitiesData, refetch } = useQuery({
+    queryKey: ['activities', siteFrontId, username, actType, action, page, pageSize],
+    queryFn: async () => {
+      const resp = await getActivityList(
+        '',
+        username,
+        actType,
+        action,
+        page,
+        pageSize,
+        { siteFrontId }
+      )
+
+      if (!resp.code) {
+        const { data } = resp
+        if (data.acActionOptions) {
+          setActionList([...data.acActionOptions])
+        }
+
+        if (data.list) {
+          return {
+            list: data.list,
+            page: data.page,
+            pageSize: data.pageSize,
+            total: data.total,
+            totalPage: data.totalPage,
+          }
+        } else {
+          return {
+            list: [],
+            page: 1,
+            pageSize: data.pageSize,
+            total: 0,
+            totalPage: 0,
+          }
+        }
+      }
+
+      return {
+        list: [],
+        page: 1,
+        pageSize: DEFAULT_PAGE_SIZE,
+        total: 0,
+        totalPage: 0,
+      }
+    },
   })
 
-  const resetParams = useCallback(() => {
+  const [searchData, setSearchData] = useState<SearchFields>({
+    ...defaultSearchData,
+    username,
+    actType: actType || '',
+    action,
+  })
+
+  useEffect(() => {
+    setSearchData({
+      username,
+      actType: actType || '',
+      action,
+    })
+  }, [username, actType, action])
+
+  const onResetClick = useCallback(() => {
     navigate({
       search: withSearchUpdater((prev) =>
         omitSearchParams(prev, [
@@ -98,113 +148,38 @@ export default function ActivityPage() {
     })
   }, [navigate])
 
-  const hasSearchParamsChanged = useCallback(() => {
-    const currentUsername = search.username || ''
-    const currentActType = search.act_type || ''
-    const currentAction = search.action || ''
-
-    return (
-      currentUsername !== (searchData.username || '') ||
-      currentActType !== (searchData.actType || '') ||
-      currentAction !== (searchData.action || '')
-    )
-  }, [search, searchData])
-
-  const fetchList = toSync(
-    useCallback(
-      async (showLoading: boolean = false) => {
-        try {
-          const page = Number(search.page) || 1
-          const pageSize = Number(search.page_size) || DEFAULT_PAGE_SIZE
-          const username = search.username || ''
-          let actType =
-            (search.act_type as ActivityActionType | null) || undefined
-          const action = search.action || ''
-
-          if (!checkPermit('activity', 'manage_platform')) {
-            actType = 'manage'
-          }
-
-          if (showLoading) setLoading(true)
-          const resp = await getActivityList(
-            '',
-            username,
-            actType,
-            action,
-            page,
-            pageSize,
-            { siteFrontId }
-          )
-          if (!resp.code) {
-            const { data } = resp
-            if (data.acActionOptions) {
-              setActionList([...data.acActionOptions])
-            }
-
-            if (data.list) {
-              updateActList([...data.list])
-              setPageState({
-                currPage: data.page,
-                pageSize: data.pageSize,
-                total: data.total,
-                totalPage: data.totalPage,
-              })
-            } else {
-              updateActList([])
-              setPageState({
-                currPage: 1,
-                pageSize: data.pageSize,
-                total: 0,
-                totalPage: 0,
-              })
-            }
-          }
-        } catch (e) {
-          console.error('get list error: ', e)
-        } finally {
-          setLoading(false)
-        }
-      },
-      [search, siteFrontId, checkPermit, setLoading]
-    )
-  )
-
-  const onResetClick = useCallback(() => {
-    setSearchData({ ...defaultSearchData })
-    resetParams()
-  }, [resetParams])
-
   const onSearchClick = useCallback(() => {
-    const changed = hasSearchParamsChanged()
-    navigate({
-      search: withSearchUpdater((prev) =>
-        updateSearchParams(
-          prev,
-          {
-            username: searchData.username || undefined,
-            act_type: searchData.actType || undefined,
-            action: searchData.action || undefined,
-          },
-          [
-            'page',
-            'page_size',
-            'pageSize',
-            'username',
-            'act_type',
-            'actType',
-            'action',
-          ]
-        )
-      ),
-    })
-    if (!changed) {
-      fetchList(true)
-    }
-  }, [navigate, searchData, hasSearchParamsChanged, fetchList])
+    const hasChanged =
+      (searchData.username || '') !== username ||
+      (searchData.actType || '') !== (actType || '') ||
+      (searchData.action || '') !== action
 
-  useEffect(() => {
-    fetchList(true)
-  }, [locationKey])
+    if (hasChanged) {
+      navigate({
+        search: withSearchUpdater((prev) =>
+          updateSearchParams(
+            prev,
+            {
+              username: searchData.username || undefined,
+              act_type: searchData.actType || undefined,
+              action: searchData.action || undefined,
+            },
+            [
+              'page',
+              'page_size',
+              'pageSize',
+              'username',
+              'act_type',
+              'actType',
+              'action',
+            ]
+          )
+        ),
+      })
+    } else {
+      refetch()
+    }
+  }, [navigate, searchData, username, actType, action, refetch])
 
   return (
     <BContainer
@@ -312,8 +287,13 @@ export default function ActivityPage() {
       </Card>
 
       <ActivityList
-        list={list}
-        pageState={pageState}
+        list={activitiesData?.list || []}
+        pageState={{
+          currPage: activitiesData?.page || 1,
+          pageSize: activitiesData?.pageSize || DEFAULT_PAGE_SIZE,
+          total: activitiesData?.total || 0,
+          totalPage: activitiesData?.totalPage || 0,
+        }}
         isPlatfromManager={checkPermit('platform_manage', 'access')}
       />
     </BContainer>

@@ -126,7 +126,7 @@ const BanDialog = forwardRef<BanDialogRef, BanDialogProps>(
       (inputType: keyof BanCustomInputs) => {
         return (e: ChangeEvent<HTMLInputElement>) => {
           const val = parseInt(e.target.value, 10)
-          if (!val || val < 1) {
+          if (isNaN(val) || val < 0) {
             banForm.setError('duration', {
               message: t('wrongData'),
             })
@@ -134,7 +134,7 @@ const BanDialog = forwardRef<BanDialogRef, BanDialogProps>(
           }
 
           setBanCustom((state) => ({ ...state, [inputType]: val }))
-
+          banForm.clearErrors('duration')
           banForm.setValue('duration', 'custom', { shouldDirty: true })
         }
       },
@@ -148,7 +148,9 @@ const BanDialog = forwardRef<BanDialogRef, BanDialogProps>(
             ? banCustom.days * 24 * 60 +
               banCustom.hours * 60 +
               banCustom.minutes
-            : Number(duration) * 24 * 60
+            : duration == '-1'
+              ? -1
+              : Number(duration) * 24 * 60
 
         const reasonVal = reason == 'others' ? otherReason : reason
 

@@ -162,7 +162,11 @@ export default function BannedUserListPage() {
       accessorKey: t('bannedDuration'),
       header: t('bannedDuration'),
       cell: ({ row }) => (
-        <span>{formatMinutes(row.original.bannedMinutes)}</span>
+        <span>
+          {row.original.bannedMinutes == -1
+            ? t('forever')
+            : formatMinutes(row.original.bannedMinutes)}
+        </span>
       ),
     },
     {

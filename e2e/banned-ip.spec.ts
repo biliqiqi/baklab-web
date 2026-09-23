@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { Page, expect, test } from '@playwright/test'
 
 import {
   clickNextStep,
@@ -10,6 +10,27 @@ import {
   signInAsAdmin,
   waitForSignupSuccess,
 } from './helpers'
+
+interface MockBannedItem {
+  id: number
+  ipAddress: string
+  banned: boolean
+  bannedStartAt: string
+  bannedEndAt: string
+  bannedMinutes: number
+  reason: string
+  operatorId: number
+  operatorName: string
+  createdAt: string
+  updatedAt: string
+}
+
+interface MockUserLoginIP {
+  ipAddress: string
+  lastLoginAt: string
+  loginCount: number
+  banned: boolean
+}
 
 function generateRandomIP(): string {
   const octet3 = Math.floor(Math.random() * 254) + 1
@@ -29,7 +50,178 @@ test.describe('Banned IP Management', () => {
     password: config.testPassword,
   }
 
-  test.beforeEach(async ({ page }) => {
+  let backendSupportsBannedIP: boolean | null = null
+  let mockBannedList: MockBannedItem[] = []
+  let mockUserLoginIPs: MockUserLoginIP[] = []
+  let mockNextId = 1
+
+  async function installBannedIPMocks(page: Page) {
+    // 1. Unban many
+    await page.route(
+      (url) => url.pathname.endsWith('/api/banned_ips/unban_many'),
+      async (route) => {
+        if (route.request().method() === 'POST') {
+          const body = (route.request().postDataJSON() || {}) as {
+            ips?: string[]
+          }
+          const ipsToUnban = new Set(body.ips || [])
+          mockBannedList = mockBannedList.filter(
+            (item) => !ipsToUnban.has(item.ipAddress)
+          )
+          for (const record of mockUserLoginIPs) {
+            if (ipsToUnban.has(record.ipAddress)) {
+              record.banned = false
+            }
+          }
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ code: 0, message: 'ok', data: null }),
+          })
+        } else {
+          await route.continue()
+        }
+      }
+    )
+
+    // 2. Unban single
+    await page.route(
+      (url) => url.pathname.endsWith('/api/banned_ips/unban'),
+      async (route) => {
+        if (route.request().method() === 'POST') {
+          const body = (route.request().postDataJSON() || {}) as {
+            ip?: string
+          }
+          mockBannedList = mockBannedList.filter(
+            (item) => item.ipAddress !== body.ip
+          )
+          for (const record of mockUserLoginIPs) {
+            if (record.ipAddress === body.ip) {
+              record.banned = false
+            }
+          }
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ code: 0, message: 'ok', data: null }),
+          })
+        } else {
+          await route.continue()
+        }
+      }
+    )
+
+    // 3. Banned IPs list and creation
+    await page.route(
+      (url) =>
+        url.pathname.endsWith('/api/banned_ips') ||
+        url.pathname.endsWith('/api/banned_ips/'),
+      async (route) => {
+        const method = route.request().method()
+        if (method === 'GET') {
+          const parsedUrl = new URL(route.request().url())
+          const keywords =
+            parsedUrl.searchParams.get('keywords')?.toLowerCase() || ''
+          const filtered = mockBannedList.filter(
+            (item) =>
+              !keywords || item.ipAddress.toLowerCase().includes(keywords)
+          )
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              code: 0,
+              message: 'ok',
+              data: {
+                list: filtered,
+                page: 1,
+                pageSize: 20,
+                total: filtered.length,
+                totalPage: 1,
+              },
+            }),
+          })
+        } else if (method === 'POST') {
+          const body = (route.request().postDataJSON() || {}) as {
+            ip: string
+            duration: number
+            reason: string
+          }
+          const now = new Date()
+          const endAt =
+            body.duration === -1
+              ? ''
+              : new Date(now.getTime() + body.duration * 60000).toISOString()
+          const newItem: MockBannedItem = {
+            id: mockNextId++,
+            ipAddress: body.ip,
+            banned: true,
+            bannedStartAt: now.toISOString(),
+            bannedEndAt: endAt,
+            bannedMinutes: body.duration,
+            reason: body.reason,
+            operatorId: 1,
+            operatorName: 'testsadmin',
+            createdAt: now.toISOString(),
+            updatedAt: now.toISOString(),
+          }
+          mockBannedList.unshift(newItem)
+          for (const record of mockUserLoginIPs) {
+            if (record.ipAddress === body.ip) {
+              record.banned = true
+            }
+          }
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              code: 0,
+              message: 'ok',
+              data: newItem,
+            }),
+          })
+        } else {
+          await route.continue()
+        }
+      }
+    )
+
+    // 4. User login IPs
+    await page.route(
+      (url) => /\/api\/users\/[^/]+\/login_ips$/.test(url.pathname),
+      async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            code: 0,
+            message: 'ok',
+            data: mockUserLoginIPs,
+          }),
+        })
+      }
+    )
+  }
+
+  test.beforeEach(async ({ page, request }) => {
+    if (backendSupportsBannedIP === null) {
+      if (process.env.FORCE_MOCK === '1') {
+        backendSupportsBannedIP = false
+      } else {
+        try {
+          const res = await request.get('/api/banned_ips')
+          // If 404, the backend container does not have banned_ips API yet (e.g. CI running older published image)
+          backendSupportsBannedIP = res.status() !== 404
+        } catch {
+          backendSupportsBannedIP = false
+        }
+      }
+    }
+
+    if (!backendSupportsBannedIP) {
+      await installBannedIPMocks(page)
+    }
+
     await signInAsAdmin(page)
   })
 
@@ -167,10 +359,22 @@ test.describe('Banned IP Management', () => {
   test('admin can ban and unban an IP from user profile page', async ({
     page,
     browser,
+    baseURL,
   }) => {
+    if (!backendSupportsBannedIP) {
+      mockUserLoginIPs = [
+        {
+          ipAddress: userLoginIP,
+          lastLoginAt: new Date().toISOString(),
+          loginCount: 1,
+          banned: false,
+        },
+      ]
+    }
+
     // 1. In a separate isolated browser context, register and log in a new user with custom X-Forwarded-For
     const userContext = await browser.newContext({
-      baseURL: 'http://127.0.0.1:5173',
+      baseURL: baseURL || 'http://localhost:5173',
       extraHTTPHeaders: {
         'X-Forwarded-For': userLoginIP,
       },

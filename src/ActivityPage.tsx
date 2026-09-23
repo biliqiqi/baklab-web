@@ -70,7 +70,15 @@ export default function ActivityPage() {
   }
 
   const { data: activitiesData, refetch } = useQuery({
-    queryKey: ['activities', siteFrontId, username, actType, action, page, pageSize],
+    queryKey: [
+      'activities',
+      siteFrontId,
+      username,
+      actType,
+      action,
+      page,
+      pageSize,
+    ],
     queryFn: async () => {
       const resp = await getActivityList(
         '',
@@ -177,7 +185,7 @@ export default function ActivityPage() {
         ),
       })
     } else {
-      refetch()
+      void refetch()
     }
   }, [navigate, searchData, username, actType, action, refetch])
 

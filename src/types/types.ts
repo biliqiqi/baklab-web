@@ -848,3 +848,32 @@ export const ARTICLE_LIST_MODE = Object.freeze({
 } as const)
 
 export type ArticleListMode = ValuesToUnion<typeof ARTICLE_LIST_MODE>
+
+export interface BannedIPData {
+  id: number
+  ipAddress: string
+  banned: boolean
+  bannedStartAt: string
+  bannedEndAt: string
+  bannedMinutes: number
+  reason: string
+  operatorId: number
+  operatorName?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface BannedIPListResponse {
+  list: BannedIPData[]
+  page: number
+  pageSize: number
+  total: number
+  totalPage: number
+}
+
+export interface UserLoginIPData {
+  ipAddress: string
+  lastLoginAt: string
+  loginCount: number
+  banned: boolean
+}

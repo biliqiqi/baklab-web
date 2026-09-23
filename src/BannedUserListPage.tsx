@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-table'
 import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 
 import { Link, useNavigate, useSearch } from '@/lib/router'
 import {
@@ -35,10 +36,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import BAvatar from './components/base/BAvatar'
 import BContainer from './components/base/BContainer'
 
+import AddBanDialog from './components/AddBanDialog'
 import { Empty } from './components/Empty'
 import { ListPagination } from './components/ListPagination'
 import UserDetailCard from './components/UserDetailCard'
@@ -46,7 +49,14 @@ import UserDetailCard from './components/UserDetailCard'
 import { useLocationKey } from '@/hooks/use-location-key'
 import { useSiteParams } from '@/hooks/use-site-params'
 
-import { getUser, getUserList, unbanManyUsers } from './api/user'
+import {
+  getBannedIPList,
+  getUser,
+  getUserList,
+  unbanIP,
+  unbanManyIPs,
+  unbanManyUsers,
+} from './api/user'
 import { DEFAULT_PAGE_SIZE } from './constants/constants'
 import { timeFmt } from './lib/dayjs-custom'
 import { toSync } from './lib/fire-and-forget'
@@ -56,7 +66,7 @@ import {
   useAuthedUserStore,
   useLoading,
 } from './state/global'
-import { ListPageState, UserData } from './types/types'
+import { BannedIPData, ListPageState, UserData } from './types/types'
 
 interface SearchFields {
   keywords?: string
@@ -69,18 +79,20 @@ const defaultSearchData: SearchFields = {
 }
 
 export default function BannedUserListPage() {
-  /* const [loading, setLoading] = useState(false) */
   const [currUser, setCurrUser] = useState<UserData | null>(null)
   const [showUserDetail, setShowUserDetail] = useState(false)
+  const [addBanOpen, setAddBanOpen] = useState(false)
 
   const [list, setList] = useState<UserData[]>([])
+  const [ipList, setIpList] = useState<BannedIPData[]>([])
+
   const search = useSearch()
   const navigate = useNavigate()
   const { locationKey } = useLocationKey()
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const [ipRowSelection, setIpRowSelection] = useState<RowSelectionState>({})
 
   const { setLoading } = useLoading()
-
   const { t } = useTranslation()
 
   const authStore = useAuthedUserStore()
@@ -88,7 +100,16 @@ export default function BannedUserListPage() {
 
   const { siteFrontId } = useSiteParams()
 
+  const activeTab = (search.tab as 'user' | 'ip') || 'user'
+
   const [pageState, setPageState] = useState<ListPageState>({
+    currPage: 1,
+    pageSize: DEFAULT_PAGE_SIZE,
+    total: 0,
+    totalPage: 0,
+  })
+
+  const [ipPageState, setIpPageState] = useState<ListPageState>({
     currPage: 1,
     pageSize: DEFAULT_PAGE_SIZE,
     total: 0,
@@ -100,80 +121,94 @@ export default function BannedUserListPage() {
     keywords: search.keywords || '',
   })
 
-  const columns: ColumnDef<UserData>[] = [
-    {
-      id: 'select',
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && 'indeterminate')
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-          disabled={!row.getCanSelect()}
-        />
-      ),
+  const fetchUserData = toSync(
+    useCallback(
+      async (username: string) => {
+        const { code, data } = await getUser(username, {}, { siteFrontId })
+        if (!code) {
+          setCurrUser(data)
+        }
+      },
+      [siteFrontId]
+    )
+  )
+
+  const onShowDetailClick = useCallback(
+    (user: UserData) => {
+      setCurrUser(user)
+      setShowUserDetail(true)
+      void fetchUserData(user.name)
     },
-    {
-      accessorKey: 'name',
-      header: '',
-      cell: ({ row }) => (
-        <Link to={'/users/' + row.original.name}>
-          <BAvatar username={row.original.name} size={36} showUsername />
-        </Link>
-      ),
-    },
-    /* {
-     *   accessorKey: 'roleName',
-     *   header: t('role'),
-     * }, */
-    /* {
-     *   accessorKey: 'roleLevel',
-     *   header: t('permissionLevel'),
-     *   cell: ({ row }) => <span>{row.original?.role?.level || '-'}</span>,
-     * }, */
-    {
-      accessorKey: 'registeredAt',
-      header: t('joinedAt'),
-      cell: ({ row }) => (
-        <span title={new Date(row.original.registeredAt).toLocaleString()}>
-          {timeFmt(row.original.registeredAt, 'YYYY-M-D')}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'bannedStartAt',
-      header: t('bannedAt'),
-      cell: ({ row }) => (
-        <span title={new Date(row.original.bannedStartAt).toLocaleString()}>
-          {timeFmt(row.original.bannedStartAt, 'YYYY-M-D h:m:s')}
-        </span>
-      ),
-    },
-    {
-      accessorKey: t('bannedDuration'),
-      header: t('bannedDuration'),
-      cell: ({ row }) => (
-        <span>
-          {row.original.bannedMinutes == -1
-            ? t('forever')
-            : formatMinutes(row.original.bannedMinutes)}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'contorles',
-      header: t('operations'),
-      cell: ({ row }) => (
-        <>
+    [fetchUserData]
+  )
+
+  const columns: ColumnDef<UserData>[] = useMemo(
+    () => [
+      {
+        id: 'select',
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && 'indeterminate')
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+            disabled={!row.getCanSelect()}
+          />
+        ),
+      },
+      {
+        accessorKey: 'name',
+        header: '',
+        cell: ({ row }) => (
+          <Link to={'/users/' + row.original.name}>
+            <BAvatar username={row.original.name} size={36} showUsername />
+          </Link>
+        ),
+      },
+      {
+        accessorKey: 'registeredAt',
+        header: t('joinedAt'),
+        cell: ({ row }) => (
+          <span title={new Date(row.original.registeredAt).toLocaleString()}>
+            {timeFmt(row.original.registeredAt, 'YYYY-M-D')}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'bannedStartAt',
+        header: t('bannedAt'),
+        cell: ({ row }) => (
+          <span title={new Date(row.original.bannedStartAt).toLocaleString()}>
+            {timeFmt(row.original.bannedStartAt, 'YYYY-M-D h:m:s')}
+          </span>
+        ),
+      },
+      {
+        accessorKey: t('bannedDuration'),
+        header: t('bannedDuration'),
+        cell: ({ row }) => (
+          <span>
+            {row.original.bannedMinutes === -1
+              ? t('forever')
+              : formatMinutes(row.original.bannedMinutes)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'contorles',
+        header: t('operations'),
+        cell: ({ row }) => (
           <Button
             variant="secondary"
             size="sm"
@@ -184,10 +219,116 @@ export default function BannedUserListPage() {
           >
             {t('detail')}
           </Button>
-        </>
-      ),
+        ),
+      },
+    ],
+    [onShowDetailClick, t]
+  )
+
+  const onUnbanSingleIPClick = useCallback(
+    async (ip: string) => {
+      const confirmed = await alertDialog.confirm(
+        t('confirm'),
+        t('unbanIPConfirm', { ip })
+      )
+      if (confirmed) {
+        const resp = await unbanIP(ip)
+        if (!resp.code) {
+          toast.success(t('unbanIPSuccess'))
+          fetchIPList()
+        }
+      }
     },
-  ]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [alertDialog, t]
+  )
+
+  const ipColumns: ColumnDef<BannedIPData>[] = useMemo(
+    () => [
+      {
+        id: 'select',
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && 'indeterminate')
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+      },
+      {
+        accessorKey: 'ipAddress',
+        header: t('ipAddress'),
+        cell: ({ row }) => (
+          <span className="font-mono font-medium">
+            {row.original.ipAddress}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'bannedStartAt',
+        header: t('bannedAt'),
+        cell: ({ row }) => (
+          <span title={new Date(row.original.bannedStartAt).toLocaleString()}>
+            {timeFmt(row.original.bannedStartAt, 'YYYY-M-D h:m:s')}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'bannedMinutes',
+        header: t('bannedDuration'),
+        cell: ({ row }) => (
+          <span>
+            {row.original.bannedMinutes === -1
+              ? t('forever')
+              : formatMinutes(row.original.bannedMinutes)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'reason',
+        header: t('banReason'),
+        cell: ({ row }) => (
+          <span className="text-sm">{row.original.reason || '-'}</span>
+        ),
+      },
+      {
+        accessorKey: 'operatorName',
+        header: t('operator'),
+        cell: ({ row }) => (
+          <span className="text-sm text-gray-500">
+            {row.original.operatorName || '-'}
+          </span>
+        ),
+      },
+      {
+        id: 'actions',
+        header: t('operations'),
+        cell: ({ row }) => (
+          <Button
+            variant="secondary"
+            size="sm"
+            className="m-1"
+            onClick={() => onUnbanSingleIPClick(row.original.ipAddress)}
+          >
+            {t('unban')}
+          </Button>
+        ),
+      },
+    ],
+    [onUnbanSingleIPClick, t]
+  )
 
   const table = useReactTable({
     data: list,
@@ -201,12 +342,24 @@ export default function BannedUserListPage() {
     enableRowSelection: (row) => authStore.levelCompare(row.original.role) < 0,
   })
 
-  const selectedRows = table.getSelectedRowModel().rows
+  const ipTable = useReactTable({
+    data: ipList,
+    columns: ipColumns,
+    getCoreRowModel: getCoreRowModel(),
+    onRowSelectionChange: setIpRowSelection,
+    state: {
+      rowSelection: ipRowSelection,
+    },
+    getRowId: (row) => row.ipAddress,
+  })
 
+  const selectedRows = table.getSelectedRowModel().rows
   const unbannableUsers = useMemo(
     () => [...selectedRows.map((item) => item.original)],
     [selectedRows]
   )
+
+  const selectedIPRows = ipTable.getSelectedRowModel().rows
 
   const resetParams = useCallback(() => {
     navigate({
@@ -242,7 +395,6 @@ export default function BannedUserListPage() {
           const page = Number(search.page) || 1
           const pageSize = Number(search.page_size) || DEFAULT_PAGE_SIZE
           const keywords = search.keywords || ''
-          /* const roleId = search.role_id || '' */
 
           setSearchData((state) => ({ ...state, keywords }))
 
@@ -290,6 +442,59 @@ export default function BannedUserListPage() {
     )
   )
 
+  const fetchIPList = toSync(
+    useCallback(
+      async (showLoading = false) => {
+        try {
+          if (showLoading) {
+            setLoading(true)
+          }
+          const page = Number(search.page) || 1
+          const pageSize = Number(search.page_size) || DEFAULT_PAGE_SIZE
+          const keywords = search.keywords || ''
+
+          setSearchData((state) => ({ ...state, keywords }))
+
+          const resp = await getBannedIPList(page, pageSize, keywords)
+          if (!resp.code) {
+            const { data } = resp
+            if (data.list) {
+              setIpList([...data.list])
+              setIpPageState({
+                currPage: data.page,
+                pageSize: data.pageSize,
+                total: data.total,
+                totalPage: data.totalPage,
+              })
+            } else {
+              setIpList([])
+              setIpPageState({
+                currPage: 1,
+                pageSize: data.pageSize,
+                total: 0,
+                totalPage: 0,
+              })
+            }
+            setIpRowSelection({})
+          }
+        } catch (err) {
+          console.error('get banned IP list error: ', err)
+        } finally {
+          setLoading(false)
+        }
+      },
+      [search, setLoading]
+    )
+  )
+
+  const onTabChange = (val: string) => {
+    navigate({
+      search: withSearchUpdater((prev) =>
+        updateSearchParams(prev, { tab: val }, ['page', 'keywords'])
+      ),
+    })
+  }
+
   const onResetClick = useCallback(() => {
     setSearchData({ ...defaultSearchData })
     resetParams()
@@ -310,18 +515,28 @@ export default function BannedUserListPage() {
       ),
     })
     if (!changed) {
-      fetchUserList(true)
+      if (activeTab === 'ip') {
+        fetchIPList(true)
+      } else {
+        fetchUserList(true)
+      }
     }
-  }, [navigate, searchData, fetchUserList, hasSearchParamsChanged])
+  }, [
+    navigate,
+    searchData,
+    fetchUserList,
+    fetchIPList,
+    hasSearchParamsChanged,
+    activeTab,
+  ])
 
   const onUnbanSelectedClick = useCallback(
     async (e: MouseEvent<HTMLButtonElement>) => {
       e.preventDefault()
-      /* setBanOpen(true) */
       const selectedRows = table.getSelectedRowModel().rows
       const usernames = selectedRows.map((item) => item.original.name)
 
-      if (usernames.length == 0) return
+      if (usernames.length === 0) return
 
       const confirmed = await alertDialog.confirm(
         t('confirm'),
@@ -338,30 +553,37 @@ export default function BannedUserListPage() {
     [alertDialog, table, fetchUserList, t]
   )
 
-  const fetchUserData = toSync(
-    useCallback(
-      async (username: string) => {
-        const { code, data } = await getUser(username, {}, { siteFrontId })
-        if (!code) {
-          setCurrUser(data)
-        }
-      },
-      [siteFrontId]
-    )
-  )
+  const onUnbanSelectedIPsClick = useCallback(
+    async (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault()
+      const selected = ipTable.getSelectedRowModel().rows
+      const ips = selected.map((item) => item.original.ipAddress)
 
-  const onShowDetailClick = useCallback(
-    (user: UserData) => {
-      setCurrUser(user)
-      setShowUserDetail(true)
-      fetchUserData(user.name)
+      if (ips.length === 0) return
+
+      const confirmed = await alertDialog.confirm(
+        t('confirm'),
+        t('unbanManyIPConfirm', { num: ips.length })
+      )
+      if (confirmed) {
+        const resp = await unbanManyIPs(ips)
+        if (!resp.code) {
+          toast.success(t('unbanIPSuccess'))
+          setIpRowSelection({})
+          fetchIPList()
+        }
+      }
     },
-    [fetchUserData]
+    [alertDialog, ipTable, fetchIPList, t]
   )
 
   useEffect(() => {
-    fetchUserList(true)
-  }, [locationKey])
+    if (activeTab === 'ip') {
+      fetchIPList(true)
+    } else {
+      fetchUserList(true)
+    }
+  }, [locationKey, activeTab])
 
   return (
     <BContainer
@@ -372,11 +594,21 @@ export default function BannedUserListPage() {
         describe: t('bannedUser'),
       }}
     >
+      <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
+        <Tabs value={activeTab} onValueChange={onTabChange}>
+          <TabsList>
+            <TabsTrigger value="user">{t('bannedUser')}</TabsTrigger>
+            <TabsTrigger value="ip">{t('bannedIP')}</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <Button onClick={() => setAddBanOpen(true)}>+ {t('addBan')}</Button>
+      </div>
+
       <Card className="flex flex-wrap justify-between p-2">
         <div className="flex flex-wrap">
           <Input
-            placeholder={t('username')}
-            className="w-[140px] h-[36px] mr-3"
+            placeholder={activeTab === 'ip' ? t('ipAddress') : t('username')}
+            className="w-[180px] h-[36px] mr-3"
             value={searchData.keywords}
             onChange={(e) =>
               setSearchData((state) => ({
@@ -385,7 +617,7 @@ export default function BannedUserListPage() {
               }))
             }
             onKeyUp={(e) => {
-              if (e.key == 'Enter') {
+              if (e.key === 'Enter') {
                 onSearchClick()
               }
             }}
@@ -405,22 +637,26 @@ export default function BannedUserListPage() {
           </Button>
         </div>
       </Card>
+
       <div className="my-4">
         <Badge variant="secondary">
-          {t('userCount', { num: pageState.total })}
+          {activeTab === 'ip'
+            ? t('ipCount', { num: ipPageState.total })
+            : t('userCount', { num: pageState.total })}
         </Badge>
       </div>
-      {list.length == 0 ? (
-        <Empty />
-      ) : (
-        <>
-          <Card className="mt-4 overflow-hidden">
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
+
+      {activeTab === 'ip' ? (
+        ipList.length === 0 ? (
+          <Empty />
+        ) : (
+          <>
+            <Card className="mt-4 overflow-hidden">
+              <Table>
+                <TableHeader>
+                  {ipTable.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
                         <TableHead key={header.id}>
                           {header.isPlaceholder
                             ? null
@@ -429,8 +665,84 @@ export default function BannedUserListPage() {
                                 header.getContext()
                               )}
                         </TableHead>
-                      )
-                    })}
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {ipTable.getRowModel().rows?.length ? (
+                    ipTable.getRowModel().rows.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && 'selected'}
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={ipColumns.length}
+                        className="h-24 text-center"
+                      >
+                        <Empty />
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+
+              <ListPagination pageState={ipPageState} />
+            </Card>
+
+            {selectedIPRows.length > 0 && (
+              <Card className="sticky bottom-0 mt-4 p-2">
+                <div className="flex justify-between items-center">
+                  <div className="text-sm">
+                    {t('selectedIPCount', { num: selectedIPRows.length })}
+                  </div>
+                  <div>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={onUnbanSelectedIPsClick}
+                    >
+                      {t('selectedUnbanIPCount', {
+                        num: selectedIPRows.length,
+                      })}
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            )}
+          </>
+        )
+      ) : list.length === 0 ? (
+        <Empty />
+      ) : (
+        <>
+          <Card className="mt-4 overflow-hidden">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    ))}
                   </TableRow>
                 ))}
               </TableHeader>
@@ -488,6 +800,19 @@ export default function BannedUserListPage() {
           )}
         </>
       )}
+
+      <AddBanDialog
+        open={addBanOpen}
+        onOpenChange={setAddBanOpen}
+        defaultTargetType={activeTab === 'ip' ? 'ip' : 'user'}
+        onSuccess={() => {
+          if (activeTab === 'ip') {
+            fetchIPList(true)
+          } else {
+            fetchUserList(true)
+          }
+        }}
+      />
 
       <Dialog open={showUserDetail} onOpenChange={setShowUserDetail}>
         {currUser && (

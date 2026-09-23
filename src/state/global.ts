@@ -1363,7 +1363,13 @@ export const useContextStore = create(
               targetHostname = targetHost.split(':')[0]
             }
 
-            const matchesHost = currentHostname === targetHostname
+            const isLocalDevLoopback =
+              (currentHostname === 'localhost' ||
+                currentHostname === '127.0.0.1') &&
+              (targetHostname === 'localhost' || targetHostname === '127.0.0.1')
+            const matchesHost =
+              currentHostname === targetHostname ||
+              (Boolean(import.meta.env.DEV) && isLocalDevLoopback)
             const hostMismatch = import.meta.env.DEV
               ? !matchesHost
               : targetHost !== currentHost

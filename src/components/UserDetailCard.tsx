@@ -26,13 +26,20 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 
+import AddBanDialog from '@/components/AddBanDialog'
 import BanDialog, { BanDialogRef, BanSchema } from '@/components/BanDialog'
 
-import { banUser, setUserRole, unBanUser } from '@/api/user'
+import {
+  banUser,
+  getUserLoginIPs,
+  setUserRole,
+  unBanUser,
+  unbanIP,
+} from '@/api/user'
 import { useSiteParams } from '@/hooks/use-site-params'
 import i18n from '@/i18n'
 import { useAlertDialogStore, useAuthedUserStore } from '@/state/global'
-import { Role, StringFn, UserData } from '@/types/types'
+import { Role, StringFn, UserData, UserLoginIPData } from '@/types/types'
 
 import RoleSelector from './RoleSelector'
 import { Badge } from './ui/badge'
@@ -168,6 +175,56 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
     }
   }, [user, alertDialog, onSuccess, t])
 
+  const [loginIPs, setLoginIPs] = useState<UserLoginIPData[]>([])
+  const [selectedIP, setSelectedIP] = useState<string>('')
+  const [banIPOpen, setBanIPOpen] = useState(false)
+  const [targetIPToBan, setTargetIPToBan] = useState<string>('')
+
+  const fetchLoginIPs = useCallback(async () => {
+    if (!authStore.permit('user', 'ban') || !user?.name) return
+    try {
+      const resp = await getUserLoginIPs(user.name)
+      if (!resp.code && resp.data) {
+        setLoginIPs(resp.data)
+        if (resp.data.length > 0) {
+          setSelectedIP((prev) => (prev ? prev : resp.data[0].ipAddress))
+        }
+      }
+    } catch (err) {
+      console.error('fetch login IPs error:', err)
+    }
+  }, [authStore, user?.name])
+
+  useEffect(() => {
+    void fetchLoginIPs()
+  }, [fetchLoginIPs])
+
+  const onBanIPClick = useCallback((ip: string) => {
+    setTargetIPToBan(ip)
+    setBanIPOpen(true)
+  }, [])
+
+  const onUnbanIPClick = useCallback(
+    async (ip: string) => {
+      try {
+        const confirmed = await alertDialog.confirm(
+          t('confirm'),
+          t('unbanIPConfirm', { ip })
+        )
+        if (confirmed) {
+          const resp = await unbanIP(ip)
+          if (!resp.code) {
+            toast.success(t('unbanIPSuccess'))
+            void fetchLoginIPs()
+          }
+        }
+      } catch (err) {
+        console.error('unban IP error:', err)
+      }
+    },
+    [alertDialog, fetchLoginIPs, t]
+  )
+
   useEffect(() => {
     if (selectedRole) {
       /* console.log('selected role: ', selectedRole) */
@@ -252,6 +309,107 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
               </>
             )}
           </div>
+          {authStore.permit('user', 'ban') && (
+            <div className="table-row">
+              <b className="table-cell py-2 w-24 align-top">{t('loginIP')}：</b>
+              <div className="table-cell py-2">
+                {loginIPs.length === 0 ? (
+                  <span className="text-sm text-gray-500">
+                    {t('noLoginRecords')}
+                  </span>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <select
+                        className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                        value={selectedIP}
+                        onChange={(e) => setSelectedIP(e.target.value)}
+                      >
+                        {loginIPs.map((item) => (
+                          <option key={item.ipAddress} value={item.ipAddress}>
+                            {item.ipAddress} (
+                            {t('loginTimes', { count: item.loginCount })}
+                            {item.banned ? ` - ${t('banned')}` : ''})
+                          </option>
+                        ))}
+                      </select>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        type="button"
+                        onClick={() => {
+                          if (selectedIP) {
+                            onBanIPClick(selectedIP)
+                          }
+                        }}
+                        disabled={
+                          !selectedIP ||
+                          loginIPs.find((ip) => ip.ipAddress === selectedIP)
+                            ?.banned
+                        }
+                      >
+                        {t('banSelectedIP')}
+                      </Button>
+                    </div>
+
+                    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                      {loginIPs.map((ip) => (
+                        <div
+                          key={ip.ipAddress}
+                          className="flex items-center justify-between p-2 rounded bg-gray-50 dark:bg-gray-800 text-sm border"
+                        >
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-mono font-medium">
+                              {ip.ipAddress}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {t('lastLoginAt', {
+                                time: timeFmt(ip.lastLoginAt, 'YYYY-M-D h:m'),
+                              })}
+                            </span>
+                            <span className="text-xs text-gray-400">
+                              {t('loginTimes', { count: ip.loginCount })}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            {ip.banned ? (
+                              <>
+                                <Badge
+                                  variant="destructive"
+                                  className="text-xs font-normal"
+                                >
+                                  {t('banned')}
+                                </Badge>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  type="button"
+                                  className="h-7 text-xs"
+                                  onClick={() => onUnbanIPClick(ip.ipAddress)}
+                                >
+                                  {t('unbanIP')}
+                                </Button>
+                              </>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                type="button"
+                                className="h-7 text-xs text-destructive hover:bg-destructive hover:text-white"
+                                onClick={() => onBanIPClick(ip.ipAddress)}
+                              >
+                                {t('banThisIP')}
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
         <hr className="my-4" />
         <div className="flex justify-between">
@@ -371,6 +529,18 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
         onSubmit={onBanSubmit}
         onCancel={onCancelBanAlert}
         ref={banDialogRef}
+      />
+
+      <AddBanDialog
+        open={banIPOpen}
+        onOpenChange={setBanIPOpen}
+        defaultTargetType="ip"
+        lockTargetType={true}
+        defaultTargetValue={targetIPToBan}
+        onSuccess={() => {
+          void fetchLoginIPs()
+          onSuccess()
+        }}
       />
     </>
   )

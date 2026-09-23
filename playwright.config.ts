@@ -39,7 +39,7 @@ export default defineConfig({
   webServer: {
     command: `bash -c "set -a && source ${envFile} && set +a && npm run dev:test"`,
     url: BASE_URL,
-    reuseExistingServer: false,
+    reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },
 })

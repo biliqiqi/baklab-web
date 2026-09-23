@@ -2,14 +2,18 @@ import { Options } from 'ky'
 
 import { authRequest } from '@/lib/request'
 
+import { DEFAULT_PAGE_SIZE } from '@/constants/constants'
 import {
   ActivityActionType,
   ActivityListResponse,
+  BannedIPData,
+  BannedIPListResponse,
   CustomRequestOptions,
   JSONMap,
   ResponseData,
   UserData,
   UserListResponse,
+  UserLoginIPData,
   UserSubmitResponse,
 } from '@/types/types'
 
@@ -184,6 +188,60 @@ export const unbanManyUsers = (usernames: string[]) =>
       usernames,
     },
   })
+
+export const banUserByBody = (
+  username: string,
+  duration: number,
+  reason: string
+) =>
+  authRequest.post<ResponseData<UserSubmitResponse>>(`users/ban`, {
+    json: {
+      username,
+      duration,
+      reason,
+    },
+  })
+
+export const getBannedIPList = (
+  page = 1,
+  pageSize = DEFAULT_PAGE_SIZE,
+  keywords = ''
+) =>
+  authRequest.get<ResponseData<BannedIPListResponse>>(`banned_ips`, {
+    searchParams: {
+      page,
+      pageSize,
+      keywords,
+    },
+  })
+
+export const banIP = (ip: string, duration: number, reason: string) =>
+  authRequest.post<ResponseData<BannedIPData>>(`banned_ips`, {
+    json: {
+      ip,
+      duration,
+      reason,
+    },
+  })
+
+export const unbanIP = (ip: string) =>
+  authRequest.post<ResponseData<null>>(`banned_ips/unban`, {
+    json: {
+      ip,
+    },
+  })
+
+export const unbanManyIPs = (ips: string[]) =>
+  authRequest.post<ResponseData<null>>(`banned_ips/unban_many`, {
+    json: {
+      ips,
+    },
+  })
+
+export const getUserLoginIPs = (username: string) =>
+  authRequest.get<ResponseData<UserLoginIPData[]>>(
+    `users/${username}/login_ips`
+  )
 
 export const saveUserUISettings = (settings: JSONMap) =>
   authRequest.post<ResponseData<null>>(`save_ui_settings`, {

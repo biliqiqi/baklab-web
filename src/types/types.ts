@@ -389,6 +389,8 @@ export type ActivityAction =
   | 'toggle_hide_history' // Toggle hide history
   | 'ban_user' // Ban user
   | 'unban_user' // Unban user
+  | 'ban_ip' // Ban IP
+  | 'unban_ip' // Unban IP
   | 'create_category' // Create category
   | 'edit_category' // Edit category
   | 'delete_category' // Delete category
@@ -413,6 +415,8 @@ export type ActivityTargetModel =
   | 'category'
   | 'role'
   | 'site'
+  | 'ranking'
+  | 'ip'
   | 'empty'
 
 // eslint-disable-next-line

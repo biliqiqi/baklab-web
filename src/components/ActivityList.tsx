@@ -2,6 +2,7 @@ import { Trans, useTranslation } from 'react-i18next'
 
 import { timeAgo } from '@/lib/dayjs-custom'
 import { Link } from '@/lib/router'
+import { formatMinutes } from '@/lib/utils'
 
 import { buildRoutePath } from '@/hooks/use-route-match'
 import i18n from '@/i18n'
@@ -148,6 +149,19 @@ const ActivityTargetLink = ({ activity: item }: ActivityActionTextProps) => {
         <SiteLink to="/" siteFrontId={targetFrontId}>
           {siteRoute}
         </SiteLink>
+      )
+    }
+    case 'ip': {
+      const targetIdStr = String(item.targetId)
+      if (targetIdStr.includes(',')) {
+        return <span className="font-mono">{targetIdStr}</span>
+      }
+      return (
+        <Link
+          to={`/manage/banned_users?tab=ip&keywords=${encodeURIComponent(targetIdStr)}`}
+        >
+          {targetIdStr}
+        </Link>
       )
     }
     default:
@@ -536,6 +550,28 @@ const ActivityExtraDetail = ({ activity: item }: ActivityExtraDetailProps) => {
           {item.extraInfo.reason || '-'}
         </div>
       </div>
+      {item.extraInfo.duration !== undefined && (
+        <div className="flex mt-1">
+          <div className="flex-shrink-0 w-[60px]">
+            <b>{t('bannedDuration')}：</b>
+          </div>
+          <div>
+            {item.extraInfo.duration === -1
+              ? t('forever')
+              : formatMinutes(Number(item.extraInfo.duration))}
+          </div>
+        </div>
+      )}
+      {Array.isArray(item.extraInfo.ips) && item.extraInfo.ips.length > 0 && (
+        <div className="flex mt-1">
+          <div className="flex-shrink-0 w-[60px]">
+            <b>{t('ipAddress')}：</b>
+          </div>
+          <div className="font-mono">
+            {(item.extraInfo.ips as string[]).join(', ')}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

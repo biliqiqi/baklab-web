@@ -437,6 +437,16 @@ function RootComponent() {
       </SettingsLayout>
     ) : null
 
+  useEffect(() => {
+    if (initialized) {
+      requestAnimationFrame(() => {
+        if (typeof window !== 'undefined' && window.hideCover) {
+          window.hideCover()
+        }
+      })
+    }
+  }, [initialized])
+
   return (
     <>
       {initialized ? (

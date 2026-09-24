@@ -241,7 +241,7 @@ const getBaseDomain = (hostname: string) => {
 
 export const isInnerURL = (url: string) => {
   try {
-    const target = new URL(url)
+    const target = new URL(url, window.location.origin)
     const current = window.location
 
     if (target.origin === current.origin) return true

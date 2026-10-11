@@ -808,7 +808,7 @@ export const useNotificationStore = create<NotificationState>((set) => ({
   fetchUnread: async () => {
     const resp = await getNotificationUnreadCount()
     /* console.log('notification unread resp: ', resp) */
-    if (!resp.code) {
+    if (resp.code === 0 && typeof resp.data?.total === 'number') {
       set(() => ({ unreadCount: resp.data.total }))
       return resp.data.total
     }
@@ -1016,7 +1016,7 @@ export const useSiteStore = create(
         // const authStore = useAuthedUserStore.getState()
         const { code, data } = await getJoinedSiteList()
 
-        if (!code && data.list) {
+        if (code === 0 && Array.isArray(data?.list)) {
           siteStore.updateSiteList([...data.list])
         } else {
           siteStore.updateSiteList([])

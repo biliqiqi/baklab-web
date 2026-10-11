@@ -7,18 +7,9 @@ import {
   stringifySearchWith,
   useRouterState,
 } from '@tanstack/react-router'
-import {
-  startTransition,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
-import { useShallow } from 'zustand/react/shallow'
+import { useCallback, useEffect, useMemo } from 'react'
 
 import { Toaster } from './components/ui/sonner'
-
-import BLoader from './components/base/BLoader'
 
 // Page imports
 import OAuthCallback from './components/OAuthCallback'
@@ -68,10 +59,11 @@ import {
 } from './constants/constants'
 import { PermissionAction, PermissionModule } from './constants/types'
 import { useIsMobile } from './hooks/use-mobile'
+import { useWindowFocusRefresh } from './hooks/use-window-focus-refresh'
 import './i18n'
 import { setFaviconBadge } from './lib/favicon'
 import { toSync } from './lib/fire-and-forget'
-import { refreshAuthState, refreshToken } from './lib/request'
+import { refreshAuthState } from './lib/request'
 import { useNavigate } from './lib/router'
 import { setRootFontSize } from './lib/utils'
 import {
@@ -179,35 +171,8 @@ const connectEvents = () => {
 }
 
 function RootComponent() {
-  const [initialized, setInitialized] = useState(false)
-
-  const { currUsername, authToken, updateBaseData, updateUserData } =
-    useAuthedUserStore(
-      useShallow(
-        ({
-          username,
-          authToken,
-          isLogined,
-          updateBaseData,
-          updateUserData,
-        }) => ({
-          currUsername: username,
-          authToken,
-          isLogined,
-          updateBaseData,
-          updateUserData,
-        })
-      )
-    )
-
+  const currUsername = useAuthedUserStore((state) => state.username)
   const setEventSource = useEventSourceStore((state) => state.setEventSource)
-  const eventSource = useEventSourceStore((state) => state.eventSource)
-
-  const { fetchSiteList } = useSiteStore(
-    useShallow(({ fetchSiteList }) => ({
-      fetchSiteList,
-    }))
-  )
 
   const { theme, setTheme } = useTheme()
 
@@ -222,9 +187,7 @@ function RootComponent() {
   const setDefaultFontSize = useDefaultFontSizeStore(
     (state) => state.setDefaultFontSize
   )
-  const { forceState, forceUpdate } = useForceUpdate(
-    useShallow(({ forceState, forceUpdate }) => ({ forceState, forceUpdate }))
-  )
+  const forceState = useForceUpdate((state) => state.forceState)
   const routerLocation = useRouterState({
     select: (s) => s.location,
   })
@@ -235,25 +198,6 @@ function RootComponent() {
     routerLocation.maskedLocation.pathname
       ? routerLocation.maskedLocation.pathname
       : null
-
-  const refreshTokenSync = toSync(
-    useCallback(
-      async (refreshUser: boolean) => {
-        const {
-          data: { token, username, userID, user },
-          code,
-        } = await refreshToken(refreshUser)
-
-        if (!code) {
-          updateBaseData(token, username, userID)
-          if (refreshUser) {
-            updateUserData(user)
-          }
-        }
-      },
-      [updateBaseData, updateUserData]
-    )
-  )
 
   const handleSettingsModalClose = useCallback(() => {
     navigateRouter(-1)
@@ -279,7 +223,8 @@ function RootComponent() {
   )
 
   const reconnectEventSource = useCallback(() => {
-    if (eventSource && eventSource.readyState === EventSource.OPEN) {
+    const { eventSource } = useEventSourceStore.getState()
+    if (eventSource && eventSource.readyState !== EventSource.CLOSED) {
       return
     }
 
@@ -290,82 +235,19 @@ function RootComponent() {
 
     const ev = connectEvents()
     setEventSource(ev)
-  }, [eventSource, setEventSource])
+  }, [setEventSource])
 
   useEffect(() => {
     const ev = connectEvents()
     setEventSource(ev)
 
     return () => {
+      useEventSourceStore.getState().eventSource?.close()
       setEventSource(null)
-      ev.close()
     }
   }, [currUsername, setEventSource])
 
-  useEffect(() => {
-    let debounceTimer: NodeJS.Timeout
-
-    window.onfocus = () => {
-      clearTimeout(debounceTimer)
-      debounceTimer = setTimeout(() => {
-        startTransition(() => {
-          reconnectEventSource()
-          refreshTokenSync(true)
-          fetchNotiCount()
-        })
-      }, 1000)
-    }
-
-    return () => {
-      window.onfocus = null
-      clearTimeout(debounceTimer)
-    }
-  }, [refreshTokenSync, reconnectEventSource])
-
-  const fetchContext = useContextStore((state) => state.fetchContext)
-
-  useEffect(() => {
-    const initializeApp = async () => {
-      await fetchContext()
-
-      let isLoggedIn = false
-
-      if (!authToken) {
-        try {
-          const {
-            data: { token, username, userID, user },
-            code,
-          } = await refreshToken(true)
-
-          if (!code) {
-            updateBaseData(token, username, userID)
-            updateUserData(user)
-            isLoggedIn = true
-          }
-        } catch (error) {
-          console.error('Failed to refresh token:', error)
-        }
-      } else {
-        isLoggedIn = true
-      }
-
-      if (isLoggedIn) {
-        fetchNotiCount()
-        toSync(fetchSiteList)()
-      }
-
-      setInitialized(true)
-    }
-
-    void initializeApp()
-  }, [
-    authToken,
-    fetchSiteList,
-    fetchContext,
-    forceUpdate,
-    updateBaseData,
-    updateUserData,
-  ])
+  useWindowFocusRefresh(reconnectEventSource)
 
   useEffect(() => {
     const defaultFontSize = isMobile ? MOBILE_FONT_SIZE : DESKTOP_FONT_SIZE
@@ -438,27 +320,16 @@ function RootComponent() {
     ) : null
 
   useEffect(() => {
-    if (initialized) {
-      requestAnimationFrame(() => {
-        if (typeof window !== 'undefined' && window.hideCover) {
-          window.hideCover()
-        }
-      })
-    }
-  }, [initialized])
+    const frame = requestAnimationFrame(() => {
+      window.hideCover?.()
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [])
 
   return (
     <>
-      {initialized ? (
-        <>
-          <Outlet key={forceState} />
-          {settingsModal}
-        </>
-      ) : (
-        <div className="flex h-screen items-center justify-center">
-          <BLoader className="-mt-8" />
-        </div>
-      )}
+      <Outlet key={forceState} />
+      {settingsModal}
       <Toaster
         theme={theme}
         position="top-center"

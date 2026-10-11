@@ -1,5 +1,4 @@
 import ky, { AfterResponseHook, BeforeRequestHook, Options } from 'ky'
-import { mergeAll } from 'remeda'
 import { toast } from 'sonner'
 
 import { API_HOST, API_PATH_PREFIX } from '@/constants/constants'
@@ -40,10 +39,9 @@ const defaultOptions: Options = {
     Accept: 'application/json',
     'Content-Type': 'application/json',
   },
-  // retry: {
-  //   limit: 2,
-  //   statusCodes: [401],
-  // },
+  retry: {
+    statusCodes: [408, 413, 500, 502, 503, 504],
+  },
   hooks: {
     beforeRequest: [addLanguageHeader],
     afterResponse: [
@@ -73,10 +71,14 @@ const defaultOptions: Options = {
           const createSuccessResponse = (
             responseData: ResponseData<unknown> | null
           ) =>
-            new Response(JSON.stringify(responseData || {}), {
-              status: 200,
-              headers: { 'Content-Type': 'application/json' },
-            })
+            responseData &&
+            typeof responseData.code === 'number' &&
+            responseData.code !== 0
+              ? new Response(JSON.stringify(responseData), {
+                  status: 200,
+                  headers: { 'Content-Type': 'application/json' },
+                })
+              : respDup
 
           const handleErrorWithToast = (
             message: string,
@@ -88,11 +90,6 @@ const defaultOptions: Options = {
 
           switch (true) {
             case status == 400:
-              console.log('Handling 400 error:', {
-                data,
-                message: data?.message,
-                code: data?.code,
-              })
               return handleErrorWithToast(
                 data?.message || i18n.t('badRequestError'),
                 data
@@ -109,9 +106,11 @@ const defaultOptions: Options = {
                 data
               )
             case status == 429:
-              return handleErrorWithToast(i18n.t('tooManyOperations'), data)
+              toast.error(i18n.t('tooManyOperations'))
+              return respDup
             case status >= 500 && status <= 599:
-              return handleErrorWithToast(i18n.t('internalServerError'), data)
+              toast.error(i18n.t('internalServerError'))
+              return respDup
             default:
               if (data && data.code > 1) {
                 return handleErrorWithToast(data.message, data)
@@ -136,7 +135,11 @@ const addAuthToHeaders: BeforeRequestHook = (req, _opt) => {
 
 const refreshTokenHook: AfterResponseHook = async (req, _opt, resp) => {
   if (!resp.ok && resp.status == 401 && !isRefreshRequest(req)) {
-    const refreshSuccess = await refreshAuthState()
+    const currentToken = useAuthedUserStore.getState().authToken
+    const tokenAlreadyRefreshed =
+      currentToken &&
+      req.headers.get('Authorization') !== `Bearer ${currentToken}`
+    const refreshSuccess = tokenAlreadyRefreshed || (await refreshAuthState())
 
     if (refreshSuccess) {
       // Clone the original request and add the new token
@@ -147,7 +150,7 @@ const refreshTokenHook: AfterResponseHook = async (req, _opt, resp) => {
       }
 
       // Retry the original request with the new token
-      return fetch(newReq)
+      return instance(newReq, { retry: 0, throwHttpErrors: false })
     }
   }
 
@@ -336,30 +339,38 @@ export const refreshToken = async (refresUser = false) => {
   })
 }
 
-export const refreshAuthState = async (refreshUser = false) => {
-  try {
-    const {
-      data: { token, username, userID, user },
-      code,
-    } = await refreshToken(refreshUser)
+let authRefreshPromise: Promise<boolean> | null = null
+let authRefreshIncludesUser = false
 
-    if (!code) {
-      const updateBaseData = useAuthedUserStore.getState().updateBaseData
-      updateBaseData(token, username, userID)
-      if (refreshUser) {
-        const updateUserData = useAuthedUserStore.getState().updateUserData
-        updateUserData(user)
-      }
-      return Promise.resolve(true)
-    } else {
-      // Refresh token failed with error code
-      return Promise.resolve(false)
+export const refreshAuthState = (refreshUser = false): Promise<boolean> => {
+  if (authRefreshPromise) {
+    if (refreshUser && !authRefreshIncludesUser) {
+      return authRefreshPromise.then((success) =>
+        success ? refreshAuthState(true) : false
+      )
     }
-  } catch (e) {
-    console.error('refresh auth state error: ', e)
-    // Resolve promise to prevent infinite waiting
-    return Promise.resolve(false)
+    return authRefreshPromise
   }
+
+  authRefreshIncludesUser = refreshUser
+  authRefreshPromise = (async () => {
+    try {
+      const { data, code } = await refreshToken(refreshUser)
+      if (code !== 0 || !data?.token) return false
+
+      const { token, username, userID, user } = data
+      const { updateBaseData, updateUserData } = useAuthedUserStore.getState()
+      updateBaseData(token, username, userID)
+      if (refreshUser) updateUserData(user)
+      return true
+    } catch (e) {
+      console.error('refresh auth state error: ', e)
+      return false
+    } finally {
+      authRefreshPromise = null
+    }
+  })()
+  return authRefreshPromise
 }
 
 // eslint-disable-next-line
@@ -367,17 +378,7 @@ export const authRequest = <T = any>(
   url: string,
   kyOptions?: Options,
   custom?: CustomRequestOptions
-): Promise<T> => {
-  const kyOpts: Options = mergeAll([
-    {},
-    makeAuthRequestConfigs(custom),
-    kyOptions || {},
-  ])
-
-  // console.log('merged options: ', kyOpts)
-
-  return request(url, kyOpts, custom, true)
-}
+): Promise<T> => request(url, kyOptions, custom, true)
 
 // eslint-disable-next-line
 authRequest.get = <T = any>(

@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { useShallow } from 'zustand/react/shallow'
+import { useEffect } from 'react'
 
 import { Toaster } from './components/ui/sonner.tsx'
 
@@ -15,22 +14,18 @@ import {
   RIGHT_SIDEBAR_SETTINGS_TYPE_KEY,
   RIGHT_SIDEBAR_STATE_KEY,
 } from './constants/constants.ts'
+import { useAppInitialization } from './hooks/use-app-initialization'
 import { useIsMobile } from './hooks/use-mobile.tsx'
 import './i18n'
 import { setFaviconBadge } from './lib/favicon.ts'
-import { toSync } from './lib/fire-and-forget.ts'
-import { refreshToken } from './lib/request.ts'
 import { setRootFontSize } from './lib/utils.ts'
 import {
   getLocalUserUISettings,
-  useAuthedUserStore,
-  useContextStore,
   useDefaultFontSizeStore,
   useForceUpdate,
   useNotificationStore,
   useRightSidebarStore,
   useSidebarStore,
-  useSiteStore,
   useUserUIStore,
 } from './state/global.ts'
 import { SettingsType } from './types/types.ts'
@@ -38,32 +33,8 @@ import { SettingsType } from './types/types.ts'
 const DESKTOP_FONT_SIZE = '16'
 const MOBILE_FONT_SIZE = '14'
 
-const fetchNotiCount = toSync(async () => {
-  const notiState = useNotificationStore.getState()
-  const authState = useAuthedUserStore.getState()
-
-  if (authState.isLogined()) {
-    await notiState.fetchUnread()
-  }
-})
-
 const App = () => {
-  const [initialized, setInitialized] = useState(false)
-
-  /* const updateToastState = useToastStore((state) => state.update) */
-  const { authToken, updateBaseData, updateUserData } = useAuthedUserStore(
-    useShallow(({ authToken, updateBaseData, updateUserData }) => ({
-      authToken,
-      updateBaseData,
-      updateUserData,
-    }))
-  )
-
-  const { fetchSiteList } = useSiteStore(
-    useShallow(({ fetchSiteList }) => ({
-      fetchSiteList,
-    }))
-  )
+  const initialized = useAppInitialization()
 
   const { theme, setTheme } = useTheme()
 
@@ -78,56 +49,7 @@ const App = () => {
   const setDefaultFontSize = useDefaultFontSizeStore(
     (state) => state.setDefaultFontSize
   )
-  const { forceState, forceUpdate } = useForceUpdate(
-    useShallow(({ forceState, forceUpdate }) => ({ forceState, forceUpdate }))
-  )
-
-  const fetchContext = useContextStore((state) => state.fetchContext)
-
-  useEffect(() => {
-    const initializeApp = async () => {
-      await fetchContext()
-
-      let isLoggedIn = false
-
-      if (!authToken) {
-        try {
-          const {
-            data: { token, username, userID, user },
-            code,
-          } = await refreshToken(true)
-
-          if (!code) {
-            updateBaseData(token, username, userID)
-            updateUserData(user)
-            isLoggedIn = true
-          }
-        } catch (error) {
-          console.error('Failed to refresh token:', error)
-          // Continue initialization even if token refresh fails
-        }
-      } else {
-        isLoggedIn = true
-      }
-
-      // Only fetch authenticated data if user is logged in
-      if (isLoggedIn) {
-        fetchNotiCount()
-        toSync(fetchSiteList)()
-      }
-
-      setInitialized(true)
-    }
-
-    void initializeApp()
-  }, [
-    authToken,
-    fetchSiteList,
-    fetchContext,
-    forceUpdate,
-    updateBaseData,
-    updateUserData,
-  ])
+  const forceState = useForceUpdate((state) => state.forceState)
 
   useEffect(() => {
     const defaultFontSize = isMobile ? MOBILE_FONT_SIZE : DESKTOP_FONT_SIZE

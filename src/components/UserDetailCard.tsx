@@ -74,6 +74,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
   onSuccess = noop,
 }) => {
   const authStore = useAuthedUserStore()
+  const canBan = useAuthedUserStore((state) => state.permit('user', 'ban'))
   const [alertOpen, setAlertOpen] = useState(false)
   const [banOpen, setBanOpen] = useState(false)
   const [selectedRole, setSelectedRole] = useState<Role | null>(user.role)
@@ -181,7 +182,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
   const [targetIPToBan, setTargetIPToBan] = useState<string>('')
 
   const fetchLoginIPs = useCallback(async () => {
-    if (!authStore.permit('user', 'ban') || !user?.name) return
+    if (!canBan || !user?.name) return
     try {
       const resp = await getUserLoginIPs(user.name)
       if (!resp.code && resp.data) {
@@ -193,7 +194,7 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
     } catch (err) {
       console.error('fetch login IPs error:', err)
     }
-  }, [authStore, user?.name])
+  }, [canBan, user?.name])
 
   useEffect(() => {
     void fetchLoginIPs()

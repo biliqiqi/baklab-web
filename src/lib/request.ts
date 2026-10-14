@@ -1,4 +1,9 @@
-import ky, { AfterResponseHook, BeforeRequestHook, Options } from 'ky'
+import ky, {
+  AfterResponseHook,
+  BeforeRequestHook,
+  HTTPError,
+  Options,
+} from 'ky'
 import { toast } from 'sonner'
 
 import { API_HOST, API_PATH_PREFIX } from '@/constants/constants'
@@ -16,9 +21,9 @@ import {
   ResponseData,
 } from '@/types/types'
 
-const isRefreshRequest: (x: Request) => boolean = (req) =>
-  req.method.toLowerCase() == 'get' &&
-  req.url == `${API_HOST}${API_PATH_PREFIX}refresh_token`
+// A token refreshed within this window cannot have expired yet, so a 401 in
+// this window is not fixable by refreshing again
+const AUTH_REFRESH_COOLDOWN_MS = 10_000
 
 // let siteFrontId = ''
 
@@ -45,7 +50,7 @@ const defaultOptions: Options = {
   hooks: {
     beforeRequest: [addLanguageHeader],
     afterResponse: [
-      async (req, _opt, resp) => {
+      async (_req, _opt, resp) => {
         // console.log('response headers: ', resp.headers.get(''))
         const status = resp.status
         const respDup = resp.clone()
@@ -95,10 +100,7 @@ const defaultOptions: Options = {
                 data
               )
             case status == 401:
-              // If refresh request failed, refresh token is expired, logout for re-signin
-              if (isRefreshRequest(req)) {
-                useAuthedUserStore.getState().logout()
-              }
+              // Token refresh and logout are handled by refreshTokenHook and refreshAuthState
               break
             case status == 403:
               return handleErrorWithToast(
@@ -134,12 +136,16 @@ const addAuthToHeaders: BeforeRequestHook = (req, _opt) => {
 }
 
 const refreshTokenHook: AfterResponseHook = async (req, _opt, resp) => {
-  if (!resp.ok && resp.status == 401 && !isRefreshRequest(req)) {
+  if (!resp.ok && resp.status == 401) {
     const currentToken = useAuthedUserStore.getState().authToken
     const tokenAlreadyRefreshed =
       currentToken &&
       req.headers.get('Authorization') !== `Bearer ${currentToken}`
-    const refreshSuccess = tokenAlreadyRefreshed || (await refreshAuthState())
+    const canRefresh =
+      authRefreshPromise !== null ||
+      Date.now() - lastAuthRefreshAt >= AUTH_REFRESH_COOLDOWN_MS
+    const refreshSuccess =
+      tokenAlreadyRefreshed || (canRefresh && (await refreshAuthState()))
 
     if (refreshSuccess) {
       // Clone the original request and add the new token
@@ -341,6 +347,7 @@ export const refreshToken = async (refresUser = false) => {
 
 let authRefreshPromise: Promise<boolean> | null = null
 let authRefreshIncludesUser = false
+let lastAuthRefreshAt = 0
 
 export const refreshAuthState = (refreshUser = false): Promise<boolean> => {
   if (authRefreshPromise) {
@@ -364,9 +371,16 @@ export const refreshAuthState = (refreshUser = false): Promise<boolean> => {
       if (refreshUser) updateUserData(user)
       return true
     } catch (e) {
+      // Refresh token is expired or invalid, logout for re-signin
+      if (e instanceof HTTPError && e.response.status == 401) {
+        const authState = useAuthedUserStore.getState()
+        if (authState.authToken) authState.logout()
+        return false
+      }
       console.error('refresh auth state error: ', e)
       return false
     } finally {
+      lastAuthRefreshAt = Date.now()
       authRefreshPromise = null
     }
   })()

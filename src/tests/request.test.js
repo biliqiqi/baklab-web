@@ -29,7 +29,13 @@ const authData = {
   user: null,
 }
 
+// Each test starts past the previous test's auth refresh cooldown
+let now = Date.now()
+
 beforeEach(() => {
+  now += 60_000
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(now)
   useAuthedUserStore.setState({ ...emptyAuthedUserData })
   useToastStore.setState({ silence: true })
   vi.stubGlobal('fetch', vi.fn())
@@ -37,6 +43,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  vi.useRealTimers()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
@@ -180,4 +187,47 @@ test('a user data refresh waits for an existing token-only refresh', async () =>
   expect(
     new URL(fetch.mock.calls[1][0].url).searchParams.get('refresh_data')
   ).toBe('1')
+})
+
+const refreshCalls = () =>
+  fetch.mock.calls.filter(([req]) => req.url.includes('/refresh_token'))
+
+test('an expired refresh token logs out even when refreshing user data', async () => {
+  useAuthedUserStore.getState().updateBaseData('old-token', 'tester', '1')
+  fetch.mockResolvedValue(json({ code: 1 }, 401))
+
+  await expect(refreshAuthState(true)).resolves.toBe(false)
+  expect(useAuthedUserStore.getState().isLogined()).toBe(false)
+})
+
+test('unauthorized requests after a failed refresh do not refresh again within the cooldown', async () => {
+  useAuthedUserStore.getState().updateBaseData('old-token', 'tester', '1')
+  fetch.mockResolvedValue(json({ code: 1 }, 401))
+
+  await expect(authRequest.get('context')).rejects.toBeInstanceOf(HTTPError)
+  await expect(authRequest.get('context')).rejects.toBeInstanceOf(HTTPError)
+  await expect(authRequest.get('context')).rejects.toBeInstanceOf(HTTPError)
+  expect(refreshCalls()).toHaveLength(1)
+  expect(useAuthedUserStore.getState().isLogined()).toBe(false)
+
+  vi.setSystemTime(now + 10_000)
+  await expect(authRequest.get('context')).rejects.toBeInstanceOf(HTTPError)
+  expect(refreshCalls()).toHaveLength(2)
+})
+
+test('an endpoint that stays unauthorized with a fresh token does not trigger repeated refreshes', async () => {
+  useAuthedUserStore.getState().updateBaseData('old-token', 'tester', '1')
+  fetch.mockImplementation((req) =>
+    Promise.resolve(
+      req.url.includes('/refresh_token')
+        ? json({ code: 0, data: authData })
+        : json({ code: 1 }, 401)
+    )
+  )
+
+  for (let i = 0; i < 5; i++) {
+    await expect(authRequest.get('context')).rejects.toBeInstanceOf(HTTPError)
+  }
+  expect(refreshCalls()).toHaveLength(1)
+  expect(fetch).toHaveBeenCalledTimes(7)
 })

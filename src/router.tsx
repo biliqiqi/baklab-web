@@ -591,12 +591,6 @@ const notCompatibleRoute = createRoute({
   component: NotCompatiblePage,
 })
 
-const notFoundRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '*',
-  component: NotFoundPage,
-})
-
 // Auth routes
 const signinRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -1145,7 +1139,6 @@ const routeTree = rootRoute.addChildren([
   zhandianSiteManageArticleReviewRoute,
   zhandianSiteManageBlockedWordsRoute,
   notCompatibleRoute,
-  notFoundRoute,
 ])
 
 const simpleStringifySearch = stringifySearchWith(JSON.stringify)
@@ -1167,6 +1160,8 @@ export const router = createRouter({
   scrollRestoration: false,
   stringifySearch: simpleStringifySearch,
   parseSearch: simpleParseSearch,
+  // Unmatched paths render this instead of TanStack's bare <p>Not Found</p>
+  defaultNotFoundComponent: NotFoundPage,
 })
 
 // Register router for type safety

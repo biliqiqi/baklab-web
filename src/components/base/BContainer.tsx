@@ -46,7 +46,7 @@ import {
   useSiteUIStore,
   useUserUIStore,
 } from '@/state/global'
-import { Category, FrontCategory, SITE_VISIBLE, Site } from '@/types/types'
+import { FrontCategory, SITE_VISIBLE } from '@/types/types'
 
 import ArticleHistory from '../ArticleHistory'
 import CategorySelectionModal from '../CategorySelectionModal'
@@ -608,21 +608,17 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
 
     useEffect(() => {
       if (siteFrontId) {
+        void useCategoryStore.getState().fetchCategoryList(siteFrontId)
+      }
+    }, [siteFrontId])
+
+    useEffect(() => {
+      if (siteFrontId) {
         const needsFetch = !currSite || currSite.frontId !== siteFrontId
 
         if (needsFetch) {
           toSync(async () => {
-            const promises: (
-              | Promise<Site | null>
-              | Promise<Category[]>
-              | Promise<void>
-            )[] = [
-              fetchSiteData(siteFrontId),
-              fetchCategoryList(siteFrontId),
-              fetchReactOptions(),
-            ]
-
-            await Promise.all(promises)
+            await Promise.all([fetchSiteData(siteFrontId), fetchReactOptions()])
           })()
         }
       } else {
@@ -634,7 +630,6 @@ const BContainer = React.forwardRef<HTMLDivElement, BContainerProps>(
       currSite,
       fetchSiteData,
       updateCurrSite,
-      fetchCategoryList,
       clearCategories,
       fetchReactOptions,
     ])
